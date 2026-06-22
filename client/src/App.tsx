@@ -4,34 +4,86 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home";
+import Feed from "./pages/Feed";
+import Plants from "./pages/Plants";
+import PlantCreate from "./pages/PlantCreate";
+import PlantDetail from "./pages/PlantDetail";
+import Aquariums from "./pages/Aquariums";
+import AquariumCreate from "./pages/AquariumCreate";
+import AquariumDetail from "./pages/AquariumDetail";
+import Profile from "./pages/Profile";
+import Discover from "./pages/Discover";
+import AiAssistant from "./pages/AiAssistant";
+import Notifications from "./pages/Notifications";
+import Knowledge from "./pages/Knowledge";
+import KnowledgeArticle from "./pages/KnowledgeArticle";
+import Ranking from "./pages/Ranking";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Home} />
+      <Route path="/feed">
+        <AppLayout><Feed /></AppLayout>
+      </Route>
+      <Route path="/plants">
+        <AppLayout><Plants /></AppLayout>
+      </Route>
+      <Route path="/plants/new">
+        <AppLayout><PlantCreate /></AppLayout>
+      </Route>
+      <Route path="/plants/:id">
+        {(params) => <AppLayout><PlantDetail id={Number(params.id)} /></AppLayout>}
+      </Route>
+      <Route path="/aquariums">
+        <AppLayout><Aquariums /></AppLayout>
+      </Route>
+      <Route path="/aquariums/new">
+        <AppLayout><AquariumCreate /></AppLayout>
+      </Route>
+      <Route path="/aquariums/:id">
+        {(params) => <AppLayout><AquariumDetail id={Number(params.id)} /></AppLayout>}
+      </Route>
+      <Route path="/profile">
+        <AppLayout><Profile /></AppLayout>
+      </Route>
+      <Route path="/profile/:id">
+        {(params) => <AppLayout><Profile userId={Number(params.id)} /></AppLayout>}
+      </Route>
+      <Route path="/discover">
+        <AppLayout><Discover /></AppLayout>
+      </Route>
+      <Route path="/knowledge">
+        <AppLayout><Knowledge /></AppLayout>
+      </Route>
+      <Route path="/knowledge/:slug">
+        {(params) => <AppLayout><KnowledgeArticle slug={String(params.slug)} /></AppLayout>}
+      </Route>
+      <Route path="/ranking">
+        <AppLayout><Ranking /></AppLayout>
+      </Route>
+      <Route path="/ai">
+        <AppLayout><AiAssistant /></AppLayout>
+      </Route>
+      <Route path="/notifications">
+        <AppLayout><Notifications /></AppLayout>
+      </Route>
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
+          <PwaInstallPrompt />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

@@ -1,0 +1,52 @@
+{
+  "name": "BlackwaterLeaf",
+  "short_name": "BlackwaterLeaf",
+  "description": "Deine Sammlung. Perfekt dokumentiert. Community für Aquaristik & Pflanzen.",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0a0f0d",
+  "theme_color": "#0a0f0d",
+  "lang": "de",
+  "categories": ["lifestyle", "social", "utilities"],
+  "icons": [
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png",
+      "sizes": "1440x2560",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "BlackwaterLeaf – Community Feed"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Feed",
+      "short_name": "Feed",
+      "description": "Community Feed öffnen",
+      "url": "/feed",
+      "icons": [{ "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "KI-Assistent",
+      "short_name": "KI",
+      "description": "KI-Assistent öffnen",
+      "url": "/ai",
+      "icons": [{ "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png", "sizes": "512x512" }]
+    }
+  ]
+}

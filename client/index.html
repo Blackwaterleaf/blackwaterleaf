@@ -1,26 +1,59 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>BlackwaterLeaf</title>    
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <title>BlackwaterLeaf – Das Betriebssystem für Pflanzen & Aquarien</title>
+    <meta name="description" content="Dokumentiere deine Pflanzen und Aquarien, erhalte KI-Unterstützung und tausche dich mit der Community aus." />
+    <meta name="keywords" content="Aquaristik, Pflanzen, Aquarium, Community, Pflege, KI" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color (mobile browser chrome) -->
+    <meta name="theme-color" content="#0a0f0d" />
+    <meta name="msapplication-TileColor" content="#0a0f0d" />
+    <meta name="msapplication-navbutton-color" content="#0a0f0d" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="BlackwaterLeaf" />
+    <link rel="apple-touch-icon" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png" />
+    <link rel="apple-touch-startup-image" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/icon-512-NTjZFdxvPhntDGr3yaoXnK.png" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="BlackwaterLeaf – Das Betriebssystem für Pflanzen & Aquarien" />
+    <meta property="og:description" content="Dokumentiere deine Pflanzen und Aquarien, erhalte KI-Unterstützung und tausche dich mit der Community aus." />
+    <meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png" />
+
+    <!-- Mobile: prevent text size adjustment -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%">
+    </script>
   </body>
-
 </html>

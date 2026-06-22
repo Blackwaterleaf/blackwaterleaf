@@ -90,3 +90,70 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+// ─── Gamification helpers ────────────────────────────────────────────────────
+import { userStats, userBadges, badges } from "../drizzle/schema";
+
+/** Level thresholds (cumulative XP needed to reach a level). */
+export const LEVELS: { level: number; minXp: number; title: string }[] = [
+  { level: 1, minXp: 0, title: "Anfänger" },
+  { level: 2, minXp: 100, title: "Pflanzenfreund" },
+  { level: 3, minXp: 300, title: "Sammler" },
+  { level: 4, minXp: 700, title: "Experte" },
+  { level: 5, minXp: 1500, title: "Legende" },
+];
+
+export function levelForXp(xp: number) {
+  let current = LEVELS[0];
+  for (const l of LEVELS) {
+    if (xp >= l.minXp) current = l;
+  }
+  const next = LEVELS.find((l) => l.minXp > xp);
+  return {
+    level: current.level,
+    title: current.title,
+    minXp: current.minXp,
+    nextLevelXp: next ? next.minXp : null,
+    nextTitle: next ? next.title : null,
+  };
+}
+
+/** Ensure a user_stats row exists; returns it. */
+export async function ensureUserStats(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
+  if (existing.length > 0) return existing[0];
+  await db.insert(userStats).values({ userId }).onDuplicateKeyUpdate({ set: { userId } });
+  const created = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1);
+  return created[0] ?? null;
+}
+
+/** Award XP and recompute level. Returns updated stats. */
+export async function awardXp(userId: number, amount: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const stats = await ensureUserStats(userId);
+  if (!stats) return null;
+  const newXp = stats.xp + amount;
+  const newLevel = levelForXp(newXp).level;
+  await db.update(userStats)
+    .set({ xp: newXp, level: newLevel, points: stats.points + amount })
+    .where(eq(userStats.userId, userId));
+  return { ...stats, xp: newXp, level: newLevel, points: stats.points + amount };
+}
+
+/** Grant a badge by code if the user does not already have it. */
+export async function grantBadge(userId: number, code: string) {
+  const db = await getDb();
+  if (!db) return;
+  const badge = await db.select().from(badges).where(eq(badges.code, code)).limit(1);
+  if (badge.length === 0) return;
+  const already = await db.select().from(userBadges)
+    .where(and(eq(userBadges.userId, userId), eq(userBadges.badgeId, badge[0].id)))
+    .limit(1);
+  if (already.length > 0) return;
+  await db.insert(userBadges).values({ userId, badgeId: badge[0].id });
+}
+
+import { and } from "drizzle-orm";
