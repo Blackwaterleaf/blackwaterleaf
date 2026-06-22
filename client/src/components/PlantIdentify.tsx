@@ -37,9 +37,15 @@ export default function PlantIdentify() {
 
   const identify = trpc.ai.identify.useMutation({
     onSuccess: (data) => {
+      console.log("[PlantIdentify] Success:", data);
       setResult(data as IdentifyResult);
     },
-    onError: () => toast.error("Bestimmung fehlgeschlagen. Bitte erneut versuchen."),
+    onError: (e) => {
+      console.error("[PlantIdentify] Error:", e);
+      console.error("[PlantIdentify] Error message:", e.message);
+      console.error("[PlantIdentify] Error data:", e.data);
+      toast.error(`Bestimmung fehlgeschlagen: ${e.message || 'Unbekannter Fehler'}`);
+    },
   });
 
   const [correcting, setCorrecting] = useState(false);
@@ -63,9 +69,37 @@ export default function PlantIdentify() {
     });
   };
 
-  const handleChange = (base64: string, mimeType: string) => {
-    setImageData({ base64, mimeType });
-    setPreview(`data:${mimeType};base64,${base64}`);
+  // Compress image to max 800px and 80% quality before sending to LLM
+  const compressImage = (base64: string, mimeType: string): Promise<{ base64: string; mimeType: string }> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        const compressed = dataUrl.split(",")[1];
+        console.log("[PlantIdentify] Compressed: original", base64.length, "→", compressed.length, "chars");
+        resolve({ base64: compressed, mimeType: "image/jpeg" });
+      };
+      img.onerror = () => resolve({ base64, mimeType });
+      img.src = `data:${mimeType};base64,${base64}`;
+    });
+  };
+
+  const handleChange = async (base64: string, mimeType: string) => {
+    console.log("[PlantIdentify] Image selected, base64 length:", base64.length, "mimeType:", mimeType);
+    const compressed = await compressImage(base64, mimeType);
+    setImageData(compressed);
+    setPreview(`data:${compressed.mimeType};base64,${compressed.base64}`);
     setResult(null);
   };
 

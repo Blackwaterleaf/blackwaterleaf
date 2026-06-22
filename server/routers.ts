@@ -795,50 +795,58 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
       imageUrl: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      // Build the image URL for the LLM.
+      // The LLM API requires a publicly accessible URL or a base64 data URL.
+      // We pass base64 directly as a data URL to avoid S3 URL accessibility issues.
       let imageUrl = input.imageUrl;
       if (!imageUrl && input.imageBase64 && input.imageMimeType) {
-        const buffer = Buffer.from(input.imageBase64, "base64");
-        const ext = input.imageMimeType.split("/")[1] ?? "jpg";
-        const key = `identify/${ctx.user.id}/${Date.now()}.${ext}`;
-        const uploaded = await storagePut(key, buffer, input.imageMimeType);
-        imageUrl = uploaded.url;
+        // Use base64 data URL directly – works with vision models without needing public S3 URL
+        imageUrl = `data:${input.imageMimeType};base64,${input.imageBase64}`;
+        console.log("[AI.identify] Using base64 data URL, length:", imageUrl.length);
       }
       if (!imageUrl) throw new Error("Kein Bild übergeben");
 
       const systemPrompt = `Du bist ein botanischer und aquaristischer Bestimmungsexperte für BlackwaterLeaf. Analysiere das gezeigte Foto einer Pflanze oder eines Aquarienbewohners und bestimme es so genau wie möglich. Antworte ausschließlich auf Deutsch.${await getCommunityFactsBlock("")}`;
       const userPrompt = `Bestimme die abgebildete Pflanze/den Organismus. Gib ein JSON-Objekt zurück mit den Feldern: commonName (deutscher Name), scientificName (wissenschaftlicher Name oder "unsicher"), confidence (0-100 als Zahl), category (eines von: aquatic, tropical, alocasia, monstera, philodendron, other), summary (1-2 Sätze), care (kurzer Pflegehinweis: Licht, Wasser, Schwierigkeit), alternatives (Array möglicher Alternativen als Strings).`;
 
-      const response = await invokeLLM({
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: [
-            { type: "text", text: userPrompt },
-            { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
-          ] },
-        ],
-        responseFormat: { type: "json_object" },
-      });
-      const raw = response.choices[0]?.message?.content;
-      const text = typeof raw === "string" ? raw : "";
-      console.log("[AI.identify] LLM response length:", text.length, "first 200 chars:", text.substring(0, 200));
-      let parsed: any = {};
-      try { parsed = JSON.parse(text); } catch (e) {
-        console.log("[AI.identify] JSON parse failed:", e instanceof Error ? e.message : String(e));
-        const m = text.match(/\{[\s\S]*\}/);
-        if (m) { try { parsed = JSON.parse(m[0]); } catch { parsed = {}; } }
-      }
-      console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
-      try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
-      return {
+      try {
+        console.log("[AI.identify] Calling LLM with image URL:", imageUrl);
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: [
+              { type: "text", text: userPrompt },
+              { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
+            ] },
+          ],
+          responseFormat: { type: "json_object" },
+        });
+        console.log("[AI.identify] LLM response received");
+        const raw = response.choices[0]?.message?.content;
+        const text = typeof raw === "string" ? raw : "";
+        console.log("[AI.identify] LLM response length:", text.length, "first 200 chars:", text.substring(0, 200));
+        let parsed: any = {};
+        try { parsed = JSON.parse(text); } catch (e) {
+          console.log("[AI.identify] JSON parse failed:", e instanceof Error ? e.message : String(e));
+          const m = text.match(/\{[\s\S]*\}/);
+          if (m) { try { parsed = JSON.parse(m[0]); } catch { parsed = {}; } }
+        }
+        console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
+        try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
+        return {
         imageUrl,
-        commonName: typeof parsed.commonName === "string" ? parsed.commonName : "Unbekannt",
-        scientificName: typeof parsed.scientificName === "string" ? parsed.scientificName : "unsicher",
-        confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
-        category: typeof parsed.category === "string" ? parsed.category : "other",
-        summary: typeof parsed.summary === "string" ? parsed.summary : "",
-        care: typeof parsed.care === "string" ? parsed.care : "",
-        alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String) : [],
-      };
+          commonName: typeof parsed.commonName === "string" ? parsed.commonName : "Unbekannt",
+          scientificName: typeof parsed.scientificName === "string" ? parsed.scientificName : "unsicher",
+          confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
+          category: typeof parsed.category === "string" ? parsed.category : "other",
+          summary: typeof parsed.summary === "string" ? parsed.summary : "",
+          care: typeof parsed.care === "string" ? parsed.care : "",
+          alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String) : [],
+        };
+      } catch (llmError) {
+        console.error("[AI.identify] LLM error:", llmError);
+        throw new Error(`KI-Bestimmung fehlgeschlagen: ${llmError instanceof Error ? llmError.message : String(llmError)}`);
+      }
     }),
 });
 
