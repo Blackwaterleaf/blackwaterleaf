@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X } from "lucide-react";
 import ImageUpload from "./ImageUpload";
@@ -19,6 +19,16 @@ interface IdentifyResult {
   care: string;
   alternatives: string[];
 }
+
+const ANALYSIS_STEPS = [
+  "Bild wird geladen ...",
+  "Analysiere Blattstruktur ...",
+  "Erkenne Farb- und Texturmuster ...",
+  "Vergleiche mit Pflanzendatenbank ...",
+  "Prüfe Aquaristik-Bestände ...",
+  "Bestimme Art und Gattung ...",
+  "Erstelle Pflegehinweis ...",
+];
 
 const CATEGORY_LABELS: Record<string, string> = {
   aquatic: "Wasserpflanze",
@@ -47,6 +57,17 @@ export default function PlantIdentify() {
       toast.error(`Bestimmung fehlgeschlagen: ${e.message || 'Unbekannter Fehler'}`);
     },
   });
+
+  const [stepIndex, setStepIndex] = useState(0);
+
+  // Cycle through analysis steps while pending
+  useEffect(() => {
+    if (!identify.isPending) { setStepIndex(0); return; }
+    const id = setInterval(() => {
+      setStepIndex(i => (i + 1) % ANALYSIS_STEPS.length);
+    }, 900);
+    return () => clearInterval(id);
+  }, [identify.isPending]);
 
   const [correcting, setCorrecting] = useState(false);
   const [correctionText, setCorrectionText] = useState("");
@@ -146,17 +167,76 @@ export default function PlantIdentify() {
       />
 
       {imageData && !result && (
-        <Button
-          className="w-full press-active"
-          disabled={identify.isPending}
-          onClick={() => identify.mutate({ imageBase64: imageData.base64, imageMimeType: imageData.mimeType })}
-        >
+        <>
           {identify.isPending ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Bestimme...</>
+            /* ── Loading animation ── */
+            <div className="rounded-xl border border-primary/20 bg-card overflow-hidden">
+              {/* Scan line over the preview */}
+              <div className="relative">
+                <img
+                  src={preview!}
+                  alt="Analysiere"
+                  className="w-full aspect-square object-cover opacity-60"
+                />
+                {/* Animated scan line */}
+                <div
+                  className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent"
+                  style={{
+                    animation: "scanLine 1.4s ease-in-out infinite",
+                    top: 0,
+                  }}
+                />
+                {/* Corner brackets */}
+                <div className="absolute inset-4 border-2 border-primary/40 rounded-lg" style={{ boxShadow: "0 0 20px rgba(34,197,94,0.15)" }}>
+                  <div className="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-2 border-l-2 border-primary rounded-tl" />
+                  <div className="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-2 border-r-2 border-primary rounded-tr" />
+                  <div className="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-2 border-l-2 border-primary rounded-bl" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 border-b-2 border-r-2 border-primary rounded-br" />
+                </div>
+                {/* Center icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full bg-black/60 border border-primary/40 flex items-center justify-center backdrop-blur-sm">
+                    <ScanSearch className="w-7 h-7 text-primary animate-pulse" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status text + progress */}
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
+                  <p
+                    key={stepIndex}
+                    className="text-sm font-medium text-primary"
+                    style={{ animation: "fadeInUp 0.35s ease-out" }}
+                  >
+                    {ANALYSIS_STEPS[stepIndex]}
+                  </p>
+                </div>
+                {/* Progress bar */}
+                <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
+                    style={{
+                      width: `${Math.round(((stepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%`,
+                      transition: "width 0.8s ease-out",
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  KI analysiert dein Foto – bitte warten ...
+                </p>
+              </div>
+            </div>
           ) : (
-            <><Sparkles className="w-4 h-4 mr-2" /> Jetzt bestimmen</>
+            <Button
+              className="w-full press-active"
+              onClick={() => identify.mutate({ imageBase64: imageData.base64, imageMimeType: imageData.mimeType })}
+            >
+              <Sparkles className="w-4 h-4 mr-2" /> Jetzt bestimmen
+            </Button>
           )}
-        </Button>
+        </>
       )}
 
       {result && (
