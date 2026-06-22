@@ -96,28 +96,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* ─── Sidebar – Desktop ─────────────────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-64 fixed left-0 top-0 bottom-0 z-40"
         style={{
-          background: "linear-gradient(180deg, oklch(0.09 0.010 240) 0%, oklch(0.07 0.008 240) 100%)",
-          borderRight: "1px solid oklch(0.18 0.010 240)",
+          background: "linear-gradient(180deg, oklch(0.10 0.014 60) 0%, oklch(0.07 0.012 58) 100%)",
+          borderRight: "1px solid oklch(0.20 0.014 62)",
         }}
       >
         {/* ── Logo / Brand ── */}
         <div className="flex items-center gap-3 px-5 h-16"
-          style={{ borderBottom: "1px solid oklch(0.18 0.010 240)" }}
+          style={{ borderBottom: "1px solid oklch(0.20 0.014 62)" }}
         >
           <div className="relative flex-shrink-0">
             <img
-              src="/manus-storage/bl-emblem_76cd28a6.png"
+              src="/manus-storage/logo-circle_c176197b.png"
               alt="BL"
-              className="w-8 h-8 rounded-xl ring-1 ring-inset"
-              style={{ outlineColor: "oklch(0.78 0.12 80 / 0.3)" }}
+              className="w-9 h-9 rounded-full"
+              style={{ filter: "drop-shadow(0 0 6px oklch(0.72 0.14 75 / 0.4))" }}
             />
           </div>
           <div className="min-w-0">
-            <span className="font-display font-semibold text-base tracking-tight block leading-tight gradient-text-gold">
-              BlackwaterLeaf
+            <span className="font-brand text-sm tracking-widest block leading-tight gradient-text-gold">
+              BLACKWATERLEAF
             </span>
-            <span className="text-[10px] text-muted-foreground tracking-widest uppercase leading-tight">
-              Community
+            <span className="text-[10px] tracking-widest uppercase leading-tight"
+              style={{ color: "oklch(0.45 0.012 70)" }}
+            >
+              NATURE IN FLOW
             </span>
           </div>
         </div>
@@ -133,7 +135,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
 
           {/* Separator */}
-          <div className="my-3 mx-3 h-px" style={{ background: "oklch(0.18 0.010 240)" }} />
+          <div className="my-3 mx-3 h-px" style={{ background: "oklch(0.20 0.014 62)" }} />
 
           {/* Alerts */}
           <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
@@ -144,7 +146,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* ── User Profile Footer ── */}
-        <div className="px-3 py-4" style={{ borderTop: "1px solid oklch(0.18 0.010 240)" }}>
+        <div className="px-3 py-4" style={{ borderTop: "1px solid oklch(0.20 0.014 62)" }}>
           {isAuthenticated ? (
             <div className="space-y-1">
               {/* Profile card */}
@@ -155,8 +157,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <AvatarFallback
                       className="text-xs font-semibold"
                       style={{
-                        background: "oklch(0.68 0.16 152 / 0.2)",
-                        color: "oklch(0.68 0.16 152)",
+                        background: "oklch(0.55 0.14 140 / 0.2)",
+                        color: "oklch(0.65 0.16 145)",
                       }}
                     >
                       {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
@@ -198,17 +200,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           className="lg:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-md"
           style={{
             paddingTop: "env(safe-area-inset-top, 0px)",
-            background: "oklch(0.08 0.009 240 / 0.95)",
-            borderBottom: "1px solid oklch(0.18 0.010 240)",
+          background: "oklch(0.08 0.012 60 / 0.96)",
+          borderBottom: "1px solid oklch(0.20 0.014 62)",
           }}
         >
           <div className="flex items-center justify-between px-4 h-14">
             {/* Brand */}
             <div className="flex items-center gap-2.5">
               <img
-                src="/manus-storage/bl-emblem_76cd28a6.png"
-                alt="BL"
-                className="w-7 h-7 rounded-lg"
+              src="/manus-storage/logo-circle_c176197b.png"
+              alt="BL"
+              className="w-7 h-7 rounded-full"
               />
               <span className="font-display font-semibold text-sm gradient-text-gold">
                 BlackwaterLeaf
@@ -232,8 +234,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <AvatarFallback
                       className="text-xs font-semibold"
                       style={{
-                        background: "oklch(0.68 0.16 152 / 0.2)",
-                        color: "oklch(0.68 0.16 152)",
+                        background: "oklch(0.55 0.14 140 / 0.2)",
+                        color: "oklch(0.65 0.16 145)",
                       }}
                     >
                       {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
@@ -268,8 +270,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md"
         style={{
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          background: "oklch(0.08 0.009 240 / 0.97)",
-          borderTop: "1px solid oklch(0.18 0.010 240)",
+          background: "oklch(0.08 0.012 60 / 0.97)",
+          borderTop: "1px solid oklch(0.20 0.014 62)",
         }}
       >
         <div className="flex items-center justify-around h-16 px-1">
@@ -291,7 +293,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {isActive && (
                       <span
                         className="absolute top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
-                        style={{ background: "oklch(0.68 0.16 152)" }}
+                        style={{ background: "oklch(0.55 0.14 140)" }}
                       />
                     )}
                     <item.icon

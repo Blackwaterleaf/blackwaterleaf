@@ -1,276 +1,460 @@
+import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
-import { Bot, Compass, Droplets, Leaf, Sparkles, Users, Trophy } from "lucide-react";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 
-const features = [
+// Brand image URLs from S3
+const IMG_HERO = "/manus-storage/hero-main_962b134d.png";
+const IMG_WISSEN = "/manus-storage/wissen-pflege_9290790e.png";
+const IMG_COMMUNITY = "/manus-storage/community-forum_5e681ef4.png";
+const IMG_CHANNA = "/manus-storage/channa-tank_aeefb736.webp";
+const IMG_PLANTS = "/manus-storage/plants-golden_070e92ad.png";
+const IMG_LOGO = "/manus-storage/logo-circle_c176197b.png";
+
+const NAV_ITEMS = [
+  { label: "HOME", href: "/" },
+  { label: "PFLANZEN", href: "/plants" },
+  { label: "WISSEN & PFLEGE", href: "/knowledge" },
+  { label: "COMMUNITY", href: "/feed" },
+  { label: "KI-ASSISTENT", href: "/ai" },
+];
+
+const FEATURES = [
   {
-    icon: Leaf,
-    title: "Pflanzen dokumentieren",
-    description:
-      "Lege detaillierte Profile für jede Pflanze an – mit Pflegeparametern, Fotos und einer chronologischen Timeline.",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    border: "border-emerald-500/20",
+    icon: "🌿",
+    title: "PFLANZEN ENTDECKEN",
+    desc: "Seltene Alocasien, Rhizome & Zimmerpflanzen",
   },
   {
-    icon: Droplets,
-    title: "Aquarien verwalten",
-    description:
-      "Protokolliere Wasserwerte, Besatz und Ereignisse. Verfolge die Entwicklung deines Aquariums über Zeit.",
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    border: "border-cyan-500/20",
+    icon: "📖",
+    title: "WISSEN ERWEITERN",
+    desc: "Pflegeanleitungen aus eigener Erfahrung",
   },
   {
-    icon: Bot,
-    title: "KI-Assistent",
-    description:
-      "Bestimme Pflanzen, diagnostiziere Probleme und erhalte individuelle Pflegeempfehlungen – rund um die Uhr.",
-    color: "text-primary",
-    bg: "bg-primary/10",
-    border: "border-primary/20",
+    icon: "🐟",
+    title: "AQUARISTIK",
+    desc: "Schwarzwasser-Biotope & Channa-Haltung",
   },
   {
-    icon: Users,
-    title: "Community",
-    description:
-      "Teile deine Fortschritte, entdecke Inspirationen und tausche dich mit Gleichgesinnten aus.",
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    border: "border-violet-500/20",
+    icon: "👥",
+    title: "COMMUNITY",
+    desc: "Erfahrungen teilen, gemeinsam wachsen",
+  },
+];
+
+const SECTIONS = [
+  {
+    img: IMG_WISSEN,
+    tag: "WISSEN & PFLEGE",
+    title: "Verstehen. Pflegen. Wachsen.",
+    desc: "Praxisnahes Wissen rund um Alocasia, Zimmerpflanzen, Aquarienpflanzen, Rhizome und vieles mehr – aus unserer eigenen Sammlung.",
+    href: "/knowledge",
+    cta: "Zum Ratgeber",
+    align: "left",
   },
   {
-    icon: Compass,
-    title: "Entdecken",
-    description:
-      "Durchsuche tausende Pflanzen- und Aquarienprofile. Finde Inspiration für dein nächstes Projekt.",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    border: "border-amber-500/20",
+    img: IMG_COMMUNITY,
+    tag: "COMMUNITY FORUM",
+    title: "Plants. People. Passion.",
+    desc: "Wissen teilen. Erfahrungen austauschen. Gemeinsam wachsen. Eine Community für alle Pflanzen- und Aquaristik-Begeisterten.",
+    href: "/feed",
+    cta: "Community beitreten",
+    align: "right",
   },
   {
-    icon: Trophy,
-    title: "Gamification",
-    description:
-      "Sammle XP, steige im Level auf und verdiene Abzeichen. Tägliche Challenges halten dich motiviert.",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/20",
+    img: IMG_CHANNA,
+    tag: "AQUARISTIK",
+    title: "Schwarzwasser & Channa",
+    desc: "Tauche ein in die faszinierende Welt der Schwarzwasser-Biotope und Schlangenkopffische. Authentisch. Leidenschaftlich.",
+    href: "/knowledge?category=Channa",
+    cta: "Mehr erfahren",
+    align: "left",
   },
 ];
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
-  const [, navigate] = useLocation();
-
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      navigate("/feed");
-    }
-  }, [isAuthenticated, loading, navigate]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center"
-        style={{ background: "oklch(0.07 0.008 240)" }}>
-        <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-      </div>
-    );
-  }
+  const { user } = useAuth();
 
   return (
     <div
-      className="min-h-screen text-foreground overflow-x-hidden"
-      style={{ background: "oklch(0.07 0.008 240)" }}
+      className="min-h-screen"
+      style={{ background: "oklch(0.08 0.012 60)" }}
     >
-      {/* ── Navigation ── */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md"
+      {/* ── TOP NAV ── */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4"
         style={{
-          background: "oklch(0.08 0.009 240 / 0.92)",
-          borderBottom: "1px solid oklch(0.18 0.010 240)",
+          background:
+            "linear-gradient(to bottom, oklch(0.06 0.012 60 / 0.95), transparent)",
+          backdropFilter: "blur(8px)",
         }}
       >
-        <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/manus-storage/bl-emblem_76cd28a6.png"
-              alt="BL"
-              className="w-7 h-7 rounded-lg"
-            />
-            <span className="font-display font-semibold text-base tracking-tight gradient-text-gold">
-              BlackwaterLeaf
-            </span>
+        <Link href="/">
+          <img src={IMG_LOGO} alt="BlackwaterLeaf" className="h-10 w-10" />
+        </Link>
+
+        <div className="hidden md:flex items-center gap-8">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-xs font-brand tracking-widest transition-colors duration-200"
+              style={{ color: "oklch(0.75 0.010 85)" }}
+              onMouseEnter={(e) => {
+                (e.target as HTMLElement).style.color =
+                  "oklch(0.72 0.14 75)";
+              }}
+              onMouseLeave={(e) => {
+                (e.target as HTMLElement).style.color =
+                  "oklch(0.75 0.010 85)";
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {user ? (
+            <Link
+              href="/feed"
+              className="px-4 py-2 rounded text-xs font-brand tracking-widest transition-all duration-200"
+              style={{
+                background: "oklch(0.55 0.14 140)",
+                color: "oklch(0.96 0.005 85)",
+              }}
+            >
+              ZUR APP
+            </Link>
+          ) : (
+            <a
+              href={getLoginUrl()}
+              className="px-4 py-2 rounded text-xs font-brand tracking-widest transition-all duration-200"
+              style={{
+                background: "oklch(0.55 0.14 140)",
+                color: "oklch(0.96 0.005 85)",
+              }}
+            >
+              ANMELDEN
+            </a>
+          )}
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+        {/* Background image */}
+        <img
+          src={IMG_HERO}
+          alt="BlackwaterLeaf Hero"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: "center 30%" }}
+        />
+        {/* Dark overlay */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, oklch(0.06 0.012 60 / 0.65) 0%, oklch(0.06 0.012 60 / 0.35) 40%, oklch(0.06 0.012 60 / 0.85) 100%)",
+          }}
+        />
+
+        {/* Hero Content */}
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          {/* Logo */}
+          <img
+            src={IMG_LOGO}
+            alt="BlackwaterLeaf Logo"
+            className="w-20 h-20 mx-auto mb-6 animate-fade-in"
+            style={{ filter: "drop-shadow(0 0 20px oklch(0.72 0.14 75 / 0.4))" }}
+          />
+
+          {/* Brand name */}
+          <div className="animate-slide-up stagger-1">
+            <h1
+              className="font-brand text-6xl md:text-8xl lg:text-9xl leading-none mb-2"
+              style={{ color: "oklch(0.95 0.010 88)" }}
+            >
+              BLACKWATER
+            </h1>
+            <h1
+              className="font-brand text-6xl md:text-8xl lg:text-9xl leading-none mb-4"
+              style={{
+                color: "oklch(0.72 0.14 75)",
+                textShadow: "0 0 40px oklch(0.72 0.14 75 / 0.5)",
+              }}
+            >
+              LEAF
+            </h1>
           </div>
-          <Button size="sm" asChild className="press-active btn-glow">
-            <a href={getLoginUrl()}>Jetzt starten</a>
-          </Button>
-        </div>
-      </header>
 
-      {/* ── Hero Section ── */}
-      <section className="relative pt-36 pb-28 px-4 overflow-hidden">
-        {/* Ambient glow */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Tagline */}
           <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full blur-3xl opacity-30"
-            style={{ background: "radial-gradient(ellipse, oklch(0.68 0.16 152 / 0.15) 0%, transparent 70%)" }}
-          />
-          <div
-            className="absolute top-32 right-1/4 w-[500px] h-[400px] rounded-full blur-3xl opacity-20"
-            style={{ background: "radial-gradient(ellipse, oklch(0.78 0.12 80 / 0.10) 0%, transparent 70%)" }}
-          />
-        </div>
-
-        <div className="container relative text-center max-w-3xl mx-auto">
-          {/* Badge */}
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 animate-fade-in"
-            style={{
-              background: "oklch(0.68 0.16 152 / 0.10)",
-              border: "1px solid oklch(0.68 0.16 152 / 0.25)",
-              color: "oklch(0.68 0.16 152)",
-            }}
+            className="flex items-center justify-center gap-3 mb-4 animate-slide-up stagger-2"
           >
-            <Sparkles className="w-3 h-3" />
-            Das Betriebssystem für Pflanzen &amp; Aquarien
+            <div className="divider-gold w-16" />
+            <p
+              className="text-xs font-brand tracking-[0.3em]"
+              style={{ color: "oklch(0.72 0.14 75)" }}
+            >
+              NATUR. WISSEN. GEMEINSCHAFT.
+            </p>
+            <div className="divider-gold w-16" />
           </div>
 
-          {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-semibold leading-tight tracking-tight mb-6 animate-slide-up">
-            Deine Sammlung.
-            <br />
-            <span className="gradient-text-gold italic">Perfekt dokumentiert.</span>
-          </h1>
-
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 animate-slide-up stagger-1 leading-relaxed">
-            BlackwaterLeaf vereint Community, Pflege-Tracking und KI-Unterstützung in einer
-            eleganten Plattform für Aquaristik- und Pflanzenliebhaber.
+          {/* Subtitle */}
+          <p
+            className="text-base md:text-lg max-w-xl mx-auto mb-8 animate-slide-up stagger-3"
+            style={{ color: "oklch(0.82 0.010 85)" }}
+          >
+            Deine Plattform für Aquaristik, Botanik und die Liebe zu Pflanzen.
+            Wir teilen Wissen aus unserer Sammlung von über 130 Alocasien,
+            Rhizomen und Jungpflanzen.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-slide-up stagger-2">
-            <Button size="lg" asChild className="press-active w-full sm:w-auto btn-glow">
-              <a href={getLoginUrl()}>Kostenlos starten</a>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="w-full sm:w-auto"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up stagger-4">
+            <Link
+              href="/plants"
+              className="flex items-center gap-2 px-8 py-3 rounded font-brand tracking-widest text-sm transition-all duration-200 btn-glow-gold"
               style={{
-                background: "transparent",
-                border: "1px solid oklch(0.30 0.010 240)",
-                color: "oklch(0.92 0.008 80)",
+                background: "oklch(0.55 0.14 140)",
+                color: "oklch(0.96 0.005 85)",
               }}
             >
-              <a href="#features">Mehr erfahren</a>
-            </Button>
-          </div>
-
-          {/* Stats row */}
-          <div className="flex items-center justify-center gap-8 mt-14 animate-fade-in stagger-3">
-            {[
-              { label: "Pflanzenarten", value: "500+" },
-              { label: "Community", value: "Aktiv" },
-              { label: "KI-gestützt", value: "24/7" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-2xl font-display font-semibold gradient-text-gold">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
-              </div>
-            ))}
+              🌿 PFLANZEN ENTDECKEN
+            </Link>
+            <Link
+              href="/feed"
+              className="flex items-center gap-2 px-8 py-3 rounded font-brand tracking-widest text-sm transition-all duration-200"
+              style={{
+                border: "1px solid oklch(0.72 0.14 75 / 0.6)",
+                color: "oklch(0.72 0.14 75)",
+                background: "transparent",
+              }}
+            >
+              👥 COMMUNITY BEITRETEN
+            </Link>
           </div>
         </div>
-      </section>
 
-      {/* ── Features Grid ── */}
-      <section id="features" className="py-20 px-4">
-        <div className="container">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-display font-semibold mb-3 gradient-text-gold">
-              Alles was du brauchst
-            </h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Von der ersten Pflanzung bis zur blühenden Community – BlackwaterLeaf begleitet
-              dich auf jedem Schritt.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature, i) => (
-              <div
-                key={feature.title}
-                className={`card-premium p-6 rounded-xl animate-fade-in stagger-${Math.min(i + 1, 5)}`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-xl ${feature.bg} border ${feature.border} flex items-center justify-center mb-4`}
-                >
-                  <feature.icon className={`w-5 h-5 ${feature.color}`} />
-                </div>
-                <h3 className="font-semibold text-base mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA Section ── */}
-      <section className="py-20 px-4">
-        <div className="container">
+        {/* Scroll indicator */}
+        <div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-fade-in stagger-5"
+          style={{ color: "oklch(0.72 0.14 75 / 0.7)" }}
+        >
+          <span className="text-xs font-brand tracking-widest">SCROLL</span>
           <div
-            className="relative rounded-2xl p-10 text-center overflow-hidden"
+            className="w-px h-8"
             style={{
               background:
-                "linear-gradient(135deg, oklch(0.12 0.015 152 / 0.5), oklch(0.10 0.010 240))",
-              border: "1px solid oklch(0.68 0.16 152 / 0.25)",
+                "linear-gradient(to bottom, oklch(0.72 0.14 75 / 0.7), transparent)",
             }}
-          >
-            {/* Ambient */}
+          />
+        </div>
+      </section>
+
+      {/* ── FEATURE ICONS ROW ── */}
+      <section
+        className="py-12 px-6"
+        style={{
+          background:
+            "linear-gradient(to bottom, oklch(0.08 0.012 60), oklch(0.10 0.014 62))",
+          borderBottom: "1px solid oklch(0.22 0.014 60)",
+        }}
+      >
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
+          {FEATURES.map((f, i) => (
             <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "radial-gradient(ellipse at 50% 0%, oklch(0.68 0.16 152 / 0.08) 0%, transparent 60%)",
-              }}
-            />
-            <div className="relative">
-              <h2 className="text-3xl font-display font-semibold mb-3 gradient-text-gold">
-                Bereit loszulegen?
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
-                Tritt der Community bei und dokumentiere deine Sammlung mit KI-Unterstützung.
+              key={f.title}
+              className={`text-center animate-slide-up stagger-${i + 1}`}
+            >
+              <div className="text-3xl mb-3">{f.icon}</div>
+              <div
+                className="font-brand text-xs tracking-widest mb-1"
+                style={{ color: "oklch(0.72 0.14 75)" }}
+              >
+                {f.title}
+              </div>
+              <p
+                className="text-xs"
+                style={{ color: "oklch(0.55 0.012 70)" }}
+              >
+                {f.desc}
               </p>
-              <Button size="lg" asChild className="press-active btn-glow">
-                <a href={getLoginUrl()}>Jetzt kostenlos registrieren</a>
-              </Button>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CONTENT SECTIONS ── */}
+      {SECTIONS.map((section, idx) => (
+        <section
+          key={section.tag}
+          className="relative overflow-hidden"
+          style={{ minHeight: "480px" }}
+        >
+          {/* Background image */}
+          <img
+            src={section.img}
+            alt={section.tag}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: "center" }}
+          />
+          {/* Overlay */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                section.align === "left"
+                  ? "linear-gradient(to right, oklch(0.06 0.012 60 / 0.92) 0%, oklch(0.06 0.012 60 / 0.92) 40%, oklch(0.06 0.012 60 / 0.55) 70%, transparent 100%)"
+                  : "linear-gradient(to left, oklch(0.06 0.012 60 / 0.92) 0%, oklch(0.06 0.012 60 / 0.92) 40%, oklch(0.06 0.012 60 / 0.55) 70%, transparent 100%)",
+            }}
+          />
+
+          {/* Content */}
+          <div
+            className={`relative z-10 flex items-center h-full min-h-[480px] px-8 md:px-16 ${
+              section.align === "right" ? "justify-end" : "justify-start"
+            }`}
+          >
+            <div className="max-w-md">
+              {/* Tag */}
+              <div
+                className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full text-xs font-brand tracking-widest"
+                style={{
+                  background: "oklch(0.55 0.14 140 / 0.2)",
+                  border: "1px solid oklch(0.55 0.14 140 / 0.4)",
+                  color: "oklch(0.65 0.16 145)",
+                }}
+              >
+                {section.tag}
+              </div>
+
+              {/* Title */}
+              <h2
+                className="font-display text-3xl md:text-4xl font-bold mb-4 leading-tight"
+                style={{ color: "oklch(0.95 0.010 88)" }}
+              >
+                {section.title}
+              </h2>
+
+              {/* Divider */}
+              <div className="divider-gold w-20 mb-4" />
+
+              {/* Description */}
+              <p
+                className="text-sm leading-relaxed mb-6"
+                style={{ color: "oklch(0.75 0.010 80)" }}
+              >
+                {section.desc}
+              </p>
+
+              {/* CTA */}
+              <Link
+                href={section.href}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded font-brand tracking-widest text-xs transition-all duration-200"
+                style={{
+                  background: idx === 0 ? "oklch(0.55 0.14 140)" : "transparent",
+                  border:
+                    idx === 0
+                      ? "none"
+                      : "1px solid oklch(0.72 0.14 75 / 0.6)",
+                  color:
+                    idx === 0
+                      ? "oklch(0.96 0.005 85)"
+                      : "oklch(0.72 0.14 75)",
+                }}
+              >
+                {section.cta} →
+              </Link>
+            </div>
+          </div>
+        </section>
+      ))}
+
+      {/* ── PLANTS PHOTO SECTION ── */}
+      <section className="relative overflow-hidden" style={{ height: "400px" }}>
+        <img
+          src={IMG_PLANTS}
+          alt="Pflanzen"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            background: "oklch(0.06 0.012 60 / 0.70)",
+          }}
+        >
+          <div className="text-center px-6">
+            <p
+              className="font-brand text-xs tracking-[0.4em] mb-3"
+              style={{ color: "oklch(0.72 0.14 75)" }}
+            >
+              NATURE IN FLOW
+            </p>
+            <h2
+              className="font-display text-4xl md:text-5xl font-bold mb-6"
+              style={{ color: "oklch(0.95 0.010 88)" }}
+            >
+              Jede Pflanze erzählt eine Geschichte.
+            </h2>
+            <Link
+              href={user ? "/plants" : "/feed"}
+              className="inline-flex items-center gap-2 px-8 py-3 rounded font-brand tracking-widest text-sm transition-all duration-200 btn-glow"
+              style={{
+                background: "oklch(0.55 0.14 140)",
+                color: "oklch(0.96 0.005 85)",
+              }}
+            >
+              SAMMLUNG ENTDECKEN
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* ── FOOTER ── */}
       <footer
-        className="py-8 px-4"
-        style={{ borderTop: "1px solid oklch(0.18 0.010 240)" }}
+        className="py-12 px-6 text-center"
+        style={{
+          background: "oklch(0.06 0.012 58)",
+          borderTop: "1px solid oklch(0.18 0.014 60)",
+        }}
       >
-        <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <img
-              src="/manus-storage/bl-emblem_76cd28a6.png"
-              alt="BL"
-              className="w-5 h-5 rounded"
-            />
-            <span className="font-display font-medium text-foreground">BlackwaterLeaf</span>
-          </div>
-          <p>© 2025 BlackwaterLeaf. Alle Rechte vorbehalten.</p>
+        <img
+          src={IMG_LOGO}
+          alt="BlackwaterLeaf"
+          className="w-12 h-12 mx-auto mb-4 opacity-70"
+        />
+        <p
+          className="font-brand text-xs tracking-[0.3em] mb-2"
+          style={{ color: "oklch(0.72 0.14 75)" }}
+        >
+          BLACKWATERLEAF
+        </p>
+        <p
+          className="text-xs mb-6"
+          style={{ color: "oklch(0.42 0.010 70)" }}
+        >
+          NATUR. WISSEN. GEMEINSCHAFT.
+        </p>
+        <div className="flex items-center justify-center gap-6 flex-wrap">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="text-xs font-brand tracking-widest transition-colors duration-200"
+              style={{ color: "oklch(0.45 0.010 70)" }}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
+        <p
+          className="text-xs mt-8"
+          style={{ color: "oklch(0.35 0.008 70)" }}
+        >
+          © 2025 BlackwaterLeaf · Nature in Flow
+        </p>
       </footer>
     </div>
   );

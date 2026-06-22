@@ -4,54 +4,59 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ─── Google Fonts ─────────────────────────────────────────────────────────── */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&family=Bebas+Neue&display=swap");
 
 /* ─── Theme Tokens ─────────────────────────────────────────────────────────── */
-/* Premium Dark: Tiefschwarz + Dunkelgrün + Gold/Champagner-Akzente            */
+/* BlackwaterLeaf Brand: Warmes Tiefschwarz + Moosgrün + Bernstein/Gold        */
 @theme inline {
-  /* ── Backgrounds ── */
-  --color-background:        oklch(0.07 0.008 240);   /* near-black, slight blue tint */
-  --color-foreground:        oklch(0.92 0.008 80);    /* warm off-white */
+  /* ── Backgrounds: Warmes Schwarz wie Schwarzwasser ── */
+  --color-background:        oklch(0.08 0.012 60);    /* warm near-black, brown tint */
+  --color-foreground:        oklch(0.93 0.012 85);    /* warm cream white */
 
   /* ── Cards / Surfaces ── */
-  --color-card:              oklch(0.11 0.010 240);   /* dark surface */
-  --color-card-foreground:   oklch(0.92 0.008 80);
-  --color-popover:           oklch(0.13 0.012 240);
-  --color-popover-foreground: oklch(0.92 0.008 80);
+  --color-card:              oklch(0.12 0.014 60);    /* warm dark surface */
+  --color-card-foreground:   oklch(0.93 0.012 85);
+  --color-popover:           oklch(0.14 0.014 60);
+  --color-popover-foreground: oklch(0.93 0.012 85);
 
-  /* ── Primary: Forest Green ── */
-  --color-primary:           oklch(0.68 0.16 152);    /* deep forest green */
-  --color-primary-foreground: oklch(0.07 0.008 240);
+  /* ── Primary: Moosgrün wie auf den Brand-Bildern ── */
+  --color-primary:           oklch(0.55 0.14 140);    /* deep moss green */
+  --color-primary-foreground: oklch(0.96 0.005 85);
 
   /* ── Secondary / Muted ── */
-  --color-secondary:         oklch(0.15 0.010 240);
-  --color-secondary-foreground: oklch(0.92 0.008 80);
-  --color-muted:             oklch(0.15 0.010 240);
-  --color-muted-foreground:  oklch(0.50 0.008 240);
+  --color-secondary:         oklch(0.16 0.014 60);
+  --color-secondary-foreground: oklch(0.93 0.012 85);
+  --color-muted:             oklch(0.16 0.014 60);
+  --color-muted-foreground:  oklch(0.52 0.012 70);
 
-  /* ── Accent: Gold/Champagner ── */
-  --color-accent:            oklch(0.78 0.12 80);     /* warm gold */
-  --color-accent-foreground: oklch(0.07 0.008 240);
+  /* ── Accent: Bernstein/Gold wie das Licht im Wasser ── */
+  --color-accent:            oklch(0.72 0.14 75);     /* amber gold */
+  --color-accent-foreground: oklch(0.08 0.012 60);
 
   /* ── Destructive ── */
-  --color-destructive:       oklch(0.60 0.22 25);
+  --color-destructive:       oklch(0.58 0.22 25);
   --color-destructive-foreground: oklch(0.98 0 0);
 
   /* ── Borders / Inputs ── */
-  --color-border:            oklch(0.20 0.010 240);
-  --color-input:             oklch(0.14 0.010 240);
-  --color-ring:              oklch(0.68 0.16 152);
+  --color-border:            oklch(0.22 0.014 60);
+  --color-input:             oklch(0.15 0.014 60);
+  --color-ring:              oklch(0.55 0.14 140);
 
-  /* ── Custom Gold Token ── */
-  --color-gold:              oklch(0.78 0.12 80);
-  --color-gold-muted:        oklch(0.78 0.12 80 / 0.15);
-  --color-surface-1:         oklch(0.11 0.010 240);   /* card */
-  --color-surface-2:         oklch(0.14 0.010 240);   /* elevated card */
-  --color-surface-3:         oklch(0.18 0.012 240);   /* hover state */
+  /* ── Brand Tokens ── */
+  --color-gold:              oklch(0.72 0.14 75);     /* amber gold */
+  --color-gold-bright:       oklch(0.82 0.16 80);     /* bright gold highlight */
+  --color-gold-muted:        oklch(0.72 0.14 75 / 0.18);
+  --color-moss:              oklch(0.55 0.14 140);    /* moss green */
+  --color-moss-light:        oklch(0.65 0.16 145);    /* lighter moss */
+  --color-moss-muted:        oklch(0.55 0.14 140 / 0.18);
+  --color-surface-1:         oklch(0.12 0.014 60);
+  --color-surface-2:         oklch(0.16 0.014 60);
+  --color-surface-3:         oklch(0.20 0.016 60);
 
-  --radius: 0.875rem;
+  --radius: 0.75rem;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Playfair Display", Georgia, serif;
+  --font-brand: "Bebas Neue", "Impact", sans-serif;
 }
 
 /* ─── Base Layer ───────────────────────────────────────────────────────────── */
@@ -118,60 +123,99 @@
 @layer utilities {
   .font-display { font-family: var(--font-display); }
 
+  .font-brand { font-family: var(--font-brand); letter-spacing: 0.04em; }
+
   .gradient-text {
-    background: linear-gradient(135deg, oklch(0.68 0.16 152), oklch(0.65 0.18 200));
+    background: linear-gradient(135deg, oklch(0.55 0.14 140), oklch(0.65 0.16 145));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Gold gradient text for premium headings */
+  /* Amber-Gold gradient text – like light through blackwater */
   .gradient-text-gold {
-    background: linear-gradient(135deg, oklch(0.85 0.14 85), oklch(0.72 0.10 75), oklch(0.80 0.13 90));
+    background: linear-gradient(135deg, oklch(0.82 0.16 80), oklch(0.68 0.13 72), oklch(0.78 0.15 82));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Premium card with subtle gradient and gold border glow */
+  /* Moss green gradient text */
+  .gradient-text-moss {
+    background: linear-gradient(135deg, oklch(0.65 0.16 145), oklch(0.52 0.13 138));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Premium card – warm dark surface with amber glow on hover */
   .card-premium {
-    background: linear-gradient(145deg, oklch(0.12 0.012 240), oklch(0.10 0.008 240));
-    border: 1px solid oklch(0.22 0.010 240);
-    box-shadow: 0 1px 3px oklch(0 0 0 / 0.4), inset 0 1px 0 oklch(1 0 0 / 0.04);
+    background: linear-gradient(145deg, oklch(0.13 0.015 62), oklch(0.10 0.012 58));
+    border: 1px solid oklch(0.22 0.014 62);
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.5), inset 0 1px 0 oklch(1 0 0 / 0.04);
     transition: border-color 200ms ease, box-shadow 200ms ease, transform 180ms cubic-bezier(0.23,1,0.32,1);
   }
   .card-premium:hover {
-    border-color: oklch(0.68 0.16 152 / 0.4);
-    box-shadow: 0 4px 20px oklch(0 0 0 / 0.5), 0 0 0 1px oklch(0.68 0.16 152 / 0.15);
-    transform: translateY(-1px);
+    border-color: oklch(0.72 0.14 75 / 0.35);
+    box-shadow: 0 6px 24px oklch(0 0 0 / 0.55), 0 0 0 1px oklch(0.72 0.14 75 / 0.12);
+    transform: translateY(-2px);
   }
 
-  /* Gold accent line (top border) */
+  /* Amber accent line (top border) */
   .gold-accent-top {
-    border-top: 2px solid oklch(0.78 0.12 80);
+    border-top: 2px solid oklch(0.72 0.14 75);
   }
 
-  /* Glassmorphism panel */
+  /* Moss green accent line */
+  .moss-accent-top {
+    border-top: 2px solid oklch(0.55 0.14 140);
+  }
+
+  /* Glassmorphism panel – warm dark */
   .glass-panel {
-    background: oklch(0.11 0.010 240 / 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid oklch(0.25 0.010 240 / 0.6);
+    background: oklch(0.12 0.014 60 / 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid oklch(0.28 0.014 62 / 0.55);
   }
 
-  /* Sidebar gold glow on active item */
+  /* Sidebar moss glow on active item */
   .nav-item-active {
-    background: linear-gradient(90deg, oklch(0.68 0.16 152 / 0.15), transparent);
-    border-left: 2px solid oklch(0.68 0.16 152);
-    color: oklch(0.68 0.16 152);
+    background: linear-gradient(90deg, oklch(0.55 0.14 140 / 0.18), transparent);
+    border-left: 2px solid oklch(0.55 0.14 140);
+    color: oklch(0.65 0.16 145);
   }
 
-  /* Subtle green glow for primary buttons */
+  /* Moss glow for primary buttons */
   .btn-glow {
-    box-shadow: 0 0 20px oklch(0.68 0.16 152 / 0.3);
+    box-shadow: 0 0 20px oklch(0.55 0.14 140 / 0.35);
   }
   .btn-glow:hover {
-    box-shadow: 0 0 28px oklch(0.68 0.16 152 / 0.45);
+    box-shadow: 0 0 32px oklch(0.55 0.14 140 / 0.5);
+  }
+
+  /* Amber glow for accent buttons */
+  .btn-glow-gold {
+    box-shadow: 0 0 20px oklch(0.72 0.14 75 / 0.35);
+  }
+  .btn-glow-gold:hover {
+    box-shadow: 0 0 32px oklch(0.72 0.14 75 / 0.5);
+  }
+
+  /* Hero overlay: dark vignette for text readability over photos */
+  .hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      oklch(0.08 0.012 60 / 0.55) 0%,
+      oklch(0.08 0.012 60 / 0.30) 40%,
+      oklch(0.08 0.012 60 / 0.75) 100%
+    );
+  }
+
+  /* Divider line with amber glow */
+  .divider-gold {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(0.72 0.14 75 / 0.5), transparent);
   }
 
   .img-overlay {
