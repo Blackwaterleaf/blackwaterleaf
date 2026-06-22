@@ -4,13 +4,9 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { de } from "date-fns/locale";
 import {
-  Heart,
-  ImagePlus,
-  MessageCircle,
-  MoreHorizontal,
-  Send,
-  Trash2,
-  X,
+  Heart, ImagePlus, MessageCircle, MoreHorizontal,
+  Send, Trash2, X, Leaf, Fish, HelpCircle, Lightbulb,
+  Star, ShoppingBag, Grid3X3,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -19,39 +15,44 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 
 const CATEGORIES = [
-  { value: "plant", label: "Pflanze" },
-  { value: "aquarium", label: "Aquarium" },
-  { value: "question", label: "Frage" },
-  { value: "tip", label: "Tipp" },
-  { value: "showcase", label: "Showcase" },
-  { value: "marketplace", label: "Marktplatz" },
-  { value: "other", label: "Sonstiges" },
+  { value: "plant",       label: "Pflanze",    icon: Leaf },
+  { value: "aquarium",    label: "Aquarium",   icon: Fish },
+  { value: "question",    label: "Frage",      icon: HelpCircle },
+  { value: "tip",         label: "Tipp",       icon: Lightbulb },
+  { value: "showcase",    label: "Showcase",   icon: Star },
+  { value: "marketplace", label: "Marktplatz", icon: ShoppingBag },
+  { value: "other",       label: "Sonstiges",  icon: Grid3X3 },
 ] as const;
 
-const CATEGORY_COLORS: Record<string, string> = {
-  plant: "badge-tropical",
-  aquarium: "badge-aquatic",
-  question: "bg-violet-500/15 text-violet-400 border-violet-500/30",
-  tip: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-  showcase: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-  marketplace: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-  other: "badge-other",
+const CAT_STYLE: Record<string, { bg: string; text: string; border: string }> = {
+  plant:       { bg: "oklch(0.52 0.14 148 / 0.12)", text: "oklch(0.65 0.16 148)", border: "oklch(0.52 0.14 148 / 0.25)" },
+  aquarium:    { bg: "oklch(0.52 0.14 220 / 0.12)", text: "oklch(0.65 0.14 220)", border: "oklch(0.52 0.14 220 / 0.25)" },
+  question:    { bg: "oklch(0.55 0.14 280 / 0.12)", text: "oklch(0.68 0.14 280)", border: "oklch(0.55 0.14 280 / 0.25)" },
+  tip:         { bg: "oklch(0.72 0.14 78 / 0.12)",  text: "oklch(0.78 0.14 78)",  border: "oklch(0.72 0.14 78 / 0.25)" },
+  showcase:    { bg: "oklch(0.60 0.14 350 / 0.12)", text: "oklch(0.70 0.14 350)", border: "oklch(0.60 0.14 350 / 0.25)" },
+  marketplace: { bg: "oklch(0.55 0.14 170 / 0.12)", text: "oklch(0.65 0.14 170)", border: "oklch(0.55 0.14 170 / 0.25)" },
+  other:       { bg: "oklch(0.25 0.008 200)",        text: "oklch(0.60 0.008 200)", border: "oklch(0.30 0.008 200)" },
 };
+
+function CategoryBadge({ category }: { category: string }) {
+  const style = CAT_STYLE[category] ?? CAT_STYLE.other;
+  const cat = CATEGORIES.find(c => c.value === category);
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium"
+      style={{ background: style.bg, color: style.text, border: `1px solid ${style.border}` }}
+    >
+      {cat?.label ?? category}
+    </span>
+  );
+}
 
 function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
   const { user } = useAuth();
@@ -60,11 +61,9 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
   const [commentText, setCommentText] = useState("");
 
   const likeMutation = trpc.posts.like.useMutation({
-    onMutate: () => utils.posts.list.invalidate(),
     onSuccess: () => utils.posts.list.invalidate(),
   });
   const unlikeMutation = trpc.posts.unlike.useMutation({
-    onMutate: () => utils.posts.list.invalidate(),
     onSuccess: () => utils.posts.list.invalidate(),
   });
   const deleteMutation = trpc.posts.delete.useMutation({
@@ -85,48 +84,55 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
 
   const handleLike = () => {
     if (!user) { toast.error("Bitte anmelden"); return; }
-    if (post.isLiked) {
-      unlikeMutation.mutate({ postId: post.id });
-    } else {
-      likeMutation.mutate({ postId: post.id });
-    }
+    if (post.isLiked) unlikeMutation.mutate({ postId: post.id });
+    else likeMutation.mutate({ postId: post.id });
   };
 
   return (
-    <article className="card-premium rounded-xl overflow-hidden animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 pb-3">
+    <article
+      className="overflow-hidden rounded-2xl transition-all duration-200"
+      style={{
+        background: "oklch(0.12 0.008 200)",
+        border: "1px solid oklch(0.20 0.008 200)",
+      }}
+    >
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9 ring-1 ring-primary/20">
+          <Avatar className="w-10 h-10 ring-2" style={{ "--tw-ring-color": "oklch(0.52 0.14 148 / 0.2)" } as any}>
             <AvatarImage src={post.userAvatarUrl} />
             <AvatarFallback
-              className="text-sm font-semibold"
-              style={{ background: "oklch(0.68 0.16 152 / 0.2)", color: "oklch(0.68 0.16 152)" }}
+              className="text-sm font-bold"
+              style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}
             >
               {post.userName?.charAt(0)?.toUpperCase() ?? "U"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold leading-none">{post.userName ?? "Unbekannt"}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-sm font-semibold leading-none" style={{ color: "oklch(0.92 0.005 200)" }}>
+              {post.userName ?? "Unbekannt"}
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: "oklch(0.48 0.008 200)" }}>
               {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: de })}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className={cn("text-xs border", CATEGORY_COLORS[post.category] ?? "badge-other")}>
-            {CATEGORIES.find(c => c.value === post.category)?.label ?? post.category}
-          </Badge>
+          <CategoryBadge category={post.category} />
           {user?.id === post.userId && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-7 h-7">
+                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent
+                align="end"
+                className="rounded-xl"
+                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+              >
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive cursor-pointer"
                   onClick={() => deleteMutation.mutate({ id: post.id })}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -138,68 +144,88 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
         </div>
       </div>
 
-      {/* Image */}
+      {/* ── Image (large, full width) ── */}
       {post.imageUrl && (
-        <div className="relative">
+        <div className="relative w-full overflow-hidden" style={{ maxHeight: "520px" }}>
           <img
             src={post.imageUrl}
             alt="Post"
-            className="w-full max-h-96 object-cover"
+            className="w-full object-cover"
+            style={{ maxHeight: "520px" }}
             loading="lazy"
           />
         </div>
       )}
 
-      {/* Content */}
-      <div className="px-4 py-3">
-        <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{post.content}</p>
+      {/* ── Content ── */}
+      <div className="px-5 py-4">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "oklch(0.82 0.005 200)" }}>
+          {post.content}
+        </p>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 px-4 pb-3 pt-3" style={{ borderTop: "1px solid oklch(0.20 0.010 240)" }}>
+      {/* ── Actions ── */}
+      <div
+        className="flex items-center gap-1 px-5 pb-4"
+        style={{ borderTop: "1px solid oklch(0.18 0.008 200)", paddingTop: "0.75rem" }}
+      >
         <button
           onClick={handleLike}
-          className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-150 press-active",
-            post.isLiked
-              ? "text-rose-400 bg-rose-500/10"
-              : "text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10"
-          )}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
+          style={{
+            color: post.isLiked ? "oklch(0.70 0.18 15)" : "oklch(0.50 0.008 200)",
+            background: post.isLiked ? "oklch(0.60 0.18 15 / 0.10)" : "transparent",
+          }}
+          onMouseEnter={e => {
+            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "oklch(0.70 0.18 15)";
+          }}
+          onMouseLeave={e => {
+            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "oklch(0.50 0.008 200)";
+          }}
         >
           <Heart className={cn("w-4 h-4", post.isLiked && "fill-current")} />
           <span>{post.likesCount}</span>
         </button>
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-150 press-active"
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
+          style={{ color: showComments ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)"; }}
+          onMouseLeave={e => {
+            if (!showComments) (e.currentTarget as HTMLElement).style.color = "oklch(0.50 0.008 200)";
+          }}
         >
           <MessageCircle className="w-4 h-4" />
           <span>{post.commentsCount}</span>
         </button>
       </div>
 
-      {/* Comments Section */}
+      {/* ── Comments ── */}
       {showComments && (
-        <div className="border-t border-border/30 px-4 py-3 space-y-3">
-          {commentsData?.map((comment) => (
-            <div key={comment.id} className="flex gap-2.5">
-              <Avatar className="w-7 h-7 flex-shrink-0">
-                <AvatarImage src={comment.userAvatarUrl ?? undefined} />
-                <AvatarFallback className="bg-secondary text-xs">
-                  {comment.userName?.charAt(0)?.toUpperCase() ?? "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 bg-secondary/50 rounded-lg px-3 py-2">
-                <p className="text-xs font-medium mb-0.5">{comment.userName ?? "Unbekannt"}</p>
-                <p className="text-sm text-muted-foreground">{comment.content}</p>
+        <div className="px-5 pb-5 space-y-3" style={{ borderTop: "1px solid oklch(0.16 0.008 200)" }}>
+          <div className="pt-3 space-y-3">
+            {commentsData?.map((comment) => (
+              <div key={comment.id} className="flex gap-3">
+                <Avatar className="w-7 h-7 flex-shrink-0">
+                  <AvatarImage src={comment.userAvatarUrl ?? undefined} />
+                  <AvatarFallback className="text-xs" style={{ background: "oklch(0.18 0.008 200)", color: "oklch(0.60 0.008 200)" }}>
+                    {comment.userName?.charAt(0)?.toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 rounded-xl px-3 py-2" style={{ background: "oklch(0.15 0.008 200)" }}>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: "oklch(0.80 0.005 200)" }}>
+                    {comment.userName ?? "Unbekannt"}
+                  </p>
+                  <p className="text-sm" style={{ color: "oklch(0.65 0.008 200)" }}>{comment.content}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           {user && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-1">
               <Avatar className="w-7 h-7 flex-shrink-0">
                 <AvatarImage src={user.avatarUrl ?? undefined} />
-                <AvatarFallback className="bg-primary/20 text-primary text-xs">
+                <AvatarFallback className="text-xs" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
                   {user.name?.charAt(0)?.toUpperCase() ?? "U"}
                 </AvatarFallback>
               </Avatar>
@@ -208,7 +234,14 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Kommentar schreiben..."
-                  className="flex-1 bg-secondary/50 border border-border/50 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary/50 transition-colors"
+                  className="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+                  style={{
+                    background: "oklch(0.15 0.008 200)",
+                    border: "1px solid oklch(0.22 0.008 200)",
+                    color: "oklch(0.88 0.005 200)",
+                  }}
+                  onFocus={e => { (e.target as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.5)"; }}
+                  onBlur={e => { (e.target as HTMLElement).style.borderColor = "oklch(0.22 0.008 200)"; }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey && commentText.trim()) {
                       e.preventDefault();
@@ -218,7 +251,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
                 />
                 <Button
                   size="icon"
-                  className="w-8 h-8 flex-shrink-0"
+                  className="w-9 h-9 flex-shrink-0 rounded-xl"
                   disabled={!commentText.trim() || addCommentMutation.isPending}
                   onClick={() => {
                     if (commentText.trim()) {
@@ -245,14 +278,11 @@ function CreatePost() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string | null>(null);
-  const fileInputRef = useState<HTMLInputElement | null>(null);
 
   const createMutation = trpc.posts.create.useMutation({
     onSuccess: () => {
-      setContent("");
-      setCategory("other");
-      setImagePreview(null);
-      setImageBase64(null);
+      setContent(""); setCategory("other");
+      setImagePreview(null); setImageBase64(null);
       utils.posts.list.invalidate();
       toast.success("Beitrag veröffentlicht!");
     },
@@ -277,11 +307,17 @@ function CreatePost() {
   if (!user) return null;
 
   return (
-    <div className="card-premium rounded-xl p-4 space-y-3">
+    <div
+      className="rounded-2xl p-5 space-y-4"
+      style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+    >
       <div className="flex gap-3">
-        <Avatar className="w-9 h-9 flex-shrink-0">
+        <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={user.avatarUrl ?? undefined} />
-          <AvatarFallback className="bg-primary/20 text-primary text-sm">
+          <AvatarFallback
+            className="text-sm font-bold"
+            style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}
+          >
             {user.name?.charAt(0)?.toUpperCase() ?? "U"}
           </AvatarFallback>
         </Avatar>
@@ -289,36 +325,62 @@ function CreatePost() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Teile deine Fortschritte, Fragen oder Inspirationen..."
-          className="flex-1 min-h-[80px] bg-secondary/50 border-border/50 resize-none text-sm"
+          className="flex-1 min-h-[80px] resize-none text-sm rounded-xl"
+          style={{
+            background: "oklch(0.15 0.008 200)",
+            border: "1px solid oklch(0.22 0.008 200)",
+            color: "oklch(0.88 0.005 200)",
+          }}
         />
       </div>
 
       {imagePreview && (
-        <div className="relative rounded-lg overflow-hidden ml-12">
-          <img src={imagePreview} alt="Preview" className="max-h-48 w-auto rounded-lg" />
+        <div className="relative rounded-xl overflow-hidden ml-13">
+          <img src={imagePreview} alt="Preview" className="max-h-56 w-auto rounded-xl" />
           <button
             onClick={() => { setImagePreview(null); setImageBase64(null); }}
-            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center"
+            className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
+            style={{ background: "oklch(0.08 0.008 200 / 0.8)" }}
           >
-            <X className="w-3 h-3 text-white" />
+            <X className="w-3.5 h-3.5" style={{ color: "oklch(0.90 0.005 200)" }} />
           </button>
         </div>
       )}
 
-      <div className="flex items-center justify-between ml-12">
+      <div className="flex items-center justify-between pl-13">
         <div className="flex items-center gap-2">
           <label className="cursor-pointer">
             <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+            <div
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
+              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.75 0.008 200)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.30 0.008 200)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)";
+              }}
+            >
               <ImagePlus className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Foto</span>
+              <span className="hidden sm:inline">Foto</span>
             </div>
           </label>
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-8 text-xs w-32 bg-secondary/50 border-border/50">
+            <SelectTrigger
+              className="h-9 text-xs w-32 rounded-xl"
+              style={{
+                background: "oklch(0.15 0.008 200)",
+                border: "1px solid oklch(0.22 0.008 200)",
+                color: "oklch(0.70 0.008 200)",
+              }}
+            >
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+            >
               {CATEGORIES.map(c => (
                 <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
               ))}
@@ -327,6 +389,7 @@ function CreatePost() {
         </div>
         <Button
           size="sm"
+          className="rounded-xl px-5"
           disabled={!content.trim() || createMutation.isPending}
           onClick={() => {
             if (content.trim()) {
@@ -338,7 +401,6 @@ function CreatePost() {
               });
             }
           }}
-          className="press-active"
         >
           {createMutation.isPending ? "..." : "Teilen"}
         </Button>
@@ -358,61 +420,86 @@ export default function Feed() {
   });
 
   return (
-    <div className="container py-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-display font-semibold gradient-text-gold">Community Feed</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Teile deine Leidenschaft mit der Community</p>
-        </div>
+    <div className="max-w-2xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+
+      {/* ── Page Header ── */}
+      <div className="mb-8">
+        <h1
+          className="font-brand text-4xl leading-none mb-1"
+          style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.04em" }}
+        >
+          COMMUNITY FEED
+        </h1>
+        <p className="text-sm" style={{ color: "oklch(0.50 0.008 200)" }}>
+          Teile deine Leidenschaft mit der Community
+        </p>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto pb-1 scrollbar-hide">
-        {[{ value: "all", label: "Alle" }, ...CATEGORIES].map((cat) => (
-          <button
-            key={cat.value}
-            onClick={() => setFilter(cat.value)}
-            className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 press-active",
-              filter === cat.value
-                ? "bg-primary/15 text-primary border border-primary/30"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent"
-            )}
-          >
-            {cat.label}
-          </button>
-        ))}
+      {/* ── Filter Tabs ── */}
+      <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+        {[{ value: "all", label: "Alle" }, ...CATEGORIES].map((cat) => {
+          const isActive = filter === cat.value;
+          return (
+            <button
+              key={cat.value}
+              onClick={() => setFilter(cat.value)}
+              className="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-150 active:scale-95"
+              style={{
+                background: isActive ? "oklch(0.52 0.14 148 / 0.15)" : "oklch(0.14 0.008 200)",
+                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.55 0.008 200)",
+                border: `1px solid ${isActive ? "oklch(0.52 0.14 148 / 0.35)" : "oklch(0.20 0.008 200)"}`,
+              }}
+            >
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Create Post */}
+      {/* ── Create Post ── */}
       {isAuthenticated && (
         <div className="mb-6">
           <CreatePost />
         </div>
       )}
 
-      {/* Posts */}
-      <div className="space-y-4">
+      {/* ── Posts ── */}
+      <div className="space-y-5">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-card border border-border/50 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-9 h-9 rounded-full" />
-                <div className="space-y-1.5">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-2.5 w-16" />
+            <div
+              key={i}
+              className="rounded-2xl overflow-hidden"
+              style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.18 0.008 200)" }}
+            >
+              <div className="flex items-center gap-3 p-5">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-28" />
+                  <Skeleton className="h-2.5 w-20" />
                 </div>
               </div>
-              <Skeleton className="h-48 w-full rounded-lg" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-64 w-full rounded-none" />
+              <div className="p-5">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
             </div>
           ))
         ) : data?.posts.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">Noch keine Beiträge</p>
-            <p className="text-sm mt-1">Sei der Erste und teile deine Sammlung!</p>
+          <div className="text-center py-20">
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+            >
+              <MessageCircle className="w-7 h-7" style={{ color: "oklch(0.40 0.008 200)" }} />
+            </div>
+            <p className="font-semibold mb-1" style={{ color: "oklch(0.70 0.008 200)" }}>
+              Noch keine Beiträge
+            </p>
+            <p className="text-sm" style={{ color: "oklch(0.45 0.008 200)" }}>
+              Sei der Erste und teile deine Sammlung!
+            </p>
           </div>
         ) : (
           data?.posts.map((post) => (

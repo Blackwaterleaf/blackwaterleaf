@@ -146,8 +146,8 @@ export default function AiAssistant() {
       <div
         className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
         style={{
-          background: "oklch(0.09 0.010 240 / 0.95)",
-          borderBottom: "1px solid oklch(0.20 0.010 240)",
+          background: "oklch(0.10 0.008 200 / 0.95)",
+          borderBottom: "1px solid oklch(0.20 0.008 200)",
         }}
       >
         <div className="container max-w-3xl mx-auto flex items-center gap-3">
@@ -155,18 +155,17 @@ export default function AiAssistant() {
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{
-              background:
-                "linear-gradient(135deg, oklch(0.68 0.16 152 / 0.25), oklch(0.68 0.16 152 / 0.10))",
-              border: "1px solid oklch(0.68 0.16 152 / 0.3)",
+              background: "oklch(0.52 0.14 148 / 0.15)",
+              border: "1px solid oklch(0.52 0.14 148 / 0.30)",
             }}
           >
-            <Bot className="w-5 h-5 text-primary" />
+            <Bot className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />
           </div>
 
           {/* Title */}
           <div className="flex-1 min-w-0">
-            <h1 className="font-display font-semibold text-sm gradient-text-gold leading-tight">
-              KI-Assistent
+            <h1 className="font-brand text-base leading-tight tracking-widest" style={{ color: "oklch(0.92 0.005 200)" }}>
+              KI ASSISTENT
             </h1>
             {contextName ? (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -187,32 +186,30 @@ export default function AiAssistant() {
           {/* Mode toggle */}
           {!contextName && (
             <div
-              className="flex items-center gap-0.5 rounded-lg p-0.5"
+              className="flex items-center gap-0.5 rounded-xl p-0.5"
               style={{
-                background: "oklch(0.14 0.010 240)",
-                border: "1px solid oklch(0.22 0.010 240)",
+                background: "oklch(0.14 0.008 200)",
+                border: "1px solid oklch(0.22 0.008 200)",
               }}
             >
               <button
                 onClick={() => setMode("chat")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all press-active",
-                  mode === "chat"
-                    ? "bg-primary/20 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                style={{
+                  background: mode === "chat" ? "oklch(0.52 0.14 148 / 0.20)" : "transparent",
+                  color: mode === "chat" ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                }}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
                 Chat
               </button>
               <button
                 onClick={() => setMode("identify")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all press-active",
-                  mode === "identify"
-                    ? "bg-primary/20 text-primary"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                style={{
+                  background: mode === "identify" ? "oklch(0.52 0.14 148 / 0.20)" : "transparent",
+                  color: mode === "identify" ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                }}
               >
                 <ScanSearch className="w-3.5 h-3.5" />
                 Bestimmen
@@ -245,7 +242,7 @@ export default function AiAssistant() {
                   >
                     <Sparkles className="w-8 h-8 text-primary" />
                   </div>
-                  <h2 className="font-display font-semibold text-xl mb-2 gradient-text-gold">
+                  <h2 className="font-brand text-2xl mb-2 tracking-widest" style={{ color: "oklch(0.92 0.005 200)" }}>
                     Wie kann ich helfen?
                   </h2>
                   <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
@@ -470,8 +467,8 @@ export default function AiAssistant() {
           <div
             className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
             style={{
-              background: "oklch(0.09 0.010 240 / 0.95)",
-              borderTop: "1px solid oklch(0.20 0.010 240)",
+              background: "oklch(0.10 0.008 200 / 0.95)",
+              borderTop: "1px solid oklch(0.20 0.008 200)",
             }}
           >
             <div className="container max-w-3xl mx-auto flex gap-3">
@@ -485,8 +482,9 @@ export default function AiAssistant() {
                 disabled={!isAuthenticated || isLoading}
                 className="flex-1 min-h-[44px] max-h-32 resize-none text-sm"
                 style={{
-                  background: "oklch(0.13 0.010 240)",
-                  border: "1px solid oklch(0.22 0.010 240)",
+                  background: "oklch(0.15 0.008 200)",
+                  border: "1px solid oklch(0.22 0.008 200)",
+                  color: "oklch(0.88 0.005 200)",
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {

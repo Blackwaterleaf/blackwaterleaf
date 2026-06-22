@@ -1,325 +1,387 @@
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { trpc } from "@/lib/trpc";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { trpc } from "@/lib/trpc";
+import { getLoginUrl } from "@/const";
+import {
+  Menu,
+  Search,
   Bell,
-  Bot,
-  Compass,
-  Droplets,
-  Home,
-  Leaf,
   LogOut,
   User,
-  BookOpen,
-  Trophy,
   Settings,
+  Leaf,
+  Waves,
+  BookOpen,
+  Users,
+  Bot,
+  Trophy,
+  Compass,
+  ChevronRight,
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { getLoginUrl } from "@/const";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
+const IMG_LOGO = "/manus-storage/logo-circle_c176197b.png";
 
 const NAV_ITEMS = [
-  { href: "/feed",         icon: Home,     label: "Feed" },
-  { href: "/plants",       icon: Leaf,     label: "Pflanzen" },
-  { href: "/aquariums",    icon: Droplets, label: "Aquarien" },
-  { href: "/discover",     icon: Compass,  label: "Entdecken" },
-  { href: "/knowledge",    icon: BookOpen, label: "Wissen" },
-  { href: "/ranking",      icon: Trophy,   label: "Ranking" },
-  { href: "/ai",           icon: Bot,      label: "KI-Assistent" },
+  { href: "/discover", label: "Entdecken" },
+  { href: "/plants",   label: "Pflanzen" },
+  { href: "/knowledge", label: "Wissen" },
+  { href: "/feed",     label: "Community" },
+  { href: "/ai",       label: "KI Assistent" },
 ];
 
-// Compact set for the mobile bottom navigation (max 5 items).
-const MOBILE_NAV_ITEMS = [
-  { href: "/feed",      icon: Home,     label: "Feed" },
-  { href: "/discover",  icon: Compass,  label: "Entdecken" },
-  { href: "/knowledge", icon: BookOpen, label: "Wissen" },
-  { href: "/ai",        icon: Bot,      label: "KI" },
+const MOBILE_NAV = [
+  { href: "/feed",      label: "Feed",        icon: Compass },
+  { href: "/plants",    label: "Pflanzen",    icon: Leaf },
+  { href: "/aquariums", label: "Aquarien",    icon: Waves },
+  { href: "/discover",  label: "Entdecken",   icon: Compass },
+  { href: "/knowledge", label: "Wissen",      icon: BookOpen },
+  { href: "/ranking",   label: "Ranking",     icon: Trophy },
+  { href: "/ai",        label: "KI-Assistent",icon: Bot },
+  { href: "/profile",   label: "Mein Profil", icon: User },
 ];
 
-function NavItem({
-  href,
-  icon: Icon,
-  label,
-  badge,
-}: {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  badge?: number;
-}) {
+function TopNav() {
   const [location] = useLocation();
-  const isActive = location === href || (href !== "/" && location.startsWith(href));
+  const { isAuthenticated, user } = useAuth();
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => { window.location.href = "/"; },
+  });
 
   return (
-    <Link href={href}>
-      <div
-        className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 press-active cursor-pointer group relative",
-          isActive
-            ? "nav-item-active"
-            : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-        )}
-      >
-        <Icon
-          className={cn(
-            "w-4.5 h-4.5 flex-shrink-0 transition-colors",
-            isActive
-              ? "text-primary"
-              : "text-muted-foreground group-hover:text-foreground"
+    <header
+      className="fixed top-0 left-0 right-0 z-50"
+      style={{
+        background: "oklch(0.09 0.008 200 / 0.92)",
+        backdropFilter: "blur(20px) saturate(1.5)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.5)",
+        borderBottom: "1px solid oklch(0.22 0.008 200 / 0.6)",
+      }}
+    >
+      <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
+
+        {/* ── Logo ── */}
+        <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
+          <img
+            src={IMG_LOGO}
+            alt="BlackwaterLeaf"
+            className="w-9 h-9 rounded-full transition-transform duration-200 group-hover:scale-105"
+            style={{ filter: "drop-shadow(0 0 8px oklch(0.52 0.14 148 / 0.4))" }}
+          />
+          <div className="hidden sm:block">
+            <span
+              className="font-brand text-base tracking-widest leading-none block"
+              style={{ color: "oklch(0.95 0.005 200)" }}
+            >
+              BLACKWATER<span style={{ color: "oklch(0.52 0.14 148)" }}>LEAF</span>
+            </span>
+            <span
+              className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5"
+              style={{ color: "oklch(0.45 0.008 200)" }}
+            >
+              Community
+            </span>
+          </div>
+        </Link>
+
+        {/* ── Center Nav ── */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive = location === item.href || location.startsWith(item.href + "/");
+            return (
+              <Link key={item.href} href={item.href}>
+                <span
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer block"
+                  style={{
+                    color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.70 0.008 200)",
+                    background: isActive ? "oklch(0.52 0.14 148 / 0.12)" : "transparent",
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.color = "oklch(0.90 0.005 200)";
+                      (e.currentTarget as HTMLElement).style.background = "oklch(0.16 0.008 200)";
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.color = "oklch(0.70 0.008 200)";
+                      (e.currentTarget as HTMLElement).style.background = "transparent";
+                    }
+                  }}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* ── Right Side ── */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Search */}
+          <Link href="/discover">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-9 h-9 rounded-lg"
+              style={{ color: "oklch(0.60 0.008 200)" }}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </Link>
+
+          {isAuthenticated ? (
+            <>
+              {/* Notifications */}
+              <Link href="/notifications">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-9 h-9 rounded-lg"
+                  style={{ color: "oklch(0.60 0.008 200)" }}
+                >
+                  <Bell className="w-4 h-4" />
+                </Button>
+              </Link>
+
+              {/* Avatar dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors duration-200 hover:bg-white/5 focus-visible:outline-none">
+                    <Avatar className="w-8 h-8 ring-2 ring-primary/30">
+                      <AvatarImage src={user?.avatarUrl ?? undefined} />
+                      <AvatarFallback
+                        className="text-xs font-semibold"
+                        style={{ background: "oklch(0.52 0.14 148 / 0.2)", color: "oklch(0.65 0.16 148)" }}
+                      >
+                        {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:block text-sm font-medium max-w-[100px] truncate" style={{ color: "oklch(0.85 0.005 200)" }}>
+                      {user?.name}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-52 rounded-xl"
+                  style={{
+                    background: "oklch(0.13 0.008 200)",
+                    border: "1px solid oklch(0.22 0.008 200)",
+                  }}
+                >
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <User className="w-4 h-4" />
+                      Mein Profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="w-4 h-4" />
+                      Einstellungen
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator style={{ background: "oklch(0.22 0.008 200)" }} />
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    onClick={() => logoutMutation.mutate()}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Abmelden
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <a
+              href={getLoginUrl()}
+              className="btn-primary text-sm px-5 py-2"
+            >
+              Anmelden
+            </a>
           )}
-        />
-        <span className="truncate">{label}</span>
-        {badge && badge > 0 ? (
-          <Badge className="ml-auto h-4 min-w-4 px-1 text-xs bg-primary text-primary-foreground">
-            {badge > 9 ? "9+" : badge}
-          </Badge>
-        ) : null}
+
+          {/* Mobile menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden w-9 h-9 rounded-lg"
+                style={{ color: "oklch(0.60 0.008 200)" }}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-72 p-0"
+              style={{
+                background: "oklch(0.10 0.008 200)",
+                border: "none",
+                borderLeft: "1px solid oklch(0.22 0.008 200)",
+              }}
+            >
+              <MobileMenu user={user} isAuthenticated={isAuthenticated} />
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
-    </Link>
+    </header>
   );
 }
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, isAuthenticated, logout } = useAuth();
+function MobileMenu({ user, isAuthenticated }: { user: any; isAuthenticated: boolean }) {
   const [location] = useLocation();
-
-  const { data: unreadData } = trpc.notifications.unreadCount.useQuery(undefined, {
-    enabled: isAuthenticated,
-    refetchInterval: 30_000,
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => { window.location.href = "/"; },
   });
-  const unreadCount = unreadData?.count ?? 0;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* ─── Sidebar – Desktop ─────────────────────────────────────────────────── */}
-      <aside className="hidden lg:flex flex-col w-64 fixed left-0 top-0 bottom-0 z-40"
-        style={{
-          background: "linear-gradient(180deg, oklch(0.10 0.014 60) 0%, oklch(0.07 0.012 58) 100%)",
-          borderRight: "1px solid oklch(0.20 0.014 62)",
-        }}
-      >
-        {/* ── Logo / Brand ── */}
-        <div className="flex items-center gap-3 px-5 h-16"
-          style={{ borderBottom: "1px solid oklch(0.20 0.014 62)" }}
-        >
-          <div className="relative flex-shrink-0">
-            <img
-              src="/manus-storage/logo-circle_c176197b.png"
-              alt="BL"
-              className="w-9 h-9 rounded-full"
-              style={{ filter: "drop-shadow(0 0 6px oklch(0.72 0.14 75 / 0.4))" }}
-            />
-          </div>
-          <div className="min-w-0">
-            <span className="font-brand text-sm tracking-widest block leading-tight gradient-text-gold">
-              BLACKWATERLEAF
-            </span>
-            <span className="text-[10px] tracking-widest uppercase leading-tight"
-              style={{ color: "oklch(0.45 0.012 70)" }}
-            >
-              NATURE IN FLOW
-            </span>
-          </div>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: "1px solid oklch(0.18 0.008 200)" }}>
+        <img src={IMG_LOGO} alt="BL" className="w-8 h-8 rounded-full" />
+        <div>
+          <span className="font-brand text-sm tracking-widest block" style={{ color: "oklch(0.95 0.005 200)" }}>
+            BLACKWATER<span style={{ color: "oklch(0.52 0.14 148)" }}>LEAF</span>
+          </span>
+          <span className="text-[9px] tracking-widest uppercase" style={{ color: "oklch(0.40 0.008 200)" }}>
+            Nature in Flow
+          </span>
         </div>
+      </div>
 
-        {/* ── Navigation ── */}
-        <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-          {/* Main nav group */}
-          <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-            Navigation
-          </p>
-          {NAV_ITEMS.map((item) => (
-            <NavItem key={item.href} {...item} />
-          ))}
-
-          {/* Separator */}
-          <div className="my-3 mx-3 h-px" style={{ background: "oklch(0.20 0.014 62)" }} />
-
-          {/* Alerts */}
-          <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">
-            Konto
-          </p>
-          <NavItem href="/notifications" icon={Bell} label="Benachrichtigungen" badge={unreadCount} />
-          <NavItem href="/profile" icon={User} label="Mein Profil" />
-        </nav>
-
-        {/* ── User Profile Footer ── */}
-        <div className="px-3 py-4" style={{ borderTop: "1px solid oklch(0.20 0.014 62)" }}>
-          {isAuthenticated ? (
-            <div className="space-y-1">
-              {/* Profile card */}
-              <Link href="/profile">
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer group">
-                  <Avatar className="w-8 h-8 flex-shrink-0 ring-1 ring-primary/30">
-                    <AvatarImage src={user?.avatarUrl ?? undefined} />
-                    <AvatarFallback
-                      className="text-xs font-semibold"
-                      style={{
-                        background: "oklch(0.55 0.14 140 / 0.2)",
-                        color: "oklch(0.65 0.16 145)",
-                      }}
-                    >
-                      {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{user?.name ?? "Profil"}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email ?? ""}</p>
-                  </div>
-                  <Settings className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </Link>
-              {/* Logout */}
-              <button
-                onClick={() => logout()}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {MOBILE_NAV.map((item) => {
+          const Icon = item.icon;
+          const isActive = location === item.href || location.startsWith(item.href + "/");
+          return (
+            <Link key={item.href} href={item.href}>
+              <div
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer"
+                style={{
+                  background: isActive ? "oklch(0.52 0.14 148 / 0.12)" : "transparent",
+                  color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.65 0.008 200)",
+                }}
               >
-                <LogOut className="w-4 h-4" />
-                Abmelden
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground text-center px-2">
-                Melde dich an, um die Community zu nutzen
-              </p>
-              <Button asChild size="sm" className="w-full press-active btn-glow">
-                <a href={getLoginUrl()}>Anmelden</a>
-              </Button>
-            </div>
-          )}
-        </div>
-      </aside>
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm font-medium">{item.label}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto opacity-60" />}
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
 
-      {/* ─── Main Content ──────────────────────────────────────────────────────── */}
-      <main className="flex-1 lg:ml-64 min-h-screen flex flex-col">
-        {/* Mobile Header */}
-        <header
-          className="lg:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-md"
-          style={{
-            paddingTop: "env(safe-area-inset-top, 0px)",
-          background: "oklch(0.08 0.012 60 / 0.96)",
-          borderBottom: "1px solid oklch(0.20 0.014 62)",
-          }}
-        >
-          <div className="flex items-center justify-between px-4 h-14">
-            {/* Brand */}
-            <div className="flex items-center gap-2.5">
-              <img
-              src="/manus-storage/logo-circle_c176197b.png"
-              alt="BL"
-              className="w-7 h-7 rounded-full"
-              />
-              <span className="font-display font-semibold text-sm gradient-text-gold">
-                BlackwaterLeaf
-              </span>
+      {/* User footer */}
+      <div className="px-3 py-4" style={{ borderTop: "1px solid oklch(0.18 0.008 200)" }}>
+        {isAuthenticated ? (
+          <div className="space-y-1">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{ background: "oklch(0.14 0.008 200)" }}>
+              <Avatar className="w-8 h-8 ring-1 ring-primary/30">
+                <AvatarImage src={user?.avatarUrl ?? undefined} />
+                <AvatarFallback className="text-xs" style={{ background: "oklch(0.52 0.14 148 / 0.2)", color: "oklch(0.65 0.16 148)" }}>
+                  {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.name ?? "Profil"}</p>
+                <p className="text-xs truncate" style={{ color: "oklch(0.45 0.008 200)" }}>{user?.email ?? ""}</p>
+              </div>
             </div>
-
-            {/* Right actions */}
-            <div className="flex items-center gap-1.5">
-              <Link href="/notifications">
-                <button className="relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-secondary transition-colors active:scale-95">
-                  <Bell className="w-4.5 h-4.5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  )}
-                </button>
-              </Link>
-              {isAuthenticated ? (
-                <Link href="/profile">
-                  <Avatar className="w-8 h-8 cursor-pointer active:scale-95 transition-transform ring-1 ring-primary/30">
-                    <AvatarImage src={user?.avatarUrl ?? undefined} />
-                    <AvatarFallback
-                      className="text-xs font-semibold"
-                      style={{
-                        background: "oklch(0.55 0.14 140 / 0.2)",
-                        color: "oklch(0.65 0.16 145)",
-                      }}
-                    >
-                      {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              ) : (
-                <Button size="sm" asChild className="h-8 text-xs press-active">
-                  <a href={getLoginUrl()}>Anmelden</a>
-                </Button>
-              )}
-            </div>
+            <button
+              onClick={() => logoutMutation.mutate()}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-200 hover:bg-white/5"
+              style={{ color: "oklch(0.55 0.008 200)" }}
+            >
+              <LogOut className="w-4 h-4" />
+              Abmelden
+            </button>
           </div>
-        </header>
+        ) : (
+          <a href={getLoginUrl()} className="btn-primary w-full justify-center">
+            Anmelden
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
 
-        {/* Page Content */}
-        <div
-          className="flex-1 lg:pt-0 lg:pb-0"
-          style={{
-            paddingTop: "calc(env(safe-area-inset-top, 0px) + 3.5rem)",
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
-          }}
-        >
-          <div className="lg:pt-0 lg:pb-0" style={{ paddingTop: 0, paddingBottom: 0 }}>
-            {children}
-          </div>
-        </div>
+interface AppLayoutProps {
+  children: React.ReactNode;
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
+      <TopNav />
+      {/* Content below fixed nav */}
+      <main className="pt-16">
+        {children}
       </main>
 
-      {/* ─── Mobile Bottom Nav ─────────────────────────────────────────────────── */}
-      <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md"
-        style={{
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-          background: "oklch(0.08 0.012 60 / 0.97)",
-          borderTop: "1px solid oklch(0.20 0.014 62)",
-        }}
-      >
-        <div className="flex items-center justify-around h-16 px-1">
-          {[...MOBILE_NAV_ITEMS, { href: "/notifications", icon: Bell, label: "Alerts" }].map(
-            (item) => {
-              const isActive =
-                location === item.href ||
-                (item.href !== "/" && location.startsWith(item.href));
-              const isBell = item.href === "/notifications";
-              return (
-                <Link key={item.href} href={item.href}>
-                  <div
-                    className={cn(
-                      "flex flex-col items-center gap-0.5 min-w-[52px] py-2 rounded-xl transition-all duration-150 cursor-pointer relative select-none",
-                      "active:scale-90 active:opacity-70",
-                      isActive ? "text-primary" : "text-muted-foreground"
-                    )}
-                  >
-                    {isActive && (
-                      <span
-                        className="absolute top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full"
-                        style={{ background: "oklch(0.55 0.14 140)" }}
-                      />
-                    )}
-                    <item.icon
-                      className={cn(
-                        "w-5 h-5 transition-transform",
-                        isActive && "scale-110"
-                      )}
-                    />
-                    <span
-                      className={cn(
-                        "text-[10px] font-medium",
-                        isActive ? "text-primary" : "text-muted-foreground/70"
-                      )}
-                    >
-                      {item.label}
-                    </span>
-                    {isBell && unreadCount > 0 && (
-                      <span className="absolute top-1 right-2.5 w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    )}
-                  </div>
-                </Link>
-              );
-            }
-          )}
-        </div>
-      </nav>
+      {/* Mobile bottom nav */}
+      <MobileBottomNav />
     </div>
+  );
+}
+
+function MobileBottomNav() {
+  const [location] = useLocation();
+  const BOTTOM = [
+    { href: "/feed",     label: "Feed",     icon: Compass },
+    { href: "/plants",   label: "Pflanzen", icon: Leaf },
+    { href: "/ai",       label: "KI",       icon: Bot },
+    { href: "/knowledge",label: "Wissen",   icon: BookOpen },
+    { href: "/profile",  label: "Profil",   icon: User },
+  ];
+
+  return (
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2"
+      style={{
+        background: "oklch(0.10 0.008 200 / 0.96)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid oklch(0.20 0.008 200)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        height: "calc(56px + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
+      {BOTTOM.map((item) => {
+        const Icon = item.icon;
+        const isActive = location === item.href || location.startsWith(item.href + "/");
+        return (
+          <Link key={item.href} href={item.href}>
+            <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 cursor-pointer min-w-[52px]">
+              <Icon
+                className="w-5 h-5 transition-colors duration-200"
+                style={{ color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)" }}
+              />
+              <span
+                className="text-[10px] font-medium transition-colors duration-200"
+                style={{ color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.45 0.008 200)" }}
+              >
+                {item.label}
+              </span>
+            </div>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
