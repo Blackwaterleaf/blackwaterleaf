@@ -93,18 +93,21 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
   };
 
   return (
-    <article className="bg-card border border-border/50 rounded-xl overflow-hidden animate-fade-in hover-card">
+    <article className="card-premium rounded-xl overflow-hidden animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between p-4 pb-3">
         <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9">
+          <Avatar className="w-9 h-9 ring-1 ring-primary/20">
             <AvatarImage src={post.userAvatarUrl} />
-            <AvatarFallback className="bg-primary/20 text-primary text-sm">
+            <AvatarFallback
+              className="text-sm font-semibold"
+              style={{ background: "oklch(0.68 0.16 152 / 0.2)", color: "oklch(0.68 0.16 152)" }}
+            >
               {post.userName?.charAt(0)?.toUpperCase() ?? "U"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium leading-none">{post.userName ?? "Unbekannt"}</p>
+            <p className="text-sm font-semibold leading-none">{post.userName ?? "Unbekannt"}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: de })}
             </p>
@@ -149,11 +152,11 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
 
       {/* Content */}
       <div className="px-4 py-3">
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/90">{post.content}</p>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 px-4 pb-3 border-t border-border/30 pt-3">
+      <div className="flex items-center gap-1 px-4 pb-3 pt-3" style={{ borderTop: "1px solid oklch(0.20 0.010 240)" }}>
         <button
           onClick={handleLike}
           className={cn(
@@ -274,7 +277,7 @@ function CreatePost() {
   if (!user) return null;
 
   return (
-    <div className="bg-card border border-border/50 rounded-xl p-4 space-y-3">
+    <div className="card-premium rounded-xl p-4 space-y-3">
       <div className="flex gap-3">
         <Avatar className="w-9 h-9 flex-shrink-0">
           <AvatarImage src={user.avatarUrl ?? undefined} />
@@ -358,7 +361,10 @@ export default function Feed() {
     <div className="container py-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-display font-semibold">Community Feed</h1>
+        <div>
+          <h1 className="text-2xl font-display font-semibold gradient-text-gold">Community Feed</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Teile deine Leidenschaft mit der Community</p>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -370,8 +376,8 @@ export default function Feed() {
             className={cn(
               "flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 press-active",
               filter === cat.value
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                ? "bg-primary/15 text-primary border border-primary/30"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent"
             )}
           >
             {cat.label}

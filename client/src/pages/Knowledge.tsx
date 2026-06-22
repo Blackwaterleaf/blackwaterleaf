@@ -35,7 +35,7 @@ export default function Knowledge() {
   return (
     <div className="container py-6 max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-display font-semibold flex items-center gap-2">
+        <h1 className="text-2xl font-display font-semibold flex items-center gap-2 gradient-text-gold">
           <BookOpen className="w-6 h-6 text-primary" />
           Wissensdatenbank
         </h1>
@@ -50,10 +50,10 @@ export default function Knowledge() {
             key={cat.value}
             onClick={() => setFilter(cat.value)}
             className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 press-active",
+              "flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 press-active border",
               filter === cat.value
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                ? "bg-primary/15 text-primary border-primary/30"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary border-transparent"
             )}
           >
             {cat.label}
@@ -73,7 +73,7 @@ export default function Knowledge() {
         ) : data && data.length > 0 ? (
           data.map((article) => (
             <Link key={article.id} href={`/knowledge/${article.slug}`}>
-              <article className="bg-card border border-border/50 rounded-xl p-5 hover-card cursor-pointer animate-fade-in">
+              <article className="card-premium rounded-xl p-5 cursor-pointer animate-fade-in">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="outline" className="text-xs border-primary/30 text-primary bg-primary/10">
                     {CATEGORY_LABELS[article.category] ?? article.category}

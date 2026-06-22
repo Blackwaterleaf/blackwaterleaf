@@ -100,6 +100,8 @@ const plantsRouter = router({
       category: z.enum(["aquatic", "tropical", "alocasia", "monstera", "philodendron", "other"]).default("other"),
       description: z.string().max(2000).optional(),
       coverImageUrl: z.string().optional().nullable(),
+      coverImageBase64: z.string().optional(),
+      coverImageMimeType: z.string().optional(),
       lightRequirement: z.enum(["low", "medium", "high"]).optional(),
       wateringFrequency: z.string().max(64).optional(),
       humidity: z.enum(["low", "medium", "high"]).optional(),
@@ -112,7 +114,19 @@ const plantsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("DB not available");
-      const result = await db.insert(plants).values({ ...input, userId: ctx.user.id });
+      const { coverImageBase64, coverImageMimeType, ...rest } = input;
+      let coverImageUrl = rest.coverImageUrl;
+      // Upload base64 image to S3 if provided
+      if (coverImageBase64 && coverImageMimeType) {
+        try {
+          const buffer = Buffer.from(coverImageBase64, "base64");
+          const ext = coverImageMimeType.split("/")[1] ?? "jpg";
+          const key = `plants/${ctx.user.id}/${Date.now()}.${ext}`;
+          const stored = await storagePut(key, buffer, coverImageMimeType);
+          coverImageUrl = stored.url;
+        } catch (e) { /* ignore upload errors, plant still created */ }
+      }
+      const result = await db.insert(plants).values({ ...rest, coverImageUrl, userId: ctx.user.id });
       try { await awardXp(ctx.user.id, 15); await grantBadge(ctx.user.id, "plant_expert"); } catch {}
       return { id: Number(result[0].insertId) };
     }),

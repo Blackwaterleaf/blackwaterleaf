@@ -49,7 +49,7 @@ export default function Ranking() {
   return (
     <div className="container py-6 max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-display font-semibold flex items-center gap-2">
+        <h1 className="text-2xl font-display font-semibold flex items-center gap-2 gradient-text-gold">
           <Trophy className="w-6 h-6 text-primary" /> Ranking & Erfolge
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

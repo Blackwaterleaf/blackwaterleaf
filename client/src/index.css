@@ -7,27 +7,49 @@
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap");
 
 /* ─── Theme Tokens ─────────────────────────────────────────────────────────── */
+/* Premium Dark: Tiefschwarz + Dunkelgrün + Gold/Champagner-Akzente            */
 @theme inline {
-  --color-background: oklch(0.10 0.015 240);
-  --color-foreground: oklch(0.93 0.01 240);
-  --color-card: oklch(0.13 0.015 240);
-  --color-card-foreground: oklch(0.93 0.01 240);
-  --color-popover: oklch(0.13 0.015 240);
-  --color-popover-foreground: oklch(0.93 0.01 240);
-  --color-primary: oklch(0.72 0.15 155);
-  --color-primary-foreground: oklch(0.10 0.015 240);
-  --color-secondary: oklch(0.17 0.015 240);
-  --color-secondary-foreground: oklch(0.93 0.01 240);
-  --color-muted: oklch(0.17 0.015 240);
-  --color-muted-foreground: oklch(0.55 0.01 240);
-  --color-accent: oklch(0.72 0.15 155);
-  --color-accent-foreground: oklch(0.10 0.015 240);
-  --color-destructive: oklch(0.62 0.22 25);
+  /* ── Backgrounds ── */
+  --color-background:        oklch(0.07 0.008 240);   /* near-black, slight blue tint */
+  --color-foreground:        oklch(0.92 0.008 80);    /* warm off-white */
+
+  /* ── Cards / Surfaces ── */
+  --color-card:              oklch(0.11 0.010 240);   /* dark surface */
+  --color-card-foreground:   oklch(0.92 0.008 80);
+  --color-popover:           oklch(0.13 0.012 240);
+  --color-popover-foreground: oklch(0.92 0.008 80);
+
+  /* ── Primary: Forest Green ── */
+  --color-primary:           oklch(0.68 0.16 152);    /* deep forest green */
+  --color-primary-foreground: oklch(0.07 0.008 240);
+
+  /* ── Secondary / Muted ── */
+  --color-secondary:         oklch(0.15 0.010 240);
+  --color-secondary-foreground: oklch(0.92 0.008 80);
+  --color-muted:             oklch(0.15 0.010 240);
+  --color-muted-foreground:  oklch(0.50 0.008 240);
+
+  /* ── Accent: Gold/Champagner ── */
+  --color-accent:            oklch(0.78 0.12 80);     /* warm gold */
+  --color-accent-foreground: oklch(0.07 0.008 240);
+
+  /* ── Destructive ── */
+  --color-destructive:       oklch(0.60 0.22 25);
   --color-destructive-foreground: oklch(0.98 0 0);
-  --color-border: oklch(0.22 0.015 240);
-  --color-input: oklch(0.17 0.015 240);
-  --color-ring: oklch(0.72 0.15 155);
-  --radius: 0.75rem;
+
+  /* ── Borders / Inputs ── */
+  --color-border:            oklch(0.20 0.010 240);
+  --color-input:             oklch(0.14 0.010 240);
+  --color-ring:              oklch(0.68 0.16 152);
+
+  /* ── Custom Gold Token ── */
+  --color-gold:              oklch(0.78 0.12 80);
+  --color-gold-muted:        oklch(0.78 0.12 80 / 0.15);
+  --color-surface-1:         oklch(0.11 0.010 240);   /* card */
+  --color-surface-2:         oklch(0.14 0.010 240);   /* elevated card */
+  --color-surface-3:         oklch(0.18 0.012 240);   /* hover state */
+
+  --radius: 0.875rem;
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Playfair Display", Georgia, serif;
 }
@@ -97,10 +119,59 @@
   .font-display { font-family: var(--font-display); }
 
   .gradient-text {
-    background: linear-gradient(135deg, oklch(0.72 0.15 155), oklch(0.65 0.18 200));
+    background: linear-gradient(135deg, oklch(0.68 0.16 152), oklch(0.65 0.18 200));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Gold gradient text for premium headings */
+  .gradient-text-gold {
+    background: linear-gradient(135deg, oklch(0.85 0.14 85), oklch(0.72 0.10 75), oklch(0.80 0.13 90));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Premium card with subtle gradient and gold border glow */
+  .card-premium {
+    background: linear-gradient(145deg, oklch(0.12 0.012 240), oklch(0.10 0.008 240));
+    border: 1px solid oklch(0.22 0.010 240);
+    box-shadow: 0 1px 3px oklch(0 0 0 / 0.4), inset 0 1px 0 oklch(1 0 0 / 0.04);
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 180ms cubic-bezier(0.23,1,0.32,1);
+  }
+  .card-premium:hover {
+    border-color: oklch(0.68 0.16 152 / 0.4);
+    box-shadow: 0 4px 20px oklch(0 0 0 / 0.5), 0 0 0 1px oklch(0.68 0.16 152 / 0.15);
+    transform: translateY(-1px);
+  }
+
+  /* Gold accent line (top border) */
+  .gold-accent-top {
+    border-top: 2px solid oklch(0.78 0.12 80);
+  }
+
+  /* Glassmorphism panel */
+  .glass-panel {
+    background: oklch(0.11 0.010 240 / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.25 0.010 240 / 0.6);
+  }
+
+  /* Sidebar gold glow on active item */
+  .nav-item-active {
+    background: linear-gradient(90deg, oklch(0.68 0.16 152 / 0.15), transparent);
+    border-left: 2px solid oklch(0.68 0.16 152);
+    color: oklch(0.68 0.16 152);
+  }
+
+  /* Subtle green glow for primary buttons */
+  .btn-glow {
+    box-shadow: 0 0 20px oklch(0.68 0.16 152 / 0.3);
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 28px oklch(0.68 0.16 152 / 0.45);
   }
 
   .img-overlay {

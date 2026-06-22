@@ -73,3 +73,17 @@
 - [x] BL-Emblem als App-Icon/Favicon (PWA-Manifest, Header, Sidebar)
 - [ ] BL-Banner (horizontal) in Header/Landing einbinden
 - [ ] Finaler Checkpoint
+
+## Phase J: Design-Overhaul + Save-to-Plants
+- [x] Premium-Farbsystem: Tiefschwarz + Dunkelgrün + Gold/Beige-Akzente in index.css
+- [x] Playfair Display für alle Überschriften, Inter für Fließtext (Google Fonts)
+- [x] Karten mit Tiefe: subtile Gradienten, Glasmorphismus-Elemente, bessere Schatten
+- [x] AppLayout: elegantere Sidebar (Gold-Akzente, bessere Icons, Profil-Bereich)
+- [x] Feed-Seite: Premium-Karten, bessere Post-Darstellung
+- [x] KI-Seite: Premium-Redesign (Chat + Bestimmen)
+- [x] „Als Pflanze speichern"-Button nach Bestimmungsergebnis
+- [x] Direkte Weiterleitung zum neuen Pflanzenprofil nach dem Speichern
+
+## Phase K: Channa-Bereich (ausstehend)
+- [ ] Channa-Artprofile als Wissensartikel in der Datenbank anlegen
+- [ ] Channa-Seite oder Kategorie-Filter in der Wissensdatenbank ausbauen

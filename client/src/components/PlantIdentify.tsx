@@ -1,13 +1,14 @@
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X } from "lucide-react";
+import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X, BookmarkPlus } from "lucide-react";
 import ImageUpload from "./ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { useLocation } from "wouter";
 
 interface IdentifyResult {
   imageUrl: string;
@@ -41,9 +42,36 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function PlantIdentify() {
   const { isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
   const [preview, setPreview] = useState<string | null>(null);
   const [imageData, setImageData] = useState<{ base64: string; mimeType: string } | null>(null);
   const [result, setResult] = useState<IdentifyResult | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const createPlantMutation = trpc.plants.create.useMutation({
+    onSuccess: (data) => {
+      toast.success("Pflanze gespeichert! Du wirst weitergeleitet ...");
+      setIsSaving(false);
+      setTimeout(() => navigate(`/plants/${data.id}`), 800);
+    },
+    onError: (e) => {
+      toast.error(e.message || "Fehler beim Speichern");
+      setIsSaving(false);
+    },
+  });
+
+  const savePlant = () => {
+    if (!result) return;
+    setIsSaving(true);
+    createPlantMutation.mutate({
+      name: result.commonName,
+      scientificName: result.scientificName || undefined,
+      category: (result.category as any) || "other",
+      description: [result.summary, result.care].filter(Boolean).join("\n\n") || undefined,
+      coverImageBase64: imageData?.base64 || undefined,
+      coverImageMimeType: imageData?.mimeType || undefined,
+    });
+  };
 
   const identify = trpc.ai.identify.useMutation({
     onSuccess: (data) => {
@@ -306,6 +334,25 @@ export default function PlantIdentify() {
               <Flag className="w-3 h-3" /> Bestimmung korrigieren
             </button>
           )}
+
+          {/* Save as plant */}
+          <Button
+            className="w-full press-active btn-glow"
+            disabled={isSaving || createPlantMutation.isPending}
+            onClick={savePlant}
+            style={{
+              background: "linear-gradient(135deg, oklch(0.68 0.16 152), oklch(0.60 0.18 155))",
+              color: "oklch(0.07 0.008 240)",
+              fontWeight: 600,
+            }}
+          >
+            {isSaving || createPlantMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <BookmarkPlus className="w-4 h-4 mr-2" />
+            )}
+            Als Pflanze speichern
+          </Button>
 
           <Button variant="outline" className="w-full press-active" onClick={reset}>
             <RotateCcw className="w-4 h-4 mr-2" /> Neues Foto bestimmen
