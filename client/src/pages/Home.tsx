@@ -1,6 +1,8 @@
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import {
   Leaf, Fish, Bot, Users, Play, ArrowRight,
   Trophy, Shield, Heart, BookOpen,
@@ -24,7 +26,18 @@ const ACTIVITY = [
 ];
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  const [, navigate] = useLocation();
+
+  // Redirect logged-in users straight to the feed
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      navigate("/feed");
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  if (loading) return null;
+  if (isAuthenticated) return null;
 
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
@@ -90,13 +103,7 @@ export default function Home() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
-            {isAuthenticated ? (
-              <Link href="/feed">
-                <span className="btn-primary text-sm cursor-pointer">
-                  Zur App →
-                </span>
-              </Link>
-            ) : (
+            {!isAuthenticated && (
               <a href={getLoginUrl()} className="btn-primary text-sm">
                 Anmelden
               </a>

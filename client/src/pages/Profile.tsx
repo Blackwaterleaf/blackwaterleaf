@@ -1,7 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { cn } from "@/lib/utils";
-import { Camera, Droplets, Leaf, MapPin, Pencil, Save, X } from "lucide-react";
+import { Camera, Droplets, Leaf, MapPin, Pencil, Save, X, Award, Zap } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -11,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 
 interface ProfileProps { userId?: number; }
 
@@ -29,7 +27,6 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   const { data: posts } = trpc.posts.list.useQuery({ userId: user?.id, limit: 20 }, { enabled: !!user });
   const { data: game } = trpc.gamification.me.useQuery(undefined, { enabled: !!user });
 
-  // Prefer the fresh DB row (includes bio/location/avatarUrl) over the OAuth session user.
   const display = (profile ?? user) as any;
 
   const updateMutation = trpc.users.updateProfile.useMutation({
@@ -70,7 +67,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
   if (loading) {
     return (
-      <div className="container py-6 max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-6 pb-24 lg:pb-8 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="w-20 h-20 rounded-full" />
           <div className="space-y-2">
@@ -85,20 +82,20 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   if (!user) return null;
 
   return (
-    <div className="container py-6 max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-4 py-6 pb-24 lg:pb-8">
       {/* Profile Header */}
-      <div className="bg-card border border-border/50 rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-4">
+      <div className="rounded-2xl p-6 mb-6" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+        <div className="flex items-start gap-4 mb-6">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
-            <Avatar className="w-20 h-20">
+            <Avatar className="w-20 h-20 border-2" style={{ borderColor: "oklch(0.52 0.14 148)" }}>
               <AvatarImage src={display?.avatarUrl ?? undefined} />
-              <AvatarFallback className="bg-primary/20 text-primary text-2xl font-display">
+              <AvatarFallback className="text-2xl font-bold" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
                 {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
               </AvatarFallback>
             </Avatar>
-            <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center cursor-pointer hover:bg-secondary/80 transition-colors">
-              <Camera className="w-3.5 h-3.5" />
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150" style={{ background: "oklch(0.52 0.14 148)" }}>
+              <Camera className="w-3.5 h-3.5" style={{ color: "oklch(0.12 0.008 200)" }} />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </label>
           </div>
@@ -107,16 +104,16 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           <div className="flex-1 min-w-0">
             {editing ? (
               <div className="space-y-3">
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Dein Name" className="font-semibold" />
-                <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Über dich..." className="min-h-[60px] resize-none text-sm" />
-                <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="Standort" className="text-sm" />
+                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Dein Name" className="font-semibold" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
+                <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Über dich..." className="min-h-[60px] resize-none text-sm" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
+                <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="Standort" className="text-sm" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
                     <X className="w-3.5 h-3.5 mr-1" /> Abbrechen
                   </Button>
                   <Button size="sm" disabled={updateMutation.isPending}
                     onClick={() => updateMutation.mutate({ name: name.trim() || undefined, bio: bio.trim() || undefined, location: location.trim() || undefined })}
-                    className="press-active"
+                    style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}
                   >
                     <Save className="w-3.5 h-3.5 mr-1" /> Speichern
                   </Button>
@@ -125,14 +122,14 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             ) : (
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl font-display font-semibold">{display?.name ?? "Unbekannt"}</h1>
+                  <h1 className="font-brand text-2xl" style={{ color: "oklch(0.90 0.005 200)" }}>{display?.name ?? "Unbekannt"}</h1>
                   <Button variant="ghost" size="icon" className="w-7 h-7" onClick={startEditing}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-                {display?.bio && <p className="text-sm text-muted-foreground mb-2">{display.bio}</p>}
+                {display?.bio && <p className="text-sm mb-2" style={{ color: "oklch(0.55 0.008 200)" }}>{display.bio}</p>}
                 {display?.location && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <p className="text-xs flex items-center gap-1" style={{ color: "oklch(0.48 0.008 200)" }}>
                     <MapPin className="w-3 h-3" /> {display.location}
                   </p>
                 )}
@@ -142,46 +139,54 @@ export default function Profile({ userId: _userId }: ProfileProps) {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-border/30">
+        <div className="grid grid-cols-3 gap-4 pt-5" style={{ borderTop: "1px solid oklch(0.18 0.008 200)" }}>
           <div className="text-center">
-            <p className="text-2xl font-display font-semibold">{plants?.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Pflanzen</p>
+            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{plants?.length ?? 0}</p>
+            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Pflanzen</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-display font-semibold">{aquariums?.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Aquarien</p>
+            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{aquariums?.length ?? 0}</p>
+            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Aquarien</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-display font-semibold">{posts?.posts.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Beiträge</p>
+            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{posts?.posts.length ?? 0}</p>
+            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Beiträge</p>
           </div>
         </div>
       </div>
 
       {/* Gamification: Level, XP, Streak & Abzeichen */}
       {game?.stats && (
-        <div className="bg-card border border-border/50 rounded-xl p-6 mb-6">
+        <div className="rounded-2xl p-6 mb-6" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-primary mb-1">Level {game.level.level} · {game.level.title}</p>
-              <p className="text-sm text-muted-foreground">{game.stats.xp} XP · {game.stats.streak} Tage Streak</p>
+              <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: "oklch(0.65 0.16 148)" }}>
+                <Zap className="w-3.5 h-3.5 inline mr-1" /> Level {game.level.level} · {game.level.title}
+              </p>
+              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>{game.stats.xp} XP · {game.stats.streak} Tage Streak</p>
             </div>
-            <Button asChild variant="outline" size="sm"><Link href="/ranking">Ranking</Link></Button>
+            <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
+              <Link href="/ranking">Ranking</Link>
+            </Button>
           </div>
           {game.level.nextLevelXp != null && (
-            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden mb-4">
-              <div className="h-full bg-primary rounded-full transition-all"
-                style={{ width: `${Math.min(100, Math.round((game.stats.xp / game.level.nextLevelXp) * 100))}%` }} />
+            <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: "oklch(0.14 0.008 200)" }}>
+              <div className="h-full rounded-full transition-all"
+                style={{ background: "oklch(0.52 0.14 148)", width: `${Math.min(100, Math.round((game.stats.xp / game.level.nextLevelXp) * 100))}%` }} />
             </div>
           )}
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Abzeichen ({game.badges.length})</p>
+            <p className="text-xs mb-2 flex items-center gap-1" style={{ color: "oklch(0.48 0.008 200)" }}>
+              <Award className="w-3.5 h-3.5" /> Abzeichen ({game.badges.length})
+            </p>
             {game.badges.length === 0 ? (
-              <p className="text-xs text-muted-foreground/70">Noch keine Abzeichen – werde aktiv, um welche zu verdienen!</p>
+              <p className="text-xs" style={{ color: "oklch(0.38 0.008 200)" }}>Noch keine Abzeichen – werde aktiv, um welche zu verdienen!</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {game.badges.map((b: any) => (
-                  <Badge key={b.id} variant="secondary" className="gap-1" title={b.description}>{b.name}</Badge>
+                  <span key={b.id} className="text-xs px-2 py-1 rounded-md" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }} title={b.description}>
+                    {b.name}
+                  </span>
                 ))}
               </div>
             )}
@@ -189,19 +194,20 @@ export default function Profile({ userId: _userId }: ProfileProps) {
         </div>
       )}
 
+      {/* Tabs */}
       <Tabs defaultValue="plants">
-        <TabsList className="mb-4 bg-secondary/50">
-          <TabsTrigger value="plants">Pflanzen</TabsTrigger>
-          <TabsTrigger value="aquariums">Aquarien</TabsTrigger>
-          <TabsTrigger value="posts">Beiträge</TabsTrigger>
+        <TabsList className="mb-4 w-full" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+          <TabsTrigger value="plants" className="flex-1">Pflanzen</TabsTrigger>
+          <TabsTrigger value="aquariums" className="flex-1">Aquarien</TabsTrigger>
+          <TabsTrigger value="posts" className="flex-1">Beiträge</TabsTrigger>
         </TabsList>
 
         <TabsContent value="plants" className="animate-fade-in">
           {plants?.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Leaf className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Noch keine Pflanzen</p>
-              <Button asChild size="sm" className="mt-3 press-active">
+            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+              <Leaf className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
+              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Pflanzen</p>
+              <Button asChild size="sm" className="mt-3" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
                 <Link href="/plants/new">Pflanze hinzufügen</Link>
               </Button>
             </div>
@@ -209,18 +215,21 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {plants?.map((plant) => (
                 <Link key={plant.id} href={`/plants/${plant.id}`}>
-                  <div className="bg-card border border-border/50 rounded-xl overflow-hidden hover-card cursor-pointer">
-                    <div className="aspect-square bg-secondary relative">
+                  <div className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)"; }}
+                  >
+                    <div className="aspect-square relative overflow-hidden" style={{ background: "oklch(0.10 0.008 200)" }}>
                       {plant.coverImageUrl ? (
                         <img src={plant.coverImageUrl} alt={plant.name} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Leaf className="w-8 h-8 text-muted-foreground/30" />
+                          <Leaf className="w-8 h-8" style={{ color: "oklch(0.25 0.008 200)" }} />
                         </div>
                       )}
                     </div>
                     <div className="p-2.5">
-                      <p className="text-xs font-medium truncate">{plant.name}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: "oklch(0.88 0.005 200)" }}>{plant.name}</p>
                     </div>
                   </div>
                 </Link>
@@ -231,10 +240,10 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
         <TabsContent value="aquariums" className="animate-fade-in">
           {aquariums?.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <Droplets className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm">Noch keine Aquarien</p>
-              <Button asChild size="sm" className="mt-3 press-active">
+            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+              <Droplets className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
+              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Aquarien</p>
+              <Button asChild size="sm" className="mt-3" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
                 <Link href="/aquariums/new">Aquarium hinzufügen</Link>
               </Button>
             </div>
@@ -242,18 +251,21 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {aquariums?.map((aq) => (
                 <Link key={aq.id} href={`/aquariums/${aq.id}`}>
-                  <div className="bg-card border border-border/50 rounded-xl overflow-hidden hover-card cursor-pointer">
-                    <div className="aspect-video bg-secondary relative">
+                  <div className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)"; }}
+                  >
+                    <div className="aspect-video relative overflow-hidden" style={{ background: "oklch(0.10 0.008 200)" }}>
                       {aq.coverImageUrl ? (
                         <img src={aq.coverImageUrl} alt={aq.name} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Droplets className="w-8 h-8 text-muted-foreground/30" />
+                          <Droplets className="w-8 h-8" style={{ color: "oklch(0.25 0.008 200)" }} />
                         </div>
                       )}
                     </div>
                     <div className="p-2.5">
-                      <p className="text-xs font-medium truncate">{aq.name}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: "oklch(0.88 0.005 200)" }}>{aq.name}</p>
                     </div>
                   </div>
                 </Link>
@@ -264,18 +276,18 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
         <TabsContent value="posts" className="animate-fade-in">
           {posts?.posts.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              <p className="text-sm">Noch keine Beiträge</p>
+            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Beiträge</p>
             </div>
           ) : (
             <div className="space-y-3">
               {posts?.posts.map((post) => (
-                <div key={post.id} className="bg-card border border-border/50 rounded-xl p-4">
+                <div key={post.id} className="rounded-2xl p-4" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
                   {post.imageUrl && (
                     <img src={post.imageUrl} alt="" className="w-full max-h-48 object-cover rounded-lg mb-3" loading="lazy" />
                   )}
-                  <p className="text-sm">{post.content}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                  <p className="text-sm" style={{ color: "oklch(0.72 0.005 200)" }}>{post.content}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>
                     <span>❤️ {post.likesCount}</span>
                     <span>💬 {post.commentsCount}</span>
                   </div>
@@ -288,3 +300,4 @@ export default function Profile({ userId: _userId }: ProfileProps) {
     </div>
   );
 }
+
