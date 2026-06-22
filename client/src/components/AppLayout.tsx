@@ -77,9 +77,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex flex-col w-60 fixed left-0 top-0 bottom-0 border-r border-border/30 bg-background/95 backdrop-blur-sm z-40">
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-4 h-14 border-b border-border/30">
-          <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-            <Leaf className="w-4 h-4 text-primary" />
-          </div>
+          <img src="/manus-storage/bl-emblem_76cd28a6.png" alt="BL" className="w-7 h-7 rounded-lg" />
           <span className="font-display font-semibold text-base tracking-tight">BlackwaterLeaf</span>
         </div>
 

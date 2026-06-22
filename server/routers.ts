@@ -7,7 +7,7 @@ import { getDb } from "./db";
 import {
   users, plants, plantPhotos, aquariums, aquariumPhotos, aquariumEvents,
   posts, likes, comments, notifications, aiChats,
-  knowledgeArticles, userStats, badges, userBadges, challenges
+  knowledgeArticles, userStats, badges, userBadges, challenges, aiCorrections
 } from "../drizzle/schema";
 import { ensureUserStats, awardXp, grantBadge, levelForXp, LEVELS } from "./db";
 import { eq, desc, and, like, or, sql, ne } from "drizzle-orm";
@@ -654,6 +654,28 @@ const discoverRouter = router({
 });
 
 // ─── AI Router ────────────────────────────────────────────────────────────────
+// Build a system-prompt block of community-verified facts. These corrections from
+// members override generic AI knowledge so the platform stays fact-based.
+async function getCommunityFactsBlock(query: string): Promise<string> {
+  const db = await getDb();
+  if (!db) return "";
+  const rows = await db.select({ topic: aiCorrections.topic, correctedText: aiCorrections.correctedText })
+    .from(aiCorrections)
+    .where(eq(aiCorrections.status, "approved"))
+    .orderBy(desc(aiCorrections.upvotes), desc(aiCorrections.createdAt))
+    .limit(40);
+  if (!rows.length) return "";
+  // Lightweight relevance filter: prefer corrections whose topic appears in the query.
+  const q = (query || "").toLowerCase();
+  const ranked = rows.sort((a, b) => {
+    const aHit = a.topic && q.includes(a.topic.toLowerCase()) ? 1 : 0;
+    const bHit = b.topic && q.includes(b.topic.toLowerCase()) ? 1 : 0;
+    return bHit - aHit;
+  }).slice(0, 12);
+  const lines = ranked.map(r => `- ${r.topic ? r.topic + ": " : ""}${r.correctedText}`).join("\n");
+  return `\n\nVERIFIZIERTE COMMUNITY-FAKTEN (von erfahrenen BlackwaterLeaf-Mitgliedern korrigiert; diese haben VORRANG vor allgemeinem Wissen, wenn sie zum Thema passen):\n${lines}`;
+}
+
 const aiRouter = router({
   chat: protectedProcedure
     .input(z.object({
@@ -692,7 +714,7 @@ const aiRouter = router({
 - Pflanzenbestimmung und Problemdiagnose
 - Pflegepläne und Optimierungsempfehlungen
 
-Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempfehlungen. Nutze Markdown für Formatierungen.${contextInfo}`;
+Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempfehlungen. Nutze Markdown für Formatierungen.${contextInfo}${await getCommunityFactsBlock(input.message)}`;
 
       const messages = [
         { role: "system" as const, content: systemPrompt },
@@ -726,6 +748,46 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
         .limit(input.limit);
     }),
 
+  // Save a community correction to AI output. Treated as authoritative facts.
+  submitCorrection: protectedProcedure
+    .input(z.object({
+      kind: z.enum(["chat", "identify"]),
+      topic: z.string().max(255).optional(),
+      originalAnswer: z.string().max(4000).optional(),
+      correctedText: z.string().min(3).max(4000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      await db.insert(aiCorrections).values({
+        userId: ctx.user.id,
+        kind: input.kind,
+        topic: input.topic ?? null,
+        originalAnswer: input.originalAnswer ?? null,
+        correctedText: input.correctedText,
+        status: "approved",
+      });
+      try { await awardXp(ctx.user.id, 8); await grantBadge(ctx.user.id, "fact_checker"); } catch {}
+      return { success: true };
+    }),
+
+  // List recent community corrections (knowledge contributed by members).
+  corrections: publicProcedure
+    .input(z.object({ limit: z.number().min(1).max(50).default(20) }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select({
+        id: aiCorrections.id, kind: aiCorrections.kind, topic: aiCorrections.topic,
+        correctedText: aiCorrections.correctedText, createdAt: aiCorrections.createdAt,
+        userName: users.name, userAvatarUrl: users.avatarUrl,
+      }).from(aiCorrections)
+        .innerJoin(users, eq(aiCorrections.userId, users.id))
+        .where(eq(aiCorrections.status, "approved"))
+        .orderBy(desc(aiCorrections.createdAt))
+        .limit(input.limit);
+    }),
+
   identify: protectedProcedure
     .input(z.object({
       imageBase64: z.string().optional(),
@@ -743,7 +805,7 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
       }
       if (!imageUrl) throw new Error("Kein Bild übergeben");
 
-      const systemPrompt = `Du bist ein botanischer und aquaristischer Bestimmungsexperte für BlackwaterLeaf. Analysiere das gezeigte Foto einer Pflanze oder eines Aquarienbewohners und bestimme es so genau wie möglich. Antworte ausschließlich auf Deutsch.`;
+      const systemPrompt = `Du bist ein botanischer und aquaristischer Bestimmungsexperte für BlackwaterLeaf. Analysiere das gezeigte Foto einer Pflanze oder eines Aquarienbewohners und bestimme es so genau wie möglich. Antworte ausschließlich auf Deutsch.${await getCommunityFactsBlock("")}`;
       const userPrompt = `Bestimme die abgebildete Pflanze/den Organismus. Gib ein JSON-Objekt zurück mit den Feldern: commonName (deutscher Name), scientificName (wissenschaftlicher Name oder "unsicher"), confidence (0-100 als Zahl), category (eines von: aquatic, tropical, alocasia, monstera, philodendron, other), summary (1-2 Sätze), care (kurzer Pflegehinweis: Licht, Wasser, Schwierigkeit), alternatives (Array möglicher Alternativen als Strings).`;
 
       const response = await invokeLLM({
@@ -758,11 +820,14 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
       });
       const raw = response.choices[0]?.message?.content;
       const text = typeof raw === "string" ? raw : "";
+      console.log("[AI.identify] LLM response length:", text.length, "first 200 chars:", text.substring(0, 200));
       let parsed: any = {};
-      try { parsed = JSON.parse(text); } catch {
+      try { parsed = JSON.parse(text); } catch (e) {
+        console.log("[AI.identify] JSON parse failed:", e instanceof Error ? e.message : String(e));
         const m = text.match(/\{[\s\S]*\}/);
         if (m) { try { parsed = JSON.parse(m[0]); } catch { parsed = {}; } }
       }
+      console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
       try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
       return {
         imageUrl,

@@ -23,29 +23,34 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
 
+  const { data: profile } = trpc.users.getProfile.useQuery({}, { enabled: !!user });
   const { data: plants } = trpc.plants.myList.useQuery(undefined, { enabled: !!user });
   const { data: aquariums } = trpc.aquariums.myList.useQuery(undefined, { enabled: !!user });
   const { data: posts } = trpc.posts.list.useQuery({ userId: user?.id, limit: 20 }, { enabled: !!user });
   const { data: game } = trpc.gamification.me.useQuery(undefined, { enabled: !!user });
 
+  // Prefer the fresh DB row (includes bio/location/avatarUrl) over the OAuth session user.
+  const display = (profile ?? user) as any;
+
   const updateMutation = trpc.users.updateProfile.useMutation({
     onSuccess: () => {
       utils.auth.me.invalidate();
+      utils.users.getProfile.invalidate();
       setEditing(false);
       toast.success("Profil aktualisiert!");
     },
-    onError: () => toast.error("Fehler beim Speichern"),
+    onError: (e) => toast.error(e.message || "Fehler beim Speichern"),
   });
 
   const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation({
-    onSuccess: () => { utils.auth.me.invalidate(); toast.success("Avatar aktualisiert!"); },
-    onError: () => toast.error("Fehler beim Hochladen"),
+    onSuccess: () => { utils.auth.me.invalidate(); utils.users.getProfile.invalidate(); toast.success("Avatar aktualisiert!"); },
+    onError: (e) => toast.error(e.message || "Fehler beim Hochladen"),
   });
 
   const startEditing = () => {
-    setName(user?.name ?? "");
-    setBio((user as any)?.bio ?? "");
-    setLocation((user as any)?.location ?? "");
+    setName(display?.name ?? "");
+    setBio(display?.bio ?? "");
+    setLocation(display?.location ?? "");
     setEditing(true);
   };
 
@@ -87,9 +92,9 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={user.avatarUrl ?? undefined} />
+              <AvatarImage src={display?.avatarUrl ?? undefined} />
               <AvatarFallback className="bg-primary/20 text-primary text-2xl font-display">
-                {user.name?.charAt(0)?.toUpperCase() ?? "U"}
+                {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
               </AvatarFallback>
             </Avatar>
             <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-secondary border border-border flex items-center justify-center cursor-pointer hover:bg-secondary/80 transition-colors">
@@ -120,15 +125,15 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             ) : (
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl font-display font-semibold">{user.name ?? "Unbekannt"}</h1>
+                  <h1 className="text-xl font-display font-semibold">{display?.name ?? "Unbekannt"}</h1>
                   <Button variant="ghost" size="icon" className="w-7 h-7" onClick={startEditing}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-                {(user as any).bio && <p className="text-sm text-muted-foreground mb-2">{(user as any).bio}</p>}
-                {(user as any).location && (
+                {display?.bio && <p className="text-sm text-muted-foreground mb-2">{display.bio}</p>}
+                {display?.location && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> {(user as any).location}
+                    <MapPin className="w-3 h-3" /> {display.location}
                   </p>
                 )}
               </div>

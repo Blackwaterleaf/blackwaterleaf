@@ -1,10 +1,11 @@
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf } from "lucide-react";
+import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X } from "lucide-react";
 import ImageUpload from "./ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
@@ -40,6 +41,27 @@ export default function PlantIdentify() {
     },
     onError: () => toast.error("Bestimmung fehlgeschlagen. Bitte erneut versuchen."),
   });
+
+  const [correcting, setCorrecting] = useState(false);
+  const [correctionText, setCorrectionText] = useState("");
+  const correctionMutation = trpc.ai.submitCorrection.useMutation({
+    onSuccess: () => {
+      toast.success("Danke! Deine Korrektur verbessert künftige Bestimmungen. (+8 XP)");
+      setCorrecting(false);
+      setCorrectionText("");
+    },
+    onError: (e) => toast.error(e.message || "Korrektur fehlgeschlagen"),
+  });
+  const sendCorrection = () => {
+    if (!result) return;
+    if (correctionText.trim().length < 3) { toast.error("Bitte gib die korrekte Bestimmung ein"); return; }
+    correctionMutation.mutate({
+      kind: "identify",
+      topic: result.commonName,
+      originalAnswer: `${result.commonName} (${result.scientificName})`,
+      correctedText: correctionText.trim(),
+    });
+  };
 
   const handleChange = (base64: string, mimeType: string) => {
     setImageData({ base64, mimeType });
@@ -146,6 +168,30 @@ export default function PlantIdentify() {
           <p className="text-xs text-muted-foreground pt-1">
             Hinweis: KI-Bestimmungen sind eine Orientierung und können Fehler enthalten.
           </p>
+
+          {correcting ? (
+            <div className="rounded-lg bg-secondary/40 border border-border/40 p-3">
+              <p className="text-xs text-muted-foreground mb-1.5">Liegt die KI falsch? Gib die korrekte Bestimmung/Info an:</p>
+              <Textarea
+                value={correctionText}
+                onChange={(e) => setCorrectionText(e.target.value)}
+                placeholder="z.B. Das ist Bucephalandra, keine Anubias ..."
+                className="min-h-[60px] resize-none text-sm bg-background/60 border-border/50"
+              />
+              <div className="flex gap-2 mt-2">
+                <Button size="sm" variant="outline" onClick={() => { setCorrecting(false); setCorrectionText(""); }}>
+                  <X className="w-3.5 h-3.5 mr-1" /> Abbrechen
+                </Button>
+                <Button size="sm" disabled={correctionMutation.isPending} onClick={sendCorrection} className="press-active">
+                  <Check className="w-3.5 h-3.5 mr-1" /> Korrektur senden
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setCorrecting(true)} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
+              <Flag className="w-3 h-3" /> Bestimmung korrigieren
+            </button>
+          )}
 
           <Button variant="outline" className="w-full press-active" onClick={reset}>
             <RotateCcw className="w-4 h-4 mr-2" /> Neues Foto bestimmen

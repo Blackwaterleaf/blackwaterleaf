@@ -74,9 +74,7 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/30 bg-background/70 backdrop-blur-md">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Leaf className="w-4 h-4 text-primary" />
-            </div>
+            <img src="/manus-storage/bl-emblem_76cd28a6.png" alt="BL" className="w-7 h-7 rounded-lg" />
             <span className="font-display font-semibold text-base tracking-tight">BlackwaterLeaf</span>
           </div>
           <Button size="sm" asChild className="press-active">

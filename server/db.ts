@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, notifications, userBadges, badges, userStats } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { and, eq, desc, sql } from "drizzle-orm";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -92,7 +92,6 @@ export async function getUserByOpenId(openId: string) {
 // TODO: add feature queries here as your schema grows.
 
 // ─── Gamification helpers ────────────────────────────────────────────────────
-import { userStats, userBadges, badges } from "../drizzle/schema";
 
 /** Level thresholds (cumulative XP needed to reach a level). */
 export const LEVELS: { level: number; minXp: number; title: string }[] = [
@@ -154,6 +153,15 @@ export async function grantBadge(userId: number, code: string) {
     .limit(1);
   if (already.length > 0) return;
   await db.insert(userBadges).values({ userId, badgeId: badge[0].id });
+  // Notify user of new badge
+  try {
+    await db.insert(notifications).values({
+      userId, type: "system" as const,
+      title: "Neues Abzeichen!",
+      message: `Du hast das Abzeichen "${badge[0].name}" verdient: ${badge[0].description}`,
+    });
+  } catch {}
+  // Badge notification logged silently if DB fails
 }
 
-import { and } from "drizzle-orm";
+

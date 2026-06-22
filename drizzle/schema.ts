@@ -278,3 +278,28 @@ export const challenges = mysqlTable("challenges", {
 });
 
 export type Challenge = typeof challenges.$inferSelect;
+
+/**
+ * Community-sourced corrections to AI output. These are treated as authoritative
+ * facts and fed back into the AI context so the platform relies on real expertise
+ * rather than generic content.
+ */
+export const aiCorrections = mysqlTable("ai_corrections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  // "chat" | "identify" — which AI feature was corrected
+  kind: varchar("kind", { length: 32 }).notNull(),
+  // The user prompt or subject the correction relates to (e.g. plant name, question)
+  topic: varchar("topic", { length: 255 }),
+  // What the AI originally said (optional snapshot)
+  originalAnswer: text("originalAnswer"),
+  // The corrected, factual statement from the community
+  correctedText: text("correctedText").notNull(),
+  // moderation: pending | approved | rejected
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("approved").notNull(),
+  upvotes: int("upvotes").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AiCorrection = typeof aiCorrections.$inferSelect;
+export type InsertAiCorrection = typeof aiCorrections.$inferInsert;

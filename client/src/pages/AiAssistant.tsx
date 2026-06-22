@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { Bot, Droplets, Leaf, Loader2, Send, Sparkles, ScanSearch, MessageCircle } from "lucide-react";
+import { Bot, Droplets, Leaf, Loader2, Send, Sparkles, ScanSearch, MessageCircle, Flag, Check, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import PlantIdentify from "@/components/PlantIdentify";
 import { useSearch } from "wouter";
@@ -86,6 +86,25 @@ export default function AiAssistant() {
 
   const contextName = contextType === "plant" ? plant?.name : contextType === "aquarium" ? aquarium?.name : null;
   const [mode, setMode] = useState<"chat" | "identify">("chat");
+
+  // Community correction state: which assistant message is being corrected.
+  const [correctingIdx, setCorrectingIdx] = useState<number | null>(null);
+  const [correctionText, setCorrectionText] = useState("");
+  const correctionMutation = trpc.ai.submitCorrection.useMutation({
+    onSuccess: () => {
+      toast.success("Danke! Deine Korrektur fließt als Community-Fakt in die KI ein. (+8 XP)");
+      setCorrectingIdx(null);
+      setCorrectionText("");
+    },
+    onError: (e) => toast.error(e.message || "Korrektur fehlgeschlagen"),
+  });
+  const submitCorrection = (assistantContent: string) => {
+    if (correctionText.trim().length < 3) { toast.error("Bitte gib eine Korrektur ein"); return; }
+    // Find the preceding user message as topic.
+    const idx = correctingIdx ?? -1;
+    const topic = idx > 0 ? messages[idx - 1]?.content?.slice(0, 200) : undefined;
+    correctionMutation.mutate({ kind: "chat", topic, originalAnswer: assistantContent.slice(0, 4000), correctedText: correctionText.trim() });
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -197,9 +216,39 @@ export default function AiAssistant() {
                 )}
               >
                 {msg.role === "assistant" ? (
-                  <div className="prose prose-sm prose-invert max-w-none">
-                    <Streamdown>{msg.content}</Streamdown>
-                  </div>
+                  <>
+                    <div className="prose prose-sm prose-invert max-w-none">
+                      <Streamdown>{msg.content}</Streamdown>
+                    </div>
+                    {isAuthenticated && (
+                      correctingIdx === i ? (
+                        <div className="mt-3 pt-3 border-t border-border/40">
+                          <p className="text-xs text-muted-foreground mb-1.5">Was ist die korrekte, faktenbasierte Antwort?</p>
+                          <Textarea
+                            value={correctionText}
+                            onChange={(e) => setCorrectionText(e.target.value)}
+                            placeholder="z.B. Channa bleheri benötigt 22–26°C, nicht über 28°C ..."
+                            className="min-h-[60px] resize-none text-sm bg-secondary/50 border-border/50"
+                          />
+                          <div className="flex gap-2 mt-2">
+                            <Button size="sm" variant="outline" onClick={() => { setCorrectingIdx(null); setCorrectionText(""); }}>
+                              <X className="w-3.5 h-3.5 mr-1" /> Abbrechen
+                            </Button>
+                            <Button size="sm" disabled={correctionMutation.isPending} onClick={() => submitCorrection(msg.content)} className="press-active">
+                              <Check className="w-3.5 h-3.5 mr-1" /> Korrektur senden
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => { setCorrectingIdx(i); setCorrectionText(""); }}
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          <Flag className="w-3 h-3" /> Antwort korrigieren
+                        </button>
+                      )
+                    )}
+                  </>
                 ) : (
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 )}
