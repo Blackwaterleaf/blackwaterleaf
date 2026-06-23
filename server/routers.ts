@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getDb } from "./db";
 import {
@@ -89,7 +90,9 @@ const plantsRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
-      const result = await db.select().from(plants).where(eq(plants.id, input.id)).limit(1);
+      // SECURITY FIX: Only return public plants
+      const result = await db.select().from(plants)
+        .where(and(eq(plants.id, input.id), eq(plants.isPublic, true))).limit(1);
       return result[0] ?? null;
     }),
 
@@ -174,19 +177,24 @@ const plantsRouter = router({
       caption: z.string().max(500).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      // ✅ SECURITY FIX: Verify ownership of plant
+      const plant = await db.select().from(plants)
+        .where(eq(plants.id, input.plantId)).limit(1);
+      if (!plant[0] || plant[0].userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to add photos to this plant" });
+      }
       const buffer = Buffer.from(input.base64, "base64");
       const ext = input.mimeType.split("/")[1] ?? "jpg";
       const key = `plants/${input.plantId}/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
-      const db = await getDb();
-      if (!db) throw new Error("DB not available");
       await db.insert(plantPhotos).values({
         plantId: input.plantId, userId: ctx.user.id,
         imageUrl: url, storageKey: key, caption: input.caption,
       });
       // Update cover if first photo
-      const existing = await db.select().from(plants).where(eq(plants.id, input.plantId)).limit(1);
-      if (existing[0] && !existing[0].coverImageUrl) {
+      if (!plant[0].coverImageUrl) {
         await db.update(plants).set({ coverImageUrl: url }).where(eq(plants.id, input.plantId));
       }
       return { url };
@@ -197,6 +205,10 @@ const plantsRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
+      // SECURITY FIX: Check if plant is public before returning photos
+      const plant = await db.select().from(plants)
+        .where(eq(plants.id, input.plantId)).limit(1);
+      if (!plant[0] || !plant[0].isPublic) return [];
       return db.select().from(plantPhotos).where(eq(plantPhotos.plantId, input.plantId)).orderBy(desc(plantPhotos.takenAt));
     }),
 });
@@ -225,7 +237,9 @@ const aquariumsRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return null;
-      const result = await db.select().from(aquariums).where(eq(aquariums.id, input.id)).limit(1);
+      // SECURITY FIX: Only return public aquariums
+      const result = await db.select().from(aquariums)
+        .where(and(eq(aquariums.id, input.id), eq(aquariums.isPublic, true))).limit(1);
       return result[0] ?? null;
     }),
 
@@ -309,18 +323,23 @@ const aquariumsRouter = router({
       caption: z.string().max(500).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      // ✅ SECURITY FIX: Verify ownership of aquarium
+      const aquarium = await db.select().from(aquariums)
+        .where(eq(aquariums.id, input.aquariumId)).limit(1);
+      if (!aquarium[0] || aquarium[0].userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to add photos to this aquarium" });
+      }
       const buffer = Buffer.from(input.base64, "base64");
       const ext = input.mimeType.split("/")[1] ?? "jpg";
       const key = `aquariums/${input.aquariumId}/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
-      const db = await getDb();
-      if (!db) throw new Error("DB not available");
       await db.insert(aquariumPhotos).values({
         aquariumId: input.aquariumId, userId: ctx.user.id,
         imageUrl: url, storageKey: key, caption: input.caption,
       });
-      const existing = await db.select().from(aquariums).where(eq(aquariums.id, input.aquariumId)).limit(1);
-      if (existing[0] && !existing[0].coverImageUrl) {
+      if (!aquarium[0].coverImageUrl) {
         await db.update(aquariums).set({ coverImageUrl: url }).where(eq(aquariums.id, input.aquariumId));
       }
       return { url };
@@ -331,6 +350,10 @@ const aquariumsRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
+      // SECURITY FIX: Check if aquarium is public before returning photos
+      const aquarium = await db.select().from(aquariums)
+        .where(eq(aquariums.id, input.aquariumId)).limit(1);
+      if (!aquarium[0] || !aquarium[0].isPublic) return [];
       return db.select().from(aquariumPhotos).where(eq(aquariumPhotos.aquariumId, input.aquariumId)).orderBy(desc(aquariumPhotos.takenAt));
     }),
 
@@ -345,6 +368,12 @@ const aquariumsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("DB not available");
+      // SECURITY FIX: Verify ownership of aquarium
+      const aquarium = await db.select().from(aquariums)
+        .where(eq(aquariums.id, input.aquariumId)).limit(1);
+      if (!aquarium[0] || aquarium[0].userId !== ctx.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to add events to this aquarium" });
+      }
       await db.insert(aquariumEvents).values({ ...input, userId: ctx.user.id });
       return { success: true };
     }),
@@ -354,6 +383,10 @@ const aquariumsRouter = router({
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
+      // SECURITY FIX: Check if aquarium is public before returning events
+      const aquarium = await db.select().from(aquariums)
+        .where(eq(aquariums.id, input.aquariumId)).limit(1);
+      if (!aquarium[0] || !aquarium[0].isPublic) return [];
       return db.select().from(aquariumEvents)
         .where(eq(aquariumEvents.aquariumId, input.aquariumId))
         .orderBy(desc(aquariumEvents.occurredAt))

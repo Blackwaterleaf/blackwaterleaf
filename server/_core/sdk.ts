@@ -221,6 +221,12 @@ class SDKServer {
         return null;
       }
 
+      // SECURITY FIX: Verify appId matches current application
+      if (appId !== ENV.appId) {
+        console.warn("[Auth] AppId mismatch in session token", { expected: ENV.appId, received: appId });
+        return null;
+      }
+
       return {
         openId,
         appId,
