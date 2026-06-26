@@ -158,6 +158,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       {/* Gamification: Level, XP, Streak & Abzeichen */}
       {game?.stats && (
         <div className="rounded-2xl p-6 mb-6" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+          <h2 className="font-brand text-lg mb-4" style={{ color: "oklch(0.90 0.005 200)" }}>Fortschritt &amp; Abzeichen</h2>
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: "oklch(0.65 0.16 148)" }}>
@@ -195,6 +196,9 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       )}
 
       {/* Tabs */}
+      <h2 className="font-brand text-xl mb-4" style={{ color: "oklch(0.90 0.005 200)", letterSpacing: "0.03em" }}>
+        Sammlung &amp; Beiträge
+      </h2>
       <Tabs defaultValue="plants">
         <TabsList className="mb-4 w-full" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
           <TabsTrigger value="plants" className="flex-1">Pflanzen</TabsTrigger>

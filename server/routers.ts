@@ -895,6 +895,27 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
         throw new Error(`KI-Bestimmung fehlgeschlagen: ${llmError instanceof Error ? llmError.message : String(llmError)}`);
       }
     }),
+
+  addCorrection: protectedProcedure
+    .input(z.object({
+      kind: z.enum(["chat", "identify"]),
+      topic: z.string().max(255).optional(),
+      originalAnswer: z.string().optional(),
+      correctedText: z.string().min(1).max(5000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      await db.insert(aiCorrections).values({
+        userId: ctx.user.id,
+        kind: input.kind,
+        topic: input.topic,
+        originalAnswer: input.originalAnswer,
+        correctedText: input.correctedText,
+        status: "pending",
+      });
+      return { success: true, message: "Korrektur eingereicht. Danke fuer dein Feedback!" };
+    }),
 });
 
 // ─── Knowledge Base Router ───────────────────────────────

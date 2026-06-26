@@ -146,9 +146,9 @@ export default function Plants() {
           >
             MEINE PFLANZEN
           </h1>
-          <p className="text-sm" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <h2 className="text-sm" style={{ color: "oklch(0.50 0.008 200)", fontWeight: 400 }}>
             {isAuthenticated ? `${plants?.length ?? 0} Pflanzen in deiner Sammlung` : "Melde dich an, um deine Sammlung zu verwalten"}
-          </p>
+          </h2>
         </div>
         {isAuthenticated && (
           <Link href="/plants/new">
