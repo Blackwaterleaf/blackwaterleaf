@@ -412,7 +412,8 @@ const postsRouter = router({
       const whereClause = conditions.length === 1 ? conditions[0] : conditions.length > 1 ? and(...(conditions as [typeof conditions[0], typeof conditions[0], ...typeof conditions])) : undefined;
       const postList = await db.select({
         id: posts.id, userId: posts.userId, content: posts.content,
-        imageUrl: posts.imageUrl, category: posts.category,
+        imageUrl: posts.imageUrl, videoUrl: posts.videoUrl, mediaType: posts.mediaType,
+        category: posts.category,
         plantId: posts.plantId, aquariumId: posts.aquariumId,
         likesCount: posts.likesCount, commentsCount: posts.commentsCount,
         createdAt: posts.createdAt,
@@ -445,6 +446,9 @@ const postsRouter = router({
       category: z.enum(["plant", "aquarium", "question", "tip", "showcase", "marketplace", "other"]).default("other"),
       imageBase64: z.string().optional(),
       imageMimeType: z.string().optional(),
+      // Video upload (e.g. for Showcase): base64-encoded file + mime type
+      videoBase64: z.string().optional(),
+      videoMimeType: z.string().optional(),
       plantId: z.number().optional(),
       aquariumId: z.number().optional(),
     }))
@@ -453,6 +457,29 @@ const postsRouter = router({
       if (!db) throw new Error("DB not available");
       let imageUrl: string | undefined;
       let storageKey: string | undefined;
+      let videoUrl: string | undefined;
+      let videoStorageKey: string | undefined;
+      let mediaType: "none" | "image" | "video" = "none";
+
+      // Video takes precedence as the primary media for a post
+      if (input.videoBase64 && input.videoMimeType) {
+        const allowedVideo = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
+        if (!allowedVideo.includes(input.videoMimeType)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Nicht unterstütztes Videoformat. Erlaubt: MP4, WebM, MOV, OGG." });
+        }
+        const buffer = Buffer.from(input.videoBase64, "base64");
+        // Limit video to ~25MB to protect storage and the request pipeline
+        if (buffer.length > 25 * 1024 * 1024) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Video ist zu groß (max. 25 MB)." });
+        }
+        const ext = input.videoMimeType === "video/quicktime" ? "mov" : (input.videoMimeType.split("/")[1] ?? "mp4");
+        const key = `posts/${ctx.user.id}/${Date.now()}.${ext}`;
+        const stored = await storagePut(key, buffer, input.videoMimeType);
+        videoUrl = stored.url;
+        videoStorageKey = key;
+        mediaType = "video";
+      }
+
       if (input.imageBase64 && input.imageMimeType) {
         const buffer = Buffer.from(input.imageBase64, "base64");
         const ext = input.imageMimeType.split("/")[1] ?? "jpg";
@@ -460,10 +487,12 @@ const postsRouter = router({
         const stored = await storagePut(key, buffer, input.imageMimeType);
         imageUrl = stored.url;
         storageKey = key;
+        if (mediaType === "none") mediaType = "image";
       }
       const result = await db.insert(posts).values({
         userId: ctx.user.id, content: input.content,
         category: input.category, imageUrl, storageKey,
+        videoUrl, videoStorageKey, mediaType,
         plantId: input.plantId, aquariumId: input.aquariumId,
       });
       try {
@@ -728,7 +757,7 @@ const aiRouter = router({
     .input(z.object({
       message: z.string().min(1).max(2000),
       sessionId: z.string().optional(),
-      contextType: z.enum(["general", "plant", "aquarium"]).default("general"),
+      contextType: z.enum(["general", "plant", "aquarium", "channa"]).default("general"),
       contextId: z.number().optional(),
       history: z.array(z.object({
         role: z.enum(["user", "assistant"]),
@@ -741,6 +770,21 @@ const aiRouter = router({
 
       // Build context info
       let contextInfo = "";
+      let channaKnowledge = "";
+      if (input.contextType === "channa" && db) {
+        // Eigene Channa-KI: nutzt die Channa-Wissensartikel der Plattform als Wissensbasis
+        const articles = await db.select({ title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, content: knowledgeArticles.content })
+          .from(knowledgeArticles)
+          .where(eq(knowledgeArticles.category, "channa"))
+          .limit(20);
+        if (articles.length) {
+          const blocks = articles.map(a => {
+            const body = (a.content || a.excerpt || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 1200);
+            return `### ${a.title}\n${body}`;
+          }).join("\n\n");
+          channaKnowledge = `\n\nINTERNE CHANNA-WISSENSBASIS (BlackwaterLeaf-Artprofile – nutze diese Fakten bevorzugt; wenn eine Channa-Art hier beschrieben ist, stelle ihre Daten genau so dar):\n${blocks}`;
+        }
+      }
       if (input.contextType === "plant" && input.contextId && db) {
         const plant = await db.select().from(plants).where(eq(plants.id, input.contextId)).limit(1);
         if (plant[0]) {
@@ -753,15 +797,26 @@ const aiRouter = router({
         }
       }
 
-      const systemPrompt = `Du bist der KI-Assistent von BlackwaterLeaf – einer Community-Plattform für Aquaristik- und Pflanzenliebhaber. Du bist ein erfahrener Experte für:
+      const channaPersona = `Du bist der CHANNA-EXPERTE von BlackwaterLeaf – ein hochspezialisierter KI-Assistent ausschließlich für Schlangenkopffische (Gattung Channa). Du kennst dich aus mit:
+- Allen relevanten Channa-Arten (z.B. andrao, bleheri, gachua, pulchra, asiatica, micropeltes, aurantimaculata, barca, stewartii)
+- Artgerechter Haltung: Beckengröße, Abdeckung (Springer!), Wasserwerte, Schwarzwasser-Setup, Temperatur, Winterruhe
+- Verhalten, Sozialisierung, Paarhaltung vs. Einzelhaltung, Aggression
+- Ernährung (Frostfutter, Lebendfutter, kein Säugetierfleisch), Zucht und Aufzucht
+- Krankheiten, Quarantäne und Problemdiagnose
+
+WICHTIG: Bleibe beim Thema Channa. Wenn jemand etwas völlig Themenfremdes fragt, weise freundlich zurück zum Channa-Thema. Sei präzise und faktenbasiert – erfinde KEINE Artdaten. Wenn du dir bei einer konkreten Art unsicher bist, sag das ehrlich.`;
+
+      const generalPersona = `Du bist der KI-Assistent von BlackwaterLeaf – einer Community-Plattform für Aquaristik- und Pflanzenliebhaber. Du bist ein erfahrener Experte für:
 - Aquaristik (Süßwasser, Salzwasser, Schwarzwasser, Aquascaping)
 - Channa-Haltung und Schwarzwasser-Biotope
 - Tropische Zimmerpflanzen (Alocasia, Monstera, Philodendron)
 - Wasserpflanzen und Aquascaping
 - Pflanzenbestimmung und Problemdiagnose
-- Pflegepläne und Optimierungsempfehlungen
+- Pflegepläne und Optimierungsempfehlungen`;
 
-Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempfehlungen. Nutze Markdown für Formatierungen.${contextInfo}${await getCommunityFactsBlock(input.message)}`;
+      const systemPrompt = `${input.contextType === "channa" ? channaPersona : generalPersona}
+
+Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempfehlungen. Nutze Markdown für Formatierungen.${contextInfo}${channaKnowledge}${await getCommunityFactsBlock(input.message)}`;
 
       const messages = [
         { role: "system" as const, content: systemPrompt },

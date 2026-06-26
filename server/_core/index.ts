@@ -34,8 +34,8 @@ async function startServer() {
   const server = createServer(app);
   
   // SECURITY FIX: Reduce body limit and add rate limiting
-  app.use(express.json({ limit: "5mb" }));
-  app.use(express.urlencoded({ limit: "5mb", extended: true }));
+  app.use(express.json({ limit: "35mb" }));
+  app.use(express.urlencoded({ limit: "35mb", extended: true }));
   
   // Rate limiting for uploads (max 10 uploads per 15 minutes per IP)
   const uploadLimiter = rateLimit({

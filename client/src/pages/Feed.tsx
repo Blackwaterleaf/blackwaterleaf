@@ -6,7 +6,7 @@ import { de } from "date-fns/locale";
 import {
   Heart, ImagePlus, MessageCircle, MoreHorizontal,
   Send, Trash2, X, Leaf, Fish, HelpCircle, Lightbulb,
-  Star, ShoppingBag, Grid3X3,
+  Star, ShoppingBag, Grid3X3, Video,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -144,8 +144,23 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
         </div>
       </div>
 
+      {/* ── Video (large, full width) ── */}
+      {post.videoUrl && (
+        <div className="relative w-full overflow-hidden bg-black" style={{ maxHeight: "600px" }}>
+          <video
+            src={post.videoUrl}
+            controls
+            playsInline
+            preload="metadata"
+            poster={post.imageUrl ?? undefined}
+            className="w-full"
+            style={{ maxHeight: "600px" }}
+          />
+        </div>
+      )}
+
       {/* ── Image (large, full width) ── */}
-      {post.imageUrl && (
+      {post.imageUrl && !post.videoUrl && (
         <div className="relative w-full overflow-hidden" style={{ maxHeight: "520px" }}>
           <img
             src={post.imageUrl}
@@ -278,27 +293,74 @@ function CreatePost() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoBase64, setVideoBase64] = useState<string | null>(null);
+  const [videoMimeType, setVideoMimeType] = useState<string | null>(null);
+  const [videoName, setVideoName] = useState<string | null>(null);
+
+  const resetMedia = () => {
+    setImagePreview(null); setImageBase64(null); setImageMimeType(null);
+    setVideoPreview(null); setVideoBase64(null); setVideoMimeType(null); setVideoName(null);
+  };
 
   const createMutation = trpc.posts.create.useMutation({
     onSuccess: () => {
       setContent(""); setCategory("other");
-      setImagePreview(null); setImageBase64(null);
+      resetMedia();
       utils.posts.list.invalidate();
       toast.success("Beitrag veröffentlicht!");
     },
-    onError: () => toast.error("Fehler beim Veröffentlichen"),
+    onError: (err) => toast.error(err.message || "Fehler beim Veröffentlichen"),
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { toast.error("Max. 10 MB"); return; }
+    // Bild-Fehlerprüfung: Format & Größe
+    const allowedImg = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+    if (!allowedImg.includes(file.type)) {
+      toast.error("Nicht unterstütztes Bildformat. Erlaubt: JPG, PNG, WebP, HEIC.");
+      e.target.value = ""; return;
+    }
+    if (file.size > 10 * 1024 * 1024) { toast.error("Bild zu groß (max. 10 MB)"); e.target.value = ""; return; }
+    // Auflösungs-Check (warnt bei sehr kleinen Bildern)
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
+      const probe = new Image();
+      probe.onload = () => {
+        if (probe.width < 320 || probe.height < 320) {
+          toast.warning("Bild hat eine niedrige Auflösung – für Showcase empfehlen wir mind. 1000px.");
+        }
+      };
+      probe.src = result;
+      setVideoPreview(null); setVideoBase64(null); setVideoMimeType(null); setVideoName(null);
       setImagePreview(result);
       setImageBase64(result.split(",")[1]);
       setImageMimeType(file.type);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Video-Fehlerprüfung: Format & Größe
+    const allowedVid = ["video/mp4", "video/webm", "video/quicktime", "video/ogg"];
+    if (!allowedVid.includes(file.type)) {
+      toast.error("Nicht unterstütztes Videoformat. Erlaubt: MP4, WebM, MOV, OGG.");
+      e.target.value = ""; return;
+    }
+    if (file.size > 25 * 1024 * 1024) { toast.error("Video zu groß (max. 25 MB). Für kurze Showcase-Clips ideal."); e.target.value = ""; return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setImagePreview(null); setImageBase64(null); setImageMimeType(null);
+      setVideoPreview(result);
+      setVideoBase64(result.split(",")[1]);
+      setVideoMimeType(file.type);
+      setVideoName(file.name);
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -338,7 +400,30 @@ function CreatePost() {
         <div className="relative rounded-xl overflow-hidden ml-13">
           <img src={imagePreview} alt="Preview" className="max-h-56 w-auto rounded-xl" />
           <button
-            onClick={() => { setImagePreview(null); setImageBase64(null); }}
+            onClick={() => { setImagePreview(null); setImageBase64(null); setImageMimeType(null); }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
+            style={{ background: "oklch(0.08 0.008 200 / 0.8)" }}
+          >
+            <X className="w-3.5 h-3.5" style={{ color: "oklch(0.90 0.005 200)" }} />
+          </button>
+        </div>
+      )}
+
+      {videoPreview && (
+        <div className="relative rounded-xl overflow-hidden ml-13">
+          <video
+            src={videoPreview}
+            controls
+            playsInline
+            className="max-h-72 w-full rounded-xl"
+            style={{ background: "oklch(0.06 0.008 200)" }}
+          />
+          <div className="flex items-center gap-2 mt-2">
+            <Video className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.16 148)" }} />
+            <span className="text-xs truncate" style={{ color: "oklch(0.55 0.008 200)" }}>{videoName}</span>
+          </div>
+          <button
+            onClick={() => { setVideoPreview(null); setVideoBase64(null); setVideoMimeType(null); setVideoName(null); }}
             className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
             style={{ background: "oklch(0.08 0.008 200 / 0.8)" }}
           >
@@ -365,6 +450,24 @@ function CreatePost() {
             >
               <ImagePlus className="w-4 h-4" />
               <span className="hidden sm:inline">Foto</span>
+            </div>
+          </label>
+          <label className="cursor-pointer">
+            <input type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg" className="hidden" onChange={handleVideoSelect} />
+            <div
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
+              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.40 0.12 148)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)";
+              }}
+            >
+              <Video className="w-4 h-4" />
+              <span className="hidden sm:inline">Video</span>
             </div>
           </label>
           <Select value={category} onValueChange={setCategory}>
@@ -398,6 +501,8 @@ function CreatePost() {
                 category: category as any,
                 imageBase64: imageBase64 ?? undefined,
                 imageMimeType: imageMimeType ?? undefined,
+                videoBase64: videoBase64 ?? undefined,
+                videoMimeType: videoMimeType ?? undefined,
               });
             }
           }}

@@ -57,7 +57,7 @@
 - [x] Profil bearbeiten zuverlässig reparieren (updateProfile + uploadAvatar testen)
 - [x] KI-Korrektur: Nutzer kann KI-Antwort/Bestimmung als falsch markieren und korrigieren
 - [x] Korrekturen speichern (Tabelle ai_corrections) und der KI als Community-Fakten zuführen
-- [ ] Korrigierte Fakten im KI-Kontext nutzen (faktenbasiert statt generisch) – offen, Backend speichert Korrekturen bereits
+- [x] Korrigierte Fakten im KI-Kontext nutzen (faktenbasiert statt generisch) – getCommunityFactsBlock injiziert freigegebene Korrekturen mit Vorrang in Chat + Bestimmung
 
 ## Phase L: SEO-Fixes
 - [x] /profile/:id – H1 + H2 hinzugefügt (Name als H1, "Sammlung & Beiträge" als H2)
@@ -91,3 +91,10 @@
 ## Phase K: Channa-Bereich
 - [x] Channa-Artprofile als Wissensartikel in der Datenbank anlegen (6 neue Arten: andrao, bleheri, gachua, pulchra, asiatica, micropeltes)
 - [x] Channa-Kategorie-Filter in der Wissensdatenbank (bereits vorhanden, Artikel erscheinen automatisch)
+
+## Phase M: Showcase Video + Channa-KI + Bild-Fehlerprüfung
+- [ ] Showcase/Feed: Video-Upload nach S3 (Datei vom Gerät)
+- [ ] Video-Player in Feed-Posts (Wiedergabe, Poster, Controls)
+- [ ] Eigene Channa-KI: spezialisierter Modus, nutzt Channa-Wissensartikel als Kontext
+- [ ] Kamera/Bild-Fehlerprüfung beim Upload (Format, Größe, Auflösung, unscharf)
+- [ ] TypeScript-Check + Tests + Checkpoint

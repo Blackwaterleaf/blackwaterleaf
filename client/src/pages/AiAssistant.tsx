@@ -13,6 +13,7 @@ import {
   Flag,
   Check,
   X,
+  Fish,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import PlantIdentify from "@/components/PlantIdentify";
@@ -39,12 +40,24 @@ const SUGGESTIONS = [
   "Welche Pflanzen eignen sich für wenig Licht?",
 ];
 
+const CHANNA_SUGGESTIONS = [
+  "Welche Beckengröße braucht eine Channa andrao?",
+  "Wie richte ich ein Schwarzwasser-Becken für Channa ein?",
+  "Channa bleheri oder Channa gachua – was eignet sich für Einsteiger?",
+  "Welches Futter ist artgerecht für Channa?",
+  "Brauchen Channa eine Winterruhe?",
+  "Wie verhindere ich, dass mein Channa aus dem Becken springt?",
+];
+
 export default function AiAssistant() {
   const { user, isAuthenticated } = useAuth();
   const search = useSearch();
   const params = new URLSearchParams(search);
-  const contextType =
+  const baseContextType =
     (params.get("context") as "plant" | "aquarium" | "general") ?? "general";
+  const [channaMode, setChannaMode] = useState(params.get("context") === "channa");
+  const contextType: "plant" | "aquarium" | "general" | "channa" =
+    channaMode ? "channa" : baseContextType;
   const contextId = params.get("id") ? parseInt(params.get("id")!) : undefined;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -178,7 +191,7 @@ export default function AiAssistant() {
               </p>
             ) : (
               <p className="text-xs text-muted-foreground mt-0.5">
-                Experte für Aquaristik &amp; Pflanzen
+                {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Experte für Aquaristik & Pflanzen"}
               </p>
             )}
           </div>
@@ -213,6 +226,18 @@ export default function AiAssistant() {
               >
                 <ScanSearch className="w-3.5 h-3.5" />
                 Bestimmen
+              </button>
+              <button
+                onClick={() => { setChannaMode(v => !v); setMode("chat"); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                style={{
+                  background: channaMode ? "oklch(0.62 0.17 35 / 0.22)" : "transparent",
+                  color: channaMode ? "oklch(0.72 0.17 45)" : "oklch(0.50 0.008 200)",
+                }}
+                title="Spezialisierte Channa-KI"
+              >
+                <Fish className="w-3.5 h-3.5" />
+                Channa
               </button>
             </div>
           )}
@@ -269,7 +294,7 @@ export default function AiAssistant() {
 
                   {/* Suggestion chips */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto">
-                    {SUGGESTIONS.map((suggestion) => (
+                    {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
                       <button
                         key={suggestion}
                         onClick={() => sendMessage(suggestion)}

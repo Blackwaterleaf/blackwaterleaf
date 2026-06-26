@@ -141,6 +141,9 @@ export const posts = mysqlTable("posts", {
   content: text("content").notNull(),
   imageUrl: text("imageUrl"),
   storageKey: text("storageKey"),
+  videoUrl: text("videoUrl"),
+  videoStorageKey: text("videoStorageKey"),
+  mediaType: mysqlEnum("mediaType", ["none", "image", "video"]).default("none").notNull(),
   category: mysqlEnum("category", ["plant", "aquarium", "question", "tip", "showcase", "marketplace", "other"]).default("other").notNull(),
   plantId: int("plantId"),
   aquariumId: int("aquariumId"),
@@ -197,7 +200,7 @@ export const aiChats = mysqlTable("ai_chats", {
   sessionId: varchar("sessionId", { length: 64 }).notNull(),
   role: mysqlEnum("role", ["user", "assistant"]).notNull(),
   content: text("content").notNull(),
-  contextType: mysqlEnum("contextType", ["general", "plant", "aquarium"]),
+  contextType: mysqlEnum("contextType", ["general", "plant", "aquarium", "channa"]),
   contextId: int("contextId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
