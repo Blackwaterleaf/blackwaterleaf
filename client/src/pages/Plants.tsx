@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { Seo } from "@/components/Seo";
 import { Leaf, Plus, Droplets, Sun, Thermometer, Lock } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,11 @@ export default function Plants() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Pflanzen – Sammlung & Pflege dokumentieren"
+        path="/plants"
+        description="Dokumentiere deine Zimmerpflanzen und Wasserpflanzen mit Pflegeparametern, Foto-Timeline und KI-Unterstützung. Entdecke seltene Pflanzen in der BlackwaterLeaf Community."
+      />
 
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between mb-8 gap-4">

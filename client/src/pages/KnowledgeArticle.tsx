@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, Eye, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Streamdown } from "streamdown";
+import { Seo } from "@/components/Seo";
 
 const CATEGORY_LABELS: Record<string, string> = {
   aquaristik: "Aquaristik",
@@ -17,8 +18,44 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function KnowledgeArticle({ slug }: { slug: string }) {
   const { data: article, isLoading } = trpc.knowledge.get.useQuery({ slug });
 
+  const metaDescription = article
+    ? (article.excerpt && article.excerpt.trim().length > 0
+        ? article.excerpt
+        : `${article.title} – Ratgeber & Wissen rund um Aquaristik, Channa, Aquascaping und Pflanzen bei BlackwaterLeaf.`
+      ).slice(0, 160)
+    : undefined;
+
   return (
     <div className="container py-6 max-w-3xl mx-auto">
+      {article && (
+        <Seo
+          title={article.title}
+          description={metaDescription}
+          path={`/knowledge/${slug}`}
+          type="article"
+          image={article.coverImageUrl || undefined}
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: article.title,
+            description: metaDescription,
+            inLanguage: "de-DE",
+            author: { "@type": "Organization", name: article.author || "BlackwaterLeaf" },
+            publisher: {
+              "@type": "Organization",
+              name: "BlackwaterLeaf",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://blackwaterleaf.com/manus-storage/bl-icon-512_f807c8a5.png",
+              },
+            },
+            mainEntityOfPage: `https://blackwaterleaf.com/knowledge/${slug}`,
+            ...(article.coverImageUrl ? { image: article.coverImageUrl } : {}),
+            ...(article.createdAt ? { datePublished: new Date(article.createdAt).toISOString() } : {}),
+            ...(article.updatedAt ? { dateModified: new Date(article.updatedAt).toISOString() } : {}),
+          }}
+        />
+      )}
       <Link href="/knowledge">
         <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-5 press-active">
           <ArrowLeft className="w-4 h-4" /> Zurück zur Wissensdatenbank

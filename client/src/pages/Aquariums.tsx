@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { Seo } from "@/components/Seo";
 import { Droplets, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +32,11 @@ export default function Aquariums() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Aquarien – Becken & Wasserwerte dokumentieren"
+        path="/aquariums"
+        description="Verwalte deine Aquarien mit Wasserwerten, Ereignisprotokoll und Foto-Timeline. Von Schwarzwasser-Biotop bis Aquascape – dokumentiert in der BlackwaterLeaf Community."
+      />
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between mb-8">

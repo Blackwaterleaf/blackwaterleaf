@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { Seo } from "@/components/Seo";
 import { getLoginUrl } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useEffect } from "react";
@@ -41,6 +42,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
+      <Seo
+        path="/"
+        description="BlackwaterLeaf ist die deutschsprachige Community für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen. Dokumentiere deine Pflanzen & Aquarien, lerne aus der Wissensdatenbank und nutze den KI-Assistenten."
+      />
 
       {/* ══════════════════════════════════════════════════════
           TOP NAV (standalone for landing page)

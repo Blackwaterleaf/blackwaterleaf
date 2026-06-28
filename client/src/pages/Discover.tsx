@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { Seo } from "@/components/Seo";
 import { Compass, Droplets, Leaf, Search, TrendingUp, BookOpen, Target, Crown, ArrowRight, Clock } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -48,6 +49,11 @@ export default function Discover() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Entdecken – Pflanzen, Aquarien & Community"
+        path="/discover"
+        description="Entdecke auf BlackwaterLeaf neue Pflanzen, Aquarien und Beiträge aus der Aquaristik- und Pflanzen-Community. Durchsuche Arten, Themen und Inspiration aus Deutschland."
+      />
 
       {/* Header */}
       <div className="mb-8">

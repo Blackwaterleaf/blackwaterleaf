@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { Seo } from "@/components/Seo";
 import { Link } from "wouter";
 import { useState } from "react";
 import { BookOpen, Clock, Eye, Star, ChevronRight } from "lucide-react";
@@ -167,6 +168,11 @@ export default function Knowledge() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Wissensdatenbank – Aquaristik, Channa & Pflanzen"
+        path="/knowledge"
+        description="Die BlackwaterLeaf Wissensdatenbank: fundierte Ratgeber zu Aquaristik, Aquascaping, Schwarzwasser-Biotopen, Channa-Arten und Zimmerpflanzen – auf Deutsch, von der Community."
+      />
 
       {/* ── Page Header ── */}
       <div className="mb-8">

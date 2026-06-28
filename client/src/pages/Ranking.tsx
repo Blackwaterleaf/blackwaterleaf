@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { Seo } from "@/components/Seo";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import {
@@ -50,6 +51,11 @@ export default function Ranking() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Ranking & Challenges – Community Bestenliste"
+        path="/ranking"
+        description="Die BlackwaterLeaf Bestenliste: aktivste Mitglieder, XP, Abzeichen und Wochen-Challenges der Aquaristik- und Pflanzen-Community."
+      />
 
       {/* ── Page Header ── */}
       <div className="mb-8">

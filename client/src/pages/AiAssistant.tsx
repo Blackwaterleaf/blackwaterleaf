@@ -25,6 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Streamdown } from "streamdown";
 import { nanoid } from "nanoid";
 import { getLoginUrl } from "@/const";
+import { Seo } from "@/components/Seo";
 
 interface Message {
   role: "user" | "assistant";
@@ -154,7 +155,12 @@ export default function AiAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col bl-ai-shell">
+      <Seo
+        title="KI-Assistent – Pflanzen & Aquaristik Beratung"
+        path="/ai"
+        description="Der BlackwaterLeaf KI-Assistent beantwortet deine Fragen zu Pflanzenpflege, Aquaristik, Channa-Haltung und Wasserwerten – faktenbasiert und auf Deutsch."
+      />
       {/* ── Header ── */}
       <div
         className="px-4 py-3 backdrop-blur-sm flex-shrink-0"

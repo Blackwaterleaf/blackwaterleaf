@@ -179,6 +179,21 @@
 
 /* ── Utility Classes ─────────────────────────────────────────── */
 @layer utilities {
+  /* Reserve space for the fixed mobile bottom navigation (height 56px + safe area).
+     Applied only below the lg breakpoint, where the bottom nav is visible. */
+  .bl-main-pad { padding-bottom: 0; }
+  @media (max-width: 1023px) {
+    .bl-main-pad { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+  }
+
+  /* Full-height chat shell for the AI assistant. On mobile the fixed bottom nav
+     and the global main padding must be subtracted so the input bar stays reachable. */
+  .bl-ai-shell { height: calc(100vh - 4rem); }
+  @media (max-width: 1023px) {
+    .bl-ai-shell {
+      height: calc(100vh - 4rem - 56px - env(safe-area-inset-bottom, 0px));
+    }
+  }
 
   /* Typography */
   .font-brand   { font-family: "Bebas Neue", sans-serif; letter-spacing: 0.04em; }

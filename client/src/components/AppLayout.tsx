@@ -323,14 +323,17 @@ function MobileMenu({ user, isAuthenticated }: { user: any; isAuthenticated: boo
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  /** For full-height pages (e.g. AI chat) that manage their own bottom spacing.
+   *  Disables the global mobile bottom padding to avoid double spacing. */
+  fullHeight?: boolean;
 }
 
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout({ children, fullHeight = false }: AppLayoutProps) {
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
       <TopNav />
-      {/* Content below fixed nav */}
-      <main className="pt-16">
+      {/* Content below fixed nav. On mobile, reserve space for the fixed bottom nav so content is never hidden. */}
+      <main className={fullHeight ? "pt-16" : "pt-16 bl-main-pad"}>
         {children}
       </main>
 

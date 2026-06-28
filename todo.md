@@ -105,3 +105,21 @@
 - [x] index.html erweitern: robots(index,follow), og:locale de_DE, og:url, og:site_name, twitter card
 - [x] JSON-LD strukturierte Daten (Organization + WebSite/SearchAction)
 - [x] Verifizieren: robots.txt & sitemap.xml korrekt ausgeliefert (dev)
+
+## React Helmet (dynamische Meta-Tags pro Seite)
+- [ ] react-helmet-async installieren + HelmetProvider in main.tsx
+- [ ] Wiederverwendbare <Seo>-Komponente (title, description, canonical, og, twitter, optional JSON-LD)
+- [ ] Wissensartikel-Detailseite: dynamische Meta aus Artikel (title/excerpt/slug) + Article JSON-LD
+- [ ] Hauptseiten mit eigenen Meta versehen (Home, Feed, Entdecken, Wissen-Übersicht, Pflanzen, Aquarien, Ranking, KI)
+- [ ] Verifizieren: Titel/Description ändern sich pro Route
+
+## Phase N: Wissensdatenbank-Erweiterung + Word-Master + Scroll-Bug
+- [x] Master-Word-Dokument bereinigt (Duplikate entfernt, kurze Steckbriefe ersetzt durch 2-3-Seiten-Profile)
+- [x] App-Wissensdatenbank erweitert: 17 Channa-Artprofile + 7 Pflanzenprofile (jetzt 29 Artikel)
+- [x] react-helmet-async + <Seo>-Komponente (dynamische Meta pro Seite, Article JSON-LD)
+- [x] Doppelte Meta-Tags aus index.html entfernt (Helmet ist alleinige Quelle)
+- [x] KI-Assistent: Eingabeleiste/Upload wird auf Mobil von Bottom-Nav verdeckt (bl-ai-shell, fullHeight prop)
+- [x] Feed-Composer (Bild/Video-Upload): unterer Bereich nicht erreichbar (bl-main-pad)
+- [x] PlantIdentify (Bestimmen): unterer Bereich/Button verdeckt (bl-main-pad)
+- [x] Plant/Aquarium-Create: padding-bottom fuer Bottom-Nav fehlt (bl-main-pad)
+- [x] Globaler mobiler Bottom-Abstand fuer fixierte Navigation (bl-main-pad utility)
