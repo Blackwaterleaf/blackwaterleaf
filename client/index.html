@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
-    <title>BlackwaterLeaf – Das Betriebssystem für Pflanzen & Aquarien</title>
-    <meta name="description" content="Dokumentiere deine Pflanzen und Aquarien, erhalte KI-Unterstützung und tausche dich mit der Community aus." />
-    <meta name="keywords" content="Aquaristik, Pflanzen, Aquarium, Community, Pflege, KI" />
+    <title>BlackwaterLeaf – Community für Aquaristik, Aquascaping & Pflanzen</title>
+    <meta name="description" content="BlackwaterLeaf ist die deutschsprachige Community-Plattform für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen. Dokumentiere deine Pflanzen und Aquarien, nutze den KI-Assistenten und tausche dich mit Gleichgesinnten aus." />
+    <meta name="keywords" content="Aquaristik, Aquascaping, Schwarzwasser, Blackwater, Channa, Aquarium, Pflanzen, Zimmerpflanzen, seltene Pflanzen, Community, Pflege, Wasserwerte, KI Pflanzenbestimmung" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="BlackwaterLeaf" />
+    <link rel="canonical" href="https://blackwaterleaf.com/" />
+    <meta name="language" content="de" />
+    <link rel="alternate" hreflang="de" href="https://blackwaterleaf.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://blackwaterleaf.com/" />
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -27,9 +33,50 @@
 
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="BlackwaterLeaf – Das Betriebssystem für Pflanzen & Aquarien" />
-    <meta property="og:description" content="Dokumentiere deine Pflanzen und Aquarien, erhalte KI-Unterstützung und tausche dich mit der Community aus." />
+    <meta property="og:site_name" content="BlackwaterLeaf" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:url" content="https://blackwaterleaf.com/" />
+    <meta property="og:title" content="BlackwaterLeaf – Community für Aquaristik, Aquascaping & Pflanzen" />
+    <meta property="og:description" content="Die deutschsprachige Community-Plattform für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen. Dokumentieren, lernen, austauschen – mit KI-Unterstützung." />
     <meta property="og:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png" />
+    <meta property="og:image:alt" content="BlackwaterLeaf – Community für Aquaristik und Pflanzen" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BlackwaterLeaf – Community für Aquaristik, Aquascaping & Pflanzen" />
+    <meta name="twitter:description" content="Die deutschsprachige Community-Plattform für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen – mit KI-Unterstützung." />
+    <meta name="twitter:image" content="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png" />
+
+    <!-- Strukturierte Daten (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://blackwaterleaf.com/#organization",
+          "name": "BlackwaterLeaf",
+          "url": "https://blackwaterleaf.com/",
+          "logo": "https://blackwaterleaf.com/manus-storage/bl-icon-512_f807c8a5.png",
+          "description": "Deutschsprachige Community-Plattform für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen.",
+          "areaServed": { "@type": "Country", "name": "Deutschland" }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://blackwaterleaf.com/#website",
+          "url": "https://blackwaterleaf.com/",
+          "name": "BlackwaterLeaf",
+          "inLanguage": "de-DE",
+          "publisher": { "@id": "https://blackwaterleaf.com/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": { "@type": "EntryPoint", "urlTemplate": "https://blackwaterleaf.com/discover?q={search_term_string}" },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
 
     <!-- Mobile: prevent text size adjustment -->
     <meta name="format-detection" content="telephone=no" />

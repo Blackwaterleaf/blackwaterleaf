@@ -93,8 +93,15 @@
 - [x] Channa-Kategorie-Filter in der Wissensdatenbank (bereits vorhanden, Artikel erscheinen automatisch)
 
 ## Phase M: Showcase Video + Channa-KI + Bild-Fehlerprüfung
-- [ ] Showcase/Feed: Video-Upload nach S3 (Datei vom Gerät)
-- [ ] Video-Player in Feed-Posts (Wiedergabe, Poster, Controls)
-- [ ] Eigene Channa-KI: spezialisierter Modus, nutzt Channa-Wissensartikel als Kontext
-- [ ] Kamera/Bild-Fehlerprüfung beim Upload (Format, Größe, Auflösung, unscharf)
-- [ ] TypeScript-Check + Tests + Checkpoint
+- [x] Showcase/Feed: Video-Upload nach S3 (Datei vom Gerät, bis 25MB)
+- [x] Video-Player in Feed-Posts (Wiedergabe, Controls)
+- [x] Eigene Channa-KI: spezialisierter Modus (Channa-Toggle), nutzt Channa-Wissensartikel als Kontext
+- [x] Kamera/Bild-Fehlerprüfung beim Upload (Format, Größe, Auflösung, Helligkeit, Unschärfe)
+- [x] TypeScript-Check + Tests + Checkpoint
+
+## SEO-Verbesserungen (Reichweite Deutschland)
+- [x] robots.txt im Projekt: Crawling erlauben + Sitemap-Verweis (überschreibt Host-Default Disallow:/)
+- [x] sitemap.xml mit allen öffentlichen Seiten
+- [x] index.html erweitern: robots(index,follow), og:locale de_DE, og:url, og:site_name, twitter card
+- [x] JSON-LD strukturierte Daten (Organization + WebSite/SearchAction)
+- [x] Verifizieren: robots.txt & sitemap.xml korrekt ausgeliefert (dev)
