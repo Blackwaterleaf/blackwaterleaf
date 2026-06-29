@@ -107,11 +107,11 @@
 - [x] Verifizieren: robots.txt & sitemap.xml korrekt ausgeliefert (dev)
 
 ## React Helmet (dynamische Meta-Tags pro Seite)
-- [ ] react-helmet-async installieren + HelmetProvider in main.tsx
-- [ ] Wiederverwendbare <Seo>-Komponente (title, description, canonical, og, twitter, optional JSON-LD)
-- [ ] Wissensartikel-Detailseite: dynamische Meta aus Artikel (title/excerpt/slug) + Article JSON-LD
-- [ ] Hauptseiten mit eigenen Meta versehen (Home, Feed, Entdecken, Wissen-Übersicht, Pflanzen, Aquarien, Ranking, KI)
-- [ ] Verifizieren: Titel/Description ändern sich pro Route
+- [x] react-helmet-async installieren + HelmetProvider in main.tsx
+- [x] Wiederverwendbare <Seo>-Komponente (title, description, canonical, og, twitter, optional JSON-LD)
+- [x] Wissensartikel-Detailseite: dynamische Meta aus Artikel (title/excerpt/slug) + Article JSON-LD
+- [x] Hauptseiten mit eigenen Meta versehen (Home, Feed, Entdecken, Wissen-Übersicht, Pflanzen, Aquarien, Ranking, KI)
+- [x] Verifizieren: Titel/Description ändern sich pro Route
 
 ## Phase N: Wissensdatenbank-Erweiterung + Word-Master + Scroll-Bug
 - [x] Master-Word-Dokument bereinigt (Duplikate entfernt, kurze Steckbriefe ersetzt durch 2-3-Seiten-Profile)
