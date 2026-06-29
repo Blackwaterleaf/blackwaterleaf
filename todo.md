@@ -123,3 +123,14 @@
 - [x] PlantIdentify (Bestimmen): unterer Bereich/Button verdeckt (bl-main-pad)
 - [x] Plant/Aquarium-Create: padding-bottom fuer Bottom-Nav fehlt (bl-main-pad)
 - [x] Globaler mobiler Bottom-Abstand fuer fixierte Navigation (bl-main-pad utility)
+
+
+## Phase O: Monstera & Alocasia Expansion (aktuell)
+- [x] Botanische Recherche: 10 Monstera + 10 Alocasia Arten (zertifizierte Quellen: Penn State Extension, NC State, Missouri Botanical Garden, wissenschaftliche Papers)
+- [x] JSON-Datenstruktur: 20 Pflanzenprofile mit Blattmerkmalen, Pflegeanforderungen, Wachstum, Vermehrung, Toxizität, Besonderheiten
+- [x] Word-Dokument: Master-Wissensdatenbank erweitert (2-3 Seiten pro Art, Tabellen, Formatierung)
+- [x] Datenbankseeding: Seed-Skript erstellt und ausgeführt (20 neue Artikel in knowledge_articles)
+- [x] Gesamtanzahl Wissensartikel: 49 (29 ursprüngliche + 20 neue)
+- [x] Vitest-Tests: 10 neue Tests für Knowledge-Artikel (alle grün)
+- [x] App-Verifikation: Neue Monstera/Alocasia Profile in Knowledge-Sektion sichtbar
+- [x] TypeScript 0 Fehler, 25 Tests grün
