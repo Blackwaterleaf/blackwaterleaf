@@ -159,3 +159,12 @@
 - [x] Genus-Filter-Buttons mit Bildern aktualisiert (6x6px Thumbnails)
 - [x] Responsive Button-Layout mit flexbox
 - [x] Alle 25 Tests gruen, TypeScript 0 Fehler
+
+
+## Phase S: Datenbankfix - Genus-Werte korrekt eingetragen
+- [x] Alle Houseplant-Artikel mit korrekten Gattungen aktualisiert
+- [x] Alocasia-Artikel: 10 Artikel mit genus='Alocasia'
+- [x] Monstera-Artikel: 10 Artikel mit genus='Monstera'
+- [x] Philodendron/Efeutute-Artikel: mit genus='Philodendron'
+- [x] Sonstige Pflanzen: mit genus='Sonstige'
+- [x] Alle 25 Tests gruen nach Update
