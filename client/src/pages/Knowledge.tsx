@@ -24,7 +24,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   basics:      "Grundlagen",
 };
 
-/* Fallback cover images per category */
 const CAT_FALLBACK: Record<string, string> = {
   channa:      "/manus-storage/channa-tank_aeefb736.webp",
   aquaristik:  "/manus-storage/hero-main_962b134d.png",
@@ -32,6 +31,12 @@ const CAT_FALLBACK: Record<string, string> = {
   blackwater:  "/manus-storage/channa-tank_aeefb736.webp",
   houseplants: "/manus-storage/plants-golden_070e92ad.png",
   basics:      "/manus-storage/wissen-pflege_9290790e.png",
+};
+
+const GENUS_THUMBNAILS: Record<string, string> = {
+  Alocasia: "https://d2xsxph8kpxj0f.cloudfront.net/310519663774770417/TfjmvQ7wVry254EgfLy7em/alocasia-thumb-hg3jyApW9NREHSfRXn3mpm.webp",
+  Monstera: "https://d2xsxph8kpxj0f.cloudfront.net/310519663774770417/TfjmvQ7wVry254EgfLy7em/monstera-thumb-neZsVTTJC5fa8y3FgNTuME.webp",
+  Philodendron: "https://d2xsxph8kpxj0f.cloudfront.net/310519663774770417/TfjmvQ7wVry254EgfLy7em/philodendron-thumb-HKGFSfUTi6sJpSPYDtjcrj.webp",
 };
 
 function ArticleCard({ article, featured = false }: { article: any; featured?: boolean }) {
@@ -48,7 +53,6 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
             minHeight: "360px",
           }}
         >
-          {/* Background image */}
           <div className="absolute inset-0">
             <img
               src={cover}
@@ -62,7 +66,6 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
             />
           </div>
 
-          {/* Content */}
           <div className="relative z-10 flex flex-col justify-end h-full p-6 pt-24">
             <div className="flex items-center gap-2 mb-3">
               <span
@@ -109,7 +112,6 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
           border: "1px solid oklch(0.20 0.008 200)",
         }}
       >
-        {/* Cover image */}
         <div className="relative overflow-hidden" style={{ height: "180px" }}>
           <img
             src={cover}
@@ -121,7 +123,6 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
             className="absolute bottom-0 left-0 right-0 h-16"
             style={{ background: "linear-gradient(to top, oklch(0.12 0.008 200), transparent)" }}
           />
-          {/* Category badge */}
           <div className="absolute top-3 left-3">
             <span
               className="px-2 py-0.5 rounded-lg text-xs font-medium"
@@ -132,7 +133,6 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
           </div>
         </div>
 
-        {/* Text */}
         <div className="p-4">
           <h3
             className="font-display text-base font-semibold leading-snug mb-1.5 line-clamp-2"
@@ -163,7 +163,6 @@ export default function Knowledge() {
     limit: 50,
   });
 
-  // Get available genera for houseplants category
   const { data: genera } = trpc.knowledge.genera.useQuery({
     category: filter === "houseplants" ? "houseplants" : undefined,
   });
@@ -171,7 +170,6 @@ export default function Knowledge() {
   const featured = data?.filter(a => a.isFeatured) ?? [];
   const regular  = data?.filter(a => !a.isFeatured) ?? [];
 
-  // Reset genus filter when category changes
   const handleCategoryChange = (cat: string) => {
     setFilter(cat);
     setGenusFilter("");
@@ -185,7 +183,6 @@ export default function Knowledge() {
         description="Die BlackwaterLeaf Wissensdatenbank: fundierte Ratgeber zu Aquaristik, Aquascaping, Schwarzwasser-Biotopen, Channa-Arten und Zimmerpflanzen – auf Deutsch, von der Community."
       />
 
-      {/* ── Page Header ── */}
       <div className="mb-8">
         <h1
           className="font-brand text-4xl leading-none mb-1"
@@ -198,7 +195,6 @@ export default function Knowledge() {
         </p>
       </div>
 
-      {/* ── Filter Tabs ── */}
       <div className="flex gap-1.5 mb-8 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
         {CATEGORIES.map((cat) => {
           const isActive = filter === cat.value;
@@ -219,13 +215,12 @@ export default function Knowledge() {
         })}
       </div>
 
-      {/* ── Genus Filter for Houseplants ── */}
       {filter === "houseplants" && genera && genera.length > 0 && (
         <div className="mb-8">
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setGenusFilter("")}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
               style={{
                 background: !genusFilter ? "oklch(0.52 0.14 148 / 0.20)" : "oklch(0.14 0.008 200)",
                 color: !genusFilter ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
@@ -234,25 +229,34 @@ export default function Knowledge() {
             >
               Alle Arten ({data?.length ?? 0})
             </button>
-            {genera.map((g) => (
-              <button
-                key={g.genus}
-                onClick={() => setGenusFilter(g.genus)}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
-                style={{
-                  background: genusFilter === g.genus ? "oklch(0.52 0.14 148 / 0.20)" : "oklch(0.14 0.008 200)",
-                  color: genusFilter === g.genus ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
-                  border: genusFilter === g.genus ? "1px solid oklch(0.52 0.14 148 / 0.30)" : "1px solid oklch(0.20 0.008 200)",
-                }}
-              >
-                {g.genus} ({g.count})
-              </button>
-            ))}
+            {genera.map((g) => {
+              const thumb = GENUS_THUMBNAILS[g.genus as keyof typeof GENUS_THUMBNAILS];
+              return (
+                <button
+                  key={g.genus}
+                  onClick={() => setGenusFilter(g.genus)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
+                  style={{
+                    background: genusFilter === g.genus ? "oklch(0.52 0.14 148 / 0.20)" : "oklch(0.14 0.008 200)",
+                    color: genusFilter === g.genus ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                    border: genusFilter === g.genus ? "1px solid oklch(0.52 0.14 148 / 0.30)" : "1px solid oklch(0.20 0.008 200)",
+                  }}
+                >
+                  {thumb && (
+                    <img
+                      src={thumb}
+                      alt={g.genus}
+                      className="w-6 h-6 rounded object-cover flex-shrink-0"
+                    />
+                  )}
+                  <span>{g.genus} ({g.count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* ── Featured Articles ── */}
       {featured.length > 0 && (
         <div className="mb-12">
           <h2
@@ -269,7 +273,6 @@ export default function Knowledge() {
         </div>
       )}
 
-      {/* ── All Articles ── */}
       <div>
         <h2
           className="font-display text-lg font-semibold mb-4"

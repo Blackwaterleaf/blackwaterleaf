@@ -151,3 +151,11 @@
 - [x] Kategorie umbenannt: Zimmerpflanzen zu Alocasia
 - [x] Benutzer koennen per Button zwischen Gattungen wechseln
 - [x] Alle 25 Tests gruen, TypeScript 0 Fehler
+
+
+## Phase R: Genus-Filter mit Thumbnail-Bildern
+- [x] Drei botanische Thumbnail-Bilder generiert (Alocasia, Monstera, Philodendron)
+- [x] GENUS_THUMBNAILS Mapping in Knowledge.tsx hinzugefuegt
+- [x] Genus-Filter-Buttons mit Bildern aktualisiert (6x6px Thumbnails)
+- [x] Responsive Button-Layout mit flexbox
+- [x] Alle 25 Tests gruen, TypeScript 0 Fehler
