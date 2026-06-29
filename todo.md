@@ -141,3 +141,13 @@
 - [x] Description reduziert: 237 → 155 Zeichen (Ziel: 50-160) ✓
 - [x] Keywords fokussiert: 13 → 4 Keywords (Aquaristik, Zimmerpflanzen, Community, Aquascaping) ✓
 - [x] Alle SEO-Checks bestanden
+
+
+## Phase Q: Knowledge-Seite Umstrukturierung (Genus-basiert)
+- [x] Datenbankschema: genus Spalte zu knowledge_articles hinzugefuegt
+- [x] Bestehende Artikel: Monstera, Alocasia, Philodendron automatisch kategorisiert
+- [x] Router-Procedure: knowledge.list mit genus-Filter erweitert
+- [x] UI-Redesign: Genus-Filter-Buttons unter Kategorie-Tabs
+- [x] Kategorie umbenannt: Zimmerpflanzen zu Alocasia
+- [x] Benutzer koennen per Button zwischen Gattungen wechseln
+- [x] Alle 25 Tests gruen, TypeScript 0 Fehler

@@ -978,12 +978,15 @@ const knowledgeRouter = router({
   list: publicProcedure
     .input(z.object({
       category: z.enum(["aquaristik", "aquascaping", "channa", "blackwater", "houseplants", "basics"]).optional(),
+      genus: z.string().optional(),
       limit: z.number().min(1).max(50).default(30),
     }))
     .query(async ({ input }) => {
       const db = await getDb();
       if (!db) return [];
-      const conditions = input.category ? [eq(knowledgeArticles.category, input.category)] : [];
+      const conditions = [];
+      if (input.category) conditions.push(eq(knowledgeArticles.category, input.category));
+      if (input.genus) conditions.push(eq(knowledgeArticles.genus, input.genus));
       return db.select().from(knowledgeArticles)
         .where(conditions.length ? and(...conditions) : undefined)
         .orderBy(desc(knowledgeArticles.isFeatured), desc(knowledgeArticles.createdAt))

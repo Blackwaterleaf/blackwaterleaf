@@ -22,6 +22,20 @@
       "when": 1782463132735,
       "tag": "0002_shallow_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1782773679092,
+      "tag": "0003_supreme_the_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1782773722370,
+      "tag": "0004_stale_ultimo",
+      "breakpoints": true
     }
   ]
 }

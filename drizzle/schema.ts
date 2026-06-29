@@ -213,6 +213,8 @@ export const knowledgeArticles = mysqlTable("knowledge_articles", {
   slug: varchar("slug", { length: 160 }).notNull().unique(),
   title: varchar("title", { length: 200 }).notNull(),
   category: mysqlEnum("category", ["aquaristik", "aquascaping", "channa", "blackwater", "houseplants", "basics"]).default("basics").notNull(),
+  // Plant genus for houseplants (e.g., "Alocasia", "Monstera", "Philodendron")
+  genus: varchar("genus", { length: 64 }).default(""),
   excerpt: varchar("excerpt", { length: 320 }).notNull(),
   content: text("content").notNull(),
   coverImageUrl: text("coverImageUrl"),

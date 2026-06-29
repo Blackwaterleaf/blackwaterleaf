@@ -1,9 +1,9 @@
-import { trpc } from "@/lib/trpc";
 import { Seo } from "@/components/Seo";
 import { Link } from "wouter";
 import { useState } from "react";
 import { BookOpen, Clock, Eye, Star, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/lib/trpc";
 
 const CATEGORIES = [
   { value: "all",        label: "Alle" },
@@ -11,7 +11,7 @@ const CATEGORIES = [
   { value: "aquascaping",label: "Aquascaping" },
   { value: "channa",     label: "Channa" },
   { value: "blackwater", label: "Schwarzwasser" },
-  { value: "houseplants",label: "Zimmerpflanzen" },
+  { value: "houseplants",label: "Alocasia" },
   { value: "basics",     label: "Grundlagen" },
 ] as const;
 
@@ -20,7 +20,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   aquascaping: "Aquascaping",
   channa:      "Channa",
   blackwater:  "Schwarzwasser",
-  houseplants: "Zimmerpflanzen",
+  houseplants: "Alocasia",
   basics:      "Grundlagen",
 };
 
@@ -81,20 +81,18 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
               )}
             </div>
             <h2
-              className="font-display text-2xl font-bold leading-snug mb-2"
-              style={{ color: "oklch(0.96 0.005 200)" }}
+              className="font-display text-2xl font-bold leading-tight mb-2"
+              style={{ color: "oklch(0.95 0.005 200)" }}
             >
               {article.title}
             </h2>
-            <p className="text-sm leading-relaxed mb-4 line-clamp-2" style={{ color: "oklch(0.68 0.008 200)" }}>
+            <p className="text-sm leading-relaxed line-clamp-3 mb-4" style={{ color: "oklch(0.75 0.008 200)" }}>
               {article.excerpt}
             </p>
-            <div className="flex items-center gap-4 text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {article.readingMinutes} Min.</span>
-              <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {article.viewsCount}</span>
-              <span className="ml-auto flex items-center gap-1" style={{ color: "oklch(0.65 0.16 148)" }}>
-                Lesen <ChevronRight className="w-3.5 h-3.5" />
-              </span>
+            <div className="flex items-center gap-4 text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
+              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {article.readingMinutes} Min.</span>
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {article.viewsCount}</span>
+              <span className="ml-auto flex items-center gap-1 text-green-400"><ChevronRight className="w-4 h-4" /></span>
             </div>
           </div>
         </article>
@@ -157,14 +155,27 @@ function ArticleCard({ article, featured = false }: { article: any; featured?: b
 
 export default function Knowledge() {
   const [filter, setFilter] = useState<string>("all");
+  const [genusFilter, setGenusFilter] = useState<string>("");
 
   const { data, isLoading } = trpc.knowledge.list.useQuery({
     category: filter !== "all" ? (filter as any) : undefined,
+    genus: genusFilter || undefined,
     limit: 50,
+  });
+
+  // Get available genera for houseplants category
+  const { data: genera } = trpc.knowledge.genera.useQuery({
+    category: filter === "houseplants" ? "houseplants" : undefined,
   });
 
   const featured = data?.filter(a => a.isFeatured) ?? [];
   const regular  = data?.filter(a => !a.isFeatured) ?? [];
+
+  // Reset genus filter when category changes
+  const handleCategoryChange = (cat: string) => {
+    setFilter(cat);
+    setGenusFilter("");
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 pb-24 lg:pb-8">
@@ -194,12 +205,12 @@ export default function Knowledge() {
           return (
             <button
               key={cat.value}
-              onClick={() => setFilter(cat.value)}
+              onClick={() => handleCategoryChange(cat.value)}
               className="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-150 active:scale-95"
               style={{
                 background: isActive ? "oklch(0.52 0.14 148 / 0.15)" : "oklch(0.14 0.008 200)",
-                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.55 0.008 200)",
-                border: `1px solid ${isActive ? "oklch(0.52 0.14 148 / 0.35)" : "oklch(0.20 0.008 200)"}`,
+                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                border: isActive ? "1px solid oklch(0.52 0.14 148 / 0.30)" : "1px solid oklch(0.20 0.008 200)",
               }}
             >
               {cat.label}
@@ -208,69 +219,90 @@ export default function Knowledge() {
         })}
       </div>
 
-      {/* ── Content ── */}
-      {isLoading ? (
-        <div className="space-y-5">
-          <Skeleton className="h-72 w-full rounded-2xl" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.18 0.008 200)" }}>
-                <Skeleton className="h-44 w-full rounded-none" />
-                <div className="p-4 space-y-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-full" />
-                  <Skeleton className="h-3 w-2/3" />
-                </div>
-              </div>
+      {/* ── Genus Filter for Houseplants ── */}
+      {filter === "houseplants" && genera && genera.length > 0 && (
+        <div className="mb-8">
+          <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={() => setGenusFilter("")}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
+              style={{
+                background: !genusFilter ? "oklch(0.52 0.14 148 / 0.20)" : "oklch(0.14 0.008 200)",
+                color: !genusFilter ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                border: !genusFilter ? "1px solid oklch(0.52 0.14 148 / 0.30)" : "1px solid oklch(0.20 0.008 200)",
+              }}
+            >
+              Alle Arten ({data?.length ?? 0})
+            </button>
+            {genera.map((g) => (
+              <button
+                key={g.genus}
+                onClick={() => setGenusFilter(g.genus)}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95"
+                style={{
+                  background: genusFilter === g.genus ? "oklch(0.52 0.14 148 / 0.20)" : "oklch(0.14 0.008 200)",
+                  color: genusFilter === g.genus ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                  border: genusFilter === g.genus ? "1px solid oklch(0.52 0.14 148 / 0.30)" : "1px solid oklch(0.20 0.008 200)",
+                }}
+              >
+                {g.genus} ({g.count})
+              </button>
             ))}
           </div>
         </div>
-      ) : !data || data.length === 0 ? (
-        <div className="text-center py-20">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
-          >
-            <BookOpen className="w-7 h-7" style={{ color: "oklch(0.40 0.008 200)" }} />
-          </div>
-          <p className="font-semibold mb-1" style={{ color: "oklch(0.70 0.008 200)" }}>
-            Noch keine Artikel
-          </p>
-          <p className="text-sm" style={{ color: "oklch(0.45 0.008 200)" }}>
-            In dieser Kategorie sind noch keine Beiträge verfügbar.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* Featured articles (large cards) */}
-          {featured.length > 0 && (
-            <div className="mb-8 space-y-5">
-              {featured.map(a => <ArticleCard key={a.id} article={a} featured />)}
-            </div>
-          )}
-
-          {/* Regular grid */}
-          {regular.length > 0 && (
-            <>
-              {featured.length > 0 && (
-                <h2 className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: "oklch(0.45 0.008 200)" }}>
-                  Alle Artikel
-                </h2>
-              )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {regular.map(a => <ArticleCard key={a.id} article={a} />)}
-              </div>
-            </>
-          )}
-
-          {/* If no featured, show all as grid */}
-          {featured.length === 0 && regular.length === 0 && data.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {data.map(a => <ArticleCard key={a.id} article={a} />)}
-            </div>
-          )}
-        </>
       )}
+
+      {/* ── Featured Articles ── */}
+      {featured.length > 0 && (
+        <div className="mb-12">
+          <h2
+            className="font-display text-lg font-semibold mb-4"
+            style={{ color: "oklch(0.92 0.005 200)" }}
+          >
+            Empfohlene Artikel
+          </h2>
+          <div className="grid grid-cols-1 gap-4">
+            {featured.map((article) => (
+              <ArticleCard key={article.id} article={article} featured={true} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── All Articles ── */}
+      <div>
+        <h2
+          className="font-display text-lg font-semibold mb-4"
+          style={{ color: "oklch(0.92 0.005 200)" }}
+        >
+          Alle Artikel
+        </h2>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: "oklch(0.12 0.008 200)" }}>
+                <Skeleton className="w-full h-48" />
+              </div>
+            ))}
+          </div>
+        ) : regular.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {regular.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        ) : (
+          <div
+            className="text-center py-12 rounded-2xl"
+            style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+          >
+            <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <p style={{ color: "oklch(0.50 0.008 200)" }}>
+              Keine Artikel gefunden. Versuche einen anderen Filter.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
