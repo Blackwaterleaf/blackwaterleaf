@@ -42,7 +42,7 @@ export function Seo({
     ? fullTitle
       ? title
       : `${title} | ${SITE_NAME}`
-    : `${SITE_NAME} – Community für Aquaristik, Aquascaping & Pflanzen`;
+    : `${SITE_NAME} – Aquaristik & Pflanzen`;
 
   const canonical = `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 

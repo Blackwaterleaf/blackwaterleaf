@@ -44,7 +44,9 @@ export default function Home() {
     <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
       <Seo
         path="/"
-        description="BlackwaterLeaf ist die deutschsprachige Community für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen. Dokumentiere deine Pflanzen & Aquarien, lerne aus der Wissensdatenbank und nutze den KI-Assistenten."
+        title="Aquaristik & Zimmerpflanzen Community"
+        fullTitle={false}
+        description="BlackwaterLeaf: Deutschsprachige Community für Aquaristik, Aquascaping und Zimmerpflanzen. Dokumentiere, lerne und tausche dich aus – mit KI-Unterstützung."
       />
 
       {/* ══════════════════════════════════════════════════════

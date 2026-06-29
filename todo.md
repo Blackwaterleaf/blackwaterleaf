@@ -134,3 +134,10 @@
 - [x] Vitest-Tests: 10 neue Tests für Knowledge-Artikel (alle grün)
 - [x] App-Verifikation: Neue Monstera/Alocasia Profile in Knowledge-Sektion sichtbar
 - [x] TypeScript 0 Fehler, 25 Tests grün
+
+
+## Phase P: Homepage SEO-Optimierung
+- [x] Title reduziert: 65 → 54 Zeichen (Ziel: 30-60) ✓
+- [x] Description reduziert: 237 → 155 Zeichen (Ziel: 50-160) ✓
+- [x] Keywords fokussiert: 13 → 4 Keywords (Aquaristik, Zimmerpflanzen, Community, Aquascaping) ✓
+- [x] Alle SEO-Checks bestanden
