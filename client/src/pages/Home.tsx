@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   Leaf, Fish, Bot, Users, Play, ArrowRight,
-  Trophy, Shield, Heart, BookOpen,
+  Shield, Heart, BookOpen,
   Zap, MessageSquare, Camera,
 } from "lucide-react";
 
@@ -18,12 +18,12 @@ const IMG_CHANNA    = "/manus-storage/channa-tank_aeefb736.webp";
 const IMG_PLANTS    = "/manus-storage/plants-golden_070e92ad.png";
 const IMG_LOGO      = "/manus-storage/logo-circle_c176197b.png";
 
-/* ── Simulated community activity ── */
-const ACTIVITY = [
-  { name: "Vortex Minto",   action: "hat ein neues Setup geteilt" },
-  { name: "AquaLars",       action: "hat einen Beitrag kommentiert" },
-  { name: "GreenDreamer",   action: "hat ein Problem gelöst" },
-  { name: "PlantParents",   action: "hat einen neuen Guide erstellt" },
+/* ── Was dich in der Community erwartet (keine erfundenen Nutzer/Aktivitäten) ── */
+const COMMUNITY_HIGHLIGHTS = [
+  { icon: "L", title: "Setups teilen", text: "Zeig dein Aquascape oder deine Pflanzensammlung." },
+  { icon: "F", title: "Fragen stellen", text: "Hol dir Rat zu Pflege, Technik und Problemen." },
+  { icon: "W", title: "Wissen finden", text: "Fundierte Guides statt Halbwissen." },
+  { icon: "K", title: "KI-Assistent", text: "Schnelle Antworten rund um die Uhr." },
 ];
 
 export default function Home() {
@@ -222,10 +222,10 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: Users,    value: "10K+",  label: "Mitglieder" },
-              { icon: BookOpen, value: "25K+",  label: "Beiträge & Guides" },
-              { icon: Leaf,     value: "500+",  label: "Pflanzenarten" },
-              { icon: Zap,      value: "24/7",  label: "KI Unterstützung" },
+              { icon: Leaf,     value: "Pflanzen",   label: "Pflege & Inspiration" },
+              { icon: Fish,     value: "Aquaristik", label: "Technik & Guides" },
+              { icon: Zap,      value: "KI-Hilfe",   label: "Antworten rund um die Uhr" },
+              { icon: Shield,   value: "Werbefrei",  label: "Deine Daten geschützt" },
             ].map((stat) => {
               const Icon = stat.icon;
               return (
@@ -291,10 +291,10 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: Trophy,  title: "Beste Community",    sub: "Ausgezeichnet 2024" },
-              { icon: Shield,  title: "Sicher & Werbefrei", sub: "Deine Daten sind geschützt" },
               { icon: Heart,   title: "Mit Liebe zur Natur",sub: "Nachhaltigkeit liegt uns am Herzen" },
-              { icon: BookOpen,title: "Wissen auf höchstem Niveau", sub: "Von Profis. Für dich." },
+              { icon: Shield,  title: "Sicher & Werbefrei", sub: "Deine Daten sind geschützt" },
+              { icon: BookOpen,title: "Fundiertes Wissen",  sub: "Guides statt Halbwissen" },
+              { icon: Users,   title: "Community-getrieben", sub: "Von Enthusiasten für Enthusiasten" },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -606,7 +606,7 @@ function CommunitySection() {
 
           {/* Right: activity feed */}
           <div className="max-w-sm mx-auto w-full space-y-3">
-            {ACTIVITY.map((item, i) => (
+            {COMMUNITY_HIGHLIGHTS.map((item, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl"
@@ -616,39 +616,18 @@ function CommunitySection() {
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
                   style={{ background: "oklch(0.52 0.14 148 / 0.2)", color: "oklch(0.65 0.16 148)" }}
                 >
-                  {item.name.charAt(0)}
+                  {item.icon}
                 </div>
                 <div className="min-w-0">
                   <span className="text-sm font-medium" style={{ color: "oklch(0.85 0.005 200)" }}>
-                    {item.name}
+                    {item.title}
                   </span>
                   <span className="text-sm ml-1" style={{ color: "oklch(0.55 0.008 200)" }}>
-                    {item.action}
+                    {item.text}
                   </span>
                 </div>
               </div>
             ))}
-            {/* Active members */}
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "oklch(0.12 0.008 200 / 0.85)", border: "1px solid oklch(0.22 0.008 200 / 0.5)" }}>
-              <div className="flex -space-x-2">
-                {[0,1,2,3].map((i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold"
-                    style={{
-                      background: `oklch(${0.45 + i * 0.05} 0.14 ${148 + i * 10})`,
-                      borderColor: "oklch(0.12 0.008 200)",
-                      color: "oklch(0.95 0.005 200)",
-                    }}
-                  >
-                    {["V","A","G","P"][i]}
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm" style={{ color: "oklch(0.60 0.008 200)" }}>
-                Aktive Mitglieder online <span className="font-semibold" style={{ color: "oklch(0.75 0.008 200)" }}>+248</span>
-              </span>
-            </div>
           </div>
         </div>
       </div>

@@ -1010,6 +1010,24 @@ const knowledgeRouter = router({
     return rows.map((r) => ({ category: r.category, count: Number(r.count) }));
   }),
 
+  genera: publicProcedure
+    .input(z.object({
+      category: z.enum(["aquaristik", "aquascaping", "channa", "blackwater", "houseplants", "basics"]).optional(),
+    }).optional())
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [] as { genus: string; count: number }[];
+      const conditions = [ne(knowledgeArticles.genus, "")];
+      if (input?.category) conditions.push(eq(knowledgeArticles.category, input.category));
+      const rows = await db.select({ genus: knowledgeArticles.genus, count: sql<number>`count(*)` })
+        .from(knowledgeArticles)
+        .where(and(...conditions))
+        .groupBy(knowledgeArticles.genus);
+      return rows
+        .filter((r) => r.genus)
+        .map((r) => ({ genus: r.genus as string, count: Number(r.count) }));
+    }),
+
   get: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
@@ -1131,6 +1149,37 @@ const gamificationRouter = router({
   }),
 });
 
+// ─── Account Router (DSGVO) ─────────────────────────────────────────────────
+// Vollständige Löschung aller personenbezogenen Daten des angemeldeten Nutzers.
+const accountRouter = router({
+  deleteMe: protectedProcedure.mutation(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB not available" });
+    const uid = ctx.user.id;
+
+    // Reihenfolge: abhängige Datensätze zuerst, dann der Nutzer selbst.
+    await db.delete(likes).where(eq(likes.userId, uid));
+    await db.delete(comments).where(eq(comments.userId, uid));
+    await db.delete(plantPhotos).where(eq(plantPhotos.userId, uid));
+    await db.delete(plants).where(eq(plants.userId, uid));
+    await db.delete(aquariumPhotos).where(eq(aquariumPhotos.userId, uid));
+    await db.delete(aquariumEvents).where(eq(aquariumEvents.userId, uid));
+    await db.delete(aquariums).where(eq(aquariums.userId, uid));
+    await db.delete(posts).where(eq(posts.userId, uid));
+    await db.delete(notifications).where(eq(notifications.userId, uid));
+    await db.delete(aiChats).where(eq(aiChats.userId, uid));
+    await db.delete(aiCorrections).where(eq(aiCorrections.userId, uid));
+    await db.delete(userBadges).where(eq(userBadges.userId, uid));
+    await db.delete(userStats).where(eq(userStats.userId, uid));
+    await db.delete(users).where(eq(users.id, uid));
+
+    // Session-Cookie serverseitig löschen.
+    const cookieOptions = getSessionCookieOptions(ctx.req);
+    ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+    return { success: true } as const;
+  }),
+});
+
 // ─── Upload Router ────────────────────────────────────────────────────────────
 const uploadRouter = router({
   photo: protectedProcedure
@@ -1162,6 +1211,7 @@ export const appRouter = router({
   knowledge: knowledgeRouter,
   gamification: gamificationRouter,
   upload: uploadRouter,
+  account: accountRouter,
 });
 
 export type AppRouter = typeof appRouter;
