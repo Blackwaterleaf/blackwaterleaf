@@ -15,6 +15,9 @@ import { eq, desc, and, like, or, sql, ne } from "drizzle-orm";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { nanoid } from "nanoid";
+import { socialRouter, threadsRouter } from "./routers/community";
+import { groupsRouter, messagingRouter } from "./routers/groups-messaging";
+import { moderationRouter, adminRouter, searchRouter } from "./routers/moderation-admin";
 
 // ─── Auth Router ──────────────────────────────────────────────────────────────
 const authRouter = router({
@@ -1212,6 +1215,13 @@ export const appRouter = router({
   gamification: gamificationRouter,
   upload: uploadRouter,
   account: accountRouter,
+  social: socialRouter,
+  threads: threadsRouter,
+  groups: groupsRouter,
+  messaging: messagingRouter,
+  moderation: moderationRouter,
+  admin: adminRouter,
+  search: searchRouter,
 });
 
 export type AppRouter = typeof appRouter;

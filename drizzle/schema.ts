@@ -15,12 +15,25 @@ export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
+  // Öffentlicher, eindeutiger Handle (z. B. @pflanzentante). Optional bis gesetzt.
+  username: varchar("username", { length: 32 }).unique(),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "moderator", "admin"]).default("user").notNull(),
+  // Kontostatus für Moderation (Sperren etc.)
+  status: mysqlEnum("status", ["active", "suspended", "banned"]).default("active").notNull(),
+  // Abo-Stufe gemäß Business Handbook (Monetarisierung). Enforcement erst in V2.
+  plan: mysqlEnum("plan", ["free", "premium", "pro"]).default("free").notNull(),
+  // Erfahrungslevel aus Onboarding (Personalisierung).
+  experienceLevel: mysqlEnum("experienceLevel", ["beginner", "intermediate", "expert"]),
+  // Interessen-Tags als JSON-Array (z. B. ["aquaristik","pflanzen"]).
+  interests: json("interests"),
   avatarUrl: text("avatarUrl"),
   bio: text("bio"),
   location: varchar("location", { length: 128 }),
+  // Denormalisierte Zähler für Profile (Performance).
+  followersCount: int("followersCount").default(0).notNull(),
+  followingCount: int("followingCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -147,6 +160,8 @@ export const posts = mysqlTable("posts", {
   category: mysqlEnum("category", ["plant", "aquarium", "question", "tip", "showcase", "marketplace", "other"]).default("other").notNull(),
   plantId: int("plantId"),
   aquariumId: int("aquariumId"),
+  // Optionale Zuordnung zu einer Fachgruppe (null = allgemeiner Feed).
+  groupId: int("groupId"),
   likesCount: int("likesCount").default(0).notNull(),
   commentsCount: int("commentsCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -171,7 +186,11 @@ export const comments = mysqlTable("comments", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   postId: int("postId").notNull(),
+  // Threaded replies: null = Top-Level-Kommentar, sonst Verweis auf Eltern-Kommentar.
+  parentId: int("parentId"),
   content: text("content").notNull(),
+  likesCount: int("likesCount").default(0).notNull(),
+  repliesCount: int("repliesCount").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -182,12 +201,15 @@ export type Comment = typeof comments.$inferSelect;
 export const notifications = mysqlTable("notifications", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  type: mysqlEnum("type", ["like", "comment", "follow", "care_reminder", "system"]).notNull(),
+  type: mysqlEnum("type", ["like", "comment", "reply", "follow", "mention", "message", "group_invite", "group_post", "moderation", "care_reminder", "system"]).notNull(),
   title: varchar("title", { length: 128 }).notNull(),
   message: text("message").notNull(),
   isRead: boolean("isRead").default(false).notNull(),
   relatedPostId: int("relatedPostId"),
   relatedUserId: int("relatedUserId"),
+  relatedCommentId: int("relatedCommentId"),
+  relatedGroupId: int("relatedGroupId"),
+  relatedConversationId: int("relatedConversationId"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -308,3 +330,125 @@ export const aiCorrections = mysqlTable("ai_corrections", {
 
 export type AiCorrection = typeof aiCorrections.$inferSelect;
 export type InsertAiCorrection = typeof aiCorrections.$inferInsert;
+
+// ─── Follows (Nutzer folgt Nutzer) ──────────────────────────────────────────
+export const follows = mysqlTable("follows", {
+  id: int("id").autoincrement().primaryKey(),
+  followerId: int("followerId").notNull(),
+  followingId: int("followingId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Follow = typeof follows.$inferSelect;
+
+// ─── Comment Likes ──────────────────────────────────────────────────────────
+export const commentLikes = mysqlTable("comment_likes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  commentId: int("commentId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CommentLike = typeof commentLikes.$inferSelect;
+
+// ─── Fachgruppen ────────────────────────────────────────────────────────────
+export const groups = mysqlTable("groups", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 96 }).notNull().unique(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  coverImageUrl: text("coverImageUrl"),
+  // Fachbereich der Gruppe.
+  topic: mysqlEnum("topic", ["plants", "aquaristics", "terraristics", "general"]).default("general").notNull(),
+  visibility: mysqlEnum("visibility", ["public", "private"]).default("public").notNull(),
+  createdBy: int("createdBy").notNull(),
+  membersCount: int("membersCount").default(0).notNull(),
+  postsCount: int("postsCount").default(0).notNull(),
+  // Offizielle, von der Redaktion gepflegte Kern-Fachgruppen.
+  isOfficial: boolean("isOfficial").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Group = typeof groups.$inferSelect;
+export type InsertGroup = typeof groups.$inferInsert;
+
+// ─── Gruppen-Mitgliedschaften ───────────────────────────────────────────────
+export const groupMembers = mysqlTable("group_members", {
+  id: int("id").autoincrement().primaryKey(),
+  groupId: int("groupId").notNull(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["member", "moderator", "owner"]).default("member").notNull(),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+});
+
+export type GroupMember = typeof groupMembers.$inferSelect;
+
+// ─── Private Konversationen (1:1 und Gruppenchat) ───────────────────────────
+export const conversations = mysqlTable("conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  // direct = 1:1, group = Gruppenchat mit Titel.
+  kind: mysqlEnum("kind", ["direct", "group"]).default("direct").notNull(),
+  title: varchar("title", { length: 128 }),
+  createdBy: int("createdBy").notNull(),
+  lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Conversation = typeof conversations.$inferSelect;
+
+// ─── Konversations-Teilnehmer ───────────────────────────────────────────────
+export const conversationParticipants = mysqlTable("conversation_participants", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  userId: int("userId").notNull(),
+  // Zeitpunkt des letzten Lesens für Ungelesen-Zähler.
+  lastReadAt: timestamp("lastReadAt"),
+  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
+});
+
+export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
+
+// ─── Nachrichten ────────────────────────────────────────────────────────────
+export const messages = mysqlTable("messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversationId").notNull(),
+  senderId: int("senderId").notNull(),
+  content: text("content").notNull(),
+  imageUrl: text("imageUrl"),
+  storageKey: text("storageKey"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Message = typeof messages.$inferSelect;
+
+// ─── Meldungen (Moderation) ─────────────────────────────────────────────────
+export const reports = mysqlTable("reports", {
+  id: int("id").autoincrement().primaryKey(),
+  reporterId: int("reporterId").notNull(),
+  // Art des gemeldeten Inhalts.
+  targetType: mysqlEnum("targetType", ["post", "comment", "user", "message", "group"]).notNull(),
+  targetId: int("targetId").notNull(),
+  reason: mysqlEnum("reason", ["spam", "harassment", "misinformation", "inappropriate", "illegal", "other"]).notNull(),
+  details: text("details"),
+  status: mysqlEnum("status", ["open", "reviewing", "resolved", "dismissed"]).default("open").notNull(),
+  handledBy: int("handledBy"),
+  resolutionNote: text("resolutionNote"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Report = typeof reports.$inferSelect;
+
+// ─── Moderations-/Audit-Log ─────────────────────────────────────────────────
+export const moderationLogs = mysqlTable("moderation_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  actorId: int("actorId").notNull(),
+  action: varchar("action", { length: 64 }).notNull(),
+  targetType: varchar("targetType", { length: 32 }).notNull(),
+  targetId: int("targetId").notNull(),
+  note: text("note"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ModerationLog = typeof moderationLogs.$inferSelect;
