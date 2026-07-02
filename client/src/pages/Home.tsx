@@ -347,11 +347,18 @@ export default function Home() {
             © 2025 BlackwaterLeaf · Natur. Wissen. Gemeinschaft.
           </p>
           <div className="flex items-center gap-4">
-            {["Datenschutz", "Impressum", "Kontakt"].map((l) => (
-              <a key={l} href="#" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
-                {l}
-              </a>
-            ))}
+            <a href="/datenschutz" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+              Datenschutz
+            </a>
+            <a href="/impressum" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+              Impressum
+            </a>
+            <a href="/agb" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+              AGB
+            </a>
+            <a href="mailto:BlackwaterLeaf@gmail.com" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+              Kontakt
+            </a>
           </div>
         </div>
       </footer>

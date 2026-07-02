@@ -21,6 +21,9 @@ import Knowledge from "./pages/Knowledge";
 import KnowledgeArticle from "./pages/KnowledgeArticle";
 import Ranking from "./pages/Ranking";
 import PwaInstallPrompt from "./components/PwaInstallPrompt";
+import Impressum from "./pages/legal/Impressum";
+import Datenschutz from "./pages/legal/Datenschutz";
+import Nutzungsbedingungen from "./pages/legal/Nutzungsbedingungen";
 
 function Router() {
   return (
@@ -71,6 +74,10 @@ function Router() {
       <Route path="/notifications">
         <AppLayout><Notifications /></AppLayout>
       </Route>
+      <Route path="/impressum" component={Impressum} />
+      <Route path="/datenschutz" component={Datenschutz} />
+      <Route path="/agb" component={Nutzungsbedingungen} />
+      <Route path="/nutzungsbedingungen" component={Nutzungsbedingungen} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

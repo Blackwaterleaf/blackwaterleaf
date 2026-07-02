@@ -179,4 +179,28 @@
 - [x] Landingpage: Download-Sektion "HOL DIR DIE APP" (APK-Direktdownload, Google-Play "bald", Handy-Mock, PC-Hinweis)
 - [x] Landingpage: Nav-Link "App laden" + Hero-CTA "App herunterladen" -> #download
 - [x] TypeScript 0 Fehler, 37 Tests gruen
-- [ ] Neuer APK-Build nach Domain-Stabilisierung (optional, wenn API-URL auf .com umgestellt werden soll)
+- [x] Neuer APK-Build bewusst NACH Domain-Stabilisierung geplant (Nutzerwunsch: erst DNS abwarten) -> wird auf Freigabe des Nutzers gebaut
+
+## Phase U: Werbe-/Promo-System fuer externe Accounts (aktuell)
+- [x] DB: Tabelle featured_accounts (name, tagline, platform, url, imageUrl/Key, showOnHome, showInCommunity, active, sortOrder, isPaid)
+- [x] DB: users um Social-Links erweitert (socialInstagram/Tiktok/Youtube/Facebook/Website)
+- [x] Backend: featured-Router (listHome, listCommunity, listAll, create, update, remove, uploadImage) + Admin-Guard
+- [x] Backend: users.updateProfile speichert Social-Links; getProfile liefert sie zurueck
+- [x] App: FeaturedHero (Account des Tages) auf Startseite
+- [x] App: FeaturedStrip (Empfohlene Accounts) oben im Community-Feed
+- [x] App: AdminFeaturedScreen (Anlegen/Bearbeiten/Loeschen, Bild-Upload, Plaetze, Reihenfolge, aktiv/bezahlt) + Verlinkung im Admin-Dashboard
+- [x] App: Profil-Bearbeiten um Instagram/TikTok/YouTube erweitert
+- [x] App: Profil-Sektion KONTAKT (E-Mail BlackwaterLeaf@gmail.com + Instagram @blackwaterleaf)
+- [x] TypeScript App+Backend 0 Fehler, Metro-Bundle ok, 41 Tests gruen
+- [ ] Stufe 2 (spaeter): Bezahl-/Buchungsflow fuer fremde Werbekunden (Stripe) - erst nach Freigabe
+
+## Phase Play-Store: Rechtsseiten & Store-Assets
+- [x] Rechtsseiten: LegalLayout, Impressum, Datenschutz, Nutzungsbedingungen (AGB)
+- [x] Routen /impressum /datenschutz /agb /nutzungsbedingungen in App.tsx
+- [x] Footer-Links in Home.tsx auf echte Rechtsseiten umgestellt
+- [x] TypeScript 0 Fehler
+- [ ] Checkpoint für Rechtsseiten speichern
+- [ ] Play-Store Feature-Grafik 1024x500
+- [ ] Play-Store App-Icon 512x512
+- [ ] Screenshots aufbereitet (2-8 Stück)
+- [ ] Play-Store-Upload-Anleitung finalisiert
