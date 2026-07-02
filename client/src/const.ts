@@ -15,3 +15,7 @@ export const getLoginUrl = () => {
 
   return url.toString();
 };
+
+// Direktes Android-App-Download (aktueller APK-Build). Bei neuem Build hier aktualisieren.
+export const APK_DOWNLOAD_URL =
+  "https://expo.dev/artifacts/eas/2BoOLZTHnEpb2LlD97yfvH0zzEKt2xFxrIGj3XyTYb0.apk";

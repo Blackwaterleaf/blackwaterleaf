@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Seo } from "@/components/Seo";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, APK_DOWNLOAD_URL } from "@/const";
+import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useEffect } from "react";
 import { useLocation } from "wouter";
@@ -8,6 +9,7 @@ import {
   Leaf, Fish, Bot, Users, Play, ArrowRight,
   Shield, Heart, BookOpen,
   Zap, MessageSquare, Camera,
+  Download, Smartphone, Monitor, CheckCircle2,
 } from "lucide-react";
 
 /* ── Brand images (already uploaded to S3) ── */
@@ -30,15 +32,17 @@ export default function Home() {
   const { isAuthenticated, loading } = useAuth();
   const [, navigate] = useLocation();
 
+  const previewLanding = typeof window !== "undefined" && window.location.search.includes("__noauth=1");
+
   // Redirect logged-in users straight to the feed
   useEffect(() => {
-    if (!loading && isAuthenticated) {
+    if (!previewLanding && !loading && isAuthenticated) {
       navigate("/feed");
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, navigate, previewLanding]);
 
   if (loading) return null;
-  if (isAuthenticated) return null;
+  if (isAuthenticated && !previewLanding) return null;
 
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
@@ -87,25 +91,33 @@ export default function Home() {
               { href: "/knowledge", label: "Wissen" },
               { href: "/feed", label: "Community" },
               { href: "/ai", label: "KI Assistent" },
-              { href: "#about", label: "Über uns" },
-            ].map((item) => (
-              <Link key={item.href} href={item.href}>
-                <span
-                  className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer block transition-all duration-200"
-                  style={{ color: "oklch(0.68 0.008 200)" }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.color = "oklch(0.92 0.005 200)";
-                    (e.currentTarget as HTMLElement).style.background = "oklch(0.16 0.008 200)";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.color = "oklch(0.68 0.008 200)";
-                    (e.currentTarget as HTMLElement).style.background = "transparent";
-                  }}
-                >
-                  {item.label}
-                </span>
-              </Link>
-            ))}
+              { href: "#download", label: "App laden" },
+            ].map((item) => {
+              const isHash = item.href.startsWith("#");
+              const cls = "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer block transition-all duration-200";
+              const onEnter = (e: React.MouseEvent<HTMLElement>) => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.92 0.005 200)";
+                (e.currentTarget as HTMLElement).style.background = "oklch(0.16 0.008 200)";
+              };
+              const onLeave = (e: React.MouseEvent<HTMLElement>) => {
+                (e.currentTarget as HTMLElement).style.color = "oklch(0.68 0.008 200)";
+                (e.currentTarget as HTMLElement).style.background = "transparent";
+              };
+              if (isHash) {
+                return (
+                  <a key={item.href} href={item.href} className={cls} style={{ color: "oklch(0.68 0.008 200)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+                    {item.label}
+                  </a>
+                );
+              }
+              return (
+                <Link key={item.href} href={item.href}>
+                  <span className={cls} style={{ color: "oklch(0.68 0.008 200)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right */}
@@ -198,18 +210,15 @@ export default function Home() {
                   Community entdecken <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
-              <button
-                className="btn-ghost flex items-center gap-2"
-                onClick={() => {}}
-              >
+              <a href="#download" className="btn-ghost flex items-center gap-2">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: "oklch(0.96 0.005 200 / 0.12)", border: "1px solid oklch(0.96 0.005 200 / 0.2)" }}
                 >
-                  <Play className="w-3 h-3 ml-0.5" style={{ color: "oklch(0.96 0.005 200)" }} />
+                  <Download className="w-3.5 h-3.5" style={{ color: "oklch(0.96 0.005 200)" }} />
                 </div>
-                <span style={{ color: "oklch(0.80 0.005 200)" }}>Video ansehen</span>
-              </button>
+                <span style={{ color: "oklch(0.80 0.005 200)" }}>App herunterladen</span>
+              </a>
             </div>
           </div>
         </div>
@@ -250,6 +259,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════════
+          DOWNLOAD / APP SECTION
+          ══════════════════════════════════════════════════════ */}
+      <DownloadSection />
 
       {/* ══════════════════════════════════════════════════════
           FEATURE SECTIONS (4 große Blöcke wie im Mockup)
@@ -531,6 +545,139 @@ function KISection() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Download / App Section ── */
+function DownloadSection() {
+  const handleApk = () => {
+    toast.success("Download startet … Öffne die Datei anschließend zum Installieren.");
+  };
+  return (
+    <section
+      id="download"
+      className="relative overflow-hidden scroll-mt-20"
+      style={{
+        background: "oklch(0.10 0.008 200)",
+        borderBottom: "1px solid oklch(0.18 0.008 200)",
+      }}
+    >
+      {/* Subtle grid + glow */}
+      <div
+        className="absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage: "radial-gradient(oklch(0.52 0.14 148 / 0.25) 1px, transparent 1px)",
+          backgroundSize: "30px 30px",
+        }}
+      />
+      <div
+        className="absolute top-0 right-1/4 w-[28rem] h-[28rem] rounded-full opacity-10 pointer-events-none"
+        style={{ background: "oklch(0.52 0.14 148)", filter: "blur(90px)" }}
+      />
+
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left: text + buttons */}
+          <div>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+            >
+              <Smartphone className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+            </div>
+            <h2
+              className="font-brand mb-3 leading-none"
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "oklch(0.96 0.005 200)", letterSpacing: "0.04em" }}
+            >
+              HOL DIR DIE APP
+            </h2>
+            <p className="text-base leading-relaxed mb-6" style={{ color: "oklch(0.68 0.008 200)", maxWidth: "460px" }}>
+              BlackwaterLeaf für dein Smartphone: Community, Pflanzen & Aquarien
+              verwalten, KI-Assistent und mehr – immer dabei.
+            </p>
+
+            {/* Feature ticks */}
+            <div className="space-y-2 mb-8">
+              {[
+                "Kostenlos & werbefrei",
+                "Fotos, Pflege-Tagebuch & KI-Bestimmung",
+                "Direkt mit deinem Konto synchronisiert",
+              ].map((t) => (
+                <div key={t} className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.62 0.16 148)" }} />
+                  <span className="text-sm" style={{ color: "oklch(0.72 0.008 200)" }}>{t}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Download buttons */}
+            <div className="flex flex-wrap items-center gap-4">
+              <a
+                href={APK_DOWNLOAD_URL}
+                onClick={handleApk}
+                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-semibold cursor-pointer transition-all duration-200"
+                style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.14 0.02 148)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.58 0.15 148)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.52 0.14 148)"; }}
+              >
+                <Download className="w-5 h-5" />
+                <span className="text-left leading-tight">
+                  <span className="block text-[10px] uppercase tracking-wider opacity-80">Android · APK</span>
+                  <span className="block text-sm">Jetzt herunterladen</span>
+                </span>
+              </a>
+
+              <button
+                onClick={() => toast.info("Google Play: bald verfügbar. Nutze so lange den direkten Download.")}
+                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-medium cursor-pointer transition-all duration-200"
+                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.28 0.008 200)", color: "oklch(0.85 0.005 200)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.40 0.008 200)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.28 0.008 200)"; }}
+              >
+                <Play className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+                <span className="text-left leading-tight">
+                  <span className="block text-[10px] uppercase tracking-wider opacity-70">Google Play</span>
+                  <span className="block text-sm">Bald verfügbar</span>
+                </span>
+              </button>
+            </div>
+
+            {/* PC hint */}
+            <div className="flex items-center gap-2 mt-6">
+              <Monitor className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.50 0.008 200)" }} />
+              <span className="text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
+                Am PC? Du kannst BlackwaterLeaf auch direkt im Browser nutzen.
+              </span>
+            </div>
+          </div>
+
+          {/* Right: phone mock */}
+          <div className="flex justify-center">
+            <div
+              className="relative rounded-[2.5rem] p-3"
+              style={{ background: "oklch(0.07 0.008 200)", border: "1px solid oklch(0.24 0.008 200)", width: "260px", boxShadow: "0 30px 80px -20px oklch(0.52 0.14 148 / 0.35)" }}
+            >
+              <div className="rounded-[2rem] overflow-hidden" style={{ background: "oklch(0.09 0.008 200)", aspectRatio: "9 / 19" }}>
+                <div className="h-full flex flex-col items-center justify-center gap-4 px-6 text-center">
+                  <img
+                    src={IMG_LOGO}
+                    alt="BlackwaterLeaf"
+                    className="w-20 h-20 rounded-2xl"
+                    style={{ filter: "drop-shadow(0 0 16px oklch(0.52 0.14 148 / 0.5))" }}
+                  />
+                  <span className="font-brand text-lg tracking-widest" style={{ color: "oklch(0.95 0.005 200)" }}>
+                    BLACKWATER<span style={{ color: "oklch(0.62 0.16 148)" }}>LEAF</span>
+                  </span>
+                  <span className="text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
+                    Deine Community für Pflanzen & Aquaristik
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -168,3 +168,15 @@
 - [x] Philodendron/Efeutute-Artikel: mit genus='Philodendron'
 - [x] Sonstige Pflanzen: mit genus='Sonstige'
 - [x] Alle 25 Tests gruen nach Update
+
+
+## Phase T: App-Login-Fix (Bearer) + Domain + Download-Landingpage (aktuell)
+- [x] Backend: authenticateRequest akzeptiert Session-Token auch per Authorization: Bearer (abwaertskompatibel zum Cookie)
+- [x] Backend: neue Route /api/oauth/app-callback (platform=app) liefert Token per Deep-Link blackwaterleaf://auth?token=... (live/published)
+- [x] App: API-Client speichert Token (AsyncStorage) + sendet Bearer-Header; AuthContext Deep-Link-Login
+- [x] App: app.json Android intentFilter fuer blackwaterleaf://auth
+- [x] Domain-Diagnose: Webador A-Records 104.18.x entfernt (Endlosschleife); apex zeigt jetzt 35.204.150.5
+- [x] Landingpage: Download-Sektion "HOL DIR DIE APP" (APK-Direktdownload, Google-Play "bald", Handy-Mock, PC-Hinweis)
+- [x] Landingpage: Nav-Link "App laden" + Hero-CTA "App herunterladen" -> #download
+- [x] TypeScript 0 Fehler, 37 Tests gruen
+- [ ] Neuer APK-Build nach Domain-Stabilisierung (optional, wenn API-URL auf .com umgestellt werden soll)
