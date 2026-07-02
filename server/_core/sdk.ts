@@ -263,9 +263,18 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<AuthenticatedUser> {
-    // Regular authentication flow
+    // Regular authentication flow.
+    // Native apps cannot reliably share cookies with the in-app browser,
+    // so we ALSO accept the same signed session token via the
+    // `Authorization: Bearer <token>` header. Web keeps using the cookie.
     const cookies = this.parseCookies(req.headers.cookie);
-    const sessionCookie = cookies.get(COOKIE_NAME);
+    const cookieToken = cookies.get(COOKIE_NAME);
+    const authHeader = req.headers["authorization"] || req.headers["Authorization" as keyof typeof req.headers];
+    const headerToken =
+      typeof authHeader === "string" && authHeader.toLowerCase().startsWith("bearer ")
+        ? authHeader.slice(7).trim()
+        : undefined;
+    const sessionCookie = cookieToken || headerToken;
     const session = await this.verifySession(sessionCookie);
 
     if (!session) {
