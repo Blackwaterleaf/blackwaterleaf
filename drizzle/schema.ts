@@ -31,6 +31,12 @@ export const users = mysqlTable("users", {
   avatarUrl: text("avatarUrl"),
   bio: text("bio"),
   location: varchar("location", { length: 128 }),
+  // Öffentliche Social-Media-Links im Profil (optional, vom Nutzer gesetzt).
+  socialInstagram: varchar("socialInstagram", { length: 255 }),
+  socialTiktok: varchar("socialTiktok", { length: 255 }),
+  socialYoutube: varchar("socialYoutube", { length: 255 }),
+  socialFacebook: varchar("socialFacebook", { length: 255 }),
+  socialWebsite: varchar("socialWebsite", { length: 255 }),
   // Denormalisierte Zähler für Profile (Performance).
   followersCount: int("followersCount").default(0).notNull(),
   followingCount: int("followingCount").default(0).notNull(),
@@ -452,3 +458,40 @@ export const moderationLogs = mysqlTable("moderation_logs", {
 });
 
 export type ModerationLog = typeof moderationLogs.$inferSelect;
+
+// ─── Featured / Promo Accounts (Werbeträger) ────────────────────────────────
+// Admin-verwaltete Werbe-Einträge, die auf EXTERNE Profile verlinken
+// (Instagram, TikTok, Facebook, WhatsApp, YouTube). Für Familie/Freunde
+// kostenlos vom Admin gepflegt; bezahlte Fremd-Werbung folgt in V2.
+export const featuredAccounts = mysqlTable("featured_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  // Anzeigename, z. B. "Pflanzentante" oder "Kim Kumpel"
+  name: varchar("name", { length: 120 }).notNull(),
+  // Kurzer Untertitel/Beschreibung (optional), z. B. "Seltene Zimmerpflanzen"
+  tagline: varchar("tagline", { length: 160 }),
+  // Plattform des verlinkten Profils
+  platform: mysqlEnum("platform", ["instagram", "tiktok", "facebook", "whatsapp", "youtube", "website"]).notNull(),
+  // Ziel-Link (externe URL, z. B. https://instagram.com/...)
+  url: text("url").notNull(),
+  // Hochgeladenes Profilbild (S3-URL) – wird manuell gesetzt, da Plattformen
+  // das automatische Auslesen von Profilbildern blockieren.
+  imageUrl: text("imageUrl"),
+  imageKey: text("imageKey"),
+  // Platzierung: auf der Startseite ("Account des Tages") und/oder in der
+  // Community-Promo-Leiste anzeigen.
+  showOnHome: boolean("showOnHome").default(false).notNull(),
+  showInCommunity: boolean("showInCommunity").default(true).notNull(),
+  // Aktiv/sichtbar schalten ohne Löschen.
+  active: boolean("active").default(true).notNull(),
+  // Sortierreihenfolge (kleiner = weiter vorne/oben).
+  sortOrder: int("sortOrder").default(0).notNull(),
+  // Ist dies ein bezahlter Werbeplatz? (V2-Vorbereitung; Standard: nein)
+  isPaid: boolean("isPaid").default(false).notNull(),
+  // Wer hat den Eintrag erstellt (Admin-User-Id).
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FeaturedAccount = typeof featuredAccounts.$inferSelect;
+export type InsertFeaturedAccount = typeof featuredAccounts.$inferInsert;

@@ -18,6 +18,7 @@ import { nanoid } from "nanoid";
 import { socialRouter, threadsRouter } from "./routers/community";
 import { groupsRouter, messagingRouter } from "./routers/groups-messaging";
 import { moderationRouter, adminRouter, searchRouter } from "./routers/moderation-admin";
+import { featuredRouter } from "./routers/featured";
 
 // ─── Auth Router ──────────────────────────────────────────────────────────────
 const authRouter = router({
@@ -48,6 +49,12 @@ const usersRouter = router({
       bio: z.string().max(500).optional(),
       location: z.string().max(128).optional(),
       avatarUrl: z.string().url().optional().nullable(),
+      // Oeffentliche Social-Media-Links (leerer String = entfernen).
+      socialInstagram: z.string().max(255).optional().nullable(),
+      socialTiktok: z.string().max(255).optional().nullable(),
+      socialYoutube: z.string().max(255).optional().nullable(),
+      socialFacebook: z.string().max(255).optional().nullable(),
+      socialWebsite: z.string().max(255).optional().nullable(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -1222,6 +1229,7 @@ export const appRouter = router({
   moderation: moderationRouter,
   admin: adminRouter,
   search: searchRouter,
+  featured: featuredRouter,
 });
 
 export type AppRouter = typeof appRouter;
