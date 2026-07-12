@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { Camera, Droplets, Leaf, MapPin, Pencil, Save, X, Award, Zap } from "lucide-react";
+import { Camera, Droplets, Leaf, MapPin, Pencil, Save, X, Award, Zap, Shield } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -123,6 +123,18 @@ export default function Profile({ userId: _userId }: ProfileProps) {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="font-brand text-2xl" style={{ color: "oklch(0.90 0.005 200)" }}>{display?.name ?? "Unbekannt"}</h1>
+                  {display?.role === "moderator" && (
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: "oklch(0.52 0.14 148 / 0.2)", border: "1px solid oklch(0.52 0.14 148 / 0.4)" }}>
+                      <Shield className="w-3.5 h-3.5" style={{ color: "oklch(0.52 0.14 148)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "oklch(0.52 0.14 148)" }}>Moderator</span>
+                    </div>
+                  )}
+                  {display?.role === "admin" && (
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: "oklch(0.65 0.16 40 / 0.2)", border: "1px solid oklch(0.65 0.16 40 / 0.4)" }}>
+                      <Award className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.16 40)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "oklch(0.65 0.16 40)" }}>Admin</span>
+                    </div>
+                  )}
                   <Button variant="ghost" size="icon" className="w-7 h-7" onClick={startEditing}>
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>

@@ -199,8 +199,15 @@
 - [x] Routen /impressum /datenschutz /agb /nutzungsbedingungen in App.tsx
 - [x] Footer-Links in Home.tsx auf echte Rechtsseiten umgestellt
 - [x] TypeScript 0 Fehler
-- [ ] Checkpoint für Rechtsseiten speichern
-- [ ] Play-Store Feature-Grafik 1024x500
-- [ ] Play-Store App-Icon 512x512
-- [ ] Screenshots aufbereitet (2-8 Stück)
-- [ ] Play-Store-Upload-Anleitung finalisiert
+- [x] Checkpoint für Rechtsseiten speichern (Version 0e2f396a)
+- [x] Play-Store Feature-Grafik 1024x500
+- [x] Play-Store App-Icon 512x512
+- [x] Screenshots aufbereitet (8 Stück, 1080x2280, Store-Reihenfolge)
+- [x] Play-Store-Upload-Anleitung finalisiert
+
+## Phase Play-Store-Upgrade: Web-App ↔ App Synchronisation
+- [ ] Web-App veröffentlichen (Publish-Button) – Nutzer-Aktion
+- [ ] Moderatoren-Verwaltung auf Web-App bauen (Admin-Panel, Moderatoren ernennen/entfernen)
+- [ ] KI-Bestimmungs-Review-System (einheitlich App + Web): User bestimmt → Moderator bestätigt → live in App + Web
+- [ ] Design/Navigation Web-App ↔ App synchronisieren (Farben, Icons, Menüstruktur identisch)
+- [ ] Testen & Checkpoint speichern

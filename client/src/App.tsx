@@ -24,6 +24,7 @@ import PwaInstallPrompt from "./components/PwaInstallPrompt";
 import Impressum from "./pages/legal/Impressum";
 import Datenschutz from "./pages/legal/Datenschutz";
 import Nutzungsbedingungen from "./pages/legal/Nutzungsbedingungen";
+import ModeratorDashboard from "./pages/ModeratorDashboard";
 
 function Router() {
   return (
@@ -73,6 +74,9 @@ function Router() {
       </Route>
       <Route path="/notifications">
         <AppLayout><Notifications /></AppLayout>
+      </Route>
+      <Route path="/moderator">
+        <AppLayout><ModeratorDashboard /></AppLayout>
       </Route>
       <Route path="/impressum" component={Impressum} />
       <Route path="/datenschutz" component={Datenschutz} />
