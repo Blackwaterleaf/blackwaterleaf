@@ -27,6 +27,7 @@ import {
   Trophy,
   Compass,
   ChevronRight,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -192,6 +193,33 @@ function TopNav() {
                       Einstellungen
                     </Link>
                   </DropdownMenuItem>
+                  {(user?.role === "moderator" || user?.role === "admin") && (
+                    <>
+                      <DropdownMenuSeparator style={{ background: "oklch(0.22 0.008 200)" }} />
+                      <DropdownMenuItem asChild>
+                        <Link href="/moderator" className="flex items-center gap-2 cursor-pointer">
+                          <Users className="w-4 h-4" />
+                          Moderatoren-Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      {user?.role === "admin" && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin" className="flex items-center gap-2 cursor-pointer">
+                              <Settings className="w-4 h-4" />
+                              Admin-Panel
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href="/ai-review" className="flex items-center gap-2 cursor-pointer">
+                              <Bot className="w-4 h-4" />
+                              KI-Review
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </>
+                  )}
                   <DropdownMenuSeparator style={{ background: "oklch(0.22 0.008 200)" }} />
                   <DropdownMenuItem
                     className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"

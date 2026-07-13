@@ -208,7 +208,7 @@
 ## Phase Play-Store-Upgrade: Web-App ↔ App Synchronisation
 - [ ] Web-App veröffentlichen (Publish-Button) – Nutzer-Aktion
 - [x] Moderatoren-Verwaltung auf Web-App bauen (Moderatoren-Badge, Dashboard unter /moderator, Melde-Queue)
-- [ ] Admin-Panel für dich bauen (Moderatoren ernennen/entfernen, Audit-Log)
-- [ ] KI-Bestimmungs-Review-System (einheitlich App + Web): User bestimmt → Moderator bestätigt → live in App + Web
-- [ ] Design/Navigation Web-App ↔ App synchronisieren (Farben, Icons, Menüstruktur identisch)
-- [x] Checkpoint speichern (Version 9a8014b6)
+- [x] Admin-Panel für dich bauen (/admin: Statistiken, Nutzer-Verwaltung, Audit-Log)
+- [x] KI-Bestimmungs-Review-System (/ai-review: Pending/Approved/Rejected, Moderatoren bestätigen)
+- [x] Design/Navigation Web-App ↔ App synchronisieren (Moderatoren/Admin-Links im Dropdown)
+- [x] Checkpoint speichern (Version d21dcbf7)
