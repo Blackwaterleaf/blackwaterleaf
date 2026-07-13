@@ -25,6 +25,8 @@ import Impressum from "./pages/legal/Impressum";
 import Datenschutz from "./pages/legal/Datenschutz";
 import Nutzungsbedingungen from "./pages/legal/Nutzungsbedingungen";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
+import AdminPanel from "./pages/AdminPanel";
+import AiIdentificationReview from "./pages/AiIdentificationReview";
 
 function Router() {
   return (
@@ -77,6 +79,12 @@ function Router() {
       </Route>
       <Route path="/moderator">
         <AppLayout><ModeratorDashboard /></AppLayout>
+      </Route>
+      <Route path="/admin">
+        <AppLayout><AdminPanel /></AppLayout>
+      </Route>
+      <Route path="/ai-review">
+        <AppLayout><AiIdentificationReview /></AppLayout>
       </Route>
       <Route path="/impressum" component={Impressum} />
       <Route path="/datenschutz" component={Datenschutz} />

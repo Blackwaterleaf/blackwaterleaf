@@ -847,6 +847,91 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
       return { message: assistantMessage, sessionId };
     }),
 
+  // ─── KI-Bestimmungs-Verwaltung ───────────────────────────────────────────
+  getPendingCorrections: protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.user.role !== "admin" && ctx.user.role !== "moderator") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Moderator- oder Admin-Rechte erforderlich." });
+    }
+    return next({ ctx });
+  })
+    .query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select({
+        id: aiCorrections.id, topic: aiCorrections.topic,
+        originalAnswer: aiCorrections.originalAnswer, correctedText: aiCorrections.correctedText,
+        userId: aiCorrections.userId, userName: users.name,
+        createdAt: aiCorrections.createdAt,
+      }).from(aiCorrections)
+        .leftJoin(users, eq(aiCorrections.userId, users.id))
+        .where(eq(aiCorrections.status, "pending"))
+        .orderBy(desc(aiCorrections.createdAt));
+    }),
+
+  getApprovedCorrections: protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.user.role !== "admin" && ctx.user.role !== "moderator") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Moderator- oder Admin-Rechte erforderlich." });
+    }
+    return next({ ctx });
+  })
+    .query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select({
+        id: aiCorrections.id, topic: aiCorrections.topic,
+        correctedText: aiCorrections.correctedText, upvotes: aiCorrections.upvotes,
+        createdAt: aiCorrections.createdAt,
+      }).from(aiCorrections)
+        .where(eq(aiCorrections.status, "approved"))
+        .orderBy(desc(aiCorrections.createdAt));
+    }),
+
+  getRejectedCorrections: protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.user.role !== "admin" && ctx.user.role !== "moderator") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Moderator- oder Admin-Rechte erforderlich." });
+    }
+    return next({ ctx });
+  })
+    .query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return db.select({
+        id: aiCorrections.id, topic: aiCorrections.topic,
+        correctedText: aiCorrections.correctedText,
+        createdAt: aiCorrections.createdAt,
+      }).from(aiCorrections)
+        .where(eq(aiCorrections.status, "rejected"))
+        .orderBy(desc(aiCorrections.createdAt));
+    }),
+
+  approveCorrection: protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.user.role !== "admin" && ctx.user.role !== "moderator") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Moderator- oder Admin-Rechte erforderlich." });
+    }
+    return next({ ctx });
+  })
+    .input(z.object({ correctionId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      await db.update(aiCorrections).set({ status: "approved" }).where(eq(aiCorrections.id, input.correctionId));
+      return { success: true };
+    }),
+
+  rejectCorrection: protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.user.role !== "admin" && ctx.user.role !== "moderator") {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Moderator- oder Admin-Rechte erforderlich." });
+    }
+    return next({ ctx });
+  })
+    .input(z.object({ correctionId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not available");
+      await db.update(aiCorrections).set({ status: "rejected" }).where(eq(aiCorrections.id, input.correctionId));
+      return { success: true };
+    }),
+
   getHistory: protectedProcedure
     .input(z.object({ sessionId: z.string().optional(), limit: z.number().default(50) }))
     .query(async ({ ctx, input }) => {
