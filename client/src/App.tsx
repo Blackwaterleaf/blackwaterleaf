@@ -72,7 +72,7 @@ function Router() {
         <AppLayout><Ranking /></AppLayout>
       </Route>
       <Route path="/ai">
-        <AppLayout fullHeight><AiAssistant /></AppLayout>
+        <AppLayout><AiAssistant /></AppLayout>
       </Route>
       <Route path="/notifications">
         <AppLayout><Notifications /></AppLayout>
