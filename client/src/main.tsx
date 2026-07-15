@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import AccessibilityProvider from "./components/AccessibilityProvider";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -57,7 +58,9 @@ createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <App />
+        <AccessibilityProvider>
+          <App />
+        </AccessibilityProvider>
       </QueryClientProvider>
     </trpc.Provider>
   </HelmetProvider>

@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Seo } from "@/components/Seo";
+import { SeoEnhanced } from "@/components/SeoEnhanced";
+import ReputationSystem from "@/components/ReputationSystem";
 
 interface ProfileProps { userId?: number; }
 
@@ -99,10 +100,11 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 pb-24 lg:pb-8">
-      <Seo
-        title="Mein Profil – BlackwaterLeaf"
+      <SeoEnhanced
+        title="Mein Profil"
         path="/profile"
         description="Dein persönliches BlackwaterLeaf-Profil: Pflanzensammlung, Aquarien, XP-Fortschritt und Community-Beiträge."
+        noindex={true}
       />
 
       {/* ── Avatar & Name (zentriert wie Native App) ── */}
@@ -325,6 +327,27 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           ))}
         </div>
       </div>
+
+      {/* ── Reputation System ── */}
+      {game && (
+        <ReputationSystem
+          className="mb-6"
+          reputation={{
+            currentXp: xp,
+            level: level,
+            xpToNextLevel: Math.max(0, (game.level?.nextLevelXp ?? xp + 100) - xp),
+            rank: levelTitle,
+            expertiseRanks: [],
+            badges: (game.badges ?? []).map((b: any) => ({
+              id: String(b.id ?? b.code),
+              name: b.name ?? b.code,
+              description: b.description ?? "",
+              icon: null,
+              earnedAt: b.earnedAt ? new Date(b.earnedAt) : new Date(),
+            })),
+          }}
+        />
+      )}
 
       {/* ── Tabs: Sammlung & Beiträge ── */}
       <h2 className="font-brand text-xl mb-4" style={{ color: "oklch(0.90 0.005 200)", letterSpacing: "0.03em" }}>
