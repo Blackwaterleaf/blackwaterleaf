@@ -164,16 +164,37 @@ export default function Knowledge() {
         keywords={["Aquaristik", "Channa", "Aquascaping", "Schwarzwasser", "Botanik"]}
       />
 
-      {/* ── HEADER ──────────────────────────────────────────────── */}
-      <div className="px-4 pt-6 pb-5">
-        <p
-          className="text-xs font-bold uppercase mb-2"
-          style={{ color: C.gold, letterSpacing: "0.18em" }}
-        >
-          WISSEN
-        </p>
+      {/* ── PREMIUM HERO HEADER ─────────────────────────────── */}
+      <div
+        className="relative overflow-hidden px-4 pt-6 pb-8"
+        style={{
+          background: "linear-gradient(160deg, rgba(13,25,18,1) 0%, rgba(7,10,8,1) 100%)",
+        }}
+      >
+        {/* Hintergrund-Glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse 70% 80% at 85% 20%, rgba(45,155,110,0.18) 0%, transparent 60%), radial-gradient(ellipse 40% 50% at 15% 90%, rgba(212,175,55,0.08) 0%, transparent 55%)",
+          }}
+        />
+        {/* Trennlinie unten */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(212,175,55,0.30), transparent)" }}
+        />
+
+        <div className="flex items-center gap-2 mb-3 relative">
+          <BookOpen className="w-4 h-4" style={{ color: C.gold }} />
+          <p
+            className="text-xs font-bold uppercase"
+            style={{ color: C.gold, letterSpacing: "0.18em" }}
+          >
+            WISSEN
+          </p>
+        </div>
         <h1
-          className="font-brand leading-none mb-3"
+          className="font-brand leading-none mb-3 relative"
           style={{
             fontSize: "clamp(2.4rem, 10vw, 3.5rem)",
             color: C.white,
@@ -183,7 +204,7 @@ export default function Knowledge() {
         >
           WISSENS<br />DATENBANK
         </h1>
-        <p className="text-sm leading-relaxed" style={{ color: C.white70 }}>
+        <p className="text-sm leading-relaxed relative" style={{ color: C.white70, maxWidth: 380 }}>
           Kuratierte Ratgeber zu Aquaristik, Aquascaping, Channa-Haltung, Schwarzwasser-Biotopen und Zimmerpflanzen.
         </p>
       </div>

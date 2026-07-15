@@ -48,10 +48,11 @@ function TopNav() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: "rgba(7,10,8,0.92)",
-        backdropFilter: "blur(20px) saturate(1.5)",
-        WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-        borderBottom: "1px solid rgba(45,107,63,0.25)",
+        background: "rgba(7,10,8,0.94)",
+        backdropFilter: "blur(24px) saturate(1.6)",
+        WebkitBackdropFilter: "blur(24px) saturate(1.6)",
+        borderBottom: "1px solid rgba(45,107,63,0.28)",
+        boxShadow: "0 1px 0 rgba(212,175,55,0.06), 0 4px 20px rgba(0,0,0,0.30)",
       }}
     >
       <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">

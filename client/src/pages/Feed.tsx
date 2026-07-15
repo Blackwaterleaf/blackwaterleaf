@@ -612,19 +612,32 @@ export default function Feed() {
       />
 
       {/* ── Page Header (wie Native App) ── */}
-      <div className="mb-5">
+      <div
+        className="relative rounded-3xl overflow-hidden mb-5 px-5 py-5"
+        style={{
+          background: "linear-gradient(135deg, rgba(45,155,110,0.14) 0%, rgba(7,10,8,0.96) 100%)",
+          border: "1px solid rgba(45,107,63,0.30)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.04)",
+        }}
+      >
+        {/* Glow oben rechts */}
+        <div
+          className="absolute top-0 right-0 w-40 h-40 pointer-events-none"
+          style={{ background: "radial-gradient(circle at 80% 10%, rgba(52,211,153,0.12) 0%, transparent 65%)" }}
+        />
         <p
-          className="text-xs font-bold uppercase mb-1"
-          style={{ color: "#34D399", letterSpacing: "0.14em" }}
+          className="text-xs font-bold uppercase mb-1 relative flex items-center gap-1.5"
+          style={{ color: "#34D399", letterSpacing: "0.16em" }}
         >
+          <span className="w-1 h-1 rounded-full" style={{ background: "#34D399", display: "inline-block" }} />
           COMMUNITY
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between relative">
           <h1
             className="font-brand leading-none"
-            style={{ fontSize: "clamp(2rem, 7vw, 2.8rem)", color: "#FFFFFF", letterSpacing: "0.01em" }}
+            style={{ fontSize: "clamp(2rem, 7vw, 2.8rem)", color: "#FFFFFF", letterSpacing: "0.04em" }}
           >
-            Feed
+            FEED
           </h1>
           {isAuthenticated && (
             <div className="flex items-center gap-2">

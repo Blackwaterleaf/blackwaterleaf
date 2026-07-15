@@ -234,17 +234,25 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       </div>
 
       {/* ── 4 Stats-Karten (wie Native App: Level, XP, Streak, Abzeichen) ── */}
-      <div className="grid grid-cols-4 gap-2.5 mb-5">
+      <div className="grid grid-cols-4 gap-2 mb-5">
         {[
-          { value: level, label: "Level", color: "#34D399", icon: <TrendingUp className="w-3.5 h-3.5" /> },
-          { value: xp, label: "XP", color: "#34D399", icon: <Zap className="w-3.5 h-3.5" /> },
-          { value: streak, label: "Streak", color: "#34D399", icon: <Star className="w-3.5 h-3.5" /> },
-          { value: badgeCount, label: "Abzeichen", color: "#34D399", icon: <Award className="w-3.5 h-3.5" /> },
-        ].map((stat) => (
+          { value: level, label: "Level", color: "#34D399" },
+          { value: xp, label: "XP", color: "#D4AF37" },
+          { value: streak, label: "Streak", color: "#34D399" },
+          { value: badgeCount, label: "Abzeichen", color: "#D4AF37" },
+        ].map((stat, i) => (
           <div
             key={stat.label}
             className="rounded-2xl p-3 flex flex-col items-center justify-center"
-            style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
+            style={{
+              background: i % 2 === 0
+                ? "linear-gradient(135deg, rgba(45,155,110,0.12), rgba(13,17,14,0.95))"
+                : "linear-gradient(135deg, rgba(212,175,55,0.10), rgba(13,17,14,0.95))",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: `1px solid ${i % 2 === 0 ? "rgba(45,107,63,0.30)" : "rgba(212,175,55,0.22)"}`,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.30)",
+            }}
           >
             <p
               className="text-2xl font-bold leading-none mb-1"

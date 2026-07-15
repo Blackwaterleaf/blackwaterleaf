@@ -242,10 +242,27 @@ export default function AiAssistant() {
             <div className="container max-w-3xl mx-auto px-4 space-y-4">
               {/* Empty state – identisch mit Native App */}
               {messages.length === 0 && (
-                <div className="flex flex-col items-center pt-10 pb-6 px-4 animate-fade-in">
-                  {/* Sparkles-Icon */}
-                  <div className="mb-5"                   style={{ color: "#34D399" }}>
-                    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div className="relative flex flex-col items-center pt-10 pb-6 px-4 animate-fade-in">
+                  {/* Hintergrund-Glow */}
+                  <div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 pointer-events-none"
+                    style={{
+                      background: "radial-gradient(circle at 50% 30%, rgba(45,155,110,0.12) 0%, transparent 65%)",
+                    }}
+                  />
+
+                  {/* Sparkles-Icon mit Glow-Ring */}
+                  <div
+                    className="mb-5 relative flex items-center justify-center w-20 h-20 rounded-2xl"
+                    style={{
+                      background: "rgba(13,17,14,0.90)",
+                      backdropFilter: "blur(12px)",
+                      border: "1px solid rgba(45,155,110,0.30)",
+                      boxShadow: "0 0 28px rgba(52,211,153,0.18)",
+                      color: "#34D399",
+                    }}
+                  >
+                    <svg width="40" height="40" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M26 4L29.5 18.5L44 22L29.5 25.5L26 40L22.5 25.5L8 22L22.5 18.5L26 4Z" fill="currentColor" opacity="0.9" />
                       <path d="M42 8L43.5 13.5L49 15L43.5 16.5L42 22L40.5 16.5L35 15L40.5 13.5L42 8Z" fill="currentColor" opacity="0.6" />
                       <path d="M10 32L11 36L15 37L11 38L10 42L9 38L5 37L9 36L10 32Z" fill="currentColor" opacity="0.5" />
@@ -253,13 +270,13 @@ export default function AiAssistant() {
                   </div>
 
                   <h2
-                    className="font-brand text-2xl font-bold mb-2 text-center"
-                    style={{                     color: "#FFFFFF", letterSpacing: "0.01em" }}
+                    className="font-brand mb-2 text-center"
+                    style={{ fontSize: "clamp(1.6rem, 5vw, 2rem)", color: "#FFFFFF", letterSpacing: "0.04em" }}
                   >
-                    Stell deine erste Frage
+                    STELL DEINE ERSTE FRAGE
                   </h2>
-                  <p className="text-sm text-center mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
-                    Tippe eine Frage oder wähle einen Vorschlag.
+                  <p className="text-sm text-center mb-8" style={{ color: "rgba(255,255,255,0.50)", maxWidth: 320 }}>
+                    Tippe eine Frage oder wähle einen Vorschlag unten.
                   </p>
 
                   {!isAuthenticated && (
@@ -267,7 +284,9 @@ export default function AiAssistant() {
                       className="mb-6 p-4 rounded-2xl w-full max-w-sm"
                       style={{
                         background: "rgba(13,17,14,0.90)",
+                        backdropFilter: "blur(12px)",
                         border: "1px solid rgba(45,107,63,0.30)",
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.40)",
                       }}
                     >
                       <p className="text-sm mb-3 text-center" style={{ color: "rgba(255,255,255,0.60)" }}>
@@ -279,22 +298,31 @@ export default function AiAssistant() {
                     </div>
                   )}
 
-                  {/* Vorschläge als große Karten (wie in Native App) */}
-                  <div className="w-full max-w-lg space-y-2.5">
-                    {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).slice(0, 4).map((suggestion) => (
+                  {/* Vorschläge als Premium-Glassmorphism-Karten */}
+                  <div className="w-full max-w-lg space-y-2">
+                    {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).slice(0, 4).map((suggestion, idx) => (
                       <button
                         key={suggestion}
                         onClick={() => sendMessage(suggestion)}
                         disabled={!isAuthenticated}
-                        className="w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed group"
                         style={{
                           background: "rgba(13,17,14,0.85)",
-                          border: "1px solid rgba(45,107,63,0.30)",
+                          backdropFilter: "blur(12px)",
+                          WebkitBackdropFilter: "blur(12px)",
+                          border: "1px solid rgba(45,107,63,0.28)",
                           color: "rgba(255,255,255,0.88)",
-                          fontSize: "0.9rem",
+                          fontSize: "0.875rem",
+                          animationDelay: `${idx * 60}ms`,
                         }}
                       >
-                        {suggestion}
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="w-1 h-1 rounded-full flex-shrink-0"
+                            style={{ background: "#34D399", opacity: 0.7 }}
+                          />
+                          {suggestion}
+                        </span>
                       </button>
                     ))}
                   </div>

@@ -58,14 +58,32 @@ export default function Ranking() {
       />
 
       {/* ── Page Header ── */}
-      <div className="mb-8">
+      <div
+        className="relative rounded-3xl overflow-hidden mb-8 p-6"
+        style={{
+          background: "linear-gradient(135deg, rgba(45,155,110,0.18) 0%, rgba(212,175,55,0.10) 50%, rgba(7,10,8,0.95) 100%)",
+          border: "1px solid rgba(45,107,63,0.35)",
+          boxShadow: "0 4px 32px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.06)",
+        }}
+      >
+        {/* Glow-Orb oben rechts */}
+        <div
+          className="absolute top-0 right-0 w-48 h-48 pointer-events-none"
+          style={{
+            background: "radial-gradient(circle at 80% 20%, rgba(212,175,55,0.18) 0%, transparent 70%)",
+          }}
+        />
+        <div className="flex items-center gap-2 mb-2">
+          <Trophy className="w-5 h-5" style={{ color: "#D4AF37" }} />
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#D4AF37", letterSpacing: "0.16em" }}>Community Ranking</span>
+        </div>
         <h1
-          className="font-brand text-4xl leading-none mb-1"
-          style={{ color: "#FFFFFF", letterSpacing: "0.04em" }}
+          className="font-brand leading-none mb-1"
+          style={{ fontSize: "clamp(2.2rem, 7vw, 3rem)", color: "#FFFFFF", letterSpacing: "0.04em" }}
         >
           RANKING & ERFOLGE
         </h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.50)" }}>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
           Sammle XP, halte deinen Streak und steige in der Community auf.
         </p>
       </div>
@@ -199,14 +217,31 @@ export default function Ranking() {
             {allBadges.map((b: any) => {
               const earned = earnedCodes.has(b.code);
               const color = earned ? (TIER_COLOR[b.tier] ?? "#34D399") : "rgba(45,107,63,0.40)";
+              // Compute rgba bg/border from hex or rgba color
+              const getBadgeBg = (c: string) => {
+                if (c.startsWith("#")) {
+                  // hex → parse and create rgba
+                  const r = parseInt(c.slice(1,3),16);
+                  const g = parseInt(c.slice(3,5),16);
+                  const bv = parseInt(c.slice(5,7),16);
+                  return { bg: `rgba(${r},${g},${bv},0.10)`, border: `rgba(${r},${g},${bv},0.28)` };
+                }
+                // already rgba – just replace alpha
+                const base = c.replace(/,[^,)]+\)$/, "");
+                return { bg: `${base},0.10)`, border: `${base},0.28)` };
+              };
+              const { bg: badgeBg, border: badgeBorder } = earned ? getBadgeBg(color) : { bg: "rgba(13,17,14,0.85)", border: "rgba(45,107,63,0.18)" };
               return (
                 <div
                   key={b.id}
                   className="rounded-2xl p-4 text-center transition-all duration-200"
                   style={{
-                    background: earned ? `${color.replace(")", " / 0.08)")}` : "#0D110E",
-                    border: `1px solid ${earned ? color.replace(")", " / 0.25)") : "#161C19"}`,
-                    opacity: earned ? 1 : 0.5,
+                    background: badgeBg,
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    border: `1px solid ${badgeBorder}`,
+                    opacity: earned ? 1 : 0.55,
+                    boxShadow: earned ? `0 2px 12px ${badgeBg}` : "none",
                   }}
                 >
                   {earned
