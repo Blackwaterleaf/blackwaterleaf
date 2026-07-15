@@ -38,7 +38,7 @@ const SUGGESTIONS = [
   "Wie pflege ich Anubias im Aquarium?",
   "Welche Fische passen zu Channa?",
   "Mein pH-Wert ist zu hoch – was kann ich tun?",
-  "Welche Pflanzen eignen sich für wenig Licht?",
+  "Welche Arten eignen sich für wenig Licht?",
 ];
 
 const CHANNA_SUGGESTIONS = [

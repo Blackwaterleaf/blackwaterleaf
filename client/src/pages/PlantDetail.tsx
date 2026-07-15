@@ -97,7 +97,7 @@ export default function PlantDetail({ id }: Props) {
         <Button variant="ghost" size="icon" onClick={() => navigate("/plants")} className="w-8 h-8">
           <ArrowLeft className="w-4 h-4" />
         </Button>
-        <span className="text-sm text-muted-foreground">Zurück zu Pflanzen</span>
+        <span className="text-sm text-muted-foreground">Zurück zu Botanik</span>
       </div>
 
       {/* Hero */}

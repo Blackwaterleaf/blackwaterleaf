@@ -278,7 +278,7 @@ export function InstantSearch({
                     className="text-xs font-semibold uppercase tracking-widest mb-2"
                     style={{ color: 'oklch(0.52 0.14 148)' }}
                   >
-                    Pflanzen
+                    Botanik
                   </p>
                   <div className="space-y-1">
                     {results.plants.map((plant) => (

@@ -45,7 +45,7 @@ const FEATURE_CARDS = [
   {
     label: "ENTDECKEN",
     title: "PFLANZENWELT",
-    description: "Pflege, Tipps & Inspiration für gesunde Pflanzen und beeindruckende Setups.",
+    description: "Pflege, Tipps & Inspiration für Botanik und beeindruckende Setups.",
     cta: "Mehr entdecken",
     href: "/plants",
     imgGradient: "linear-gradient(160deg, rgba(45,155,110,0.25) 0%, rgba(7,10,8,0.95) 100%)",
@@ -61,7 +61,7 @@ const FEATURE_CARDS = [
   {
     label: "SMART",
     title: "KI ASSISTENT",
-    description: "Dein smarter Helfer für alle Fragen rund um Pflanzen & Aquaristik.",
+    description: "Dein smarter Helfer für alle Fragen rund um Botanik & Aquaristik.",
     cta: "Assistent starten",
     href: "/ai",
     imgGradient: "linear-gradient(160deg, rgba(52,211,153,0.20) 0%, rgba(7,10,8,0.95) 100%)",

@@ -44,7 +44,7 @@ const ANALYSIS_STEPS = [
   "Bilder werden geladen ...",
   "Analysiere Blattstruktur ...",
   "Erkenne Farb- und Texturmuster ...",
-  "Vergleiche mit Pflanzendatenbank ...",
+  "Vergleiche mit Botanik-Datenbank ...",
   "Prüfe Aquaristik-Bestände ...",
   "Bestimme Art und Gattung ...",
   "Erstelle Pflegehinweis ...",
@@ -206,9 +206,9 @@ export default function PlantIdentify() {
     return (
       <div className="bg-card border border-border/50 rounded-xl p-8 text-center max-w-lg mx-auto">
         <ScanSearch className="w-10 h-10 text-primary mx-auto mb-3" />
-        <p className="font-medium mb-1">Pflanzenbestimmung per Foto</p>
+        <p className="font-medium mb-1">Artbestimmung per Foto</p>
         <p className="text-sm text-muted-foreground mb-4">
-          Melde dich an, um Pflanzen und Aquarienbewohner per Foto bestimmen zu lassen.
+          Melde dich an, um Arten und Aquarienbewohner per Foto bestimmen zu lassen.
         </p>
         <Button asChild className="press-active"><a href={getLoginUrl()}>Anmelden</a></Button>
       </div>
@@ -222,7 +222,7 @@ export default function PlantIdentify() {
         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
           <ScanSearch className="w-7 h-7 text-primary" />
         </div>
-        <h2 className="font-display font-semibold text-lg">Pflanzenbestimmung per Foto</h2>
+        <h2 className="font-display font-semibold text-lg">Artbestimmung per Foto</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Lade bis zu 4 Fotos hoch – mehr Winkel bedeuten eine präzisere KI-Bestimmung.
         </p>
