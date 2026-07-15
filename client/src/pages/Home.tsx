@@ -45,7 +45,7 @@ export default function Home() {
   if (isAuthenticated && !previewLanding) return null;
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
+    <div className="min-h-screen" style={{ background: "oklch(0.07 0.008 200)" }}>
       <Seo
         path="/"
         title="Aquaristik & Zimmerpflanzen Community"
@@ -227,7 +227,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           STATS BAR
           ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.20 0.008 200)", borderBottom: "1px solid oklch(0.20 0.008 200)" }}>
+      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.21 0.008 200)", borderBottom: "1px solid oklch(0.21 0.008 200)" }}>
         <div className="max-w-[1400px] mx-auto px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
@@ -301,7 +301,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           TRUST FOOTER BAR
           ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.20 0.008 200)" }}>
+      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.21 0.008 200)" }}>
         <div className="max-w-[1400px] mx-auto px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
@@ -384,7 +384,7 @@ function FeatureSection({
       className="relative overflow-hidden"
       style={{
         background: dark ? "oklch(0.08 0.008 200)" : "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.18 0.008 200)",
+        borderBottom: "1px solid oklch(0.16 0.009 200)",
         minHeight: "420px",
       }}
     >
@@ -462,8 +462,8 @@ function KISection() {
     <section
       className="relative overflow-hidden"
       style={{
-        background: "oklch(0.09 0.008 200)",
-        borderBottom: "1px solid oklch(0.18 0.008 200)",
+        background: "oklch(0.07 0.008 200)",
+        borderBottom: "1px solid oklch(0.16 0.009 200)",
         minHeight: "420px",
       }}
     >
@@ -571,7 +571,7 @@ function DownloadSection() {
       className="relative overflow-hidden scroll-mt-20"
       style={{
         background: "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.18 0.008 200)",
+        borderBottom: "1px solid oklch(0.16 0.009 200)",
       }}
     >
       {/* Subtle grid + glow */}
@@ -669,7 +669,7 @@ function DownloadSection() {
               className="relative rounded-[2.5rem] p-3"
               style={{ background: "oklch(0.07 0.008 200)", border: "1px solid oklch(0.24 0.008 200)", width: "260px", boxShadow: "0 30px 80px -20px oklch(0.52 0.14 148 / 0.35)" }}
             >
-              <div className="rounded-[2rem] overflow-hidden" style={{ background: "oklch(0.09 0.008 200)", aspectRatio: "9 / 19" }}>
+              <div className="rounded-[2rem] overflow-hidden" style={{ background: "oklch(0.07 0.008 200)", aspectRatio: "9 / 19" }}>
                 <div className="h-full flex flex-col items-center justify-center gap-4 px-6 text-center">
                   <img
                     src={IMG_LOGO}
@@ -700,7 +700,7 @@ function CommunitySection() {
       className="relative overflow-hidden"
       style={{
         background: "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.18 0.008 200)",
+        borderBottom: "1px solid oklch(0.16 0.009 200)",
         minHeight: "420px",
       }}
     >

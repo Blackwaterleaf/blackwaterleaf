@@ -17,8 +17,8 @@ const TIER_COLOR: Record<string, string> = {
 };
 
 const card = {
-  background: "oklch(0.12 0.008 200)",
-  border: "1px solid oklch(0.20 0.008 200)",
+  background: "oklch(0.11 0.008 200)",
+  border: "1px solid oklch(0.21 0.008 200)",
 };
 
 export default function Ranking() {
@@ -97,7 +97,7 @@ export default function Ranking() {
           <div
             className="rounded-2xl p-5 mb-4"
             style={{
-              background: "linear-gradient(135deg, oklch(0.52 0.14 148 / 0.12), oklch(0.12 0.008 200))",
+              background: "linear-gradient(135deg, oklch(0.52 0.14 148 / 0.12), oklch(0.11 0.008 200))",
               border: "1px solid oklch(0.52 0.14 148 / 0.25)",
             }}
           >
@@ -119,7 +119,7 @@ export default function Ranking() {
             </div>
             <div
               className="h-2 rounded-full overflow-hidden"
-              style={{ background: "oklch(0.20 0.008 200)" }}
+              style={{ background: "oklch(0.21 0.008 200)" }}
             >
               <div
                 className="h-full rounded-full transition-all duration-700"
@@ -204,8 +204,8 @@ export default function Ranking() {
                   key={b.id}
                   className="rounded-2xl p-4 text-center transition-all duration-200"
                   style={{
-                    background: earned ? `${color.replace(")", " / 0.08)")}` : "oklch(0.12 0.008 200)",
-                    border: `1px solid ${earned ? color.replace(")", " / 0.25)") : "oklch(0.18 0.008 200)"}`,
+                    background: earned ? `${color.replace(")", " / 0.08)")}` : "oklch(0.11 0.008 200)",
+                    border: `1px solid ${earned ? color.replace(")", " / 0.25)") : "oklch(0.16 0.009 200)"}`,
                     opacity: earned ? 1 : 0.5,
                   }}
                 >
@@ -234,7 +234,7 @@ export default function Ranking() {
         <div className="rounded-2xl overflow-hidden" style={card}>
           {lbLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4" style={{ borderBottom: "1px solid oklch(0.18 0.008 200)" }}>
+              <div key={i} className="p-4" style={{ borderBottom: "1px solid oklch(0.16 0.009 200)" }}>
                 <Skeleton className="h-6 w-full" />
               </div>
             ))
@@ -244,7 +244,7 @@ export default function Ranking() {
                 key={entry.userId}
                 className="flex items-center gap-3 p-3.5 transition-colors"
                 style={{
-                  borderBottom: idx < leaderboard.length - 1 ? "1px solid oklch(0.18 0.008 200)" : "none",
+                  borderBottom: idx < leaderboard.length - 1 ? "1px solid oklch(0.16 0.009 200)" : "none",
                   background: entry.userId === user?.id ? "oklch(0.52 0.14 148 / 0.06)" : "transparent",
                 }}
               >

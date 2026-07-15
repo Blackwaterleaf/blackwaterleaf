@@ -61,7 +61,7 @@ export default function LegalLayout({
         <div className="legal-content space-y-6 leading-relaxed text-[15px]">{children}</div>
 
         {/* Querverlinkung */}
-        <nav className="mt-14 pt-6 flex flex-wrap gap-5" style={{ borderTop: "1px solid oklch(0.18 0.008 200)" }}>
+        <nav className="mt-14 pt-6 flex flex-wrap gap-5" style={{ borderTop: "1px solid oklch(0.16 0.009 200)" }}>
           <Link href="/impressum" className="text-xs hover:text-primary" style={{ color: "oklch(0.5 0.01 200)" }}>
             Impressum
           </Link>

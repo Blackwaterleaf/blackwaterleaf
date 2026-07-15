@@ -201,7 +201,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.09 0.008 200)" }}>
+    <div className="min-h-screen" style={{ background: "oklch(0.07 0.008 200)" }}>
       <TopNav />
       <main className="pt-16 pb-24 px-4 max-w-[1400px] mx-auto">
         {children}

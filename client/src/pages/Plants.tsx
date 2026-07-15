@@ -34,15 +34,15 @@ function PlantCard({ plant }: { plant: any }) {
       <article
         className="overflow-hidden rounded-2xl cursor-pointer group transition-all duration-300"
         style={{
-          background: "oklch(0.12 0.008 200)",
-          border: "1px solid oklch(0.20 0.008 200)",
+          background: "oklch(0.11 0.008 200)",
+          border: "1px solid oklch(0.21 0.008 200)",
         }}
         onMouseEnter={e => {
           (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)";
           (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)";
+          (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
           (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
         }}
       >
@@ -79,7 +79,7 @@ function PlantCard({ plant }: { plant: any }) {
           {/* Gradient overlay */}
           <div
             className="absolute bottom-0 left-0 right-0 h-12"
-            style={{ background: "linear-gradient(to top, oklch(0.12 0.008 200), transparent)" }}
+            style={{ background: "linear-gradient(to top, oklch(0.11 0.008 200), transparent)" }}
           />
         </div>
 
@@ -193,7 +193,7 @@ export default function Plants() {
             <div
               key={i}
               className="rounded-2xl overflow-hidden"
-              style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.18 0.008 200)" }}
+              style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.16 0.009 200)" }}
             >
               <Skeleton className="w-full rounded-none" style={{ aspectRatio: "4/3", height: "auto" }} />
               <div className="p-4 space-y-2">

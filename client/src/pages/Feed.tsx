@@ -93,8 +93,8 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
     <article
       className="overflow-hidden rounded-2xl transition-all duration-200"
       style={{
-        background: "oklch(0.12 0.008 200)",
-        border: "1px solid oklch(0.20 0.008 200)",
+        background: "oklch(0.11 0.008 200)",
+        border: "1px solid oklch(0.21 0.008 200)",
       }}
     >
       {/* ── Header ── */}
@@ -183,7 +183,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
       {/* ── Actions ── */}
       <div
         className="flex items-center gap-1 px-5 pb-4"
-        style={{ borderTop: "1px solid oklch(0.18 0.008 200)", paddingTop: "0.75rem" }}
+        style={{ borderTop: "1px solid oklch(0.16 0.009 200)", paddingTop: "0.75rem" }}
       >
         <button
           onClick={handleLike}
@@ -224,7 +224,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
               <div key={comment.id} className="flex gap-3">
                 <Avatar className="w-7 h-7 flex-shrink-0">
                   <AvatarImage src={comment.userAvatarUrl ?? undefined} />
-                  <AvatarFallback className="text-xs" style={{ background: "oklch(0.18 0.008 200)", color: "oklch(0.60 0.008 200)" }}>
+                  <AvatarFallback className="text-xs" style={{ background: "oklch(0.16 0.009 200)", color: "oklch(0.60 0.008 200)" }}>
                     {comment.userName?.charAt(0)?.toUpperCase() ?? "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -372,7 +372,7 @@ function CreatePost() {
   return (
     <div
       className="rounded-2xl p-5 space-y-4"
-      style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+      style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
     >
       <div className="flex gap-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
@@ -439,14 +439,14 @@ function CreatePost() {
             <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
             <div
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
-              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.color = "oklch(0.75 0.008 200)";
                 (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.30 0.008 200)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
               }}
             >
               <ImagePlus className="w-4 h-4" />
@@ -457,14 +457,14 @@ function CreatePost() {
             <input type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg" className="hidden" onChange={handleVideoSelect} />
             <div
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
-              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
                 (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.40 0.12 148)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)";
+                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
               }}
             >
               <Video className="w-4 h-4" />
@@ -696,7 +696,7 @@ export default function Feed() {
             <div
               key={i}
               className="rounded-2xl overflow-hidden"
-              style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.18 0.008 200)" }}
+              style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.16 0.009 200)" }}
             >
               <div className="flex items-center gap-3 p-5">
                 <Skeleton className="w-10 h-10 rounded-full" />
@@ -716,7 +716,7 @@ export default function Feed() {
           <div className="text-center py-20">
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
             >
               <MessageCircle className="w-7 h-7" style={{ color: "oklch(0.40 0.008 200)" }} />
             </div>

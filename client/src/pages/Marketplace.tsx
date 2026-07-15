@@ -6,7 +6,7 @@ import { ArrowRight, ShieldCheck, Mail } from "lucide-react";
 const C = {
   bg: "oklch(0.10 0.008 200)",
   card: "oklch(0.14 0.008 200)",
-  cardBorder: "1px solid oklch(0.20 0.008 200)",
+  cardBorder: "1px solid oklch(0.21 0.008 200)",
   green: "oklch(0.52 0.14 148)",
   greenLight: "oklch(0.65 0.16 148)",
   greenBg: "oklch(0.52 0.14 148 / 0.15)",

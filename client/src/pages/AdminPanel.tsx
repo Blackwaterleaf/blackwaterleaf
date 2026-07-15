@@ -23,7 +23,7 @@ export default function AdminPanel() {
   if (!user || user.role !== "admin") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
-        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
           <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.65 0.16 40)" }} />
           <h2 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>Zugriff verweigert</h2>
           <p style={{ color: "oklch(0.55 0.008 200)" }}>Nur Admins können diesen Bereich sehen.</p>
@@ -42,7 +42,7 @@ export default function AdminPanel() {
 
       {/* Tabs */}
       <Tabs defaultValue="stats" className="w-full">
-        <TabsList className="grid w-full grid-cols-3" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+        <TabsList className="grid w-full grid-cols-3" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
           <TabsTrigger value="stats" style={{ color: "oklch(0.55 0.008 200)" }}>Statistiken</TabsTrigger>
           <TabsTrigger value="users" style={{ color: "oklch(0.55 0.008 200)" }}>Nutzer</TabsTrigger>
           <TabsTrigger value="audit" style={{ color: "oklch(0.55 0.008 200)" }}>Audit-Log</TabsTrigger>
@@ -91,8 +91,8 @@ function StatsTab() {
         <Card
           key={i}
           style={{
-            background: stat.highlight ? "oklch(0.65 0.16 40 / 0.1)" : "oklch(0.12 0.008 200)",
-            border: stat.highlight ? "1px solid oklch(0.65 0.16 40 / 0.3)" : "1px solid oklch(0.20 0.008 200)",
+            background: stat.highlight ? "oklch(0.65 0.16 40 / 0.1)" : "oklch(0.11 0.008 200)",
+            border: stat.highlight ? "1px solid oklch(0.65 0.16 40 / 0.3)" : "1px solid oklch(0.21 0.008 200)",
           }}
           className="p-4 text-center"
         >
@@ -133,19 +133,19 @@ function UsersTab() {
         placeholder="Nach Name, Username oder E-Mail suchen..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+        style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)", color: "oklch(0.88 0.005 200)" }}
       />
 
       {isLoading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}</div>
       ) : !users || users.length === 0 ? (
-        <Card style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-6 text-center">
+        <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
           <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine Nutzer gefunden</p>
         </Card>
       ) : (
         <div className="space-y-3">
           {users.map((u: any) => (
-            <Card key={u.id} style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-4">
+            <Card key={u.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{u.name}</p>
@@ -159,10 +159,10 @@ function UsersTab() {
                     value={u.role}
                     onValueChange={(role) => setRoleMutation.mutate({ userId: u.id, role: role as any })}
                   >
-                    <SelectTrigger style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)", color: "oklch(0.88 0.005 200)" }} className="w-32">
+                    <SelectTrigger style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)", color: "oklch(0.88 0.005 200)" }} className="w-32">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+                    <SelectContent style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
                       <SelectItem value="user">Nutzer</SelectItem>
                       <SelectItem value="moderator">Moderator</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
@@ -174,10 +174,10 @@ function UsersTab() {
                     value={u.status}
                     onValueChange={(status) => setStatusMutation.mutate({ userId: u.id, status: status as any })}
                   >
-                    <SelectTrigger style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)", color: "oklch(0.88 0.005 200)" }} className="w-32">
+                    <SelectTrigger style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)", color: "oklch(0.88 0.005 200)" }} className="w-32">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+                    <SelectContent style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
                       <SelectItem value="active">Aktiv</SelectItem>
                       <SelectItem value="suspended">Eingeschränkt</SelectItem>
                       <SelectItem value="banned">Gesperrt</SelectItem>
@@ -202,7 +202,7 @@ function AuditLogTab() {
 
   if (!logs || logs.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-6 text-center">
+      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
         <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine Audit-Einträge vorhanden</p>
       </Card>
     );
@@ -211,7 +211,7 @@ function AuditLogTab() {
   return (
     <div className="space-y-3">
       {logs.map((log: any) => (
-        <Card key={log.id} style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-4">
+        <Card key={log.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>

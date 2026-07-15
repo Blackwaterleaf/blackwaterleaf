@@ -166,7 +166,7 @@ export default function AiAssistant() {
         className="px-4 pt-4 pb-3 flex-shrink-0"
         style={{
           background: "oklch(0.10 0.008 200)",
-          borderBottom: "1px solid oklch(0.18 0.008 200)",
+          borderBottom: "1px solid oklch(0.16 0.009 200)",
         }}
       >
         <div className="container max-w-3xl mx-auto">
@@ -474,7 +474,7 @@ export default function AiAssistant() {
             className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
             style={{
               background: "oklch(0.10 0.008 200 / 0.95)",
-              borderTop: "1px solid oklch(0.20 0.008 200)",
+              borderTop: "1px solid oklch(0.21 0.008 200)",
             }}
           >
             <div className="container max-w-3xl mx-auto flex gap-3">

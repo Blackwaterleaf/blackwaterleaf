@@ -16,7 +16,7 @@ export default function AiIdentificationReview() {
   if (!user || (user.role !== "moderator" && user.role !== "admin")) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
-        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
           <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.65 0.16 40)" }} />
           <h2 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>Zugriff verweigert</h2>
           <p style={{ color: "oklch(0.55 0.008 200)" }}>Nur Moderatoren und Admins können Bestimmungen bestätigen.</p>
@@ -35,7 +35,7 @@ export default function AiIdentificationReview() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
+        <TabsList className="grid w-full grid-cols-3" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
           <TabsTrigger value="pending" style={{ color: "oklch(0.55 0.008 200)" }}>Ausstehend</TabsTrigger>
           <TabsTrigger value="approved" style={{ color: "oklch(0.55 0.008 200)" }}>Bestätigt</TabsTrigger>
           <TabsTrigger value="rejected" style={{ color: "oklch(0.55 0.008 200)" }}>Abgelehnt</TabsTrigger>
@@ -88,7 +88,7 @@ function PendingIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-6 text-center">
+      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
         <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.52 0.14 148)" }} />
         <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine ausstehenden Bestimmungen. Alles ist aktuell! ✨</p>
       </Card>
@@ -98,7 +98,7 @@ function PendingIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
           <div className="mb-4">
             <p className="text-sm font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>
               {correction.topic}
@@ -152,7 +152,7 @@ function ApprovedIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-6 text-center">
+      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
         <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine bestätigten Bestimmungen vorhanden</p>
       </Card>
     );
@@ -161,7 +161,7 @@ function ApprovedIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{correction.topic}</p>
@@ -188,7 +188,7 @@ function RejectedIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-6 text-center">
+      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
         <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine abgelehnten Bestimmungen vorhanden</p>
       </Card>
     );
@@ -197,7 +197,7 @@ function RejectedIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{correction.topic}</p>

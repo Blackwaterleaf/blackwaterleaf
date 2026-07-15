@@ -20,8 +20,8 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 const card = {
-  background: "oklch(0.12 0.008 200)",
-  border: "1px solid oklch(0.20 0.008 200)",
+  background: "oklch(0.11 0.008 200)",
+  border: "1px solid oklch(0.21 0.008 200)",
 };
 
 export default function Aquariums() {
@@ -110,7 +110,7 @@ export default function Aquariums() {
                     (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.border = "1px solid oklch(0.20 0.008 200)";
+                    (e.currentTarget as HTMLElement).style.border = "1px solid oklch(0.21 0.008 200)";
                     (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                   }}
                 >

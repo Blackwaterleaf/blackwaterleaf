@@ -36,8 +36,8 @@ export function SkeletonCard({ aspectRatio = 'square' }: { aspectRatio?: 'square
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        backgroundColor: 'oklch(0.12 0.008 200)',
-        border: '1px solid oklch(0.20 0.008 200)',
+        backgroundColor: 'oklch(0.11 0.008 200)',
+        border: '1px solid oklch(0.21 0.008 200)',
       }}
     >
       {/* Image Placeholder */}
@@ -63,8 +63,8 @@ export function SkeletonArticleItem() {
     <div
       className="rounded-2xl p-4 space-y-3"
       style={{
-        backgroundColor: 'oklch(0.12 0.008 200)',
-        border: '1px solid oklch(0.20 0.008 200)',
+        backgroundColor: 'oklch(0.11 0.008 200)',
+        border: '1px solid oklch(0.21 0.008 200)',
       }}
     >
       {/* Header mit Avatar */}

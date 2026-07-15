@@ -235,8 +235,8 @@ export function InstantSearch({
         <div
           className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
           style={{
-            background: 'oklch(0.12 0.008 200)',
-            border: '1px solid oklch(0.20 0.008 200)',
+            background: 'oklch(0.11 0.008 200)',
+            border: '1px solid oklch(0.21 0.008 200)',
           }}
         >
           {isLoading ? (

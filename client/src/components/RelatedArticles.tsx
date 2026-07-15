@@ -87,8 +87,8 @@ export function RelatedArticles({
               key={i}
               className="rounded-xl overflow-hidden"
               style={{
-                backgroundColor: 'oklch(0.12 0.008 200)',
-                border: '1px solid oklch(0.20 0.008 200)',
+                backgroundColor: 'oklch(0.11 0.008 200)',
+                border: '1px solid oklch(0.21 0.008 200)',
               }}
             >
               <div
@@ -133,8 +133,8 @@ export function RelatedArticles({
             href={`/knowledge/${article.slug}`}
             className="group rounded-xl overflow-hidden transition-all duration-200 block"
             style={{
-              backgroundColor: 'oklch(0.12 0.008 200)',
-              border: '1px solid oklch(0.20 0.008 200)',
+              backgroundColor: 'oklch(0.11 0.008 200)',
+              border: '1px solid oklch(0.21 0.008 200)',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
@@ -144,9 +144,9 @@ export function RelatedArticles({
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
-                'oklch(0.20 0.008 200)';
+                'oklch(0.21 0.008 200)';
               (e.currentTarget as HTMLElement).style.backgroundColor =
-                'oklch(0.12 0.008 200)';
+                'oklch(0.11 0.008 200)';
             }}
           >
             {article.coverImageUrl ? (

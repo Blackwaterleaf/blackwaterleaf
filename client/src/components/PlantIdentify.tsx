@@ -262,7 +262,7 @@ export default function PlantIdentify() {
                 <button
                   onClick={() => fileInputRefs.current[idx]?.click()}
                   className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 transition-colors"
-                  style={{ background: "oklch(0.12 0.008 200)" }}
+                  style={{ background: "oklch(0.11 0.008 200)" }}
                 >
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                     {idx === 0 ? <Camera className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary/60" />}

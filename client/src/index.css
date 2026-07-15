@@ -1,49 +1,60 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   BLACKWATERLEAF – GLOBAL DESIGN SYSTEM
-   Premium Platform: Apple × NatGeo × Tesla
+   BLACKWATERLEAF – PREMIUM DESIGN SYSTEM v2
+   Smaragd × Gold × Glassmorphism
    ═══════════════════════════════════════════════════════════════ */
 
 @theme inline {
   /* ── Brand Palette ─────────────────────────────────────────── */
-  /* Deep anthracite blacks */
-  --color-background:       oklch(0.09 0.008 200);
-  --color-surface:          oklch(0.12 0.008 200);
-  --color-surface-raised:   oklch(0.15 0.009 200);
-  --color-surface-overlay:  oklch(0.18 0.009 200);
-  --color-border:           oklch(0.22 0.008 200);
-  --color-border-subtle:    oklch(0.16 0.006 200);
+  /* Elevation hierarchy: #070A08 → #0D110E → #111614 → #161C19 */
+  --color-background:       oklch(0.07 0.008 155);   /* #070A08 – Basis */
+  --color-surface:          oklch(0.11 0.010 155);   /* #0D110E – Karten */
+  --color-surface-raised:   oklch(0.13 0.010 155);   /* #111614 – Overlays */
+  --color-surface-overlay:  oklch(0.16 0.012 155);   /* #161C19 – Hover */
+  --color-border:           oklch(0.22 0.012 155);
+  --color-border-subtle:    oklch(0.16 0.010 155);
 
   /* Foreground */
-  --color-foreground:       oklch(0.95 0.005 200);
-  --color-foreground-muted: oklch(0.60 0.008 200);
-  --color-foreground-faint: oklch(0.38 0.006 200);
+  --color-foreground:       oklch(0.97 0.003 155);   /* #FFFFFF */
+  --color-foreground-muted: oklch(0.70 0.005 155);   /* rgba(255,255,255,0.7) */
+  --color-foreground-faint: oklch(0.58 0.008 220);   /* #94A3B8 */
 
-  /* Primary: Moss / Nature Green */
-  --color-primary:          oklch(0.52 0.14 148);
-  --color-primary-hover:    oklch(0.58 0.15 148);
-  --color-primary-subtle:   oklch(0.52 0.14 148 / 0.12);
-  --color-primary-foreground: oklch(0.98 0.005 148);
+  /* Primary: Smaragd #2D9B6E */
+  --color-primary:          oklch(0.58 0.14 162);    /* #2D9B6E */
+  --color-primary-hover:    oklch(0.64 0.15 162);    /* leichter Hover */
+  --color-primary-subtle:   oklch(0.58 0.14 162 / 0.15);
+  --color-primary-foreground: oklch(0.97 0.003 155);
 
-  /* Accent: Amber Gold */
-  --color-accent:           oklch(0.72 0.14 78);
-  --color-accent-subtle:    oklch(0.72 0.14 78 / 0.10);
-  --color-accent-foreground: oklch(0.10 0.008 78);
+  /* Gold: #D4AF37 – nur für Premium-Elemente */
+  --color-gold:             oklch(0.76 0.14 85);     /* #D4AF37 */
+  --color-gold-subtle:      oklch(0.76 0.14 85 / 0.15);
+
+  /* Mint: #34D399 – Hover, Glow, Gamification */
+  --color-mint:             oklch(0.78 0.16 162);    /* #34D399 */
+  --color-mint-subtle:      oklch(0.78 0.16 162 / 0.12);
+
+  /* Secondary Green: #2D6B3F – Outline, Ränder */
+  --color-secondary-green:  oklch(0.44 0.12 155);    /* #2D6B3F */
+
+  /* Accent: Gold (für shadcn accent) */
+  --color-accent:           oklch(0.76 0.14 85);
+  --color-accent-subtle:    oklch(0.76 0.14 85 / 0.10);
+  --color-accent-foreground: oklch(0.10 0.008 85);
 
   /* Semantic */
-  --color-card:             oklch(0.12 0.008 200);
-  --color-card-foreground:  oklch(0.95 0.005 200);
-  --color-popover:          oklch(0.13 0.008 200);
-  --color-popover-foreground: oklch(0.95 0.005 200);
-  --color-muted:            oklch(0.16 0.008 200);
-  --color-muted-foreground: oklch(0.55 0.008 200);
-  --color-secondary:        oklch(0.16 0.008 200);
-  --color-secondary-foreground: oklch(0.90 0.005 200);
+  --color-card:             oklch(0.11 0.010 155);
+  --color-card-foreground:  oklch(0.97 0.003 155);
+  --color-popover:          oklch(0.13 0.010 155);
+  --color-popover-foreground: oklch(0.97 0.003 155);
+  --color-muted:            oklch(0.15 0.010 155);
+  --color-muted-foreground: oklch(0.58 0.008 220);
+  --color-secondary:        oklch(0.15 0.010 155);
+  --color-secondary-foreground: oklch(0.90 0.005 155);
   --color-destructive:      oklch(0.55 0.20 25);
   --color-destructive-foreground: oklch(0.98 0.005 25);
-  --color-ring:             oklch(0.52 0.14 148 / 0.5);
-  --color-input:            oklch(0.18 0.008 200);
+  --color-ring:             oklch(0.58 0.14 162 / 0.5);
+  --color-input:            oklch(0.16 0.010 155);
 
   /* ── Typography ────────────────────────────────────────────── */
   --font-sans:    "Inter", system-ui, sans-serif;
@@ -51,16 +62,22 @@
   --font-brand:   "Bebas Neue", "Inter", sans-serif;
 
   /* ── Radius ─────────────────────────────────────────────────── */
-  --radius:    0.75rem;
+  --radius:    1rem;       /* 16px – Glassmorphism cards */
   --radius-sm: 0.5rem;
-  --radius-lg: 1.25rem;
+  --radius-lg: 1.5rem;
   --radius-xl: 2rem;
 
   /* ── Shadows ─────────────────────────────────────────────────── */
-  --shadow-card:   0 1px 3px oklch(0 0 0 / 0.4), 0 4px 16px oklch(0 0 0 / 0.3);
-  --shadow-raised: 0 4px 24px oklch(0 0 0 / 0.5), 0 1px 4px oklch(0 0 0 / 0.3);
-  --shadow-glow-green: 0 0 24px oklch(0.52 0.14 148 / 0.25);
-  --shadow-glow-gold:  0 0 24px oklch(0.72 0.14 78 / 0.25);
+  --shadow-card:   0 1px 3px oklch(0 0 0 / 0.5), 0 4px 20px oklch(0 0 0 / 0.4);
+  --shadow-raised: 0 4px 32px oklch(0 0 0 / 0.6), 0 1px 4px oklch(0 0 0 / 0.4);
+  --shadow-glow-green: 0 0 28px oklch(0.58 0.14 162 / 0.30);
+  --shadow-glow-gold:  0 0 28px oklch(0.76 0.14 85 / 0.30);
+  --shadow-glow-mint:  0 0 20px oklch(0.78 0.16 162 / 0.25);
+
+  /* ── Glassmorphism ──────────────────────────────────────────── */
+  --glass-bg:     oklch(0.11 0.010 155 / 0.70);
+  --glass-border: oklch(0.44 0.12 155 / 0.30);  /* #2D6B3F @ 30% */
+  --glass-blur:   blur(12px);
 
   /* ── Easing ──────────────────────────────────────────────────── */
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
@@ -118,44 +135,44 @@
     color: var(--color-foreground);
   }
 
-  /* shadcn/ui CSS variable bridge */
+  /* shadcn/ui CSS variable bridge – Premium v2 */
   :root {
-    --background: 0 0% 9%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 148 52% 40%;
-    --primary-foreground: 148 5% 98%;
-    --secondary: 200 5% 16%;
-    --secondary-foreground: 200 3% 90%;
-    --muted: 200 5% 16%;
-    --muted-foreground: 200 5% 55%;
-    --accent: 78 35% 55%;
-    --accent-foreground: 78 10% 10%;
+    --background: 155 8% 7%;    /* #070A08 */
+    --foreground: 155 3% 97%;
+    --card: 155 10% 11%;        /* #0D110E */
+    --card-foreground: 155 3% 97%;
+    --popover: 155 10% 13%;     /* #111614 */
+    --popover-foreground: 155 3% 97%;
+    --primary: 162 52% 40%;     /* #2D9B6E Smaragd */
+    --primary-foreground: 155 3% 97%;
+    --secondary: 155 10% 15%;
+    --secondary-foreground: 155 5% 90%;
+    --muted: 155 10% 15%;
+    --muted-foreground: 220 8% 58%;  /* #94A3B8 */
+    --accent: 85 52% 52%;       /* #D4AF37 Gold */
+    --accent-foreground: 85 10% 10%;
     --destructive: 25 60% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 200 5% 22%;
-    --input: 200 5% 18%;
-    --ring: 148 52% 40%;
-    --radius: 0.75rem;
+    --border: 155 12% 22%;
+    --input: 155 10% 16%;
+    --ring: 162 52% 40%;
+    --radius: 1rem;
   }
 
   .dark {
-    --background: 0 0% 9%;
-    --foreground: 0 0% 95%;
-    --card: 0 0% 12%;
-    --card-foreground: 0 0% 95%;
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 148 52% 40%;
-    --primary-foreground: 148 5% 98%;
-    --secondary: 200 5% 16%;
-    --secondary-foreground: 200 3% 90%;
-    --muted: 200 5% 16%;
-    --muted-foreground: 200 5% 55%;
-    --accent: 78 35% 55%;
+    --background: 155 8% 7%;    /* #070A08 */
+    --foreground: 155 3% 97%;
+    --card: 155 10% 11%;        /* #0D110E */
+    --card-foreground: 155 3% 97%;
+    --popover: 155 10% 13%;     /* #111614 */
+    --popover-foreground: 155 3% 97%;
+    --primary: 162 52% 40%;     /* #2D9B6E Smaragd */
+    --primary-foreground: 155 3% 97%;
+    --secondary: 155 10% 15%;
+    --secondary-foreground: 155 5% 90%;
+    --muted: 155 10% 15%;
+    --muted-foreground: 220 8% 58%;  /* #94A3B8 */
+    --accent: 85 52% 52%;       /* #D4AF37 Gold */
     --accent-foreground: 78 10% 10%;
     --destructive: 25 60% 45%;
     --destructive-foreground: 0 0% 98%;
