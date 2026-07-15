@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InfoTooltip } from "@/components/InfoTooltip";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
@@ -416,48 +416,40 @@ export default function PlantIdentify() {
               )}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className={`${confidenceColor(result.confidence)} cursor-help`}>
-                    {result.confidence}% sicher
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-[220px] text-xs">
-                  {result.confidence >= 75
+              <InfoTooltip
+                content={
+                  result.confidence >= 75
                     ? "Hohe Zuverlässigkeit – Bestimmung sehr wahrscheinlich korrekt."
                     : result.confidence >= 45
                     ? "Mittlere Zuverlässigkeit – weitere Fotos können die Genauigkeit erhöhen."
-                    : "Geringe Zuverlässigkeit – bitte mehrere Fotos aus verschiedenen Winkeln hochladen."}
-                </TooltipContent>
-              </Tooltip>
-              </TooltipProvider>
-<TooltipProvider delayDuration={200}>
+                    : "Geringe Zuverlässigkeit – bitte mehrere Fotos aus verschiedenen Winkeln hochladen."
+                }
+                side="bottom"
+              >
+                <Badge variant="outline" className={confidenceColor(result.confidence)}>
+                  {result.confidence}% sicher
+                </Badge>
+              </InfoTooltip>
               {result.plantNetVerified && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="text-[10px] border-yellow-500/40 flex items-center gap-1 cursor-help" style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.40)' }}>
-                      <ShieldCheck className="w-3 h-3" /> Doppelt verifiziert
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="max-w-[200px] text-xs">
-                    KI-Bestimmung und PlantNet-Datenbank stimmen überein. Höchste Zuverlässigkeit.
-                  </TooltipContent>
-                </Tooltip>
+                <InfoTooltip
+                  content="KI-Bestimmung und PlantNet-Datenbank stimmen überein. Höchste Zuverlässigkeit."
+                  side="bottom"
+                >
+                  <Badge variant="outline" className="text-[10px] border-yellow-500/40 flex items-center gap-1" style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.40)' }}>
+                    <ShieldCheck className="w-3 h-3" /> Doppelt verifiziert
+                  </Badge>
+                </InfoTooltip>
               )}
               {!result.plantNetVerified && result.taxonomyVerified && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1 cursor-help">
-                      <ShieldCheck className="w-3 h-3" /> DB-Verifiziert
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="max-w-[200px] text-xs">
-                    Art in der BlackwaterLeaf-Taxonomie-Datenbank verifiziert (POWO/FishBase).
-                  </TooltipContent>
-                </Tooltip>
+                <InfoTooltip
+                  content="Art in der BlackwaterLeaf-Taxonomie-Datenbank verifiziert (POWO/FishBase)."
+                  side="bottom"
+                >
+                  <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" /> DB-Verifiziert
+                  </Badge>
+                </InfoTooltip>
               )}
-              </TooltipProvider>
             </div>
           </div>
 
@@ -510,18 +502,14 @@ export default function PlantIdentify() {
           {/* PlantNet Alternativen */}
           {result.plantNetAlternatives && result.plantNetAlternatives.length > 0 && (
             <div className="rounded-lg p-3 space-y-1.5" style={{ background: 'rgba(45,155,110,0.06)', border: '1px solid rgba(45,155,110,0.20)' }}>
-              <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <p className="text-xs font-medium flex items-center gap-1.5 cursor-help w-fit" style={{ color: '#34D399' }}>
-                    <ShieldCheck className="w-3.5 h-3.5" /> PlantNet-Vergleich
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[220px] text-xs">
-                  PlantNet ist eine unabhängige Pflanzen-KI der Universität Montpellier. Die Scores zeigen wie sicher PlantNet die jeweilige Art erkennt.
-                </TooltipContent>
-              </Tooltip>
-              </TooltipProvider>
+              <InfoTooltip
+                content="PlantNet ist eine unabhängige Pflanzen-KI der Universität Montpellier. Die Scores zeigen wie sicher PlantNet die jeweilige Art erkennt."
+                side="top"
+              >
+                <p className="text-xs font-medium flex items-center gap-1.5 w-fit" style={{ color: '#34D399' }}>
+                  <ShieldCheck className="w-3.5 h-3.5" /> PlantNet-Vergleich
+                </p>
+              </InfoTooltip>
               {result.plantNetAlternatives.slice(0, 3).map((alt, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-xs italic" style={{ color: 'rgba(255,255,255,0.70)' }}>{alt.species}</span>
