@@ -135,7 +135,7 @@ export default function Discover() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(/manus-storage/hero-jungle_a77cc07f.jpg)`,
+            backgroundImage: `url(/manus-storage/hero-jungle_a3fa6bfc.jpg)`,
             backgroundSize: "cover",
             backgroundPosition: "center 30%",
             backgroundRepeat: "no-repeat",
@@ -174,8 +174,8 @@ export default function Discover() {
               <br />
               <span style={{ color: C.white }}>TEILEN.</span>
               <br />
-              {/* WACHSEN. in reinem Gold #D4AF37 */}
-              <span style={{ color: C.gold }}>
+              {/* WACHSEN. in reinem Gold #D4AF37 – KEIN Gradient, KEIN Mint */}
+              <span style={{ color: "#D4AF37", WebkitTextFillColor: "#D4AF37" }}>
                 WACHSEN.
               </span>
             </h1>
