@@ -1,8 +1,10 @@
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X, BookmarkPlus } from "lucide-react";
-import ImageUpload from "./ImageUpload";
+import {
+  Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X,
+  BookmarkPlus, Plus, BookOpen, ChevronRight, Camera,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,15 +16,32 @@ interface IdentifyResult {
   imageUrl: string;
   commonName: string;
   scientificName: string;
+  genus: string;
   confidence: number;
+  confidenceReason: string;
   category: string;
   summary: string;
   care: string;
   alternatives: string[];
+  knowledgeLink: string | null;
 }
 
+type ImageSlot = {
+  base64: string;
+  mimeType: string;
+  label: "blatt_oben" | "blatt_unten" | "stiel" | "gesamt" | "sonstig";
+  preview: string;
+};
+
+const SLOT_LABELS: { label: ImageSlot["label"]; name: string; hint: string }[] = [
+  { label: "gesamt", name: "Gesamtansicht", hint: "Ganze Pflanze" },
+  { label: "blatt_oben", name: "Blattoberseite", hint: "Obere Blattfläche" },
+  { label: "blatt_unten", name: "Blattunterseite", hint: "Untere Blattfläche" },
+  { label: "stiel", name: "Blattstiel", hint: "Stiel & Basis" },
+];
+
 const ANALYSIS_STEPS = [
-  "Bild wird geladen ...",
+  "Bilder werden geladen ...",
   "Analysiere Blattstruktur ...",
   "Erkenne Farb- und Texturmuster ...",
   "Vergleiche mit Pflanzendatenbank ...",
@@ -37,16 +56,50 @@ const CATEGORY_LABELS: Record<string, string> = {
   alocasia: "Alocasia",
   monstera: "Monstera",
   philodendron: "Philodendron",
+  channa: "Channa",
   other: "Sonstige",
 };
+
+const confidenceColor = (c: number) =>
+  c >= 75
+    ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
+    : c >= 45
+    ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+    : "text-rose-400 border-rose-500/30 bg-rose-500/10";
+
+// Compress image to max 900px, 80% quality
+const compressImage = (base64: string, mimeType: string): Promise<{ base64: string; mimeType: string }> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 900;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
+        else { width = Math.round((width * MAX) / height); height = MAX; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      resolve({ base64: dataUrl.split(",")[1], mimeType: "image/jpeg" });
+    };
+    img.onerror = () => resolve({ base64, mimeType });
+    img.src = `data:${mimeType};base64,${base64}`;
+  });
 
 export default function PlantIdentify() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
-  const [preview, setPreview] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<{ base64: string; mimeType: string } | null>(null);
+
+  // Multi-image slots
+  const [slots, setSlots] = useState<(ImageSlot | null)[]>([null, null, null, null]);
   const [result, setResult] = useState<IdentifyResult | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [correcting, setCorrecting] = useState(false);
+  const [correctionText, setCorrectionText] = useState("");
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
 
   const createPlantMutation = trpc.plants.create.useMutation({
     onSuccess: (data) => {
@@ -54,51 +107,18 @@ export default function PlantIdentify() {
       setIsSaving(false);
       setTimeout(() => navigate(`/plants/${data.id}`), 800);
     },
-    onError: (e) => {
-      toast.error(e.message || "Fehler beim Speichern");
-      setIsSaving(false);
-    },
+    onError: (e) => { toast.error(e.message || "Fehler beim Speichern"); setIsSaving(false); },
   });
-
-  const savePlant = () => {
-    if (!result) return;
-    setIsSaving(true);
-    createPlantMutation.mutate({
-      name: result.commonName,
-      scientificName: result.scientificName || undefined,
-      category: (result.category as any) || "other",
-      description: [result.summary, result.care].filter(Boolean).join("\n\n") || undefined,
-      coverImageBase64: imageData?.base64 || undefined,
-      coverImageMimeType: imageData?.mimeType || undefined,
-    });
-  };
 
   const identify = trpc.ai.identify.useMutation({
     onSuccess: (data) => {
-      console.log("[PlantIdentify] Success:", data);
       setResult(data as IdentifyResult);
     },
     onError: (e) => {
-      console.error("[PlantIdentify] Error:", e);
-      console.error("[PlantIdentify] Error message:", e.message);
-      console.error("[PlantIdentify] Error data:", e.data);
-      toast.error(`Bestimmung fehlgeschlagen: ${e.message || 'Unbekannter Fehler'}`);
+      toast.error(`Bestimmung fehlgeschlagen: ${e.message || "Unbekannter Fehler"}`);
     },
   });
 
-  const [stepIndex, setStepIndex] = useState(0);
-
-  // Cycle through analysis steps while pending
-  useEffect(() => {
-    if (!identify.isPending) { setStepIndex(0); return; }
-    const id = setInterval(() => {
-      setStepIndex(i => (i + 1) % ANALYSIS_STEPS.length);
-    }, 900);
-    return () => clearInterval(id);
-  }, [identify.isPending]);
-
-  const [correcting, setCorrecting] = useState(false);
-  const [correctionText, setCorrectionText] = useState("");
   const correctionMutation = trpc.ai.submitCorrection.useMutation({
     onSuccess: () => {
       toast.success("Danke! Deine Korrektur verbessert künftige Bestimmungen. (+8 XP)");
@@ -107,6 +127,63 @@ export default function PlantIdentify() {
     },
     onError: (e) => toast.error(e.message || "Korrektur fehlgeschlagen"),
   });
+
+  // Cycle through analysis steps while pending
+  useEffect(() => {
+    if (!identify.isPending) { setStepIndex(0); return; }
+    const id = setInterval(() => setStepIndex((i) => (i + 1) % ANALYSIS_STEPS.length), 900);
+    return () => clearInterval(id);
+  }, [identify.isPending]);
+
+  const handleFileChange = async (slotIdx: number, file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const raw = (e.target?.result as string).split(",")[1];
+      const compressed = await compressImage(raw, file.type);
+      const preview = `data:${compressed.mimeType};base64,${compressed.base64}`;
+      setSlots((prev) => {
+        const next = [...prev];
+        next[slotIdx] = {
+          base64: compressed.base64,
+          mimeType: compressed.mimeType,
+          label: SLOT_LABELS[slotIdx].label,
+          preview,
+        };
+        return next;
+      });
+      setResult(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeSlot = (slotIdx: number) => {
+    setSlots((prev) => { const next = [...prev]; next[slotIdx] = null; return next; });
+    setResult(null);
+  };
+
+  const filledSlots = slots.filter(Boolean) as ImageSlot[];
+
+  const runIdentify = () => {
+    if (filledSlots.length === 0) { toast.error("Bitte mindestens 1 Foto hochladen"); return; }
+    identify.mutate({
+      images: filledSlots.map((s) => ({ base64: s.base64, mimeType: s.mimeType, label: s.label })),
+    });
+  };
+
+  const savePlant = () => {
+    if (!result) return;
+    setIsSaving(true);
+    const firstSlot = filledSlots[0];
+    createPlantMutation.mutate({
+      name: result.commonName,
+      scientificName: result.scientificName || undefined,
+      category: (result.category as any) || "other",
+      description: [result.summary, result.care].filter(Boolean).join("\n\n") || undefined,
+      coverImageBase64: firstSlot?.base64 || undefined,
+      coverImageMimeType: firstSlot?.mimeType || undefined,
+    });
+  };
+
   const sendCorrection = () => {
     if (!result) return;
     if (correctionText.trim().length < 3) { toast.error("Bitte gib die korrekte Bestimmung ein"); return; }
@@ -118,57 +195,21 @@ export default function PlantIdentify() {
     });
   };
 
-  // Compress image to max 800px and 80% quality before sending to LLM
-  const compressImage = (base64: string, mimeType: string): Promise<{ base64: string; mimeType: string }> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 800;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
-          else { width = Math.round(width * MAX / height); height = MAX; }
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-        const compressed = dataUrl.split(",")[1];
-        console.log("[PlantIdentify] Compressed: original", base64.length, "→", compressed.length, "chars");
-        resolve({ base64: compressed, mimeType: "image/jpeg" });
-      };
-      img.onerror = () => resolve({ base64, mimeType });
-      img.src = `data:${mimeType};base64,${base64}`;
-    });
-  };
-
-  const handleChange = async (base64: string, mimeType: string) => {
-    console.log("[PlantIdentify] Image selected, base64 length:", base64.length, "mimeType:", mimeType);
-    const compressed = await compressImage(base64, mimeType);
-    setImageData(compressed);
-    setPreview(`data:${compressed.mimeType};base64,${compressed.base64}`);
-    setResult(null);
-  };
-
   const reset = () => {
-    setPreview(null);
-    setImageData(null);
+    setSlots([null, null, null, null]);
     setResult(null);
+    setCorrecting(false);
+    setCorrectionText("");
   };
-
-  const confidenceColor = (c: number) =>
-    c >= 75 ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10"
-      : c >= 45 ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
-        : "text-rose-400 border-rose-500/30 bg-rose-500/10";
 
   if (!isAuthenticated) {
     return (
       <div className="bg-card border border-border/50 rounded-xl p-8 text-center max-w-lg mx-auto">
         <ScanSearch className="w-10 h-10 text-primary mx-auto mb-3" />
         <p className="font-medium mb-1">Pflanzenbestimmung per Foto</p>
-        <p className="text-sm text-muted-foreground mb-4">Melde dich an, um Pflanzen und Aquarienbewohner per Foto bestimmen zu lassen.</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Melde dich an, um Pflanzen und Aquarienbewohner per Foto bestimmen zu lassen.
+        </p>
         <Button asChild className="press-active"><a href={getLoginUrl()}>Anmelden</a></Button>
       </div>
     );
@@ -176,111 +217,156 @@ export default function PlantIdentify() {
 
   return (
     <div className="max-w-lg mx-auto space-y-4">
+      {/* Header */}
       <div className="text-center">
         <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
           <ScanSearch className="w-7 h-7 text-primary" />
         </div>
         <h2 className="font-display font-semibold text-lg">Pflanzenbestimmung per Foto</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Mache ein Foto oder lade eines hoch – die KI bestimmt Pflanze oder Aquarienbewohner.
+          Lade bis zu 4 Fotos hoch – mehr Winkel bedeuten eine präzisere KI-Bestimmung.
         </p>
       </div>
 
-      <ImageUpload
-        value={preview}
-        onChange={handleChange}
-        onClear={reset}
-        aspectRatio="square"
-        placeholder="Pflanze fotografieren"
-      />
+      {/* Multi-image slots (2×2 grid) */}
+      <div className="grid grid-cols-2 gap-3">
+        {SLOT_LABELS.map((slot, idx) => {
+          const filled = slots[idx];
+          return (
+            <div key={slot.label} className="relative">
+              <input
+                ref={(el) => { fileInputRefs.current[idx] = el; }}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileChange(idx, file);
+                  e.target.value = "";
+                }}
+              />
+              {filled ? (
+                <div className="relative rounded-xl overflow-hidden aspect-square border border-primary/30">
+                  <img src={filled.preview} alt={slot.name} className="w-full h-full object-cover" />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
+                    <p className="text-[10px] text-white/80 truncate">{slot.name}</p>
+                  </div>
+                  <button
+                    onClick={() => removeSlot(idx)}
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center"
+                  >
+                    <X className="w-3.5 h-3.5 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => fileInputRefs.current[idx]?.click()}
+                  className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 transition-colors"
+                  style={{ background: "oklch(0.12 0.008 200)" }}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    {idx === 0 ? <Camera className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary/60" />}
+                  </div>
+                  <p className="text-[11px] font-medium" style={{ color: "oklch(0.65 0.008 200)" }}>{slot.name}</p>
+                  <p className="text-[10px]" style={{ color: "oklch(0.45 0.008 200)" }}>{slot.hint}</p>
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-      {imageData && !result && (
+      {/* Tip */}
+      <p className="text-xs text-center" style={{ color: "oklch(0.45 0.008 200)" }}>
+        Tipp: Blattoberseite + Unterseite = deutlich bessere Bestimmungsgenauigkeit
+      </p>
+
+      {/* Identify button or loading */}
+      {filledSlots.length > 0 && !result && (
         <>
           {identify.isPending ? (
-            /* ── Loading animation ── */
             <div className="rounded-xl border border-primary/20 bg-card overflow-hidden">
-              {/* Scan line over the preview */}
+              {/* Scan animation over first image */}
               <div className="relative">
                 <img
-                  src={preview!}
+                  src={filledSlots[0].preview}
                   alt="Analysiere"
                   className="w-full aspect-square object-cover opacity-60"
                 />
-                {/* Animated scan line */}
                 <div
                   className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent"
-                  style={{
-                    animation: "scanLine 1.4s ease-in-out infinite",
-                    top: 0,
-                  }}
+                  style={{ animation: "scanLine 1.4s ease-in-out infinite", top: 0 }}
                 />
-                {/* Corner brackets */}
-                <div className="absolute inset-4 border-2 border-primary/40 rounded-lg" style={{ boxShadow: "0 0 20px rgba(34,197,94,0.15)" }}>
+                <div className="absolute inset-4 border-2 border-primary/40 rounded-lg">
                   <div className="absolute -top-0.5 -left-0.5 w-5 h-5 border-t-2 border-l-2 border-primary rounded-tl" />
                   <div className="absolute -top-0.5 -right-0.5 w-5 h-5 border-t-2 border-r-2 border-primary rounded-tr" />
                   <div className="absolute -bottom-0.5 -left-0.5 w-5 h-5 border-b-2 border-l-2 border-primary rounded-bl" />
                   <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 border-b-2 border-r-2 border-primary rounded-br" />
                 </div>
-                {/* Center icon */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-14 h-14 rounded-full bg-black/60 border border-primary/40 flex items-center justify-center backdrop-blur-sm">
                     <ScanSearch className="w-7 h-7 text-primary animate-pulse" />
                   </div>
                 </div>
               </div>
-
-              {/* Status text + progress */}
               <div className="p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 text-primary animate-spin shrink-0" />
-                  <p
-                    key={stepIndex}
-                    className="text-sm font-medium text-primary"
-                    style={{ animation: "fadeInUp 0.35s ease-out" }}
-                  >
+                  <p key={stepIndex} className="text-sm font-medium text-primary" style={{ animation: "fadeInUp 0.35s ease-out" }}>
                     {ANALYSIS_STEPS[stepIndex]}
                   </p>
                 </div>
-                {/* Progress bar */}
                 <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
-                    style={{
-                      width: `${Math.round(((stepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%`,
-                      transition: "width 0.8s ease-out",
-                    }}
+                    style={{ width: `${Math.round(((stepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%`, transition: "width 0.8s ease-out" }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  KI analysiert dein Foto – bitte warten ...
+                  KI analysiert {filledSlots.length} Foto{filledSlots.length > 1 ? "s" : ""} – bitte warten ...
                 </p>
               </div>
             </div>
           ) : (
-            <Button
-              className="w-full press-active"
-              onClick={() => identify.mutate({ imageBase64: imageData.base64, imageMimeType: imageData.mimeType })}
-            >
-              <Sparkles className="w-4 h-4 mr-2" /> Jetzt bestimmen
+            <Button className="w-full press-active" onClick={runIdentify}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              {filledSlots.length > 1 ? `${filledSlots.length} Fotos bestimmen` : "Jetzt bestimmen"}
             </Button>
           )}
         </>
       )}
 
+      {/* Result card */}
       {result && (
         <div className="bg-card border border-border/50 rounded-xl p-5 animate-fade-in space-y-3">
+          {/* Name + confidence */}
           <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="font-display font-semibold text-lg flex items-center gap-2">
                 <Leaf className="w-5 h-5 text-primary" /> {result.commonName}
               </h3>
               <p className="text-sm text-muted-foreground italic">{result.scientificName}</p>
+              {result.genus && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Gattung: <span className="font-medium text-foreground">{result.genus}</span>
+                </p>
+              )}
             </div>
-            <Badge variant="outline" className={confidenceColor(result.confidence)}>
-              {result.confidence}% sicher
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge variant="outline" className={confidenceColor(result.confidence)}>
+                {result.confidence}% sicher
+              </Badge>
+            </div>
           </div>
 
+          {/* Confidence reason (C4) */}
+          {result.confidenceReason && (
+            <p className="text-xs text-muted-foreground italic border-l-2 border-primary/30 pl-2">
+              {result.confidenceReason}
+            </p>
+          )}
+
+          {/* Category badge */}
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-xs">
               {CATEGORY_LABELS[result.category] ?? result.category}
@@ -296,6 +382,7 @@ export default function PlantIdentify() {
             </div>
           )}
 
+          {/* Alternatives */}
           {result.alternatives.length > 0 && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1.5">Mögliche Alternativen</p>
@@ -307,13 +394,29 @@ export default function PlantIdentify() {
             </div>
           )}
 
+          {/* C3: Taxonomie-Link / Knowledge-Link */}
+          {result.knowledgeLink && (
+            <a
+              href={result.knowledgeLink}
+              className="flex items-center gap-2 rounded-lg p-3 transition-colors"
+              style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+            >
+              <BookOpen className="w-4 h-4 shrink-0" style={{ color: "oklch(0.65 0.16 148)" }} />
+              <span className="text-sm flex-1" style={{ color: "oklch(0.75 0.008 200)" }}>
+                Wissensartikel zu <strong>{result.genus || result.commonName}</strong> lesen
+              </span>
+              <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "oklch(0.50 0.008 200)" }} />
+            </a>
+          )}
+
           <p className="text-xs text-muted-foreground pt-1">
             Hinweis: KI-Bestimmungen sind eine Orientierung und können Fehler enthalten.
           </p>
 
+          {/* Correction */}
           {correcting ? (
             <div className="rounded-lg bg-secondary/40 border border-border/40 p-3">
-              <p className="text-xs text-muted-foreground mb-1.5">Liegt die KI falsch? Gib die korrekte Bestimmung/Info an:</p>
+              <p className="text-xs text-muted-foreground mb-1.5">Liegt die KI falsch? Gib die korrekte Bestimmung an:</p>
               <Textarea
                 value={correctionText}
                 onChange={(e) => setCorrectionText(e.target.value)}
@@ -330,7 +433,10 @@ export default function PlantIdentify() {
               </div>
             </div>
           ) : (
-            <button onClick={() => setCorrecting(true)} className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors">
+            <button
+              onClick={() => setCorrecting(true)}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors"
+            >
               <Flag className="w-3 h-3" /> Bestimmung korrigieren
             </button>
           )}

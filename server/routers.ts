@@ -987,34 +987,76 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
 
   identify: protectedProcedure
     .input(z.object({
+      // Single-image (legacy, still supported)
       imageBase64: z.string().optional(),
       imageMimeType: z.string().optional(),
       imageUrl: z.string().optional(),
+      // Multi-image: up to 4 images with optional labels
+      images: z.array(z.object({
+        base64: z.string(),
+        mimeType: z.string(),
+        label: z.enum(["blatt_oben", "blatt_unten", "stiel", "gesamt", "sonstig"]).optional(),
+      })).max(4).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // Build the image URL for the LLM.
-      // The LLM API requires a publicly accessible URL or a base64 data URL.
-      // We pass base64 directly as a data URL to avoid S3 URL accessibility issues.
-      let imageUrl = input.imageUrl;
-      if (!imageUrl && input.imageBase64 && input.imageMimeType) {
-        // Use base64 data URL directly – works with vision models without needing public S3 URL
-        imageUrl = `data:${input.imageMimeType};base64,${input.imageBase64}`;
-        console.log("[AI.identify] Using base64 data URL, length:", imageUrl.length);
-      }
-      if (!imageUrl) throw new Error("Kein Bild übergeben");
+      // Build image content blocks for the LLM.
+      // Supports both single-image (legacy) and multi-image (new) mode.
+      const imageBlocks: { type: "image_url"; image_url: { url: string; detail: "high" } }[] = [];
 
-      const systemPrompt = `Du bist ein botanischer und aquaristischer Bestimmungsexperte für BlackwaterLeaf. Analysiere das gezeigte Foto einer Pflanze oder eines Aquarienbewohners und bestimme es so genau wie möglich. Antworte ausschließlich auf Deutsch.${await getCommunityFactsBlock("")}`;
-      const userPrompt = `Bestimme die abgebildete Pflanze/den Organismus. Gib ein JSON-Objekt zurück mit den Feldern: commonName (deutscher Name), scientificName (wissenschaftlicher Name oder "unsicher"), confidence (0-100 als Zahl), category (eines von: aquatic, tropical, alocasia, monstera, philodendron, other), summary (1-2 Sätze), care (kurzer Pflegehinweis: Licht, Wasser, Schwierigkeit), alternatives (Array möglicher Alternativen als Strings).`;
+      // Multi-image mode
+      if (input.images && input.images.length > 0) {
+        const LABEL_NAMES: Record<string, string> = {
+          blatt_oben: "Blattoberseite",
+          blatt_unten: "Blattunterseite",
+          stiel: "Blattstiel",
+          gesamt: "Gesamtansicht",
+          sonstig: "Weiteres Foto",
+        };
+        for (const img of input.images) {
+          const dataUrl = `data:${img.mimeType};base64,${img.base64}`;
+          imageBlocks.push({ type: "image_url", image_url: { url: dataUrl, detail: "high" } });
+          console.log(`[AI.identify] Multi-image: ${img.label ?? "sonstig"}, length:`, dataUrl.length);
+        }
+        console.log(`[AI.identify] Total images: ${imageBlocks.length}`);
+      } else {
+        // Legacy single-image
+        let imageUrl = input.imageUrl;
+        if (!imageUrl && input.imageBase64 && input.imageMimeType) {
+          imageUrl = `data:${input.imageMimeType};base64,${input.imageBase64}`;
+          console.log("[AI.identify] Using base64 data URL, length:", imageUrl.length);
+        }
+        if (!imageUrl) throw new Error("Kein Bild übergeben");
+        imageBlocks.push({ type: "image_url", image_url: { url: imageUrl, detail: "high" } });
+      }
+
+      // C1: Bias-Fix – expliziter Anti-Bias-Block im System-Prompt
+      const systemPrompt = `Du bist ein botanischer und aquaristischer Bestimmungsexperte für BlackwaterLeaf. Analysiere die gezeigten Fotos einer Pflanze oder eines Aquarienbewohners und bestimme sie so genau wie möglich. Antworte ausschließlich auf Deutsch.
+
+WICHTIGE REGELN FÜR KORREKTE BESTIMMUNG (Anti-Bias):
+- Gib NIEMALS automatisch "Varigata" oder "Variegata" als Ergebnis an, wenn keine eindeutigen Panaschierungsmerkmale (weiße/cremefarbene Flecken oder Streifen) sichtbar sind.
+- Gib NIEMALS "Fredek" als Ergebnis an, wenn keine eindeutigen Fredek-Merkmale (silbrig-grüne Flecken auf dunklem Hintergrund) sichtbar sind.
+- Prüfe IMMER mindestens 3 alternative Arten, bevor du eine endgültige Bestimmung gibst.
+- Wenn mehrere Fotos vorliegen, nutze ALLE Fotos gemeinsam für die Bestimmung (Blattoberseite, -unterseite, Stiel, Gesamtansicht).
+- Sei ehrlich über Unsicherheiten: Wenn confidence < 60, erkläre kurz warum.
+- Nenne den Gattungsnamen (genus) immer separat.
+${await getCommunityFactsBlock("")}`;
+
+      const multiImageNote = imageBlocks.length > 1
+        ? `Es wurden ${imageBlocks.length} Fotos hochgeladen. Nutze alle Fotos gemeinsam für eine präzisere Bestimmung.`
+        : "";
+
+      const userPrompt = `${multiImageNote}\nBestimme die abgebildete Pflanze/den Organismus. Gib ein JSON-Objekt zurück mit den Feldern:\n- commonName (deutscher Name)\n- scientificName (vollständiger wissenschaftlicher Name oder "unsicher")\n- genus (nur die Gattung, z.B. "Alocasia", "Channa", "Anubias" – oder "" wenn unbekannt)\n- confidence (0-100 als Zahl – sei realistisch, nicht übertrieben)\n- confidenceReason (1 Satz warum dieser Konfidenz-Wert, z.B. welche Merkmale eindeutig/unklar sind)\n- category (eines von: aquatic, tropical, alocasia, monstera, philodendron, channa, other)\n- summary (2-3 Sätze Beschreibung der Art)\n- care (kurzer Pflegehinweis: Licht, Wasser, Schwierigkeit)\n- alternatives (Array von 2-4 möglichen Alternativen als Strings – IMMER befüllen)`;
 
       try {
-        console.log("[AI.identify] Calling LLM with image URL:", imageUrl);
+        const userContent: any[] = [
+          { type: "text", text: userPrompt },
+          ...imageBlocks,
+        ];
+        console.log("[AI.identify] Calling LLM with", imageBlocks.length, "image(s)");
         const response = await invokeLLM({
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: [
-              { type: "text", text: userPrompt },
-              { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
-            ] },
+            { role: "user", content: userContent },
           ],
           responseFormat: { type: "json_object" },
         });
@@ -1030,15 +1072,36 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
         }
         console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
         try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
+
+        // C3: Automatische Inhalts-Verknüpfung – genus-basiert in Knowledge-Artikeln suchen
+        const genus = typeof parsed.genus === "string" && parsed.genus.trim() ? parsed.genus.trim() : null;
+        let relatedKnowledgeSlug: string | null = null;
+        if (genus) {
+          try {
+            const db = await getDb();
+            if (db) {
+              const rows = await db.select({ slug: knowledgeArticles.slug })
+                .from(knowledgeArticles)
+                .where(eq(knowledgeArticles.genus, genus))
+                .limit(1);
+              relatedKnowledgeSlug = rows[0]?.slug ?? null;
+            }
+          } catch { /* non-critical */ }
+        }
+
         return {
-        imageUrl,
+          imageUrl: imageBlocks[0]?.image_url?.url ?? "",
           commonName: typeof parsed.commonName === "string" ? parsed.commonName : "Unbekannt",
           scientificName: typeof parsed.scientificName === "string" ? parsed.scientificName : "unsicher",
-          confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
+          genus: genus ?? "",
+          confidence: typeof parsed.confidence === "number" ? Math.min(100, Math.max(0, parsed.confidence)) : 0,
+          confidenceReason: typeof parsed.confidenceReason === "string" ? parsed.confidenceReason : "",
           category: typeof parsed.category === "string" ? parsed.category : "other",
           summary: typeof parsed.summary === "string" ? parsed.summary : "",
           care: typeof parsed.care === "string" ? parsed.care : "",
-          alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String) : [],
+          alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String).slice(0, 4) : [],
+          // C3: Taxonomie-Link
+          knowledgeLink: relatedKnowledgeSlug ? `/knowledge/${relatedKnowledgeSlug}` : (genus ? `/knowledge?genus=${encodeURIComponent(genus)}` : null),
         };
       } catch (llmError) {
         console.error("[AI.identify] LLM error:", llmError);
