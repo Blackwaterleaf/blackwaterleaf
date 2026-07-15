@@ -276,3 +276,37 @@
 - [x] System-Prompt überarbeitet: Spezifische Blacklist-Regeln (Fredek Varigata, Dragon's Tooth), POWO/FishBase-Referenz
 - [x] TypeScript 0 Fehler, 41 Tests grün
 - [x] Checkpoint gespeichert
+
+## Phase AA: KI-Bestimmung Fix – Phase 2
+
+### Aufgabe 1: Multi-Image-Upload
+- [ ] UI: 4 Upload-Slots (2x2 Grid Mobile) mit Labels (Blattoberseite, Blattunterseite, Stiel, Gesamtpflanze)
+- [ ] Slot 1 = Pflicht (grüner Rahmen), Slots 2-4 = optional (gestrichelter Rahmen)
+- [ ] Thumbnail-Preview nach Upload in jedem Slot
+- [ ] Bestimmen-Button erst aktiv wenn mind. 1 Bild hochgeladen
+- [ ] Backend: Confidence-Bonus +3 pro zusätzlichem Bild (max +9)
+- [ ] Badge "Foto-Profi" wenn alle 4 Perspektiven hochgeladen
+
+### Aufgabe 2: PlantNet API Integration
+- [ ] PlantNet API-Key als Secret (PLANTNET_API_KEY) einrichten
+- [ ] Backend: validateWithPlantNet() Funktion (parallel zu LLM)
+- [ ] Validierungs-Logik: gleich (+25), ähnlich (+10), unterschiedlich (-20)
+- [ ] Fallback wenn PlantNet nicht erreichbar
+
+### Aufgabe 3: GBIF Referenzbilder
+- [ ] Backend: getVerificationImages() via GBIF API (CC-BY/CC0 gefiltert)
+- [ ] UI: Vergleichsbilder-Sektion nach Bestimmung (3-5 Fotos)
+- [ ] Buttons: "Ja, stimmt!" / "Nein, sieht anders aus"
+
+### Aufgabe 4: Feedback-Loop
+- [ ] DB-Schema: verified_identifications + identification_corrections Tabellen
+- [ ] Backend: confirmIdentification() + correctIdentification() Procedures
+- [ ] Auto-Übernahme in Community-Fakten bei 3+ gleichen Korrekturen
+
+### Aufgabe 5: Ergebnis-UI Redesign
+- [ ] Glassmorphism-Card mit Score-Farben (Gold >80%, Emerald 60-79%, neutral <60%)
+- [ ] Erkannte Merkmale als Mint-Bullets
+- [ ] Vergleichsbilder-Sektion (GBIF)
+- [ ] Feedback-Buttons "Stimmt das? Ja / Nein"
+- [ ] Alternativen mit Prozentanzeige
+- [ ] Link zu /botanik/:genus/:art

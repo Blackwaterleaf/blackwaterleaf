@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   Loader2, ScanSearch, Sparkles, RotateCcw, Leaf, Flag, Check, X,
-  BookmarkPlus, Plus, BookOpen, ChevronRight, Camera,
+  BookmarkPlus, Plus, BookOpen, ChevronRight, Camera, ShieldCheck, AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,16 @@ interface IdentifyResult {
   care: string;
   alternatives: string[];
   knowledgeLink: string | null;
+  // Phase 1: Validierungs-Metadaten
+  taxonomyVerified?: boolean;
+  blacklistWarning?: string | null;
+  blacklistAlternative?: string | null;
+  taxonomyNote?: string | null;
+  // Phase 2: PlantNet + GBIF
+  plantNetVerified?: boolean;
+  plantNetMatch?: boolean;
+  referenceImages?: string[];
+  keyFeatures?: string[];
 }
 
 type ImageSlot = {
@@ -246,11 +256,18 @@ export default function PlantIdentify() {
                 }}
               />
               {filled ? (
-                <div className="relative rounded-xl overflow-hidden aspect-square border border-primary/30">
+                <div
+                  className="relative rounded-xl overflow-hidden aspect-square"
+                  style={{ border: idx === 0 ? "2px solid #2D9B6E" : "1px solid rgba(45,155,110,0.30)" }}
+                >
                   <img src={filled.preview} alt={slot.name} className="w-full h-full object-cover" />
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
                     <p className="text-[10px] text-white/80 truncate">{slot.name}</p>
                   </div>
+                  {/* Pflicht-Badge */}
+                  {idx === 0 && (
+                    <div className="absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold" style={{ background: "#2D9B6E", color: "#070A08" }}>PFLICHT</div>
+                  )}
                   <button
                     onClick={() => removeSlot(idx)}
                     className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center"
@@ -261,14 +278,21 @@ export default function PlantIdentify() {
               ) : (
                 <button
                   onClick={() => fileInputRefs.current[idx]?.click()}
-                  className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 transition-colors"
-                  style={{ background: "#0D110E" }}
+                  className="w-full aspect-square rounded-xl flex flex-col items-center justify-center gap-1.5 transition-colors"
+                  style={{
+                    background: "#0D110E",
+                    border: idx === 0
+                      ? "2px solid #2D9B6E"
+                      : "2px dashed rgba(255,255,255,0.15)",
+                  }}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    {idx === 0 ? <Camera className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary/60" />}
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: idx === 0 ? "rgba(45,155,110,0.20)" : "rgba(45,155,110,0.08)" }}>
+                    {idx === 0 ? <Camera className="w-4 h-4" style={{ color: "#2D9B6E" }} /> : <Plus className="w-4 h-4" style={{ color: "rgba(45,155,110,0.50)" }} />}
                   </div>
-                  <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>{slot.name}</p>
-                  <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)" }}>{slot.hint}</p>
+                  <p className="text-[11px] font-medium" style={{ color: idx === 0 ? "rgba(255,255,255,0.80)" : "rgba(255,255,255,0.55)" }}>{slot.name}</p>
+                  <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    {idx === 0 ? "Pflicht" : slot.hint}
+                  </p>
                 </button>
               )}
             </div>
@@ -336,9 +360,36 @@ export default function PlantIdentify() {
         </>
       )}
 
+      {/* Foto-Profi Hinweis wenn alle 4 Slots gefüllt */}
+      {filledSlots.length === 4 && !result && !identify.isPending && (
+        <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.30)" }}>
+          <span style={{ fontSize: 18 }}>🏆</span>
+          <div>
+            <p className="text-xs font-bold" style={{ color: "#D4AF37" }}>Foto-Profi-Modus aktiv!</p>
+            <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.60)" }}>4 Perspektiven = maximale Bestimmungsgenauigkeit (+9 Bonus)</p>
+          </div>
+        </div>
+      )}
+
       {/* Result card */}
       {result && (
-        <div className="bg-card border border-border/50 rounded-xl p-5 animate-fade-in space-y-3">
+        <div
+          className="rounded-xl p-5 animate-fade-in space-y-3"
+          style={{
+            background: "rgba(13,17,14,0.95)",
+            backdropFilter: "blur(12px)",
+            border: result.confidence >= 80
+              ? "1.5px solid rgba(212,175,55,0.60)"
+              : result.confidence >= 60
+              ? "1.5px solid rgba(45,155,110,0.50)"
+              : "1px solid rgba(255,255,255,0.12)",
+            boxShadow: result.confidence >= 80
+              ? "0 0 24px rgba(212,175,55,0.12)"
+              : result.confidence >= 60
+              ? "0 0 20px rgba(45,155,110,0.10)"
+              : "none",
+          }}
+        >
           {/* Name + confidence */}
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -356,8 +407,24 @@ export default function PlantIdentify() {
               <Badge variant="outline" className={confidenceColor(result.confidence)}>
                 {result.confidence}% sicher
               </Badge>
+              {result.taxonomyVerified && (
+                <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" /> Verifiziert
+                </Badge>
+              )}
             </div>
           </div>
+
+          {/* Blacklist-Warnung */}
+          {result.blacklistWarning && (
+            <div className="rounded-lg p-3 flex items-start gap-2" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.30)" }}>
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#f87171" }} />
+              <div>
+                <p className="text-xs font-medium" style={{ color: "#f87171" }}>Bekannte KI-Halluzination erkannt</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.65)" }}>{result.blacklistWarning}</p>
+              </div>
+            </div>
+          )}
 
           {/* Confidence reason (C4) */}
           {result.confidenceReason && (

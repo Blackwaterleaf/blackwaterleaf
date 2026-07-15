@@ -825,18 +825,23 @@ async function checkTaxonomyWhitelist(scientificName: string, genus: string): Pr
 }
 
 /**
- * Berechnet den validierten Confidence-Score nach Phase-1-Algorithmus:
+ * Berechnet den validierten Confidence-Score nach Phase-1/2-Algorithmus:
  * - LLM-Score als Basis
  * - +15 wenn exakter Whitelist-Match
  * - +5 wenn Genus-Match (aber kein exakter Artname)
  * - -30 wenn KEIN Genus-Match in Datenbank (unbekannte Gattung)
+ * - +3 pro zusätzlichem Bild (max +9 bei 4 Bildern) [Phase 2]
  * - Max 95 wenn kein exakter Match (Unsicherheitspuffer)
  */
 function calculateValidatedConfidence(
   llmScore: number,
   whitelistResult: { found: boolean; exactMatch: boolean } | null,
+  imageCount: number = 1,
 ): number {
   let score = Math.min(100, Math.max(0, llmScore));
+  // Phase 2: Bildanzahl-Bonus (+3 pro zusätzlichem Bild, max +9)
+  const imageBonus = Math.min(9, (imageCount - 1) * 3);
+  score = Math.min(100, score + imageBonus);
   if (!whitelistResult) return score; // DB nicht verfügbar
   if (whitelistResult.exactMatch) {
     score = Math.min(100, score + 15);
@@ -1185,7 +1190,14 @@ ${await getCommunityFactsBlock("")}`;
           if (m) { try { parsed = JSON.parse(m[0]); } catch { parsed = {}; } }
         }
         console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
-        try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
+        try {
+          await awardXp(ctx.user.id, 10);
+          await grantBadge(ctx.user.id, "plant_detective");
+          // Phase 2: Foto-Profi-Badge bei 4 Bildern
+          if (imageBlocks.length >= 4) {
+            await grantBadge(ctx.user.id, "photo_pro");
+          }
+        } catch {}
 
         // ─── Phase 1: Post-Processing Validierung ─────────────────────────────
         const genus = typeof parsed.genus === "string" && parsed.genus.trim() ? parsed.genus.trim() : null;
@@ -1226,8 +1238,9 @@ ${await getCommunityFactsBlock("")}`;
           }
         }
 
-        // 3. Confidence-Score validieren
-        const finalConfidence = calculateValidatedConfidence(rawConfidence, whitelistResult);
+        // 3. Confidence-Score validieren (mit Bildanzahl-Bonus)
+        const imageCount = imageBlocks.length;
+        const finalConfidence = calculateValidatedConfidence(rawConfidence, whitelistResult, imageCount);
         const confidenceAdjusted = finalConfidence !== rawConfidence;
         const confidenceReason = typeof parsed.confidenceReason === "string" ? parsed.confidenceReason : "";
         const finalConfidenceReason = confidenceAdjusted
