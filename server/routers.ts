@@ -858,6 +858,65 @@ function calculateValidatedConfidence(
   return Math.max(0, score);
 }
 
+/**
+ * PlantNet API Validierung (Phase 2).
+ * Sendet das erste Bild an PlantNet und vergleicht das Ergebnis mit dem LLM-Ergebnis.
+ * Gibt PlantNetResult oder null bei Fehler/nicht verfügbar zurück.
+ */
+interface PlantNetResult {
+  topSpecies: string;
+  topScore: number;
+  sameGenus: boolean;
+  exactMatch: boolean;
+  alternatives: Array<{ species: string; score: number; commonNames: string[] }>;
+}
+
+async function validateWithPlantNet(
+  imageBase64: string,
+  mimeType: string,
+  llmGenus: string,
+  llmScientificName: string,
+): Promise<PlantNetResult | null> {
+  const key = process.env.PLANTNET_API_KEY;
+  if (!key) { console.log('[PlantNet] No API key'); return null; }
+  try {
+    const imgBuffer = Buffer.from(imageBase64, 'base64');
+    const imgBlob = new Blob([imgBuffer], { type: mimeType || 'image/jpeg' });
+    const formData = new FormData();
+    formData.append('images', imgBlob, 'plant.jpg');
+    formData.append('organs', 'leaf');
+    const response = await fetch(
+      `https://my-api.plantnet.org/v2/identify/all?api-key=${key}&lang=de&nb-results=5`,
+      { method: 'POST', body: formData }
+    );
+    if (!response.ok) {
+      console.log('[PlantNet] API error:', response.status, await response.text().catch(() => ''));
+      return null;
+    }
+    const data = await response.json() as any;
+    if (!data.results || data.results.length === 0) return null;
+    const top = data.results[0];
+    const topSpecies: string = top.species?.scientificNameWithoutAuthor ?? '';
+    const topScore: number = Math.round((top.score ?? 0) * 100);
+    const topGenus = topSpecies.split(' ')[0]?.toLowerCase() ?? '';
+    const llmGenusNorm = llmGenus.toLowerCase();
+    const llmNameNorm = normalizeSpeciesName(llmScientificName);
+    const topNorm = normalizeSpeciesName(topSpecies);
+    const sameGenus = topGenus === llmGenusNorm;
+    const exactMatch = topNorm === llmNameNorm || topNorm.startsWith(llmNameNorm) || llmNameNorm.startsWith(topNorm);
+    const alternatives = (data.results as any[]).slice(0, 5).map((r: any) => ({
+      species: r.species?.scientificNameWithoutAuthor ?? '',
+      score: Math.round((r.score ?? 0) * 100),
+      commonNames: (r.species?.commonNames ?? []).slice(0, 2),
+    }));
+    console.log(`[PlantNet] Top: ${topSpecies} (${topScore}%), LLM: ${llmScientificName}, sameGenus: ${sameGenus}, exactMatch: ${exactMatch}`);
+    return { topSpecies, topScore, sameGenus, exactMatch, alternatives };
+  } catch (e) {
+    console.error('[PlantNet] Error:', e instanceof Error ? e.message : String(e));
+    return null;
+  }
+}
+
 async function getCommunityFactsBlock(query: string): Promise<string> {
   const db = await getDb();
   if (!db) return "";
@@ -1247,6 +1306,41 @@ ${await getCommunityFactsBlock("")}`;
           ? `${confidenceReason}${taxonomyNote ? ` [${taxonomyNote}]` : ''}`
           : confidenceReason;
 
+        // ─── Phase 2: PlantNet Validierung (parallel, non-blocking) ─────────────
+        let plantNetResult: PlantNetResult | null = null;
+        let plantNetConfidenceBonus = 0;
+        let plantNetVerified = false;
+        let plantNetNote: string | null = null;
+        const firstImage = input.images?.[0] ?? null;
+        if (firstImage && firstImage.base64) {
+          try {
+            plantNetResult = await validateWithPlantNet(
+              firstImage.base64,
+              firstImage.mimeType,
+              genus ?? '',
+              finalScientificName,
+            );
+          } catch { /* non-critical fallback */ }
+        }
+        if (plantNetResult) {
+          if (plantNetResult.exactMatch) {
+            plantNetConfidenceBonus = 25;
+            plantNetVerified = true;
+            plantNetNote = `Doppelt verifiziert: PlantNet bestätigt ${plantNetResult.topSpecies} (${plantNetResult.topScore}%)`;
+          } else if (plantNetResult.sameGenus) {
+            plantNetConfidenceBonus = 10;
+            plantNetNote = `Gattung bestätigt. PlantNet-Vorschlag: ${plantNetResult.topSpecies} (${plantNetResult.topScore}%)`;
+          } else {
+            plantNetConfidenceBonus = -20;
+            plantNetNote = `Unsicher – PlantNet sieht ${plantNetResult.topSpecies} (${plantNetResult.topScore}%). Bitte weitere Bilder hochladen.`;
+          }
+        }
+        const plantNetAdjustedConfidence = Math.max(0, Math.min(100, finalConfidence + plantNetConfidenceBonus));
+        const totalConfidence = plantNetResult ? plantNetAdjustedConfidence : finalConfidence;
+        const totalConfidenceReason = plantNetNote
+          ? `${finalConfidenceReason} | ${plantNetNote}`
+          : finalConfidenceReason;
+
         // C3: Automatische Inhalts-Verknüpfung – genus-basiert in Knowledge-Artikeln suchen
         let relatedKnowledgeSlug: string | null = null;
         if (genus) {
@@ -1267,17 +1361,23 @@ ${await getCommunityFactsBlock("")}`;
           commonName: finalCommonName,
           scientificName: finalScientificName,
           genus: genus ?? "",
-          confidence: finalConfidence,
-          confidenceReason: finalConfidenceReason,
+          confidence: totalConfidence,
+          confidenceReason: totalConfidenceReason,
           category: typeof parsed.category === "string" ? parsed.category : "other",
           summary: typeof parsed.summary === "string" ? parsed.summary : "",
           care: typeof parsed.care === "string" ? parsed.care : "",
           alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String).slice(0, 4) : [],
           // Phase 1: Validierungs-Metadaten
-          taxonomyVerified: whitelistResult?.exactMatch ?? false,
+          taxonomyVerified: (whitelistResult?.exactMatch ?? false) || plantNetVerified,
           blacklistWarning,
           blacklistAlternative,
           taxonomyNote,
+          // Phase 2: PlantNet
+          plantNetVerified,
+          plantNetMatch: plantNetResult?.exactMatch ?? false,
+          plantNetTopSpecies: plantNetResult?.topSpecies ?? null,
+          plantNetTopScore: plantNetResult?.topScore ?? null,
+          plantNetAlternatives: plantNetResult?.alternatives ?? [],
           // C3: Taxonomie-Link
           knowledgeLink: relatedKnowledgeSlug ? `/knowledge/${relatedKnowledgeSlug}` : (genus ? `/knowledge?genus=${encodeURIComponent(genus)}` : null),
         };

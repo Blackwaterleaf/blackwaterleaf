@@ -32,6 +32,9 @@ interface IdentifyResult {
   // Phase 2: PlantNet + GBIF
   plantNetVerified?: boolean;
   plantNetMatch?: boolean;
+  plantNetTopSpecies?: string | null;
+  plantNetTopScore?: number | null;
+  plantNetAlternatives?: Array<{ species: string; score: number; commonNames: string[] }>;
   referenceImages?: string[];
   keyFeatures?: string[];
 }
@@ -407,9 +410,14 @@ export default function PlantIdentify() {
               <Badge variant="outline" className={confidenceColor(result.confidence)}>
                 {result.confidence}% sicher
               </Badge>
-              {result.taxonomyVerified && (
+              {result.plantNetVerified && (
+                <Badge variant="outline" className="text-[10px] border-yellow-500/40 flex items-center gap-1" style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.40)' }}>
+                  <ShieldCheck className="w-3 h-3" /> Doppelt verifiziert
+                </Badge>
+              )}
+              {!result.plantNetVerified && result.taxonomyVerified && (
                 <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> Verifiziert
+                  <ShieldCheck className="w-3 h-3" /> DB-Verifiziert
                 </Badge>
               )}
             </div>
@@ -452,12 +460,27 @@ export default function PlantIdentify() {
           {/* Alternatives */}
           {result.alternatives.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1.5">Mögliche Alternativen</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Mögliche Alternativen (KI)</p>
               <div className="flex flex-wrap gap-1.5">
                 {result.alternatives.map((alt, i) => (
                   <Badge key={i} variant="outline" className="text-xs border-border/50">{alt}</Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* PlantNet Alternativen */}
+          {result.plantNetAlternatives && result.plantNetAlternatives.length > 0 && (
+            <div className="rounded-lg p-3 space-y-1.5" style={{ background: 'rgba(45,155,110,0.06)', border: '1px solid rgba(45,155,110,0.20)' }}>
+              <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: '#34D399' }}>
+                <ShieldCheck className="w-3.5 h-3.5" /> PlantNet-Vergleich
+              </p>
+              {result.plantNetAlternatives.slice(0, 3).map((alt, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className="text-xs italic" style={{ color: 'rgba(255,255,255,0.70)' }}>{alt.species}</span>
+                  <span className="text-[11px] font-medium" style={{ color: alt.score >= 60 ? '#34D399' : 'rgba(255,255,255,0.45)' }}>{alt.score}%</span>
+                </div>
+              ))}
             </div>
           )}
 

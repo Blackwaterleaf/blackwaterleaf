@@ -6,7 +6,9 @@ INSERT INTO badges (code, name, description, icon, tier) VALUES
 ('plant_expert', 'Pflanzenexperte', 'Umfangreiches Wissen rund um Pflanzen bewiesen.', 'leaf', 'gold'),
 ('aquatic_pro', 'Aquaristik-Profi', 'Erfahrung in der Aquarienhaltung gesammelt.', 'droplets', 'gold'),
 ('helpful_member', 'Hilfreiches Mitglied', 'Anderen mit Rat und Tat geholfen.', 'heart-handshake', 'silver'),
-('top_photographer', 'Top Fotograf', 'Beeindruckende Fotos mit der Community geteilt.', 'camera', 'special')
+('top_photographer', 'Top Fotograf', 'Beeindruckende Fotos mit der Community geteilt.', 'camera', 'special'),
+('photo_pro', 'Foto-Profi', 'Alle 4 Perspektiven für eine Pflanzenbestimmung hochgeladen.', 'camera', 'silver'),
+('fact_checker', 'Fakten-Checker', 'Eine KI-Bestimmung erfolgreich korrigiert.', 'shield-check', 'bronze')
 ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), icon = VALUES(icon), tier = VALUES(tier);
 
 -- Active weekly challenge

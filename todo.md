@@ -284,14 +284,14 @@
 - [ ] Slot 1 = Pflicht (grüner Rahmen), Slots 2-4 = optional (gestrichelter Rahmen)
 - [ ] Thumbnail-Preview nach Upload in jedem Slot
 - [ ] Bestimmen-Button erst aktiv wenn mind. 1 Bild hochgeladen
-- [ ] Backend: Confidence-Bonus +3 pro zusätzlichem Bild (max +9)
-- [ ] Badge "Foto-Profi" wenn alle 4 Perspektiven hochgeladen
+- [x] Backend: Confidence-Bonus +3 pro zusätzlichem Bild (max +9)
+- [x] Badge "Foto-Profi" wenn alle 4 Perspektiven hochgeladen
 
 ### Aufgabe 2: PlantNet API Integration
-- [ ] PlantNet API-Key als Secret (PLANTNET_API_KEY) einrichten
-- [ ] Backend: validateWithPlantNet() Funktion (parallel zu LLM)
-- [ ] Validierungs-Logik: gleich (+25), ähnlich (+10), unterschiedlich (-20)
-- [ ] Fallback wenn PlantNet nicht erreichbar
+- [x] PlantNet API-Key als Secret (PLANTNET_API_KEY) einrichten
+- [x] Backend: validateWithPlantNet() Funktion (parallel zu LLM)
+- [x] Validierungs-Logik: gleich (+25), ähnlich (+10), unterschiedlich (-20)
+- [x] Fallback wenn PlantNet nicht erreichbar
 
 ### Aufgabe 3: GBIF Referenzbilder
 - [ ] Backend: getVerificationImages() via GBIF API (CC-BY/CC0 gefiltert)
