@@ -163,60 +163,39 @@ export default function AiAssistant() {
       />
       {/* ── Header ── */}
       <div
-        className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
+        className="px-4 pt-4 pb-3 flex-shrink-0"
         style={{
-          background: "oklch(0.10 0.008 200 / 0.95)",
-          borderBottom: "1px solid oklch(0.20 0.008 200)",
+          background: "oklch(0.10 0.008 200)",
+          borderBottom: "1px solid oklch(0.18 0.008 200)",
         }}
       >
-        <div className="container max-w-3xl mx-auto flex items-center gap-3">
-          {/* Icon */}
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{
-              background: "oklch(0.52 0.14 148 / 0.15)",
-              border: "1px solid oklch(0.52 0.14 148 / 0.30)",
-            }}
+        <div className="container max-w-3xl mx-auto">
+          <h1
+            className="font-brand leading-none mb-0.5"
+            style={{ fontSize: "clamp(1.8rem, 6vw, 2.4rem)", color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
           >
-            <Bot className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />
-          </div>
+            KI-Assistent
+          </h1>
+          {contextName ? (
+            <p className="text-sm mb-3" style={{ color: "oklch(0.60 0.008 200)" }}>
+              {contextType === "plant" ? "🌿" : "💧"} Kontext: {contextName}
+            </p>
+          ) : (
+            <p className="text-sm mb-3" style={{ color: "oklch(0.60 0.008 200)" }}>
+              {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Dein Begleiter für Pflanzen, Aquaristik & Channa"}
+            </p>
+          )}
 
-          {/* Title */}
-          <div className="flex-1 min-w-0">
-            <h1 className="font-brand text-base leading-tight tracking-widest" style={{ color: "oklch(0.92 0.005 200)" }}>
-              KI ASSISTENT
-            </h1>
-            {contextName ? (
-              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                {contextType === "plant" ? (
-                  <Leaf className="w-3 h-3" />
-                ) : (
-                  <Droplets className="w-3 h-3" />
-                )}
-                Kontext: {contextName}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Experte für Aquaristik & Pflanzen"}
-              </p>
-            )}
-          </div>
-
-          {/* Mode toggle */}
+          {/* Mode-Tabs als Pills (wie in Native App) */}
           {!contextName && (
-            <div
-              className="flex items-center gap-0.5 rounded-xl p-0.5"
-              style={{
-                background: "oklch(0.14 0.008 200)",
-                border: "1px solid oklch(0.22 0.008 200)",
-              }}
-            >
+            <div className="flex gap-2">
               <button
                 onClick={() => setMode("chat")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "chat" ? "oklch(0.52 0.14 148 / 0.20)" : "transparent",
-                  color: mode === "chat" ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                  background: mode === "chat" ? "oklch(0.52 0.14 148)" : "oklch(0.16 0.008 200)",
+                  color: mode === "chat" ? "oklch(0.08 0.008 200)" : "oklch(0.65 0.008 200)",
+                  border: mode === "chat" ? "none" : "1px solid oklch(0.24 0.008 200)",
                 }}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
@@ -224,10 +203,11 @@ export default function AiAssistant() {
               </button>
               <button
                 onClick={() => setMode("identify")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "identify" ? "oklch(0.52 0.14 148 / 0.20)" : "transparent",
-                  color: mode === "identify" ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                  background: mode === "identify" ? "oklch(0.52 0.14 148)" : "oklch(0.16 0.008 200)",
+                  color: mode === "identify" ? "oklch(0.08 0.008 200)" : "oklch(0.65 0.008 200)",
+                  border: mode === "identify" ? "none" : "1px solid oklch(0.24 0.008 200)",
                 }}
               >
                 <ScanSearch className="w-3.5 h-3.5" />
@@ -235,12 +215,12 @@ export default function AiAssistant() {
               </button>
               <button
                 onClick={() => { setChannaMode(v => !v); setMode("chat"); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: channaMode ? "oklch(0.62 0.17 35 / 0.22)" : "transparent",
-                  color: channaMode ? "oklch(0.72 0.17 45)" : "oklch(0.50 0.008 200)",
+                  background: channaMode ? "oklch(0.62 0.17 35 / 0.25)" : "oklch(0.16 0.008 200)",
+                  color: channaMode ? "oklch(0.72 0.17 45)" : "oklch(0.65 0.008 200)",
+                  border: channaMode ? "1px solid oklch(0.62 0.17 35 / 0.40)" : "1px solid oklch(0.24 0.008 200)",
                 }}
-                title="Spezialisierte Channa-KI"
               >
                 <Fish className="w-3.5 h-3.5" />
                 Channa
@@ -260,63 +240,58 @@ export default function AiAssistant() {
           {/* ── Messages ── */}
           <div className="flex-1 overflow-y-auto py-4">
             <div className="container max-w-3xl mx-auto px-4 space-y-4">
-              {/* Empty state */}
+              {/* Empty state – identisch mit Native App */}
               {messages.length === 0 && (
-                <div className="text-center py-10 animate-fade-in">
-                  <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, oklch(0.68 0.16 152 / 0.20), oklch(0.68 0.16 152 / 0.08))",
-                      border: "1px solid oklch(0.68 0.16 152 / 0.25)",
-                    }}
-                  >
-                    <Sparkles className="w-8 h-8 text-primary" />
+                <div className="flex flex-col items-center pt-10 pb-6 px-4 animate-fade-in">
+                  {/* Sparkles-Icon */}
+                  <div className="mb-5" style={{ color: "oklch(0.65 0.16 148)" }}>
+                    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M26 4L29.5 18.5L44 22L29.5 25.5L26 40L22.5 25.5L8 22L22.5 18.5L26 4Z" fill="currentColor" opacity="0.9" />
+                      <path d="M42 8L43.5 13.5L49 15L43.5 16.5L42 22L40.5 16.5L35 15L40.5 13.5L42 8Z" fill="currentColor" opacity="0.6" />
+                      <path d="M10 32L11 36L15 37L11 38L10 42L9 38L5 37L9 36L10 32Z" fill="currentColor" opacity="0.5" />
+                    </svg>
                   </div>
-                  <h2 className="font-brand text-2xl mb-2 tracking-widest" style={{ color: "oklch(0.92 0.005 200)" }}>
-                    Wie kann ich helfen?
+
+                  <h2
+                    className="font-brand text-2xl font-bold mb-2 text-center"
+                    style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
+                  >
+                    Stell deine erste Frage
                   </h2>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto leading-relaxed">
-                    Ich bin dein Experte für Aquaristik und Pflanzen. Stelle
-                    mir Fragen zu Pflege, Problemen oder Bestimmung.
+                  <p className="text-sm text-center mb-6" style={{ color: "oklch(0.60 0.008 200)" }}>
+                    Tippe eine Frage oder wähle einen Vorschlag.
                   </p>
 
                   {!isAuthenticated && (
                     <div
-                      className="mb-6 p-4 rounded-xl mx-auto max-w-sm"
+                      className="mb-6 p-4 rounded-2xl w-full max-w-sm"
                       style={{
-                        background: "oklch(0.13 0.010 240)",
-                        border: "1px solid oklch(0.22 0.010 240)",
+                        background: "oklch(0.14 0.008 200)",
+                        border: "1px solid oklch(0.22 0.008 200)",
                       }}
                     >
-                      <p className="text-sm text-muted-foreground mb-3">
+                      <p className="text-sm mb-3 text-center" style={{ color: "oklch(0.65 0.008 200)" }}>
                         Melde dich an, um den KI-Assistenten zu nutzen.
                       </p>
-                      <Button asChild size="sm" className="press-active btn-glow">
+                      <Button asChild size="sm" className="w-full press-active btn-glow">
                         <a href={getLoginUrl()}>Anmelden</a>
                       </Button>
                     </div>
                   )}
 
-                  {/* Suggestion chips */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto">
-                    {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).map((suggestion) => (
+                  {/* Vorschläge als große Karten (wie in Native App) */}
+                  <div className="w-full max-w-lg space-y-2.5">
+                    {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).slice(0, 4).map((suggestion) => (
                       <button
                         key={suggestion}
                         onClick={() => sendMessage(suggestion)}
                         disabled={!isAuthenticated}
-                        className="text-left text-xs px-3 py-2.5 rounded-xl transition-all duration-150 press-active disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
-                          background: "oklch(0.13 0.010 240)",
-                          border: "1px solid oklch(0.22 0.010 240)",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor =
-                            "oklch(0.68 0.16 152 / 0.4)";
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor =
-                            "oklch(0.22 0.010 240)";
+                          background: "oklch(0.14 0.008 200)",
+                          border: "1px solid oklch(0.22 0.008 200)",
+                          color: "oklch(0.88 0.005 200)",
+                          fontSize: "0.9rem",
                         }}
                       >
                         {suggestion}
@@ -508,7 +483,7 @@ export default function AiAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={
-                  isAuthenticated ? "Stelle eine Frage..." : "Bitte anmelden"
+                  isAuthenticated ? "Frage stellen..." : "Bitte anmelden"
                 }
                 disabled={!isAuthenticated || isLoading}
                 className="flex-1 min-h-[44px] max-h-32 resize-none text-sm"

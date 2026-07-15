@@ -215,8 +215,8 @@
 
 ## Phase V: Web-App Seiten pixel-genau nach Native App umbauen
 - [x] Entdecken-Seite (Discover.tsx): Hero + 4 Kategorien + Account des Tages + Feature-Karten + Warum-Grid
-- [ ] Wissen-Seite (Knowledge.tsx): pixel-genau nach Native App umbauen
-- [ ] Markt-Seite: Route /marketplace anlegen + Komponente bauen
-- [ ] KI-Seite (AiAssistant): pixel-genau nach Native App umbauen
+- [x] Wissen-Seite (Knowledge.tsx): pixel-genau nach Native App umbauen
+- [x] Markt-Seite: Route /marketplace anlegen + Komponente bauen
+- [x] KI-Seite (AiAssistant): pixel-genau nach Native App umbauen
 - [ ] Community/Feed-Seite: pixel-genau nach Native App umbauen
 - [ ] Profil-Seite: pixel-genau nach Native App umbauen

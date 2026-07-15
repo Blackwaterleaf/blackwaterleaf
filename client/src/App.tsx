@@ -27,6 +27,7 @@ import Nutzungsbedingungen from "./pages/legal/Nutzungsbedingungen";
 import ModeratorDashboard from "./pages/ModeratorDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import AiIdentificationReview from "./pages/AiIdentificationReview";
+import Marketplace from "./pages/Marketplace";
 
 function Router() {
   return (
@@ -70,6 +71,9 @@ function Router() {
       </Route>
       <Route path="/ranking">
         <AppLayout><Ranking /></AppLayout>
+      </Route>
+      <Route path="/marketplace">
+        <AppLayout><Marketplace /></AppLayout>
       </Route>
       <Route path="/ai">
         <AppLayout><AiAssistant /></AppLayout>
