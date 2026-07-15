@@ -218,5 +218,5 @@
 - [x] Wissen-Seite (Knowledge.tsx): pixel-genau nach Native App umbauen
 - [x] Markt-Seite: Route /marketplace anlegen + Komponente bauen
 - [x] KI-Seite (AiAssistant): pixel-genau nach Native App umbauen
-- [ ] Community/Feed-Seite: pixel-genau nach Native App umbauen
+- [x] Community/Feed-Seite: pixel-genau nach Native App umbauen
 - [ ] Profil-Seite: pixel-genau nach Native App umbauen

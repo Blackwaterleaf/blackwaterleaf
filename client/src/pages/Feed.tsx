@@ -7,7 +7,7 @@ import { de } from "date-fns/locale";
 import {
   Heart, ImagePlus, MessageCircle, MoreHorizontal,
   Send, Trash2, X, Leaf, Fish, HelpCircle, Lightbulb,
-  Star, ShoppingBag, Grid3X3, Video,
+  Star, ShoppingBag, Grid3X3, Video, Users, Plus,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -515,6 +515,84 @@ function CreatePost() {
   );
 }
 
+// Empfohlene Accounts Sektion (wie in Native App)
+function FeaturedAccountsRow() {
+  const { data: accounts } = trpc.featured.listCommunity.useQuery();
+  if (!accounts || accounts.length === 0) return null;
+
+  const PLATFORM_ICONS: Record<string, string> = {
+    tiktok: "🎵",
+    instagram: "📸",
+    youtube: "▶️",
+    facebook: "👤",
+    whatsapp: "💬",
+    website: "🌐",
+  };
+
+  return (
+    <div className="mb-5">
+      <p
+        className="text-xs font-bold uppercase mb-3 flex items-center gap-1.5"
+        style={{ color: "oklch(0.65 0.16 148)", letterSpacing: "0.14em" }}
+      >
+        EMPFOHLENE ACCOUNTS
+        <span style={{ fontSize: "0.85em" }}>📣</span>
+      </p>
+      <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+        {accounts.map((acc) => (
+          <a
+            key={acc.id}
+            href={acc.url ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 w-28 rounded-2xl p-3 transition-all duration-150 active:scale-95"
+            style={{
+              background: "oklch(0.14 0.008 200)",
+              border: "1px solid oklch(0.22 0.008 200)",
+              textDecoration: "none",
+            }}
+          >
+            {/* Avatar */}
+            <div className="relative mb-2">
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto"
+                style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+              >
+                {acc.imageUrl ? (
+                  <img src={acc.imageUrl} alt={acc.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-bold" style={{ color: "oklch(0.65 0.16 148)" }}>
+                    {acc.name?.charAt(0)?.toUpperCase() ?? "?"}
+                  </span>
+                )}
+              </div>
+              {/* Platform-Badge */}
+              <div
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                style={{ background: "oklch(0.10 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+              >
+                {PLATFORM_ICONS[acc.platform ?? ""] ?? "🌐"}
+              </div>
+            </div>
+            <p
+              className="text-xs font-semibold text-center truncate"
+              style={{ color: "oklch(0.88 0.005 200)" }}
+            >
+              {acc.name}
+            </p>
+            <p
+              className="text-xs text-center mt-0.5 capitalize"
+              style={{ color: "oklch(0.55 0.008 200)" }}
+            >
+              {acc.platform ?? ""}
+            </p>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Feed() {
   const { isAuthenticated } = useAuth();
   const [filter, setFilter] = useState<string>("all");
@@ -533,32 +611,66 @@ export default function Feed() {
         description="Der BlackwaterLeaf Community Feed: Teile Fortschritte, Showcases und Fragen rund um Aquaristik, Aquascaping, Channa und Zimmerpflanzen – und lerne von Gleichgesinnten."
       />
 
-      {/* ── Page Header ── */}
-      <div className="mb-8">
-        <h1
-          className="font-brand text-4xl leading-none mb-1"
-          style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.04em" }}
+      {/* ── Page Header (wie Native App) ── */}
+      <div className="mb-5">
+        <p
+          className="text-xs font-bold uppercase mb-1"
+          style={{ color: "oklch(0.65 0.16 148)", letterSpacing: "0.14em" }}
         >
-          COMMUNITY FEED
-        </h1>
-        <p className="text-sm" style={{ color: "oklch(0.50 0.008 200)" }}>
-          Teile deine Leidenschaft mit der Community
+          COMMUNITY
         </p>
+        <div className="flex items-center justify-between">
+          <h1
+            className="font-brand leading-none"
+            style={{ fontSize: "clamp(2rem, 7vw, 2.8rem)", color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
+          >
+            Feed
+          </h1>
+          {isAuthenticated && (
+            <div className="flex items-center gap-2">
+              <button
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
+                style={{ background: "oklch(0.16 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                onClick={() => toast.info("Mitglieder – demnächst verfügbar")}
+              >
+                <Users className="w-4 h-4" style={{ color: "oklch(0.65 0.008 200)" }} />
+              </button>
+              <button
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
+                style={{ background: "oklch(0.16 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                onClick={() => toast.info("Direktnachrichten – demnächst verfügbar")}
+              >
+                <MessageCircle className="w-4 h-4" style={{ color: "oklch(0.65 0.008 200)" }} />
+              </button>
+              <button
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
+                style={{ background: "oklch(0.52 0.14 148)", border: "none" }}
+                onClick={() => {
+                  const el = document.getElementById("create-post-area");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                  el?.querySelector("textarea")?.focus();
+                }}
+              >
+                <Plus className="w-4 h-4" style={{ color: "oklch(0.08 0.008 200)" }} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── Filter Tabs ── */}
-      <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+      {/* ── Filter Tabs als Pills (wie Native App) ── */}
+      <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
         {[{ value: "all", label: "Alle" }, ...CATEGORIES].map((cat) => {
           const isActive = filter === cat.value;
           return (
             <button
               key={cat.value}
               onClick={() => setFilter(cat.value)}
-              className="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-150 active:scale-95"
+              className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
               style={{
-                background: isActive ? "oklch(0.52 0.14 148 / 0.15)" : "oklch(0.14 0.008 200)",
-                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.55 0.008 200)",
-                border: `1px solid ${isActive ? "oklch(0.52 0.14 148 / 0.35)" : "oklch(0.20 0.008 200)"}`,
+                background: isActive ? "transparent" : "oklch(0.16 0.008 200)",
+                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.60 0.008 200)",
+                border: isActive ? "2px solid oklch(0.65 0.16 148)" : "2px solid oklch(0.22 0.008 200)",
               }}
             >
               {cat.label}
@@ -567,9 +679,12 @@ export default function Feed() {
         })}
       </div>
 
+      {/* ── Empfohlene Accounts (wie Native App) ── */}
+      <FeaturedAccountsRow />
+
       {/* ── Create Post ── */}
       {isAuthenticated && (
-        <div className="mb-6">
+        <div id="create-post-area" className="mb-6">
           <CreatePost />
         </div>
       )}
