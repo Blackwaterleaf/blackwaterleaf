@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 
 const CATEGORIES = [
-  { value: "plant",       label: "Pflanze",    icon: Leaf },
+  { value: "plant",       label: "Botanik",    icon: Leaf },
   { value: "aquarium",    label: "Aquarium",   icon: Fish },
   { value: "question",    label: "Frage",      icon: HelpCircle },
   { value: "tip",         label: "Tipp",       icon: Lightbulb },
