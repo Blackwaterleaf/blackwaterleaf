@@ -1,7 +1,7 @@
 import LegalLayout from "./LegalLayout";
 
 const H2 = ({ children }: { children: React.ReactNode }) => (
-  <h2 className="font-brand text-xl mb-2 mt-2" style={{ color: "oklch(0.9 0.01 200)" }}>
+  <h2 className="font-brand text-xl mb-2 mt-2" style={{ color: "rgba(255,255,255,0.90)" }}>
     {children}
   </h2>
 );

@@ -55,16 +55,16 @@ export function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
                   href={item.href!}
                   className="px-2 py-1.5 rounded-md transition-all duration-150"
                   style={{
-                    color: 'oklch(0.65 0.16 148)',
-                    backgroundColor: 'oklch(0.52 0.14 148 / 0.08)',
+                    color: '#34D399',
+                    backgroundColor: 'rgba(45,155,110,0.08)',
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLElement).style.backgroundColor =
-                      'oklch(0.52 0.14 148 / 0.15)';
+                      'rgba(45,155,110,0.15)';
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLElement).style.backgroundColor =
-                      'oklch(0.52 0.14 148 / 0.08)';
+                      'rgba(45,155,110,0.08)';
                   }}
                 >
                   {item.label}
@@ -74,8 +74,8 @@ export function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
                   className="px-2 py-1.5 rounded-md"
                   style={{
                     color: isLast
-                      ? 'oklch(0.88 0.005 200)'
-                      : 'oklch(0.48 0.008 200)',
+                      ? 'rgba(255,255,255,0.88)'
+                      : 'rgba(255,255,255,0.45)',
                   }}
                 >
                   {item.label}
@@ -85,7 +85,7 @@ export function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
               {!isLast && (
                 <ChevronRight
                   className="w-4 h-4"
-                  style={{ color: 'oklch(0.42 0.008 200)' }}
+                  style={{ color: 'rgba(255,255,255,0.42)' }}
                   aria-hidden="true"
                 />
               )}

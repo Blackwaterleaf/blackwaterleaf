@@ -94,8 +94,8 @@ function highlightMatch(text: string, query: string): React.ReactNode {
       <span
         key={`highlight-${index}`}
         style={{
-          backgroundColor: 'oklch(0.52 0.14 148 / 0.30)',
-          color: 'oklch(0.72 0.16 148)',
+          backgroundColor: 'rgba(45,155,110,0.30)',
+          color: '#34D399',
           fontWeight: '600',
         }}
       >
@@ -190,7 +190,7 @@ export function InstantSearch({
       <div className="relative">
         <Search
           className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-          style={{ color: 'oklch(0.45 0.008 200)' }}
+          style={{ color: 'rgba(255,255,255,0.45)' }}
         />
         <input
           ref={inputRef}
@@ -202,14 +202,14 @@ export function InstantSearch({
           placeholder={placeholder}
           className="w-full pl-10 pr-10 py-2.5 rounded-xl text-sm outline-none transition-all duration-150"
           style={{
-            background: 'oklch(0.14 0.008 200)',
-            border: '1px solid oklch(0.22 0.008 200)',
-            color: 'oklch(0.88 0.005 200)',
+            background: '#111614',
+            border: '1px solid rgba(45,107,63,0.30)',
+            color: 'rgba(255,255,255,0.88)',
           }}
           onMouseEnter={(e) => {
             if (!isOpen) {
               (e.currentTarget as HTMLElement).style.borderColor =
-                'oklch(0.22 0.008 200)';
+                'rgba(45,107,63,0.30)';
             }
           }}
         />
@@ -220,7 +220,7 @@ export function InstantSearch({
             onClick={handleClear}
             className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded transition-all duration-150 hover:bg-opacity-100"
             style={{
-              color: 'oklch(0.48 0.008 200)',
+              color: 'rgba(255,255,255,0.45)',
               backgroundColor: 'transparent',
             }}
             aria-label="Suchfeld leeren"
@@ -235,8 +235,8 @@ export function InstantSearch({
         <div
           className="absolute top-full left-0 right-0 mt-2 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
           style={{
-            background: 'oklch(0.11 0.008 200)',
-            border: '1px solid oklch(0.21 0.008 200)',
+            background: '#0D110E',
+            border: '1px solid rgba(45,107,63,0.30)',
           }}
         >
           {isLoading ? (
@@ -245,14 +245,14 @@ export function InstantSearch({
                 <div
                   className="w-5 h-5 rounded-full animate-spin"
                   style={{
-                    borderTop: '2px solid oklch(0.52 0.14 148)',
-                    borderRight: '2px solid oklch(0.52 0.14 148 / 0.3)',
-                    borderBottom: '2px solid oklch(0.52 0.14 148 / 0.3)',
-                    borderLeft: '2px solid oklch(0.52 0.14 148 / 0.3)',
+                    borderTop: '2px solid #2D9B6E',
+                    borderRight: '2px solid rgba(45,155,110,0.30)',
+                    borderBottom: '2px solid rgba(45,155,110,0.30)',
+                    borderLeft: '2px solid rgba(45,155,110,0.30)',
                   }}
                 />
               </div>
-              <p className="text-xs mt-2" style={{ color: 'oklch(0.48 0.008 200)' }}>
+              <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 Wird gesucht...
               </p>
             </div>
@@ -260,12 +260,12 @@ export function InstantSearch({
             <div className="p-6 text-center">
               <AlertCircle
                 className="w-8 h-8 mx-auto mb-2"
-                style={{ color: 'oklch(0.30 0.008 200)' }}
+                style={{ color: 'rgba(45,107,63,0.40)' }}
               />
-              <p className="font-medium" style={{ color: 'oklch(0.88 0.005 200)' }}>
+              <p className="font-medium" style={{ color: 'rgba(255,255,255,0.88)' }}>
                 Keine Ergebnisse gefunden
               </p>
-              <p className="text-xs mt-1" style={{ color: 'oklch(0.48 0.008 200)' }}>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
                 Versuche andere Suchbegriffe
               </p>
             </div>
@@ -276,7 +276,7 @@ export function InstantSearch({
                 <div className="p-3">
                   <p
                     className="text-xs font-semibold uppercase tracking-widest mb-2"
-                    style={{ color: 'oklch(0.52 0.14 148)' }}
+                    style={{ color: '#2D9B6E' }}
                   >
                     Botanik
                   </p>
@@ -286,27 +286,27 @@ export function InstantSearch({
                         key={plant.id}
                         className="p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-opacity-100"
                         style={{
-                          backgroundColor: 'oklch(0.52 0.14 148 / 0.08)',
+                          backgroundColor: 'rgba(45,155,110,0.08)',
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.52 0.14 148 / 0.15)';
+                            'rgba(45,155,110,0.15)';
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.52 0.14 148 / 0.08)';
+                            'rgba(45,155,110,0.08)';
                         }}
                       >
                         <p
                           className="text-xs font-medium"
-                          style={{ color: 'oklch(0.88 0.005 200)' }}
+                          style={{ color: 'rgba(255,255,255,0.88)' }}
                         >
                           {highlightMatch(plant.name, query)}
                         </p>
                         {plant.scientificName && (
                           <p
                             className="text-xs italic"
-                            style={{ color: 'oklch(0.48 0.008 200)' }}
+                            style={{ color: 'rgba(255,255,255,0.45)' }}
                           >
                             {plant.scientificName}
                           </p>
@@ -322,7 +322,7 @@ export function InstantSearch({
                 <div className="p-3">
                   <p
                     className="text-xs font-semibold uppercase tracking-widest mb-2"
-                    style={{ color: 'oklch(0.55 0.14 220)' }}
+                    style={{ color: 'rgba(100,160,240,0.90)' }}
                   >
                     Aquarien
                   </p>
@@ -332,20 +332,20 @@ export function InstantSearch({
                         key={aq.id}
                         className="p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-opacity-100"
                         style={{
-                          backgroundColor: 'oklch(0.55 0.14 220 / 0.08)',
+                          backgroundColor: 'rgba(100,160,240,0.08)',
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.55 0.14 220 / 0.15)';
+                            'rgba(100,160,240,0.15)';
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.55 0.14 220 / 0.08)';
+                            'rgba(100,160,240,0.08)';
                         }}
                       >
                         <p
                           className="text-xs font-medium"
-                          style={{ color: 'oklch(0.88 0.005 200)' }}
+                          style={{ color: 'rgba(255,255,255,0.88)' }}
                         >
                           {highlightMatch(aq.name, query)}
                         </p>
@@ -360,7 +360,7 @@ export function InstantSearch({
                 <div className="p-3">
                   <p
                     className="text-xs font-semibold uppercase tracking-widest mb-2"
-                    style={{ color: 'oklch(0.65 0.14 78)' }}
+                    style={{ color: 'rgba(212,175,55,0.90)' }}
                   >
                     Beiträge
                   </p>
@@ -370,20 +370,20 @@ export function InstantSearch({
                         key={post.id}
                         className="p-2 rounded-lg cursor-pointer transition-all duration-150 hover:bg-opacity-100"
                         style={{
-                          backgroundColor: 'oklch(0.65 0.14 78 / 0.08)',
+                          backgroundColor: 'rgba(212,175,55,0.08)',
                         }}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.65 0.14 78 / 0.15)';
+                            'rgba(212,175,55,0.15)';
                         }}
                         onMouseLeave={(e) => {
                           (e.currentTarget as HTMLElement).style.backgroundColor =
-                            'oklch(0.65 0.14 78 / 0.08)';
+                            'rgba(212,175,55,0.08)';
                         }}
                       >
                         <p
                           className="text-xs line-clamp-2"
-                          style={{ color: 'oklch(0.72 0.005 200)' }}
+                          style={{ color: 'rgba(255,255,255,0.72)' }}
                         >
                           {highlightMatch(post.content, query)}
                         </p>

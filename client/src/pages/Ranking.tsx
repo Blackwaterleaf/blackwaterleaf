@@ -10,15 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 
 const TIER_COLOR: Record<string, string> = {
-  bronze:  "oklch(0.65 0.14 55)",
-  silver:  "oklch(0.75 0.02 220)",
-  gold:    "oklch(0.78 0.14 78)",
-  special: "oklch(0.72 0.18 290)",
+  bronze:  "#C8A020",
+  silver:  "#B0B8C0",
+  gold:    "#D4AF37",
+  special: "rgba(160,120,240,0.90)",
 };
 
 const card = {
-  background: "oklch(0.11 0.008 200)",
-  border: "1px solid oklch(0.21 0.008 200)",
+  background: "#0D110E",
+  border: "1px solid rgba(45,107,63,0.30)",
 };
 
 export default function Ranking() {
@@ -61,11 +61,11 @@ export default function Ranking() {
       <div className="mb-8">
         <h1
           className="font-brand text-4xl leading-none mb-1"
-          style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.04em" }}
+          style={{ color: "#FFFFFF", letterSpacing: "0.04em" }}
         >
           RANKING & ERFOLGE
         </h1>
-        <p className="text-sm" style={{ color: "oklch(0.50 0.008 200)" }}>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.50)" }}>
           Sammle XP, halte deinen Streak und steige in der Community auf.
         </p>
       </div>
@@ -75,14 +75,14 @@ export default function Ranking() {
         <div className="rounded-2xl p-10 text-center" style={card}>
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.20)" }}
+            style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.20)" }}
           >
-            <Sparkles className="w-7 h-7" style={{ color: "oklch(0.55 0.14 148)" }} />
+            <Sparkles className="w-7 h-7" style={{ color: "#2D9B6E" }} />
           </div>
-          <p className="font-semibold mb-1" style={{ color: "oklch(0.85 0.005 200)" }}>
+          <p className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.85)" }}>
             Melde dich an, um XP zu sammeln
           </p>
-          <p className="text-sm mb-5" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.50)" }}>
             Tägliche Belohnungen, Abzeichen und Community-Level warten auf dich.
           </p>
           <a href={getLoginUrl()} className="btn-primary">Anmelden</a>
@@ -97,39 +97,39 @@ export default function Ranking() {
           <div
             className="rounded-2xl p-5 mb-4"
             style={{
-              background: "linear-gradient(135deg, oklch(0.52 0.14 148 / 0.12), oklch(0.11 0.008 200))",
-              border: "1px solid oklch(0.52 0.14 148 / 0.25)",
+              background: "linear-gradient(135deg, rgba(45,155,110,0.12), #0D110E)",
+              border: "1px solid rgba(45,155,110,0.25)",
             }}
           >
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "oklch(0.50 0.008 200)" }}>
+                <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.50)" }}>
                   Level {level?.level}
                 </p>
-                <p className="text-xl font-semibold" style={{ color: "oklch(0.92 0.005 200)" }}>
+                <p className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>
                   {level?.title}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-brand" style={{ color: "oklch(0.65 0.16 148)", letterSpacing: "0.02em" }}>
+                <p className="text-3xl font-brand" style={{ color: "#34D399", letterSpacing: "0.02em" }}>
                   {xp}
                 </p>
-                <p className="text-xs" style={{ color: "oklch(0.50 0.008 200)" }}>XP gesamt</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.50)" }}>XP gesamt</p>
               </div>
             </div>
             <div
               className="h-2 rounded-full overflow-hidden"
-              style={{ background: "oklch(0.21 0.008 200)" }}
+              style={{ background: "rgba(45,107,63,0.30)" }}
             >
               <div
                 className="h-full rounded-full transition-all duration-700"
                 style={{
                   width: `${progressPct}%`,
-                  background: "linear-gradient(90deg, oklch(0.52 0.14 148), oklch(0.65 0.16 148))",
+                  background: "linear-gradient(90deg, #2D9B6E, #34D399)",
                 }}
               />
             </div>
-            <p className="text-xs mt-1.5" style={{ color: "oklch(0.45 0.008 200)" }}>
+            <p className="text-xs mt-1.5" style={{ color: "rgba(255,255,255,0.45)" }}>
               {level?.nextLevelXp
                 ? `Noch ${level.nextLevelXp - xp} XP bis "${level.nextTitle}"`
                 : "Höchstes Level erreicht – Legende!"}
@@ -139,14 +139,14 @@ export default function Ranking() {
           {/* ── Stats row ── */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             {[
-              { icon: <Flame className="w-5 h-5" style={{ color: "oklch(0.72 0.18 50)" }} />, value: me?.stats?.streak ?? 0, label: "Tage-Streak" },
-              { icon: <Award className="w-5 h-5" style={{ color: "oklch(0.78 0.14 78)" }} />, value: me?.badges?.length ?? 0, label: "Abzeichen" },
-              { icon: <Star className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />, value: me?.stats?.points ?? 0, label: "Punkte" },
+              { icon: <Flame className="w-5 h-5" style={{ color: "#D4AF37" }} />, value: me?.stats?.streak ?? 0, label: "Tage-Streak" },
+              { icon: <Award className="w-5 h-5" style={{ color: "#D4AF37" }} />, value: me?.badges?.length ?? 0, label: "Abzeichen" },
+              { icon: <Star className="w-5 h-5" style={{ color: "#34D399" }} />, value: me?.stats?.points ?? 0, label: "Punkte" },
             ].map(({ icon, value, label }) => (
               <div key={label} className="rounded-2xl p-4 text-center" style={card}>
                 <div className="flex justify-center mb-1">{icon}</div>
-                <p className="text-xl font-semibold" style={{ color: "oklch(0.92 0.005 200)" }}>{value}</p>
-                <p className="text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>{label}</p>
+                <p className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>{value}</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{label}</p>
               </div>
             ))}
           </div>
@@ -156,13 +156,13 @@ export default function Ranking() {
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "oklch(0.52 0.14 148 / 0.12)", border: "1px solid oklch(0.52 0.14 148 / 0.20)" }}
+                style={{ background: "rgba(45,155,110,0.12)", border: "1px solid rgba(45,155,110,0.20)" }}
               >
-                <Calendar className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />
+                <Calendar className="w-5 h-5" style={{ color: "#34D399" }} />
               </div>
               <div>
-                <p className="font-medium text-sm" style={{ color: "oklch(0.88 0.005 200)" }}>Täglicher Check-in</p>
-                <p className="text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>Hol dir XP und halte deinen Streak am Leben.</p>
+                <p className="font-medium text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>Täglicher Check-in</p>
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>Hol dir XP und halte deinen Streak am Leben.</p>
               </div>
             </div>
             <button
@@ -177,13 +177,13 @@ export default function Ranking() {
           {/* ── Active challenge ── */}
           {challenge && (
             <div className="rounded-2xl p-5 mb-4" style={card}>
-              <div className="flex items-center gap-2 mb-2" style={{ color: "oklch(0.65 0.16 148)" }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: "#34D399" }}>
                 <Target className="w-4 h-4" />
                 <span className="text-xs font-medium uppercase tracking-widest">Wochen-Challenge</span>
               </div>
-              <p className="font-semibold" style={{ color: "oklch(0.90 0.005 200)" }}>{challenge.title}</p>
-              <p className="text-sm mt-1" style={{ color: "oklch(0.52 0.008 200)" }}>{challenge.description}</p>
-              <p className="text-xs mt-2" style={{ color: "oklch(0.65 0.16 148)" }}>Belohnung: +{challenge.rewardXp} XP</p>
+              <p className="font-semibold" style={{ color: "rgba(255,255,255,0.90)" }}>{challenge.title}</p>
+              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.52)" }}>{challenge.description}</p>
+              <p className="text-xs mt-2" style={{ color: "#34D399" }}>Belohnung: +{challenge.rewardXp} XP</p>
             </div>
           )}
         </>
@@ -192,31 +192,31 @@ export default function Ranking() {
       {/* ── Badge catalog ── */}
       {allBadges && allBadges.length > 0 && (
         <div className="mt-8">
-          <h2 className="font-brand text-xl tracking-widest mb-4" style={{ color: "oklch(0.88 0.005 200)", letterSpacing: "0.06em" }}>
+          <h2 className="font-brand text-xl tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.88)", letterSpacing: "0.06em" }}>
             ABZEICHEN
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {allBadges.map((b: any) => {
               const earned = earnedCodes.has(b.code);
-              const color = earned ? (TIER_COLOR[b.tier] ?? "oklch(0.65 0.16 148)") : "oklch(0.35 0.008 200)";
+              const color = earned ? (TIER_COLOR[b.tier] ?? "#34D399") : "rgba(45,107,63,0.40)";
               return (
                 <div
                   key={b.id}
                   className="rounded-2xl p-4 text-center transition-all duration-200"
                   style={{
-                    background: earned ? `${color.replace(")", " / 0.08)")}` : "oklch(0.11 0.008 200)",
-                    border: `1px solid ${earned ? color.replace(")", " / 0.25)") : "oklch(0.16 0.009 200)"}`,
+                    background: earned ? `${color.replace(")", " / 0.08)")}` : "#0D110E",
+                    border: `1px solid ${earned ? color.replace(")", " / 0.25)") : "#161C19"}`,
                     opacity: earned ? 1 : 0.5,
                   }}
                 >
                   {earned
                     ? <Award className="w-7 h-7 mx-auto mb-1.5" style={{ color }} />
-                    : <Lock className="w-7 h-7 mx-auto mb-1.5" style={{ color: "oklch(0.38 0.008 200)" }} />
+                    : <Lock className="w-7 h-7 mx-auto mb-1.5" style={{ color: "rgba(255,255,255,0.38)" }} />
                   }
-                  <p className="text-sm font-medium" style={{ color: earned ? "oklch(0.88 0.005 200)" : "oklch(0.50 0.008 200)" }}>
+                  <p className="text-sm font-medium" style={{ color: earned ? "rgba(255,255,255,0.88)" : "rgba(255,255,255,0.50)" }}>
                     {b.name}
                   </p>
-                  <p className="text-xs mt-0.5 leading-snug" style={{ color: "oklch(0.45 0.008 200)" }}>
+                  <p className="text-xs mt-0.5 leading-snug" style={{ color: "rgba(255,255,255,0.45)" }}>
                     {b.description}
                   </p>
                 </div>
@@ -228,13 +228,13 @@ export default function Ranking() {
 
       {/* ── Leaderboard ── */}
       <div className="mt-8">
-        <h2 className="font-brand text-xl tracking-widest mb-4" style={{ color: "oklch(0.88 0.005 200)", letterSpacing: "0.06em" }}>
+        <h2 className="font-brand text-xl tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.88)", letterSpacing: "0.06em" }}>
           BESTENLISTE
         </h2>
         <div className="rounded-2xl overflow-hidden" style={card}>
           {lbLoading ? (
             Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="p-4" style={{ borderBottom: "1px solid oklch(0.16 0.009 200)" }}>
+              <div key={i} className="p-4" style={{ borderBottom: "1px solid #161C19" }}>
                 <Skeleton className="h-6 w-full" />
               </div>
             ))
@@ -244,40 +244,40 @@ export default function Ranking() {
                 key={entry.userId}
                 className="flex items-center gap-3 p-3.5 transition-colors"
                 style={{
-                  borderBottom: idx < leaderboard.length - 1 ? "1px solid oklch(0.16 0.009 200)" : "none",
-                  background: entry.userId === user?.id ? "oklch(0.52 0.14 148 / 0.06)" : "transparent",
+                  borderBottom: idx < leaderboard.length - 1 ? "1px solid #161C19" : "none",
+                  background: entry.userId === user?.id ? "rgba(45,155,110,0.06)" : "transparent",
                 }}
               >
                 <div className="w-6 text-center flex-shrink-0">
-                  {idx === 0 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "oklch(0.78 0.14 78)" }} />
-                    : idx === 1 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "oklch(0.75 0.02 220)" }} />
-                    : idx === 2 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "oklch(0.65 0.14 55)" }} />
-                    : <span className="text-sm" style={{ color: "oklch(0.45 0.008 200)" }}>{idx + 1}</span>}
+                  {idx === 0 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "#D4AF37" }} />
+                    : idx === 1 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "#B0B8C0" }} />
+                    : idx === 2 ? <Medal className="w-5 h-5 mx-auto" style={{ color: "#C8A020" }} />
+                    : <span className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{idx + 1}</span>}
                 </div>
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={entry.userAvatarUrl ?? undefined} />
                   <AvatarFallback
                     className="text-xs font-semibold"
-                    style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}
+                    style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}
                   >
                     {entry.userName?.charAt(0)?.toUpperCase() ?? "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: "oklch(0.88 0.005 200)" }}>
+                  <p className="text-sm font-medium truncate" style={{ color: "rgba(255,255,255,0.88)" }}>
                     {entry.userName ?? "Mitglied"}
                   </p>
-                  <p className="text-xs" style={{ color: "oklch(0.45 0.008 200)" }}>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
                     Level {entry.level} · {entry.streak}d Streak
                   </p>
                 </div>
-                <span className="text-sm font-semibold" style={{ color: "oklch(0.65 0.16 148)" }}>
+                <span className="text-sm font-semibold" style={{ color: "#34D399" }}>
                   {entry.xp} XP
                 </span>
               </div>
             ))
           ) : (
-            <div className="p-8 text-center text-sm" style={{ color: "oklch(0.45 0.008 200)" }}>
+            <div className="p-8 text-center text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
               Noch keine Einträge – sei der Erste!
             </div>
           )}

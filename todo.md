@@ -206,7 +206,7 @@
 - [x] Play-Store-Upload-Anleitung finalisiert
 
 ## Phase Play-Store-Upgrade: Web-App ↔ App Synchronisation
-- [ ] Web-App veröffentlichen (Publish-Button) – Nutzer-Aktion
+- [x] Web-App veröffentlichen (Publish-Button) – Auto-Publish aktiv, jeder Checkpoint wird automatisch veröffentlicht
 - [x] Moderatoren-Verwaltung auf Web-App bauen (Moderatoren-Badge, Dashboard unter /moderator, Melde-Queue)
 - [x] Admin-Panel für dich bauen (/admin: Statistiken, Nutzer-Verwaltung, Audit-Log)
 - [x] KI-Bestimmungs-Review-System (/ai-review: Pending/Approved/Rejected, Moderatoren bestätigen)
@@ -232,3 +232,23 @@
 - [x] ExpertVerification.tsx + ReputationSystem.tsx: 'Pflanzen' → 'Botanik' in Fachgebiet-Labels
 - [x] Plants.tsx: Seiten-Titel "Pflanzen – Sammlung" → "Botanik – Sammlung"
 - [x] Profile.tsx: Tab-Label "Pflanzen" → "Botanik"; Interessen-Default "Pflanzen" → "Botanik"
+
+## Phase X: oklch → Premium-rgba Migration (ABGESCHLOSSEN)
+- [x] Feed.tsx: oklch vollständig migriert
+- [x] Profile.tsx: oklch vollständig migriert
+- [x] AppLayout.tsx: oklch vollständig migriert
+- [x] Knowledge.tsx: oklch vollständig migriert
+- [x] AiAssistant.tsx: oklch vollständig migriert
+- [x] Marketplace.tsx: oklch vollständig migriert
+- [x] AdminPanel.tsx: oklch vollständig migriert (stat.highlight Sonderfall)
+- [x] AiIdentificationReview.tsx: oklch vollständig migriert
+- [x] Aquariums.tsx: oklch vollständig migriert
+- [x] Home.tsx: oklch vollständig migriert
+- [x] ModeratorDashboard.tsx: oklch vollständig migriert
+- [x] Plants.tsx: oklch vollständig migriert
+- [x] Ranking.tsx: oklch vollständig migriert
+- [x] BottomNav.tsx: oklch vollständig migriert
+- [x] Legal-Seiten (Datenschutz, Impressum, Nutzungsbedingungen, LegalLayout): oklch migriert
+- [x] Komponenten (PlantIdentify, Breadcrumb, InstantSearch, RelatedArticles, AccessibilityProvider, ExpertVerification, ReputationSystem): oklch migriert
+- [x] Finale Prüfung: 0 oklch-Vorkommen in client/src/
+- [x] TypeScript 0 Fehler

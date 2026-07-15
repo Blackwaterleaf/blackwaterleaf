@@ -23,7 +23,7 @@ export default function Impressum() {
       </section>
 
       <section>
-        <h2 className="font-brand text-xl mb-2" style={{ color: "oklch(0.9 0.01 200)" }}>
+        <h2 className="font-brand text-xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>
           Kontakt
         </h2>
         <p>
@@ -45,19 +45,19 @@ export default function Impressum() {
       </section>
 
       <section>
-        <h2 className="font-brand text-xl mb-2" style={{ color: "oklch(0.9 0.01 200)" }}>
+        <h2 className="font-brand text-xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>
           Umsatzsteuer-Identifikationsnummer
         </h2>
         <p>
           Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz:
           <br />
           {/* TODO: Nach Erhalt des Finanzamt-Bescheids die echte USt-IdNr. (Format DE + 9 Ziffern) hier eintragen. */}
-          <span style={{ color: "oklch(0.55 0.01 200)" }}>wird nachgereicht</span>
+          <span style={{ color: "rgba(255,255,255,0.55)" }}>wird nachgereicht</span>
         </p>
       </section>
 
       <section>
-        <h2 className="font-brand text-xl mb-2" style={{ color: "oklch(0.9 0.01 200)" }}>
+        <h2 className="font-brand text-xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>
           Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV
         </h2>
         <p>
@@ -68,7 +68,7 @@ export default function Impressum() {
       </section>
 
       <section>
-        <h2 className="font-brand text-xl mb-2" style={{ color: "oklch(0.9 0.01 200)" }}>
+        <h2 className="font-brand text-xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>
           EU-Streitschlichtung
         </h2>
         <p>

@@ -79,41 +79,41 @@ const ReputationSystem: React.FC<ReputationSystemProps> = ({
     <div
       className={cn(
         "p-6 rounded-xl font-inter",
-        "bg-[oklch(0.10_0.008_200)] border border-[oklch(0.20_0.008_200)]",
+        "bg-[#070A08] border border-[rgba(45,107,63,0.30)]",
         className
       )}
     >
       <h2 className="font-brand text-2xl tracking-widest mb-4"
-          style={{ color: "oklch(0.92 0.005 200)" }}>
+          style={{ color: "#FFFFFF" }}>
         Dein Ruf
       </h2>
 
       {/* Overall Level and Progress */}
       <div className="mb-6 p-4 rounded-lg"
            style={{
-             background: "oklch(0.13 0.010 240)",
-             border: "1px solid oklch(0.22 0.010 240)",
+             background: "#111614",
+             border: "1px solid rgba(45,107,63,0.30)",
            }}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold" style={{ color: "oklch(0.65 0.16 148)" }}>
+          <span className="text-sm font-semibold" style={{ color: "#34D399" }}>
             Level {reputation.level}
           </span>
           <span className="text-xs text-muted-foreground"
-                style={{ color: "oklch(0.50 0.008 200)" }}>
+                style={{ color: "rgba(255,255,255,0.50)" }}>
             {reputation.currentXp} XP / {reputation.currentXp + reputation.xpToNextLevel} XP
           </span>
         </div>
-        <div className="w-full bg-[oklch(0.25_0.008_200)] rounded-full h-2">
+        <div className="w-full bg-[rgba(45,107,63,0.25)] rounded-full h-2">
           <div
             className="h-2 rounded-full"
             style={{
               width: `${progress}%`,
-              background: "oklch(0.65 0.16 148)", // Gold/Messing Akzent
+              background: "#34D399", // Gold/Messing Akzent
             }}
           ></div>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          Nächster Rang: <span className="font-semibold" style={{ color: "oklch(0.75 0.18 60)" }}>{reputation.rank}</span>
+          Nächster Rang: <span className="font-semibold" style={{ color: "#D4AF37" }}>{reputation.rank}</span>
         </p>
       </div>
 
@@ -121,7 +121,7 @@ const ReputationSystem: React.FC<ReputationSystemProps> = ({
       {reputation.expertiseRanks.length > 0 && (
         <div className="mb-6">
           <h3 className="font-brand text-xl tracking-widest mb-3"
-              style={{ color: "oklch(0.92 0.005 200)" }}>
+              style={{ color: "#FFFFFF" }}>
             Fachgebiete
           </h3>
           <div className="space-y-2">
@@ -130,17 +130,17 @@ const ReputationSystem: React.FC<ReputationSystemProps> = ({
                 key={er.field}
                 className="flex items-center justify-between p-3 rounded-lg"
                 style={{
-                  background: "oklch(0.13 0.010 240)",
-                  border: "1px solid oklch(0.22 0.010 240)",
+                  background: "#111614",
+                  border: "1px solid rgba(45,107,63,0.30)",
                 }}
               >
                 <div className="flex items-center gap-2">
                   {getExpertiseIcon(er.field)}
-                  <span className="text-sm font-medium" style={{ color: "oklch(0.75 0.18 60)" }}>
+                  <span className="text-sm font-medium" style={{ color: "#D4AF37" }}>
                     {getExpertiseLabel(er.field)}
                   </span>
                 </div>
-                <span className="text-sm font-semibold" style={{ color: "oklch(0.65 0.16 148)" }}>
+                <span className="text-sm font-semibold" style={{ color: "#34D399" }}>
                   {er.rankName} ({er.score} Punkte)
                 </span>
               </div>
@@ -153,7 +153,7 @@ const ReputationSystem: React.FC<ReputationSystemProps> = ({
       {reputation.badges.length > 0 && (
         <div>
           <h3 className="font-brand text-xl tracking-widest mb-3"
-              style={{ color: "oklch(0.92 0.005 200)" }}>
+              style={{ color: "#FFFFFF" }}>
             Abzeichen
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -162,19 +162,19 @@ const ReputationSystem: React.FC<ReputationSystemProps> = ({
                 key={badge.id}
                 className="flex flex-col items-center text-center p-4 rounded-lg"
                 style={{
-                  background: "oklch(0.13 0.010 240)",
-                  border: "1px solid oklch(0.22 0.010 240)",
+                  background: "#111614",
+                  border: "1px solid rgba(45,107,63,0.30)",
                 }}
                 title={badge.description}
               >
-                <div className="mb-2" style={{ color: "oklch(0.75 0.18 60)" }}>
+                <div className="mb-2" style={{ color: "#D4AF37" }}>
                   {badge.icon}
                 </div>
-                <span className="text-xs font-medium" style={{ color: "oklch(0.92 0.005 200)" }}>
+                <span className="text-xs font-medium" style={{ color: "#FFFFFF" }}>
                   {badge.name}
                 </span>
                 <span className="text-xs text-muted-foreground mt-1"
-                      style={{ color: "oklch(0.50 0.008 200)" }}>
+                      style={{ color: "rgba(255,255,255,0.50)" }}>
                   {badge.earnedAt.toLocaleDateString()}
                 </span>
               </div>

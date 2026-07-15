@@ -23,9 +23,9 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 };
 
 const DIFFICULTY_COLOR: Record<string, string> = {
-  beginner:     "oklch(0.65 0.16 148)",
-  intermediate: "oklch(0.78 0.14 78)",
-  expert:       "oklch(0.70 0.18 15)",
+  beginner:     "#34D399",
+  intermediate: "#D4AF37",
+  expert:       "rgba(240,80,80,0.90)",
 };
 
 function PlantCard({ plant }: { plant: any }) {
@@ -34,15 +34,15 @@ function PlantCard({ plant }: { plant: any }) {
       <article
         className="overflow-hidden rounded-2xl cursor-pointer group transition-all duration-300"
         style={{
-          background: "oklch(0.11 0.008 200)",
-          border: "1px solid oklch(0.21 0.008 200)",
+          background: "#0D110E",
+          border: "1px solid rgba(45,107,63,0.30)",
         }}
         onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)";
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)";
           (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
         }}
         onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
+          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)";
           (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
         }}
       >
@@ -58,9 +58,9 @@ function PlantCard({ plant }: { plant: any }) {
           ) : (
             <div
               className="w-full h-full flex items-center justify-center"
-              style={{ background: "oklch(0.15 0.012 148)" }}
+              style={{ background: "#0D110E" }}
             >
-              <Leaf className="w-12 h-12" style={{ color: "oklch(0.35 0.10 148)" }} />
+              <Leaf className="w-12 h-12" style={{ color: "rgba(45,107,63,0.60)" }} />
             </div>
           )}
           {/* Category badge */}
@@ -68,9 +68,9 @@ function PlantCard({ plant }: { plant: any }) {
             <span
               className="px-2 py-0.5 rounded-lg text-xs font-medium backdrop-blur-sm"
               style={{
-                background: "oklch(0.08 0.008 200 / 0.80)",
-                color: "oklch(0.65 0.16 148)",
-                border: "1px solid oklch(0.52 0.14 148 / 0.25)",
+                background: "rgba(7,10,8,0.80)",
+                color: "#34D399",
+                border: "1px solid rgba(45,155,110,0.25)",
               }}
             >
               {CATEGORY_LABELS[plant.category] ?? plant.category}
@@ -79,7 +79,7 @@ function PlantCard({ plant }: { plant: any }) {
           {/* Gradient overlay */}
           <div
             className="absolute bottom-0 left-0 right-0 h-12"
-            style={{ background: "linear-gradient(to top, oklch(0.11 0.008 200), transparent)" }}
+            style={{ background: "linear-gradient(to top, #0D110E, transparent)" }}
           />
         </div>
 
@@ -87,20 +87,20 @@ function PlantCard({ plant }: { plant: any }) {
         <div className="p-4">
           <h3
             className="font-semibold text-sm leading-tight truncate"
-            style={{ color: "oklch(0.92 0.005 200)" }}
+            style={{ color: "#FFFFFF" }}
           >
             {plant.name}
           </h3>
           {plant.scientificName && (
             <p
               className="text-xs italic truncate mt-0.5"
-              style={{ color: "oklch(0.52 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.52)" }}
             >
               {plant.scientificName}
             </p>
           )}
           {/* Care indicators */}
-          <div className="flex items-center gap-3 mt-3 text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>
+          <div className="flex items-center gap-3 mt-3 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
             {plant.lightRequirement && (
               <span className="flex items-center gap-1">
                 <Sun className="w-3 h-3" />
@@ -116,7 +116,7 @@ function PlantCard({ plant }: { plant: any }) {
             {plant.difficulty && (
               <span
                 className="flex items-center gap-1 ml-auto"
-                style={{ color: DIFFICULTY_COLOR[plant.difficulty] ?? "oklch(0.65 0.16 148)" }}
+                style={{ color: DIFFICULTY_COLOR[plant.difficulty] ?? "#34D399" }}
               >
                 <Thermometer className="w-3 h-3" />
                 {DIFFICULTY_LABELS[plant.difficulty]}
@@ -148,11 +148,11 @@ export default function Plants() {
         <div>
           <h1
             className="font-brand text-4xl leading-none mb-1"
-            style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.04em" }}
+            style={{ color: "#FFFFFF", letterSpacing: "0.04em" }}
           >
             MEINE PFLANZEN
           </h1>
-          <h2 className="text-sm" style={{ color: "oklch(0.50 0.008 200)", fontWeight: 400 }}>
+          <h2 className="text-sm" style={{ color: "rgba(255,255,255,0.50)", fontWeight: 400 }}>
             {isAuthenticated ? `${plants?.length ?? 0} Pflanzen in deiner Sammlung` : "Melde dich an, um deine Sammlung zu verwalten"}
           </h2>
         </div>
@@ -170,14 +170,14 @@ export default function Plants() {
         <div className="text-center py-24">
           <div
             className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
-            style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.20)" }}
+            style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.20)" }}
           >
-            <Lock className="w-9 h-9" style={{ color: "oklch(0.55 0.14 148)" }} />
+            <Lock className="w-9 h-9" style={{ color: "#2D9B6E" }} />
           </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.85 0.005 200)" }}>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: "rgba(255,255,255,0.85)" }}>
             Anmeldung erforderlich
           </h3>
-          <p className="text-sm mb-6" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
             Melde dich an, um deine Pflanzensammlung zu verwalten.
           </p>
           <a href={getLoginUrl()} className="btn-primary">
@@ -193,7 +193,7 @@ export default function Plants() {
             <div
               key={i}
               className="rounded-2xl overflow-hidden"
-              style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.16 0.009 200)" }}
+              style={{ background: "#0D110E", border: "1px solid #161C19" }}
             >
               <Skeleton className="w-full rounded-none" style={{ aspectRatio: "4/3", height: "auto" }} />
               <div className="p-4 space-y-2">
@@ -210,14 +210,14 @@ export default function Plants() {
         <div className="text-center py-24">
           <div
             className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5"
-            style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.20)" }}
+            style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.20)" }}
           >
-            <Leaf className="w-9 h-9" style={{ color: "oklch(0.55 0.14 148)" }} />
+            <Leaf className="w-9 h-9" style={{ color: "#2D9B6E" }} />
           </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.85 0.005 200)" }}>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: "rgba(255,255,255,0.85)" }}>
             Noch keine Pflanzen
           </h3>
-          <p className="text-sm mb-6" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
             Füge deine erste Pflanze hinzu und beginne mit der Dokumentation.
           </p>
           <Link href="/plants/new">

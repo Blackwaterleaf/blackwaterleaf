@@ -16,10 +16,10 @@ export default function AiIdentificationReview() {
   if (!user || (user.role !== "moderator" && user.role !== "admin")) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
-        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-          <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.65 0.16 40)" }} />
-          <h2 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>Zugriff verweigert</h2>
-          <p style={{ color: "oklch(0.55 0.008 200)" }}>Nur Moderatoren und Admins können Bestimmungen bestätigen.</p>
+        <div className="rounded-2xl p-6 text-center" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+          <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "#D4AF37" }} />
+          <h2 className="text-lg font-semibold mb-2" style={{ color: "rgba(255,255,255,0.88)" }}>Zugriff verweigert</h2>
+          <p style={{ color: "rgba(255,255,255,0.55)" }}>Nur Moderatoren und Admins können Bestimmungen bestätigen.</p>
         </div>
       </div>
     );
@@ -29,16 +29,16 @@ export default function AiIdentificationReview() {
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-brand text-3xl mb-2" style={{ color: "oklch(0.90 0.005 200)" }}>KI-Bestimmungs-Review</h1>
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Bestätige oder lehne KI-Pflanzenbestimmungen ab</p>
+        <h1 className="font-brand text-3xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>KI-Bestimmungs-Review</h1>
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Bestätige oder lehne KI-Pflanzenbestimmungen ab</p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-          <TabsTrigger value="pending" style={{ color: "oklch(0.55 0.008 200)" }}>Ausstehend</TabsTrigger>
-          <TabsTrigger value="approved" style={{ color: "oklch(0.55 0.008 200)" }}>Bestätigt</TabsTrigger>
-          <TabsTrigger value="rejected" style={{ color: "oklch(0.55 0.008 200)" }}>Abgelehnt</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3" style={{ background: "#111614", border: "1px solid rgba(45,107,63,0.30)" }}>
+          <TabsTrigger value="pending" style={{ color: "rgba(255,255,255,0.55)" }}>Ausstehend</TabsTrigger>
+          <TabsTrigger value="approved" style={{ color: "rgba(255,255,255,0.55)" }}>Bestätigt</TabsTrigger>
+          <TabsTrigger value="rejected" style={{ color: "rgba(255,255,255,0.55)" }}>Abgelehnt</TabsTrigger>
         </TabsList>
 
         {/* Ausstehend */}
@@ -88,9 +88,9 @@ function PendingIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.52 0.14 148)" }} />
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine ausstehenden Bestimmungen. Alles ist aktuell! ✨</p>
+      <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "#2D9B6E" }} />
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Keine ausstehenden Bestimmungen. Alles ist aktuell! ✨</p>
       </Card>
     );
   }
@@ -98,22 +98,22 @@ function PendingIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-4">
           <div className="mb-4">
-            <p className="text-sm font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>
+            <p className="text-sm font-semibold mb-2" style={{ color: "rgba(255,255,255,0.88)" }}>
               {correction.topic}
             </p>
             {correction.originalAnswer && (
-              <div className="mb-3 p-3 rounded" style={{ background: "oklch(0.14 0.008 200)" }}>
-                <p className="text-xs mb-1" style={{ color: "oklch(0.48 0.008 200)" }}>KI-Original:</p>
-                <p className="text-sm" style={{ color: "oklch(0.70 0.008 200)" }}>{correction.originalAnswer}</p>
+              <div className="mb-3 p-3 rounded" style={{ background: "#111614" }}>
+                <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.45)" }}>KI-Original:</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.70)" }}>{correction.originalAnswer}</p>
               </div>
             )}
-            <div className="p-3 rounded" style={{ background: "oklch(0.52 0.14 148 / 0.1)", border: "1px solid oklch(0.52 0.14 148 / 0.3)" }}>
-              <p className="text-xs mb-1" style={{ color: "oklch(0.52 0.14 148)" }}>Korrigiert zu:</p>
-              <p className="text-sm" style={{ color: "oklch(0.88 0.005 200)" }}>{correction.correctedText}</p>
+            <div className="p-3 rounded" style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.30)" }}>
+              <p className="text-xs mb-1" style={{ color: "#2D9B6E" }}>Korrigiert zu:</p>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>{correction.correctedText}</p>
             </div>
-            <p className="text-xs mt-2" style={{ color: "oklch(0.48 0.008 200)" }}>
+            <p className="text-xs mt-2" style={{ color: "rgba(255,255,255,0.45)" }}>
               Von: {correction.userName} • {new Date(correction.createdAt).toLocaleDateString("de-DE")}
             </p>
           </div>
@@ -123,7 +123,7 @@ function PendingIdentificationsTab() {
               variant="outline"
               disabled={approveMutation.isPending}
               onClick={() => approveMutation.mutate({ correctionId: correction.id })}
-              style={{ color: "oklch(0.52 0.14 148)" }}
+              style={{ color: "#2D9B6E" }}
             >
               <CheckCircle className="w-4 h-4 mr-1" /> Bestätigen
             </Button>
@@ -132,7 +132,7 @@ function PendingIdentificationsTab() {
               variant="outline"
               disabled={rejectMutation.isPending}
               onClick={() => rejectMutation.mutate({ correctionId: correction.id })}
-              style={{ color: "oklch(0.65 0.16 40)" }}
+              style={{ color: "#D4AF37" }}
             >
               <XCircle className="w-4 h-4 mr-1" /> Ablehnen
             </Button>
@@ -152,8 +152,8 @@ function ApprovedIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine bestätigten Bestimmungen vorhanden</p>
+      <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Keine bestätigten Bestimmungen vorhanden</p>
       </Card>
     );
   }
@@ -161,17 +161,17 @@ function ApprovedIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{correction.topic}</p>
-              <p className="text-sm mt-1" style={{ color: "oklch(0.70 0.008 200)" }}>{correction.correctedText}</p>
+              <p className="font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>{correction.topic}</p>
+              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.70)" }}>{correction.correctedText}</p>
               <div className="flex items-center gap-2 mt-2">
-                <ThumbsUp className="w-4 h-4" style={{ color: "oklch(0.52 0.14 148)" }} />
-                <p className="text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>{correction.upvotes} Upvotes</p>
+                <ThumbsUp className="w-4 h-4" style={{ color: "#2D9B6E" }} />
+                <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{correction.upvotes} Upvotes</p>
               </div>
             </div>
-            <CheckCircle className="w-6 h-6 flex-shrink-0" style={{ color: "oklch(0.52 0.14 148)" }} />
+            <CheckCircle className="w-6 h-6 flex-shrink-0" style={{ color: "#2D9B6E" }} />
           </div>
         </Card>
       ))}
@@ -188,8 +188,8 @@ function RejectedIdentificationsTab() {
 
   if (!corrections || corrections.length === 0) {
     return (
-      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine abgelehnten Bestimmungen vorhanden</p>
+      <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Keine abgelehnten Bestimmungen vorhanden</p>
       </Card>
     );
   }
@@ -197,13 +197,13 @@ function RejectedIdentificationsTab() {
   return (
     <div className="space-y-4">
       {corrections.map((correction: any) => (
-        <Card key={correction.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
+        <Card key={correction.id} style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{correction.topic}</p>
-              <p className="text-sm mt-1" style={{ color: "oklch(0.70 0.008 200)" }}>{correction.correctedText}</p>
+              <p className="font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>{correction.topic}</p>
+              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.70)" }}>{correction.correctedText}</p>
             </div>
-            <XCircle className="w-6 h-6 flex-shrink-0" style={{ color: "oklch(0.65 0.16 40)" }} />
+            <XCircle className="w-6 h-6 flex-shrink-0" style={{ color: "#D4AF37" }} />
           </div>
         </Card>
       ))}

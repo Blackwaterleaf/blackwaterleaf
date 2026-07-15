@@ -19,7 +19,7 @@ function SkeletonBase({ className = '' }: { className?: string }) {
     <div
       className={`rounded-lg animate-pulse ${className}`}
       style={{
-        backgroundColor: 'oklch(0.14 0.008 200)',
+        backgroundColor: '#111614',
       }}
     />
   );
@@ -36,8 +36,8 @@ export function SkeletonCard({ aspectRatio = 'square' }: { aspectRatio?: 'square
     <div
       className="rounded-2xl overflow-hidden"
       style={{
-        backgroundColor: 'oklch(0.11 0.008 200)',
-        border: '1px solid oklch(0.21 0.008 200)',
+        backgroundColor: '#0D110E',
+        border: '1px solid rgba(45,107,63,0.30)',
       }}
     >
       {/* Image Placeholder */}
@@ -63,8 +63,8 @@ export function SkeletonArticleItem() {
     <div
       className="rounded-2xl p-4 space-y-3"
       style={{
-        backgroundColor: 'oklch(0.11 0.008 200)',
-        border: '1px solid oklch(0.21 0.008 200)',
+        backgroundColor: '#0D110E',
+        border: '1px solid rgba(45,107,63,0.30)',
       }}
     >
       {/* Header mit Avatar */}

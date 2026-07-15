@@ -22,10 +22,10 @@ export default function BottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 border-t"
       style={{
-        background: "oklch(0.09 0.008 200 / 0.92)",
+        background: "rgba(7,10,8,0.92)",
         backdropFilter: "blur(20px) saturate(1.5)",
         WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-        borderColor: "oklch(0.22 0.008 200 / 0.6)",
+        borderColor: "rgba(45,107,63,0.25)",
       }}
     >
       <div className="max-w-[1400px] mx-auto px-0 h-20 flex items-center justify-around">
@@ -38,7 +38,7 @@ export default function BottomNav() {
               <button
                 className="flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-lg transition-all duration-200 flex-1 h-full"
                 style={{
-                  color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)",
+                  color: isActive ? "#34D399" : "rgba(255,255,255,0.50)",
                 }}
               >
                 <Icon className="w-6 h-6" />

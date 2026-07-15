@@ -262,13 +262,13 @@ export default function PlantIdentify() {
                 <button
                   onClick={() => fileInputRefs.current[idx]?.click()}
                   className="w-full aspect-square rounded-xl border-2 border-dashed border-border/50 hover:border-primary/50 flex flex-col items-center justify-center gap-1.5 transition-colors"
-                  style={{ background: "oklch(0.11 0.008 200)" }}
+                  style={{ background: "#0D110E" }}
                 >
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                     {idx === 0 ? <Camera className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary/60" />}
                   </div>
-                  <p className="text-[11px] font-medium" style={{ color: "oklch(0.65 0.008 200)" }}>{slot.name}</p>
-                  <p className="text-[10px]" style={{ color: "oklch(0.45 0.008 200)" }}>{slot.hint}</p>
+                  <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.65)" }}>{slot.name}</p>
+                  <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)" }}>{slot.hint}</p>
                 </button>
               )}
             </div>
@@ -277,7 +277,7 @@ export default function PlantIdentify() {
       </div>
 
       {/* Tip */}
-      <p className="text-xs text-center" style={{ color: "oklch(0.45 0.008 200)" }}>
+      <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.45)" }}>
         Tipp: Blattoberseite + Unterseite = deutlich bessere Bestimmungsgenauigkeit
       </p>
 
@@ -399,13 +399,13 @@ export default function PlantIdentify() {
             <a
               href={result.knowledgeLink}
               className="flex items-center gap-2 rounded-lg p-3 transition-colors"
-              style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+              style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.25)" }}
             >
-              <BookOpen className="w-4 h-4 shrink-0" style={{ color: "oklch(0.65 0.16 148)" }} />
-              <span className="text-sm flex-1" style={{ color: "oklch(0.75 0.008 200)" }}>
+              <BookOpen className="w-4 h-4 shrink-0" style={{ color: "#34D399" }} />
+              <span className="text-sm flex-1" style={{ color: "rgba(255,255,255,0.75)" }}>
                 Wissensartikel zu <strong>{result.genus || result.commonName}</strong> lesen
               </span>
-              <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "oklch(0.50 0.008 200)" }} />
+              <ChevronRight className="w-4 h-4 shrink-0" style={{ color: "rgba(255,255,255,0.50)" }} />
             </a>
           )}
 
@@ -447,8 +447,8 @@ export default function PlantIdentify() {
             disabled={isSaving || createPlantMutation.isPending}
             onClick={savePlant}
             style={{
-              background: "linear-gradient(135deg, oklch(0.68 0.16 152), oklch(0.60 0.18 155))",
-              color: "oklch(0.07 0.008 240)",
+              background: "linear-gradient(135deg, #34D399, #2D9B6E)",
+              color: "#070A08",
               fontWeight: 600,
             }}
           >

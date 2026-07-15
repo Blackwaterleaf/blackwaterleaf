@@ -113,25 +113,25 @@ export default function Profile({ userId: _userId }: ProfileProps) {
         <div className="relative mb-4">
           {editing ? (
             <label className="w-24 h-24 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
-              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "2px solid oklch(0.52 0.14 148)" }}>
-              <Camera className="w-8 h-8" style={{ color: "oklch(0.65 0.16 148)" }} />
+              style={{ background: "rgba(45,155,110,0.15)", border: "2px solid #2D9B6E" }}>
+              <Camera className="w-8 h-8" style={{ color: "#34D399" }} />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </label>
           ) : (
             <>
-              <Avatar className="w-24 h-24" style={{ border: "2px solid oklch(0.52 0.14 148 / 0.4)" }}>
+              <Avatar className="w-24 h-24" style={{ border: "2px solid rgba(45,155,110,0.40)" }}>
                 <AvatarImage src={display?.avatarUrl ?? undefined} />
                 <AvatarFallback className="text-3xl font-bold"
-                  style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
+                  style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}>
                   {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
                 </AvatarFallback>
               </Avatar>
               {/* Kamera-Badge */}
               <label
                 className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
-                style={{ background: "oklch(0.52 0.14 148)", border: "2px solid oklch(0.08 0.008 200)" }}
+                style={{ background: "#2D9B6E", border: "2px solid #070A08" }}
               >
-                <Camera className="w-4 h-4" style={{ color: "oklch(0.08 0.008 200)" }} />
+                <Camera className="w-4 h-4" style={{ color: "#070A08" }} />
                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
               </label>
             </>
@@ -146,21 +146,21 @@ export default function Profile({ userId: _userId }: ProfileProps) {
               onChange={e => setName(e.target.value)}
               placeholder="Dein Name"
               className="text-center font-brand text-xl"
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)", color: "rgba(255,255,255,0.88)" }}
             />
             <Textarea
               value={bio}
               onChange={e => setBio(e.target.value)}
               placeholder="Über dich..."
               className="min-h-[60px] resize-none text-sm text-center"
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)", color: "rgba(255,255,255,0.88)" }}
             />
             <Input
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="Standort (optional)"
               className="text-center text-sm"
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)", color: "rgba(255,255,255,0.88)" }}
             />
             <div className="flex gap-2 justify-center">
               <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
@@ -174,7 +174,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
                   bio: bio.trim() || undefined,
                   location: location.trim() || undefined,
                 })}
-                style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.11 0.008 200)" }}
+                style={{ background: "#2D9B6E", color: "#0D110E" }}
               >
                 <Save className="w-3.5 h-3.5 mr-1" /> Speichern
               </Button>
@@ -187,32 +187,32 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <div className="flex items-center gap-2 mb-1">
               <h1
                 className="font-brand text-3xl tracking-wide"
-                style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.06em" }}
+                style={{ color: "#FFFFFF", letterSpacing: "0.06em" }}
               >
                 {display?.name?.toUpperCase() ?? "PROFIL"}
               </h1>
               {display?.role === "moderator" && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "oklch(0.52 0.14 148 / 0.2)", border: "1px solid oklch(0.52 0.14 148 / 0.4)" }}>
-                  <Shield className="w-3 h-3" style={{ color: "oklch(0.52 0.14 148)" }} />
-                  <span className="text-xs font-semibold" style={{ color: "oklch(0.52 0.14 148)" }}>Mod</span>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(45,155,110,0.20)", border: "1px solid rgba(45,155,110,0.40)" }}>
+                  <Shield className="w-3 h-3" style={{ color: "#2D9B6E" }} />
+                  <span className="text-xs font-semibold" style={{ color: "#2D9B6E" }}>Mod</span>
                 </div>
               )}
               {display?.role === "admin" && (
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "oklch(0.65 0.16 40 / 0.2)", border: "1px solid oklch(0.65 0.16 40 / 0.4)" }}>
-                  <Award className="w-3 h-3" style={{ color: "oklch(0.65 0.16 40)" }} />
-                  <span className="text-xs font-semibold" style={{ color: "oklch(0.65 0.16 40)" }}>Admin</span>
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "rgba(212,175,55,0.20)", border: "1px solid rgba(212,175,55,0.40)" }}>
+                  <Award className="w-3 h-3" style={{ color: "#D4AF37" }} />
+                  <span className="text-xs font-semibold" style={{ color: "#D4AF37" }}>Admin</span>
                 </div>
               )}
             </div>
 
             {/* E-Mail */}
-            <p className="text-sm mb-2" style={{ color: "oklch(0.50 0.008 200)" }}>
+            <p className="text-sm mb-2" style={{ color: "rgba(255,255,255,0.50)" }}>
               {display?.email ?? ""}
             </p>
 
             {/* Bio */}
             {display?.bio && (
-              <p className="text-sm text-center mb-4 max-w-xs" style={{ color: "oklch(0.65 0.008 200)" }}>
+              <p className="text-sm text-center mb-4 max-w-xs" style={{ color: "rgba(255,255,255,0.65)" }}>
                 {display.bio}
               </p>
             )}
@@ -223,8 +223,8 @@ export default function Profile({ userId: _userId }: ProfileProps) {
               className="px-8 py-2.5 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
               style={{
                 background: "transparent",
-                border: "1.5px solid oklch(0.35 0.008 200)",
-                color: "oklch(0.75 0.005 200)",
+                border: "1.5px solid rgba(45,107,63,0.40)",
+                color: "rgba(255,255,255,0.75)",
               }}
             >
               Profil bearbeiten
@@ -236,15 +236,15 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       {/* ── 4 Stats-Karten (wie Native App: Level, XP, Streak, Abzeichen) ── */}
       <div className="grid grid-cols-4 gap-2.5 mb-5">
         {[
-          { value: level, label: "Level", color: "oklch(0.65 0.16 148)", icon: <TrendingUp className="w-3.5 h-3.5" /> },
-          { value: xp, label: "XP", color: "oklch(0.65 0.16 148)", icon: <Zap className="w-3.5 h-3.5" /> },
-          { value: streak, label: "Streak", color: "oklch(0.65 0.16 148)", icon: <Star className="w-3.5 h-3.5" /> },
-          { value: badgeCount, label: "Abzeichen", color: "oklch(0.65 0.16 148)", icon: <Award className="w-3.5 h-3.5" /> },
+          { value: level, label: "Level", color: "#34D399", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+          { value: xp, label: "XP", color: "#34D399", icon: <Zap className="w-3.5 h-3.5" /> },
+          { value: streak, label: "Streak", color: "#34D399", icon: <Star className="w-3.5 h-3.5" /> },
+          { value: badgeCount, label: "Abzeichen", color: "#34D399", icon: <Award className="w-3.5 h-3.5" /> },
         ].map((stat) => (
           <div
             key={stat.label}
             className="rounded-2xl p-3 flex flex-col items-center justify-center"
-            style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+            style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
           >
             <p
               className="text-2xl font-bold leading-none mb-1"
@@ -252,7 +252,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             >
               {stat.value}
             </p>
-            <p className="text-xs" style={{ color: "oklch(0.50 0.008 200)" }}>
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.50)" }}>
               {stat.label}
             </p>
           </div>
@@ -262,19 +262,19 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       {/* ── "Dein Profil" Karte (wie Native App) ── */}
       <div
         className="rounded-2xl p-4 mb-5"
-        style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+        style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
       >
         <div className="flex items-start justify-between">
           <div>
-            <p className="font-semibold mb-1.5" style={{ color: "oklch(0.88 0.005 200)" }}>
+            <p className="font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.88)" }}>
               Dein Profil
             </p>
-            <p className="text-sm mb-1" style={{ color: "oklch(0.65 0.008 200)" }}>
-              Level: <span className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{levelTitle}</span>
+            <p className="text-sm mb-1" style={{ color: "rgba(255,255,255,0.65)" }}>
+              Level: <span className="font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>{levelTitle}</span>
             </p>
-            <p className="text-sm" style={{ color: "oklch(0.65 0.008 200)" }}>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>
               Interessen:{" "}
-              <span className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>
+              <span className="font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>
                 {interests.join(", ")}
               </span>
             </p>
@@ -282,9 +282,9 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           <button
             onClick={startEditing}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95"
-            style={{ background: "oklch(0.16 0.009 200)", border: "1px solid oklch(0.25 0.008 200)" }}
+            style={{ background: "rgba(13,17,14,0.85)", border: "1px solid rgba(45,107,63,0.35)" }}
           >
-            <Pencil className="w-3.5 h-3.5" style={{ color: "oklch(0.60 0.008 200)" }} />
+            <Pencil className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.60)" }} />
           </button>
         </div>
       </div>
@@ -293,35 +293,35 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       <div className="mb-6">
         <p
           className="text-xs font-bold uppercase mb-3"
-          style={{ color: "oklch(0.50 0.008 200)", letterSpacing: "0.12em" }}
+          style={{ color: "rgba(255,255,255,0.50)", letterSpacing: "0.12em" }}
         >
           MEINE BEREICHE
         </p>
         <div className="space-y-2">
           {[
-            { href: "/plants", icon: <Leaf className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />, label: "Meine Pflanzen", count: plants?.length },
-            { href: "/aquariums", icon: <Droplets className="w-5 h-5" style={{ color: "oklch(0.55 0.14 220)" }} />, label: "Meine Aquarien", count: aquariums?.length },
+            { href: "/plants", icon: <Leaf className="w-5 h-5" style={{ color: "#34D399" }} />, label: "Meine Pflanzen", count: plants?.length },
+            { href: "/aquariums", icon: <Droplets className="w-5 h-5" style={{ color: "rgba(100,160,240,0.90)" }} />, label: "Meine Aquarien", count: aquariums?.length },
           ].map((item) => (
             <Link key={item.href} href={item.href}>
               <div
                 className="flex items-center gap-3 px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
-                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+                style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: "oklch(0.52 0.14 148 / 0.12)" }}
+                  style={{ background: "rgba(45,155,110,0.12)" }}
                 >
                   {item.icon}
                 </div>
-                <span className="flex-1 font-medium" style={{ color: "oklch(0.88 0.005 200)" }}>
+                <span className="flex-1 font-medium" style={{ color: "rgba(255,255,255,0.88)" }}>
                   {item.label}
                 </span>
                 {item.count !== undefined && (
-                  <span className="text-sm mr-1" style={{ color: "oklch(0.50 0.008 200)" }}>
+                  <span className="text-sm mr-1" style={{ color: "rgba(255,255,255,0.50)" }}>
                     {item.count}
                   </span>
                 )}
-                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.40 0.008 200)" }} />
+                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(255,255,255,0.40)" }} />
               </div>
             </Link>
           ))}
@@ -350,11 +350,11 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       )}
 
       {/* ── Tabs: Sammlung & Beiträge ── */}
-      <h2 className="font-brand text-xl mb-4" style={{ color: "oklch(0.90 0.005 200)", letterSpacing: "0.03em" }}>
+      <h2 className="font-brand text-xl mb-4" style={{ color: "rgba(255,255,255,0.90)", letterSpacing: "0.03em" }}>
         Sammlung &amp; Beiträge
       </h2>
       <Tabs defaultValue="plants">
-        <TabsList className="mb-4 w-full" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
+        <TabsList className="mb-4 w-full" style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}>
           <TabsTrigger value="plants" className="flex-1">Botanik</TabsTrigger>
           <TabsTrigger value="aquariums" className="flex-1">Aquarien</TabsTrigger>
           <TabsTrigger value="posts" className="flex-1">Beiträge</TabsTrigger>
@@ -362,10 +362,10 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
         <TabsContent value="plants" className="animate-fade-in">
           {plants?.length === 0 ? (
-            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-              <Leaf className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
-              <p className="text-sm mb-3" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Pflanzen</p>
-              <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.11 0.008 200)" }}>
+            <div className="text-center py-10 rounded-2xl" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+              <Leaf className="w-8 h-8 mx-auto mb-2" style={{ color: "rgba(45,107,63,0.50)" }} />
+              <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>Noch keine Pflanzen</p>
+              <Button asChild size="sm" style={{ background: "#2D9B6E", color: "#0D110E" }}>
                 <Link href="/plants/new">Pflanze hinzufügen</Link>
               </Button>
             </div>
@@ -375,21 +375,21 @@ export default function Profile({ userId: _userId }: ProfileProps) {
                 <Link key={plant.id} href={`/plants/${plant.id}`}>
                   <div
                     className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
-                    style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)"; }}
+                    style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)"; }}
                   >
-                    <div className="aspect-square relative overflow-hidden" style={{ background: "oklch(0.10 0.008 200)" }}>
+                    <div className="aspect-square relative overflow-hidden" style={{ background: "#070A08" }}>
                       {plant.coverImageUrl ? (
                         <img src={plant.coverImageUrl} alt={plant.name} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Leaf className="w-8 h-8" style={{ color: "oklch(0.25 0.008 200)" }} />
+                          <Leaf className="w-8 h-8" style={{ color: "rgba(45,107,63,0.35)" }} />
                         </div>
                       )}
                     </div>
                     <div className="p-2.5">
-                      <p className="text-xs font-medium truncate" style={{ color: "oklch(0.88 0.005 200)" }}>{plant.name}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: "rgba(255,255,255,0.88)" }}>{plant.name}</p>
                     </div>
                   </div>
                 </Link>
@@ -400,10 +400,10 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
         <TabsContent value="aquariums" className="animate-fade-in">
           {aquariums?.length === 0 ? (
-            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-              <Droplets className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
-              <p className="text-sm mb-3" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Aquarien</p>
-              <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.11 0.008 200)" }}>
+            <div className="text-center py-10 rounded-2xl" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+              <Droplets className="w-8 h-8 mx-auto mb-2" style={{ color: "rgba(45,107,63,0.50)" }} />
+              <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.55)" }}>Noch keine Aquarien</p>
+              <Button asChild size="sm" style={{ background: "#2D9B6E", color: "#0D110E" }}>
                 <Link href="/aquariums/new">Aquarium hinzufügen</Link>
               </Button>
             </div>
@@ -413,21 +413,21 @@ export default function Profile({ userId: _userId }: ProfileProps) {
                 <Link key={aq.id} href={`/aquariums/${aq.id}`}>
                   <div
                     className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
-                    style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)"; }}
+                    style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)"; }}
                   >
-                    <div className="aspect-video relative overflow-hidden" style={{ background: "oklch(0.10 0.008 200)" }}>
+                    <div className="aspect-video relative overflow-hidden" style={{ background: "#070A08" }}>
                       {aq.coverImageUrl ? (
                         <img src={aq.coverImageUrl} alt={aq.name} className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Droplets className="w-8 h-8" style={{ color: "oklch(0.25 0.008 200)" }} />
+                          <Droplets className="w-8 h-8" style={{ color: "rgba(45,107,63,0.35)" }} />
                         </div>
                       )}
                     </div>
                     <div className="p-2.5">
-                      <p className="text-xs font-medium truncate" style={{ color: "oklch(0.88 0.005 200)" }}>{aq.name}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: "rgba(255,255,255,0.88)" }}>{aq.name}</p>
                     </div>
                   </div>
                 </Link>
@@ -438,18 +438,18 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
         <TabsContent value="posts" className="animate-fade-in">
           {posts?.posts.length === 0 ? (
-            <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Beiträge</p>
+            <div className="text-center py-10 rounded-2xl" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>Noch keine Beiträge</p>
             </div>
           ) : (
             <div className="space-y-3">
               {posts?.posts.map((post) => (
-                <div key={post.id} className="rounded-2xl p-4" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
+                <div key={post.id} className="rounded-2xl p-4" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
                   {post.imageUrl && (
                     <img src={post.imageUrl} alt="" className="w-full max-h-48 object-cover rounded-lg mb-3" loading="lazy" />
                   )}
-                  <p className="text-sm" style={{ color: "oklch(0.72 0.005 200)" }}>{post.content}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>{post.content}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
                     <span>❤️ {post.likesCount}</span>
                     <span>💬 {post.commentsCount}</span>
                   </div>

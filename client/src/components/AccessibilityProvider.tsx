@@ -127,10 +127,10 @@ const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children 
       <a
         ref={skipLinkRef}
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:p-3 focus:rounded-md focus:bg-[oklch(0.65_0.16_148)] focus:text-[oklch(0.10_0.008_200)]"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:p-3 focus:rounded-md focus:bg-[#34D399] focus:text-[#070A08]"
         style={{
           fontFamily: "Inter, sans-serif",
-          outline: "2px solid oklch(0.65 0.16 148)",
+          outline: "2px solid #34D399",
           outlineOffset: "2px",
         }}
       >

@@ -1,9 +1,9 @@
-import { Seo } from "@/components/Seo";
 import { Link } from "wouter";
 import { useState } from "react";
-import { Search, Clock, ChevronRight } from "lucide-react";
+import { Search, Clock, ChevronRight, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trpc } from "@/lib/trpc";
+import { SeoEnhanced } from "@/components/SeoEnhanced";
 
 const CATEGORIES = [
   { value: "all",         label: "Alle" },
@@ -39,17 +39,19 @@ const GENUS_THUMBNAILS: Record<string, string> = {
   Philodendron: "https://d2xsxph8kpxj0f.cloudfront.net/310519663774770417/TfjmvQ7wVry254EgfLy7em/philodendron-thumb-HKGFSfUTi6sJpSPYDtjcrj.webp",
 };
 
-// Farb-Konstanten
+// ─── Premium Design Tokens (identisch mit Discover.tsx) ─────────
 const C = {
-  bg: "oklch(0.10 0.008 200)",
-  card: "oklch(0.11 0.008 200)",
-  cardBorder: "1px solid oklch(0.21 0.008 200)",
-  green: "oklch(0.52 0.14 148)",
-  greenLight: "oklch(0.65 0.16 148)",
-  greenBg: "oklch(0.52 0.14 148 / 0.15)",
-  textPrimary: "oklch(0.95 0.005 200)",
-  textSecondary: "oklch(0.70 0.005 200)",
-  textMuted: "oklch(0.48 0.008 200)",
+  bg:          "#070A08",
+  card:        "rgba(13, 17, 14, 0.90)",
+  cardSolid:   "#0D110E",
+  glassBorder: "rgba(45, 107, 63, 0.30)",
+  smaragd:     "#2D9B6E",
+  mint:        "#34D399",
+  gold:        "#D4AF37",
+  white:       "#FFFFFF",
+  white70:     "rgba(255,255,255,0.70)",
+  white50:     "rgba(255,255,255,0.50)",
+  slate:       "#94A3B8",
 };
 
 function ArticleCard({ article }: { article: any }) {
@@ -58,8 +60,14 @@ function ArticleCard({ article }: { article: any }) {
   return (
     <Link href={`/knowledge/${article.slug}`}>
       <article
-        className="overflow-hidden rounded-2xl cursor-pointer transition-all duration-200"
-        style={{ background: C.card, border: C.cardBorder }}
+        className="overflow-hidden rounded-2xl cursor-pointer transition-all duration-200 active:scale-[0.98]"
+        style={{
+          background: C.card,
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          border: `1px solid ${C.glassBorder}`,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.50)",
+        }}
       >
         {/* Foto-Bereich */}
         <div className="relative overflow-hidden" style={{ height: 200 }}>
@@ -67,22 +75,23 @@ function ArticleCard({ article }: { article: any }) {
             src={cover}
             alt={article.title}
             className="w-full h-full object-cover"
-            style={{ filter: "brightness(0.50) saturate(1.1)" }}
+            style={{ filter: "brightness(0.55) saturate(1.15)" }}
             loading="lazy"
           />
           {/* Gradient unten */}
           <div
-            className="absolute bottom-0 left-0 right-0 h-20"
-            style={{ background: `linear-gradient(to top, ${C.card}, transparent)` }}
+            className="absolute bottom-0 left-0 right-0 h-24"
+            style={{ background: `linear-gradient(to top, ${C.cardSolid}, transparent)` }}
           />
           {/* Kategorie-Badge oben links */}
           <div className="absolute top-3 left-3">
             <span
-              className="px-2.5 py-1 rounded-lg text-xs font-medium"
+              className="px-2.5 py-1 rounded-full text-xs font-semibold"
               style={{
-                background: "oklch(0.08 0.008 200 / 0.85)",
-                color: C.greenLight,
-                border: "1px solid oklch(0.52 0.14 148 / 0.30)",
+                background: "rgba(7,10,8,0.80)",
+                color: C.mint,
+                border: `1px solid rgba(52,211,153,0.30)`,
+                backdropFilter: "blur(8px)",
               }}
             >
               {CATEGORY_LABELS[article.category] ?? article.category}
@@ -94,19 +103,19 @@ function ArticleCard({ article }: { article: any }) {
         <div className="p-4">
           <h3
             className="font-brand text-lg font-bold leading-snug mb-2 line-clamp-2"
-            style={{ color: C.textPrimary }}
+            style={{ color: C.white, letterSpacing: "0.02em" }}
           >
             {article.title}
           </h3>
-          <p className="text-sm leading-relaxed line-clamp-2 mb-3" style={{ color: C.textSecondary }}>
+          <p className="text-sm leading-relaxed line-clamp-2 mb-3" style={{ color: C.white70 }}>
             {article.excerpt}
           </p>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1 text-xs" style={{ color: C.textMuted }}>
+            <span className="flex items-center gap-1 text-xs" style={{ color: C.white50 }}>
               <Clock className="w-3.5 h-3.5" />
               {article.readingMinutes} Min. Lesezeit
             </span>
-            <span className="flex items-center gap-0.5 text-xs font-semibold" style={{ color: C.greenLight }}>
+            <span className="flex items-center gap-0.5 text-xs font-semibold" style={{ color: C.smaragd }}>
               Lesen <ChevronRight className="w-3.5 h-3.5" />
             </span>
           </div>
@@ -136,7 +145,6 @@ export default function Knowledge() {
     setGenusFilter("");
   };
 
-  // Client-seitige Suche
   const filtered = data?.filter((a) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -149,54 +157,70 @@ export default function Knowledge() {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <Seo
+      <SeoEnhanced
         title="Wissensdatenbank – Aquaristik, Channa & Botanik"
         path="/knowledge"
         description="Die BlackwaterLeaf Wissensdatenbank: fundierte Ratgeber zu Aquaristik, Aquascaping, Schwarzwasser-Biotopen, Channa-Arten und Zimmerpflanzen."
+        keywords={["Aquaristik", "Channa", "Aquascaping", "Schwarzwasser", "Botanik"]}
       />
 
-      {/* Header */}
-      <div className="px-4 pt-4 pb-5">
+      {/* ── HEADER ──────────────────────────────────────────────── */}
+      <div className="px-4 pt-6 pb-5">
+        <p
+          className="text-xs font-bold uppercase mb-2"
+          style={{ color: C.gold, letterSpacing: "0.18em" }}
+        >
+          WISSEN
+        </p>
         <h1
-          className="font-brand leading-none mb-2"
+          className="font-brand leading-none mb-3"
           style={{
             fontSize: "clamp(2.4rem, 10vw, 3.5rem)",
-            color: C.textPrimary,
+            color: C.white,
             letterSpacing: "0.02em",
             lineHeight: 1.0,
           }}
         >
-          WISSENSDATEN<br />BANK
+          WISSENS<br />DATENBANK
         </h1>
-        <p className="text-sm leading-relaxed" style={{ color: C.textSecondary }}>
+        <p className="text-sm leading-relaxed" style={{ color: C.white70 }}>
           Kuratierte Ratgeber zu Aquaristik, Aquascaping, Channa-Haltung, Schwarzwasser-Biotopen und Zimmerpflanzen.
         </p>
       </div>
 
-      {/* Suchfeld */}
+      {/* ── SUCHFELD ────────────────────────────────────────────── */}
       <div className="px-4 pb-4">
-        <div className="relative">
+        <div
+          className="relative rounded-full overflow-hidden"
+          style={{
+            background: "rgba(13,17,14,0.90)",
+            border: `1px solid ${C.glassBorder}`,
+            backdropFilter: "blur(12px)",
+          }}
+        >
           <Search
             className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
-            style={{ color: C.textMuted }}
+            style={{ color: C.white50 }}
           />
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Im Wissen suchen..."
-            className="w-full pl-11 pr-4 py-3.5 rounded-full text-sm outline-none transition-all duration-150"
-            style={{
-              background: "oklch(0.16 0.008 200)",
-              border: "1px solid oklch(0.22 0.008 200)",
-              color: C.textPrimary,
+            className="w-full pl-11 pr-4 py-3.5 text-sm outline-none bg-transparent"
+            style={{ color: C.white }}
+            onFocus={(e) => {
+              (e.currentTarget.parentElement as HTMLElement).style.borderColor = `rgba(45,155,110,0.60)`;
+              (e.currentTarget.parentElement as HTMLElement).style.boxShadow = `0 0 16px rgba(45,155,110,0.15)`;
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "oklch(0.52 0.14 148 / 0.50)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "oklch(0.22 0.008 200)")}
+            onBlur={(e) => {
+              (e.currentTarget.parentElement as HTMLElement).style.borderColor = C.glassBorder;
+              (e.currentTarget.parentElement as HTMLElement).style.boxShadow = "none";
+            }}
           />
         </div>
       </div>
 
-      {/* Kategorie-Filter (scrollbare Pills wie in Native App) */}
+      {/* ── KATEGORIE-FILTER (scrollbare Pills) ─────────────────── */}
       <div className="px-4 pb-5">
         <div
           className="flex gap-2 overflow-x-auto pb-1"
@@ -210,11 +234,13 @@ export default function Knowledge() {
                 onClick={() => handleCategoryChange(cat.value)}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: isActive ? "transparent" : "oklch(0.16 0.008 200)",
-                  color: isActive ? C.greenLight : C.textSecondary,
+                  background: isActive ? C.smaragd : "rgba(13,17,14,0.85)",
+                  color: isActive ? C.white : C.white70,
                   border: isActive
-                    ? `2px solid ${C.greenLight}`
-                    : "2px solid oklch(0.22 0.008 200)",
+                    ? `1px solid ${C.smaragd}`
+                    : `1px solid ${C.glassBorder}`,
+                  backdropFilter: "blur(8px)",
+                  boxShadow: isActive ? `0 0 12px rgba(45,155,110,0.30)` : "none",
                 }}
               >
                 {cat.label}
@@ -224,7 +250,7 @@ export default function Knowledge() {
         </div>
       </div>
 
-      {/* Genus-Filter (nur bei houseplants) */}
+      {/* ── GENUS-FILTER (nur bei houseplants) ──────────────────── */}
       {filter === "houseplants" && genera && genera.length > 0 && (
         <div className="px-4 pb-5">
           <div className="flex gap-2 flex-wrap">
@@ -232,9 +258,9 @@ export default function Knowledge() {
               onClick={() => setGenusFilter("")}
               className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
               style={{
-                background: !genusFilter ? C.greenBg : "oklch(0.16 0.008 200)",
-                color: !genusFilter ? C.greenLight : C.textSecondary,
-                border: !genusFilter ? `1px solid oklch(0.52 0.14 148 / 0.40)` : "1px solid oklch(0.22 0.008 200)",
+                background: !genusFilter ? "rgba(45,155,110,0.20)" : "rgba(13,17,14,0.85)",
+                color: !genusFilter ? C.mint : C.white70,
+                border: !genusFilter ? `1px solid rgba(52,211,153,0.40)` : `1px solid ${C.glassBorder}`,
               }}
             >
               Alle Arten ({data?.length ?? 0})
@@ -247,9 +273,9 @@ export default function Knowledge() {
                   onClick={() => setGenusFilter(g.genus)}
                   className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                   style={{
-                    background: genusFilter === g.genus ? C.greenBg : "oklch(0.16 0.008 200)",
-                    color: genusFilter === g.genus ? C.greenLight : C.textSecondary,
-                    border: genusFilter === g.genus ? `1px solid oklch(0.52 0.14 148 / 0.40)` : "1px solid oklch(0.22 0.008 200)",
+                    background: genusFilter === g.genus ? "rgba(45,155,110,0.20)" : "rgba(13,17,14,0.85)",
+                    color: genusFilter === g.genus ? C.mint : C.white70,
+                    border: genusFilter === g.genus ? `1px solid rgba(52,211,153,0.40)` : `1px solid ${C.glassBorder}`,
                   }}
                 >
                   {thumb && (
@@ -263,12 +289,16 @@ export default function Knowledge() {
         </div>
       )}
 
-      {/* Artikel-Liste */}
+      {/* ── ARTIKEL-LISTE ────────────────────────────────────────── */}
       <div className="px-4 pb-8">
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden" style={{ background: C.card }}>
+              <div
+                key={i}
+                className="rounded-2xl overflow-hidden"
+                style={{ background: C.card, border: `1px solid ${C.glassBorder}` }}
+              >
                 <Skeleton className="w-full h-48" />
                 <div className="p-4 space-y-2">
                   <Skeleton className="h-5 w-3/4" />
@@ -287,11 +317,15 @@ export default function Knowledge() {
         ) : (
           <div
             className="text-center py-16 rounded-2xl"
-            style={{ background: C.card, border: C.cardBorder }}
+            style={{
+              background: C.card,
+              border: `1px solid ${C.glassBorder}`,
+              backdropFilter: "blur(12px)",
+            }}
           >
-            <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="font-medium" style={{ color: C.textPrimary }}>Keine Artikel gefunden</p>
-            <p className="text-sm mt-1" style={{ color: C.textMuted }}>Versuche einen anderen Filter oder Suchbegriff</p>
+            <BookOpen className="w-10 h-10 mx-auto mb-3" style={{ color: C.white50 }} />
+            <p className="font-semibold" style={{ color: C.white }}>Keine Artikel gefunden</p>
+            <p className="text-sm mt-1" style={{ color: C.white50 }}>Versuche einen anderen Filter oder Suchbegriff</p>
           </div>
         )}
       </div>

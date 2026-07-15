@@ -76,9 +76,9 @@ export function RelatedArticles({
       <div className={`mt-12 pt-8 border-t border-border/40 ${className}`}>
         <h2
           className="text-xl font-display font-semibold mb-6 flex items-center gap-2"
-          style={{ color: 'oklch(0.88 0.005 200)' }}
+          style={{ color: 'rgba(255,255,255,0.88)' }}
         >
-          <BookOpen className="w-5 h-5" style={{ color: 'oklch(0.65 0.16 148)' }} />
+          <BookOpen className="w-5 h-5" style={{ color: '#34D399' }} />
           Verwandte Artikel
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -87,22 +87,22 @@ export function RelatedArticles({
               key={i}
               className="rounded-xl overflow-hidden"
               style={{
-                backgroundColor: 'oklch(0.11 0.008 200)',
-                border: '1px solid oklch(0.21 0.008 200)',
+                backgroundColor: '#0D110E',
+                border: '1px solid rgba(45,107,63,0.30)',
               }}
             >
               <div
                 className="w-full h-40 animate-pulse"
-                style={{ backgroundColor: 'oklch(0.14 0.008 200)' }}
+                style={{ backgroundColor: '#111614' }}
               />
               <div className="p-3 space-y-2">
                 <div
                   className="h-3 w-3/4 rounded animate-pulse"
-                  style={{ backgroundColor: 'oklch(0.14 0.008 200)' }}
+                  style={{ backgroundColor: '#111614' }}
                 />
                 <div
                   className="h-2.5 w-1/2 rounded animate-pulse"
-                  style={{ backgroundColor: 'oklch(0.14 0.008 200)' }}
+                  style={{ backgroundColor: '#111614' }}
                 />
               </div>
             </div>
@@ -120,9 +120,9 @@ export function RelatedArticles({
     <div className={`mt-12 pt-8 border-t border-border/40 ${className}`}>
       <h2
         className="text-xl font-display font-semibold mb-6 flex items-center gap-2"
-        style={{ color: 'oklch(0.88 0.005 200)' }}
+        style={{ color: 'rgba(255,255,255,0.88)' }}
       >
-        <BookOpen className="w-5 h-5" style={{ color: 'oklch(0.65 0.16 148)' }} />
+        <BookOpen className="w-5 h-5" style={{ color: '#34D399' }} />
         Verwandte Artikel
       </h2>
 
@@ -133,20 +133,20 @@ export function RelatedArticles({
             href={`/knowledge/${article.slug}`}
             className="group rounded-xl overflow-hidden transition-all duration-200 block"
             style={{
-              backgroundColor: 'oklch(0.11 0.008 200)',
-              border: '1px solid oklch(0.21 0.008 200)',
+              backgroundColor: '#0D110E',
+              border: '1px solid rgba(45,107,63,0.30)',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
-                'oklch(0.52 0.14 148 / 0.35)';
+                'rgba(45,155,110,0.35)';
               (e.currentTarget as HTMLElement).style.backgroundColor =
-                'oklch(0.14 0.008 200)';
+                '#111614';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.borderColor =
-                'oklch(0.21 0.008 200)';
+                'rgba(45,107,63,0.30)';
               (e.currentTarget as HTMLElement).style.backgroundColor =
-                'oklch(0.11 0.008 200)';
+                '#0D110E';
             }}
           >
             {article.coverImageUrl ? (
@@ -161,11 +161,11 @@ export function RelatedArticles({
             ) : (
               <div
                 className="w-full h-40 flex items-center justify-center"
-                style={{ backgroundColor: 'oklch(0.14 0.008 200)' }}
+                style={{ backgroundColor: '#111614' }}
               >
                 <BookOpen
                   className="w-8 h-8"
-                  style={{ color: 'oklch(0.25 0.008 200)' }}
+                  style={{ color: 'rgba(45,107,63,0.35)' }}
                 />
               </div>
             )}
@@ -174,9 +174,9 @@ export function RelatedArticles({
               <span
                 className="inline-block text-xs px-2 py-1 rounded-md font-medium"
                 style={{
-                  backgroundColor: 'oklch(0.52 0.14 148 / 0.15)',
-                  color: 'oklch(0.65 0.16 148)',
-                  border: '1px solid oklch(0.52 0.14 148 / 0.25)',
+                  backgroundColor: 'rgba(45,155,110,0.15)',
+                  color: '#34D399',
+                  border: '1px solid rgba(45,155,110,0.25)',
                 }}
               >
                 {CATEGORY_LABELS[article.category] ?? article.category}
@@ -184,7 +184,7 @@ export function RelatedArticles({
 
               <h3
                 className="text-sm font-semibold leading-tight line-clamp-2 transition-colors"
-                style={{ color: 'oklch(0.88 0.005 200)' }}
+                style={{ color: 'rgba(255,255,255,0.88)' }}
               >
                 {article.title}
               </h3>
@@ -192,7 +192,7 @@ export function RelatedArticles({
               {article.excerpt && (
                 <p
                   className="text-xs line-clamp-2"
-                  style={{ color: 'oklch(0.48 0.008 200)' }}
+                  style={{ color: 'rgba(255,255,255,0.45)' }}
                 >
                   {article.excerpt}
                 </p>
@@ -200,12 +200,12 @@ export function RelatedArticles({
 
               <div className="flex items-center justify-between pt-2 border-t border-border/20">
                 {article.author && (
-                  <span className="text-xs" style={{ color: 'oklch(0.42 0.008 200)' }}>
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.42)' }}>
                     {article.author}
                   </span>
                 )}
                 {article.readingMinutes && (
-                  <span className="text-xs" style={{ color: 'oklch(0.42 0.008 200)' }}>
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.42)' }}>
                     {article.readingMinutes} Min.
                   </span>
                 )}

@@ -69,7 +69,7 @@ export function LazyImage({
       {!loaded && (
         <div
           className="absolute inset-0 animate-pulse"
-          style={{ background: "oklch(0.13 0.010 155)" }}
+          style={{ background: "#111614" }}
         />
       )}
 
@@ -77,7 +77,7 @@ export function LazyImage({
       {error && (
         <div
           className="absolute inset-0 flex items-center justify-center"
-          style={{ background: "oklch(0.11 0.010 155)" }}
+          style={{ background: "#0D110E" }}
         >
           <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.75rem" }}>
             Bild nicht verfügbar

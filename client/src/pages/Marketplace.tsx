@@ -4,17 +4,17 @@ import { ArrowRight, ShieldCheck, Mail } from "lucide-react";
 
 // Farb-Konstanten
 const C = {
-  bg: "oklch(0.10 0.008 200)",
-  card: "oklch(0.14 0.008 200)",
-  cardBorder: "1px solid oklch(0.21 0.008 200)",
-  green: "oklch(0.52 0.14 148)",
-  greenLight: "oklch(0.65 0.16 148)",
-  greenBg: "oklch(0.52 0.14 148 / 0.15)",
-  gold: "oklch(0.72 0.14 78)",
-  goldBg: "oklch(0.72 0.14 78 / 0.12)",
-  textPrimary: "oklch(0.95 0.005 200)",
-  textSecondary: "oklch(0.70 0.005 200)",
-  textMuted: "oklch(0.48 0.008 200)",
+  bg: "#070A08",
+  card: "rgba(13,17,14,0.90)",
+  cardBorder: "1px solid rgba(45,107,63,0.30)",
+  green: "#2D9B6E",
+  greenLight: "#34D399",
+  greenBg: "rgba(45,155,110,0.15)",
+  gold: "#D4AF37",
+  goldBg: "rgba(212,175,55,0.12)",
+  textPrimary: "#FFFFFF",
+  textSecondary: "rgba(255,255,255,0.70)",
+  textMuted: "rgba(255,255,255,0.45)",
 };
 
 const CATEGORIES = [
@@ -45,7 +45,7 @@ export default function Marketplace() {
       <div
         className="relative overflow-hidden px-4 pt-5 pb-8"
         style={{
-          background: "linear-gradient(160deg, oklch(0.12 0.015 148) 0%, oklch(0.10 0.008 200) 100%)",
+          background: "linear-gradient(160deg, rgba(13,25,18,1) 0%, #070A08 100%)",
         }}
       >
         <div
@@ -53,7 +53,7 @@ export default function Marketplace() {
           aria-hidden="true"
           style={{
             background:
-              "radial-gradient(ellipse 100% 80% at 80% 20%, oklch(0.18 0.06 148 / 0.20) 0%, transparent 60%)",
+              "radial-gradient(ellipse 100% 80% at 80% 20%, rgba(45,155,110,0.20) 0%, transparent 60%)",
           }}
         />
 
@@ -94,7 +94,7 @@ export default function Marketplace() {
         >
           <div
             className="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold mt-0.5"
-            style={{ background: C.goldBg, color: C.gold, border: `1px solid oklch(0.72 0.14 78 / 0.25)` }}
+            style={{ background: C.goldBg, color: C.gold, border: `1px solid rgba(212,175,55,0.25)` }}
           >
             Transparenz
           </div>
@@ -116,9 +116,9 @@ export default function Marketplace() {
                 onClick={() => setActiveCategory(cat.value)}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: isActive ? "transparent" : "oklch(0.16 0.008 200)",
+                  background: isActive ? "transparent" : "rgba(13,17,14,0.85)",
                   color: isActive ? C.greenLight : C.textSecondary,
-                  border: isActive ? `2px solid ${C.greenLight}` : "2px solid oklch(0.22 0.008 200)",
+                  border: isActive ? `2px solid ${C.greenLight}` : "2px solid rgba(45,107,63,0.35)",
                 }}
               >
                 {cat.label}
@@ -138,23 +138,23 @@ export default function Marketplace() {
             className="relative overflow-hidden"
             style={{
               height: 200,
-              background: "linear-gradient(160deg, oklch(0.16 0.05 148) 0%, oklch(0.11 0.010 200) 100%)",
+              background: "linear-gradient(160deg, rgba(22,40,28,1) 0%, rgba(13,17,14,1) 100%)",
             }}
           >
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(ellipse 80% 80% at 80% 50%, oklch(0.22 0.07 148 / 0.25) 0%, transparent 60%)",
+                  "radial-gradient(ellipse 80% 80% at 80% 50%, rgba(45,155,110,0.25) 0%, transparent 60%)",
               }}
             />
             <div className="absolute top-3 left-3">
               <span
                 className="px-2.5 py-1 rounded-lg text-xs font-medium"
                 style={{
-                  background: "oklch(0.08 0.008 200 / 0.85)",
+                  background: "rgba(7,10,8,0.85)",
                   color: C.greenLight,
-                  border: "1px solid oklch(0.52 0.14 148 / 0.30)",
+                  border: "1px solid rgba(45,155,110,0.30)",
                 }}
               >
                 {CATEGORIES.find((c) => c.value === activeCategory)?.label}
@@ -203,7 +203,7 @@ export default function Marketplace() {
         <div
           className="rounded-2xl p-5"
           style={{
-            background: "linear-gradient(160deg, oklch(0.16 0.04 148) 0%, oklch(0.13 0.008 200) 100%)",
+            background: "linear-gradient(160deg, rgba(22,40,28,1) 0%, rgba(17,22,19,1) 100%)",
             border: C.cardBorder,
           }}
         >
@@ -222,7 +222,7 @@ export default function Marketplace() {
             <button
               onClick={() => setShowContactForm(true)}
               className="flex items-center gap-2 px-6 py-3.5 rounded-full font-semibold text-sm transition-all duration-150 active:scale-[0.97]"
-              style={{ background: C.greenLight, color: "oklch(0.08 0.008 200)" }}
+              style={{ background: C.greenLight, color: "#070A08" }}
             >
               Bewerbung anfragen
               <ArrowRight className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default function Marketplace() {
                 style={{
                   background: C.greenBg,
                   color: C.greenLight,
-                  border: `1px solid oklch(0.52 0.14 148 / 0.40)`,
+                  border: `1px solid rgba(45,155,110,0.40)`,
                   display: "inline-flex",
                 }}
               >

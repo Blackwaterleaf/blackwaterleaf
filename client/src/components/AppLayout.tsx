@@ -48,10 +48,10 @@ function TopNav() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: "oklch(0.09 0.008 200 / 0.92)",
+        background: "rgba(7,10,8,0.92)",
         backdropFilter: "blur(20px) saturate(1.5)",
         WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-        borderBottom: "1px solid oklch(0.22 0.008 200 / 0.6)",
+        borderBottom: "1px solid rgba(45,107,63,0.25)",
       }}
     >
       <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
@@ -62,18 +62,18 @@ function TopNav() {
             src={IMG_LOGO}
             alt="BlackwaterLeaf"
             className="w-9 h-9 rounded-full transition-transform duration-200 group-hover:scale-105"
-            style={{ filter: "drop-shadow(0 0 8px oklch(0.52 0.14 148 / 0.4))" }}
+            style={{ filter: "drop-shadow(0 0 8px rgba(45,155,110,0.40))" }}
           />
           <div className="hidden sm:block">
             <span
               className="font-brand text-base tracking-widest leading-none block"
-              style={{ color: "oklch(0.95 0.005 200)" }}
+              style={{ color: "#FFFFFF" }}
             >
-              BLACKWATER<span style={{ color: "oklch(0.52 0.14 148)" }}>LEAF</span>
+              BLACKWATER<span style={{ color: "#2D9B6E" }}>LEAF</span>
             </span>
             <span
               className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5"
-              style={{ color: "oklch(0.45 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.45)" }}
             >
               Community
             </span>
@@ -88,7 +88,7 @@ function TopNav() {
               variant="ghost"
               size="icon"
               className="w-9 h-9 rounded-lg"
-              style={{ color: "oklch(0.60 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.60)" }}
             >
               <Search className="w-4 h-4" />
             </Button>
@@ -102,7 +102,7 @@ function TopNav() {
                   variant="ghost"
                   size="icon"
                   className="w-9 h-9 rounded-lg"
-                  style={{ color: "oklch(0.60 0.008 200)" }}
+                  style={{ color: "rgba(255,255,255,0.60)" }}
                 >
                   <Bell className="w-4 h-4" />
                 </Button>
@@ -116,12 +116,12 @@ function TopNav() {
                       <AvatarImage src={user?.avatarUrl ?? undefined} />
                       <AvatarFallback
                         className="text-xs font-semibold"
-                        style={{ background: "oklch(0.52 0.14 148 / 0.2)", color: "oklch(0.65 0.16 148)" }}
+                        style={{ background: "rgba(45,155,110,0.20)", color: "#34D399" }}
                       >
                         {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm font-medium max-w-[100px] truncate" style={{ color: "oklch(0.85 0.005 200)" }}>
+                    <span className="hidden md:block text-sm font-medium max-w-[100px] truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
                       {user?.name}
                     </span>
                   </button>
@@ -130,8 +130,8 @@ function TopNav() {
                   align="end"
                   className="w-52 rounded-xl"
                   style={{
-                    background: "oklch(0.13 0.008 200)",
-                    border: "1px solid oklch(0.22 0.008 200)",
+                    background: "#111614",
+                    border: "1px solid rgba(45,107,63,0.30)",
                   }}
                 >
                   <DropdownMenuItem asChild>
@@ -148,7 +148,7 @@ function TopNav() {
                   </DropdownMenuItem>
                   {(user?.role === "moderator" || user?.role === "admin") && (
                     <>
-                      <DropdownMenuSeparator style={{ background: "oklch(0.22 0.008 200)" }} />
+                      <DropdownMenuSeparator style={{ background: "rgba(45,107,63,0.30)" }} />
                       <DropdownMenuItem asChild>
                         <Link href="/moderator" className="flex items-center gap-2 cursor-pointer">
                           <Users className="w-4 h-4" />
@@ -173,7 +173,7 @@ function TopNav() {
                       )}
                     </>
                   )}
-                  <DropdownMenuSeparator style={{ background: "oklch(0.22 0.008 200)" }} />
+                  <DropdownMenuSeparator style={{ background: "rgba(45,107,63,0.30)" }} />
                   <DropdownMenuItem
                     className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                     onClick={() => logoutMutation.mutate()}
@@ -186,7 +186,7 @@ function TopNav() {
             </>
           ) : (
             <Link href={getLoginUrl()}>
-              <Button size="sm" style={{ background: "oklch(0.52 0.14 148)" }}>
+              <Button size="sm" style={{ background: "#2D9B6E" }}>
                 Login
               </Button>
             </Link>
@@ -201,7 +201,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.07 0.008 200)" }}>
+    <div className="min-h-screen" style={{ background: "#070A08" }}>
       <TopNav />
       <main className="pt-16 pb-24 px-4 max-w-[1400px] mx-auto">
         {children}

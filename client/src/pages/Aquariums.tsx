@@ -11,17 +11,17 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  blackwater: "oklch(0.52 0.14 148)",
-  planted:    "oklch(0.60 0.16 148)",
-  freshwater: "oklch(0.55 0.14 220)",
-  saltwater:  "oklch(0.60 0.14 200)",
-  biotope:    "oklch(0.65 0.14 78)",
-  other:      "oklch(0.50 0.008 200)",
+  blackwater: "#2D9B6E",
+  planted:    "#2D9B6E",
+  freshwater: "rgba(100,160,240,0.90)",
+  saltwater:  "rgba(100,180,220,0.90)",
+  biotope:    "#D4AF37",
+  other:      "rgba(255,255,255,0.50)",
 };
 
 const card = {
-  background: "oklch(0.11 0.008 200)",
-  border: "1px solid oklch(0.21 0.008 200)",
+  background: "#0D110E",
+  border: "1px solid rgba(45,107,63,0.30)",
 };
 
 export default function Aquariums() {
@@ -43,11 +43,11 @@ export default function Aquariums() {
         <div>
           <h1
             className="font-brand text-4xl leading-none mb-1"
-            style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.04em" }}
+            style={{ color: "#FFFFFF", letterSpacing: "0.04em" }}
           >
             MEINE AQUARIEN
           </h1>
-          <p className="text-sm" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.50)" }}>
             {aquariums?.length ?? 0} Aquarien dokumentiert
           </p>
         </div>
@@ -79,14 +79,14 @@ export default function Aquariums() {
         <div className="text-center py-20 rounded-2xl" style={card}>
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "oklch(0.52 0.14 220 / 0.10)", border: "1px solid oklch(0.52 0.14 220 / 0.20)" }}
+            style={{ background: "rgba(100,160,240,0.10)", border: "1px solid rgba(100,160,240,0.20)" }}
           >
-            <Droplets className="w-8 h-8" style={{ color: "oklch(0.65 0.14 220)" }} />
+            <Droplets className="w-8 h-8" style={{ color: "rgba(100,160,240,0.90)" }} />
           </div>
-          <h3 className="font-semibold mb-1" style={{ color: "oklch(0.88 0.005 200)" }}>
+          <h3 className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
             Noch keine Aquarien
           </h3>
-          <p className="text-sm mb-6" style={{ color: "oklch(0.50 0.008 200)" }}>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
             Dokumentiere dein erstes Aquarium mit Wasserwerten und Fotos.
           </p>
           <Link href="/aquariums/new">
@@ -106,21 +106,21 @@ export default function Aquariums() {
                   className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
                   style={card}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.border = "1px solid oklch(0.52 0.14 148 / 0.35)";
+                    (e.currentTarget as HTMLElement).style.border = "1px solid rgba(45,155,110,0.35)";
                     (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.border = "1px solid oklch(0.21 0.008 200)";
+                    (e.currentTarget as HTMLElement).style.border = "1px solid rgba(45,107,63,0.30)";
                     (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
                   }}
                 >
                   {/* Cover image */}
-                  <div className="aspect-video relative overflow-hidden" style={{ background: "oklch(0.10 0.008 200)" }}>
+                  <div className="aspect-video relative overflow-hidden" style={{ background: "#070A08" }}>
                     {aq.coverImageUrl ? (
                       <img src={aq.coverImageUrl} alt={aq.name} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Droplets className="w-10 h-10" style={{ color: "oklch(0.28 0.008 200)" }} />
+                        <Droplets className="w-10 h-10" style={{ color: "rgba(45,107,63,0.35)" }} />
                       </div>
                     )}
                     {/* Type badge */}
@@ -140,10 +140,10 @@ export default function Aquariums() {
 
                   {/* Info */}
                   <div className="p-4">
-                    <h3 className="font-semibold text-sm mb-2" style={{ color: "oklch(0.90 0.005 200)" }}>
+                    <h3 className="font-semibold text-sm mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>
                       {aq.name}
                     </h3>
-                    <div className="flex items-center gap-3 text-xs" style={{ color: "oklch(0.48 0.008 200)" }}>
+                    <div className="flex items-center gap-3 text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>
                       {aq.volumeLiters && <span>{aq.volumeLiters} L</span>}
                       {aq.temperatureCelsius && <span>{aq.temperatureCelsius}°C</span>}
                       {aq.phValue && <span>pH {aq.phValue}</span>}

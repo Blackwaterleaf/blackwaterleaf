@@ -45,7 +45,7 @@ export default function Home() {
   if (isAuthenticated && !previewLanding) return null;
 
   return (
-    <div className="min-h-screen" style={{ background: "oklch(0.07 0.008 200)" }}>
+    <div className="min-h-screen" style={{ background: "#070A08" }}>
       <Seo
         path="/"
         title="Aquaristik & Zimmerpflanzen Community"
@@ -59,10 +59,10 @@ export default function Home() {
       <header
         className="fixed top-0 left-0 right-0 z-50"
         style={{
-          background: "oklch(0.09 0.008 200 / 0.92)",
+          background: "rgba(7,10,8,0.92)",
           backdropFilter: "blur(20px) saturate(1.5)",
           WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-          borderBottom: "1px solid oklch(0.20 0.008 200 / 0.5)",
+          borderBottom: "1px solid rgba(45,107,63,0.25)",
         }}
       >
         <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
@@ -72,13 +72,13 @@ export default function Home() {
               src={IMG_LOGO}
               alt="BlackwaterLeaf"
               className="w-9 h-9 rounded-full"
-              style={{ filter: "drop-shadow(0 0 8px oklch(0.52 0.14 148 / 0.5))" }}
+              style={{ filter: "drop-shadow(0 0 8px rgba(45,155,110,0.50))" }}
             />
             <div className="hidden sm:block">
-              <span className="font-brand text-base tracking-widest leading-none block" style={{ color: "oklch(0.95 0.005 200)" }}>
-                BLACKWATER<span style={{ color: "oklch(0.52 0.14 148)" }}>LEAF</span>
+              <span className="font-brand text-base tracking-widest leading-none block" style={{ color: "#FFFFFF" }}>
+                BLACKWATER<span style={{ color: "#2D9B6E" }}>LEAF</span>
               </span>
-              <span className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5" style={{ color: "oklch(0.40 0.008 200)" }}>
+              <span className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5" style={{ color: "rgba(45,107,63,0.45)" }}>
                 Community
               </span>
             </div>
@@ -96,23 +96,23 @@ export default function Home() {
               const isHash = item.href.startsWith("#");
               const cls = "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer block transition-all duration-200";
               const onEnter = (e: React.MouseEvent<HTMLElement>) => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.92 0.005 200)";
-                (e.currentTarget as HTMLElement).style.background = "oklch(0.16 0.008 200)";
+                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
+                (e.currentTarget as HTMLElement).style.background = "#161C19";
               };
               const onLeave = (e: React.MouseEvent<HTMLElement>) => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.68 0.008 200)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.68)";
                 (e.currentTarget as HTMLElement).style.background = "transparent";
               };
               if (isHash) {
                 return (
-                  <a key={item.href} href={item.href} className={cls} style={{ color: "oklch(0.68 0.008 200)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+                  <a key={item.href} href={item.href} className={cls} style={{ color: "rgba(255,255,255,0.68)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
                     {item.label}
                   </a>
                 );
               }
               return (
                 <Link key={item.href} href={item.href}>
-                  <span className={cls} style={{ color: "oklch(0.68 0.008 200)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+                  <span className={cls} style={{ color: "rgba(255,255,255,0.68)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
                     {item.label}
                   </span>
                 </Link>
@@ -155,7 +155,7 @@ export default function Home() {
             {/* Eyebrow */}
             <p
               className="text-xs tracking-[0.25em] uppercase mb-6 fade-in"
-              style={{ color: "oklch(0.65 0.16 148)" }}
+              style={{ color: "#34D399" }}
             >
               Für Pflanzenliebhaber. Für Aquarianer. Für Menschen, die mehr wollen.
             </p>
@@ -166,7 +166,7 @@ export default function Home() {
                 className="font-brand block leading-none"
                 style={{
                   fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "oklch(0.96 0.005 200)",
+                  color: "rgba(255,255,255,0.96)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -176,7 +176,7 @@ export default function Home() {
                 className="font-brand block leading-none"
                 style={{
                   fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "oklch(0.96 0.005 200)",
+                  color: "rgba(255,255,255,0.96)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -186,7 +186,7 @@ export default function Home() {
                 className="font-brand block leading-none"
                 style={{
                   fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "oklch(0.62 0.18 148)",
+                  color: "#34D399",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -197,7 +197,7 @@ export default function Home() {
             {/* Subtext */}
             <p
               className="text-base leading-relaxed mb-8 fade-in delay-200"
-              style={{ color: "oklch(0.72 0.008 200)", maxWidth: "420px" }}
+              style={{ color: "rgba(255,255,255,0.72)", maxWidth: "420px" }}
             >
               BlackwaterLeaf ist mehr als eine Community.<br />
               Es ist ein Ort für Wissen, Inspiration und echte Leidenschaft.
@@ -213,11 +213,11 @@ export default function Home() {
               <a href="#download" className="btn-ghost flex items-center gap-2">
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: "oklch(0.96 0.005 200 / 0.12)", border: "1px solid oklch(0.96 0.005 200 / 0.2)" }}
+                  style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.20)" }}
                 >
-                  <Download className="w-3.5 h-3.5" style={{ color: "oklch(0.96 0.005 200)" }} />
+                  <Download className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.96)" }} />
                 </div>
-                <span style={{ color: "oklch(0.80 0.005 200)" }}>App herunterladen</span>
+                <span style={{ color: "rgba(255,255,255,0.80)" }}>App herunterladen</span>
               </a>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           STATS BAR
           ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.21 0.008 200)", borderBottom: "1px solid oklch(0.21 0.008 200)" }}>
+      <section style={{ background: "#0D110E", borderTop: "1px solid rgba(45,107,63,0.30)", borderBottom: "1px solid rgba(45,107,63,0.30)" }}>
         <div className="max-w-[1400px] mx-auto px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
@@ -241,15 +241,15 @@ export default function Home() {
                 <div key={stat.label} className="flex items-center gap-3">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "oklch(0.52 0.14 148 / 0.12)" }}
+                    style={{ background: "rgba(45,155,110,0.12)" }}
                   >
-                    <Icon className="w-4 h-4" style={{ color: "oklch(0.62 0.16 148)" }} />
+                    <Icon className="w-4 h-4" style={{ color: "#34D399" }} />
                   </div>
                   <div>
-                    <p className="text-base font-bold leading-none" style={{ color: "oklch(0.95 0.005 200)" }}>
+                    <p className="text-base font-bold leading-none" style={{ color: "#FFFFFF" }}>
                       {stat.value}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: "oklch(0.50 0.008 200)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.50)" }}>
                       {stat.label}
                     </p>
                   </div>
@@ -272,7 +272,7 @@ export default function Home() {
       {/* 1. PFLANZENWELT */}
       <FeatureSection
         image={IMG_PLANTS}
-        icon={<Leaf className="w-6 h-6" style={{ color: "oklch(0.62 0.16 148)" }} />}
+        icon={<Leaf className="w-6 h-6" style={{ color: "#34D399" }} />}
         title="PFLANZENWELT"
         description="Pflege, Tipps & Inspiration für Botanik und beeindruckende Setups."
         href="/plants"
@@ -283,7 +283,7 @@ export default function Home() {
       {/* 2. AQUARISTIK */}
       <FeatureSection
         image={IMG_CHANNA}
-        icon={<Fish className="w-6 h-6" style={{ color: "oklch(0.62 0.16 148)" }} />}
+        icon={<Fish className="w-6 h-6" style={{ color: "#34D399" }} />}
         title="AQUARISTIK"
         description="Technik, Guides & Aquarienwelten für Anfänger und Profis."
         href="/aquariums"
@@ -301,7 +301,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════
           TRUST FOOTER BAR
           ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "oklch(0.11 0.008 200)", borderTop: "1px solid oklch(0.21 0.008 200)" }}>
+      <section style={{ background: "#0D110E", borderTop: "1px solid rgba(45,107,63,0.30)" }}>
         <div className="max-w-[1400px] mx-auto px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
@@ -315,15 +315,15 @@ export default function Home() {
                 <div key={item.title} className="flex items-start gap-3">
                   <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: "oklch(0.52 0.14 148 / 0.10)", border: "1px solid oklch(0.52 0.14 148 / 0.20)" }}
+                    style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.20)" }}
                   >
-                    <Icon className="w-4 h-4" style={{ color: "oklch(0.62 0.16 148)" }} />
+                    <Icon className="w-4 h-4" style={{ color: "#34D399" }} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold leading-tight" style={{ color: "oklch(0.88 0.005 200)" }}>
+                    <p className="text-sm font-semibold leading-tight" style={{ color: "rgba(255,255,255,0.88)" }}>
                       {item.title}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: "oklch(0.48 0.008 200)" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
                       {item.sub}
                     </p>
                   </div>
@@ -335,28 +335,28 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: "oklch(0.08 0.008 200)", borderTop: "1px solid oklch(0.16 0.008 200)" }}>
+      <footer style={{ background: "#070A08", borderTop: "1px solid #161C19" }}>
         <div className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img src={IMG_LOGO} alt="BL" className="w-7 h-7 rounded-full opacity-80" />
-            <span className="font-brand text-sm tracking-widest" style={{ color: "oklch(0.45 0.008 200)" }}>
+            <span className="font-brand text-sm tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
               BLACKWATERLEAF
             </span>
           </div>
-          <p className="text-xs" style={{ color: "oklch(0.38 0.008 200)" }}>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>
             © 2025 BlackwaterLeaf · Natur. Wissen. Gemeinschaft.
           </p>
           <div className="flex items-center gap-4">
-            <a href="/datenschutz" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+            <a href="/datenschutz" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
               Datenschutz
             </a>
-            <a href="/impressum" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+            <a href="/impressum" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
               Impressum
             </a>
-            <a href="/agb" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+            <a href="/agb" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
               AGB
             </a>
-            <a href="mailto:BlackwaterLeaf@gmail.com" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "oklch(0.40 0.008 200)" }}>
+            <a href="mailto:BlackwaterLeaf@gmail.com" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
               Kontakt
             </a>
           </div>
@@ -383,8 +383,8 @@ function FeatureSection({
     <section
       className="relative overflow-hidden"
       style={{
-        background: dark ? "oklch(0.08 0.008 200)" : "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.16 0.009 200)",
+        background: dark ? "#070A08" : "#070A08",
+        borderBottom: "1px solid #161C19",
         minHeight: "420px",
       }}
     >
@@ -405,7 +405,7 @@ function FeatureSection({
           {/* Icon */}
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-            style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+            style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
           >
             {icon}
           </div>
@@ -415,7 +415,7 @@ function FeatureSection({
             className="font-brand mb-3 leading-none"
             style={{
               fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              color: "oklch(0.96 0.005 200)",
+              color: "rgba(255,255,255,0.96)",
               letterSpacing: "0.04em",
             }}
           >
@@ -423,7 +423,7 @@ function FeatureSection({
           </h2>
 
           {/* Description */}
-          <p className="text-base leading-relaxed mb-8" style={{ color: "oklch(0.68 0.008 200)" }}>
+          <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
             {description}
           </p>
 
@@ -432,19 +432,19 @@ function FeatureSection({
             <span
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
               style={{
-                background: "oklch(0.14 0.008 200)",
-                border: "1px solid oklch(0.28 0.008 200)",
-                color: "oklch(0.85 0.005 200)",
+                background: "#111614",
+                border: "1px solid rgba(45,107,63,0.35)",
+                color: "rgba(255,255,255,0.85)",
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "oklch(0.52 0.14 148 / 0.15)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.4)";
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
+                (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
+                (e.currentTarget as HTMLElement).style.color = "#34D399";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "oklch(0.14 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.28 0.008 200)";
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.85 0.005 200)";
+                (e.currentTarget as HTMLElement).style.background = "#111614";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
               }}
             >
               {btnLabel} <ArrowRight className="w-3.5 h-3.5" />
@@ -462,8 +462,8 @@ function KISection() {
     <section
       className="relative overflow-hidden"
       style={{
-        background: "oklch(0.07 0.008 200)",
-        borderBottom: "1px solid oklch(0.16 0.009 200)",
+        background: "#070A08",
+        borderBottom: "1px solid #161C19",
         minHeight: "420px",
       }}
     >
@@ -471,14 +471,14 @@ function KISection() {
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: "radial-gradient(oklch(0.52 0.14 148 / 0.15) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(rgba(45,155,110,0.15) 1px, transparent 1px)",
           backgroundSize: "32px 32px",
         }}
       />
       {/* Glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full opacity-10"
-        style={{ background: "oklch(0.52 0.14 148)", filter: "blur(80px)" }}
+        style={{ background: "#2D9B6E", filter: "blur(80px)" }}
       />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
@@ -487,36 +487,36 @@ function KISection() {
           <div>
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
             >
-              <Bot className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+              <Bot className="w-5 h-5" style={{ color: "#34D399" }} />
             </div>
             <h2
               className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "oklch(0.96 0.005 200)", letterSpacing: "0.04em" }}
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
             >
               KI ASSISTENT
             </h2>
-            <p className="text-base leading-relaxed mb-8" style={{ color: "oklch(0.68 0.008 200)" }}>
+            <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
               Dein smarter Helfer für alle Fragen rund um Botanik & Aquaristik.
             </p>
             <Link href="/ai">
               <span
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
                 style={{
-                  background: "oklch(0.14 0.008 200)",
-                  border: "1px solid oklch(0.28 0.008 200)",
-                  color: "oklch(0.85 0.005 200)",
+                  background: "#111614",
+                  border: "1px solid rgba(45,107,63,0.35)",
+                  color: "rgba(255,255,255,0.85)",
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = "oklch(0.52 0.14 148 / 0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.4)";
-                  (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
+                  (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
+                  (e.currentTarget as HTMLElement).style.color = "#34D399";
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = "oklch(0.14 0.008 200)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.28 0.008 200)";
-                  (e.currentTarget as HTMLElement).style.color = "oklch(0.85 0.005 200)";
+                  (e.currentTarget as HTMLElement).style.background = "#111614";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
+                  (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
                 }}
               >
                 Assistent starten <ArrowRight className="w-3.5 h-3.5" />
@@ -527,9 +527,9 @@ function KISection() {
           {/* Right: mock chat UI */}
           <div
             className="bwl-glass p-5 rounded-2xl max-w-sm mx-auto w-full"
-            style={{ border: "1px solid oklch(0.52 0.14 148 / 0.2)" }}
+            style={{ border: "1px solid rgba(45,155,110,0.20)" }}
           >
-            <p className="text-sm font-medium mb-4" style={{ color: "oklch(0.75 0.008 200)" }}>
+            <p className="text-sm font-medium mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
               Frag mich alles über Botanik & Aquaristik.
             </p>
             <div className="space-y-2">
@@ -545,10 +545,10 @@ function KISection() {
                   <div
                     key={item.label}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 cursor-pointer"
-                    style={{ background: "oklch(0.16 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                    style={{ background: "#161C19", border: "1px solid rgba(45,107,63,0.30)" }}
                   >
-                    <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.55 0.14 148)" }} />
-                    <span className="text-sm" style={{ color: "oklch(0.75 0.008 200)" }}>{item.label}</span>
+                    <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#2D9B6E" }} />
+                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>{item.label}</span>
                   </div>
                 );
               })}
@@ -570,21 +570,21 @@ function DownloadSection() {
       id="download"
       className="relative overflow-hidden scroll-mt-20"
       style={{
-        background: "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.16 0.009 200)",
+        background: "#070A08",
+        borderBottom: "1px solid #161C19",
       }}
     >
       {/* Subtle grid + glow */}
       <div
         className="absolute inset-0 opacity-[0.12]"
         style={{
-          backgroundImage: "radial-gradient(oklch(0.52 0.14 148 / 0.25) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(rgba(45,155,110,0.25) 1px, transparent 1px)",
           backgroundSize: "30px 30px",
         }}
       />
       <div
         className="absolute top-0 right-1/4 w-[28rem] h-[28rem] rounded-full opacity-10 pointer-events-none"
-        style={{ background: "oklch(0.52 0.14 148)", filter: "blur(90px)" }}
+        style={{ background: "#2D9B6E", filter: "blur(90px)" }}
       />
 
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
@@ -593,17 +593,17 @@ function DownloadSection() {
           <div>
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
             >
-              <Smartphone className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+              <Smartphone className="w-5 h-5" style={{ color: "#34D399" }} />
             </div>
             <h2
               className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "oklch(0.96 0.005 200)", letterSpacing: "0.04em" }}
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
             >
               HOL DIR DIE APP
             </h2>
-            <p className="text-base leading-relaxed mb-6" style={{ color: "oklch(0.68 0.008 200)", maxWidth: "460px" }}>
+            <p className="text-base leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.68)", maxWidth: "460px" }}>
               BlackwaterLeaf für dein Smartphone: Community, Botanik & Aquarien
               verwalten, KI-Assistent und mehr – immer dabei.
             </p>
@@ -616,8 +616,8 @@ function DownloadSection() {
                 "Direkt mit deinem Konto synchronisiert",
               ].map((t) => (
                 <div key={t} className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.62 0.16 148)" }} />
-                  <span className="text-sm" style={{ color: "oklch(0.72 0.008 200)" }}>{t}</span>
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "#34D399" }} />
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>{t}</span>
                 </div>
               ))}
             </div>
@@ -628,9 +628,9 @@ function DownloadSection() {
                 href={APK_DOWNLOAD_URL}
                 onClick={handleApk}
                 className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-semibold cursor-pointer transition-all duration-200"
-                style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.14 0.02 148)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.58 0.15 148)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(0.52 0.14 148)"; }}
+                style={{ background: "#2D9B6E", color: "#0D110E" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#2D9B6E"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#2D9B6E"; }}
               >
                 <Download className="w-5 h-5" />
                 <span className="text-left leading-tight">
@@ -642,11 +642,11 @@ function DownloadSection() {
               <button
                 onClick={() => toast.info("Google Play: bald verfügbar. Nutze so lange den direkten Download.")}
                 className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-medium cursor-pointer transition-all duration-200"
-                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.28 0.008 200)", color: "oklch(0.85 0.005 200)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.40 0.008 200)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.28 0.008 200)"; }}
+                style={{ background: "#111614", border: "1px solid rgba(45,107,63,0.35)", color: "rgba(255,255,255,0.85)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.45)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)"; }}
               >
-                <Play className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+                <Play className="w-5 h-5" style={{ color: "#34D399" }} />
                 <span className="text-left leading-tight">
                   <span className="block text-[10px] uppercase tracking-wider opacity-70">Google Play</span>
                   <span className="block text-sm">Bald verfügbar</span>
@@ -656,8 +656,8 @@ function DownloadSection() {
 
             {/* PC hint */}
             <div className="flex items-center gap-2 mt-6">
-              <Monitor className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.50 0.008 200)" }} />
-              <span className="text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
+              <Monitor className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(255,255,255,0.50)" }} />
+              <span className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
                 Am PC? Du kannst BlackwaterLeaf auch direkt im Browser nutzen.
               </span>
             </div>
@@ -667,20 +667,20 @@ function DownloadSection() {
           <div className="flex justify-center">
             <div
               className="relative rounded-[2.5rem] p-3"
-              style={{ background: "oklch(0.07 0.008 200)", border: "1px solid oklch(0.24 0.008 200)", width: "260px", boxShadow: "0 30px 80px -20px oklch(0.52 0.14 148 / 0.35)" }}
+              style={{ background: "#070A08", border: "1px solid rgba(45,107,63,0.35)", width: "260px", boxShadow: "0 30px 80px -20px rgba(45,155,110,0.35)" }}
             >
-              <div className="rounded-[2rem] overflow-hidden" style={{ background: "oklch(0.07 0.008 200)", aspectRatio: "9 / 19" }}>
+              <div className="rounded-[2rem] overflow-hidden" style={{ background: "#070A08", aspectRatio: "9 / 19" }}>
                 <div className="h-full flex flex-col items-center justify-center gap-4 px-6 text-center">
                   <img
                     src={IMG_LOGO}
                     alt="BlackwaterLeaf"
                     className="w-20 h-20 rounded-2xl"
-                    style={{ filter: "drop-shadow(0 0 16px oklch(0.52 0.14 148 / 0.5))" }}
+                    style={{ filter: "drop-shadow(0 0 16px rgba(45,155,110,0.50))" }}
                   />
-                  <span className="font-brand text-lg tracking-widest" style={{ color: "oklch(0.95 0.005 200)" }}>
-                    BLACKWATER<span style={{ color: "oklch(0.62 0.16 148)" }}>LEAF</span>
+                  <span className="font-brand text-lg tracking-widest" style={{ color: "#FFFFFF" }}>
+                    BLACKWATER<span style={{ color: "#34D399" }}>LEAF</span>
                   </span>
-                  <span className="text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
+                  <span className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
                     Deine Community für Botanik & Aquaristik
                   </span>
                 </div>
@@ -699,8 +699,8 @@ function CommunitySection() {
     <section
       className="relative overflow-hidden"
       style={{
-        background: "oklch(0.10 0.008 200)",
-        borderBottom: "1px solid oklch(0.16 0.009 200)",
+        background: "#070A08",
+        borderBottom: "1px solid #161C19",
         minHeight: "420px",
       }}
     >
@@ -721,36 +721,36 @@ function CommunitySection() {
           <div>
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
             >
-              <Users className="w-5 h-5" style={{ color: "oklch(0.62 0.16 148)" }} />
+              <Users className="w-5 h-5" style={{ color: "#34D399" }} />
             </div>
             <h2
               className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "oklch(0.96 0.005 200)", letterSpacing: "0.04em" }}
+              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
             >
               COMMUNITY
             </h2>
-            <p className="text-base leading-relaxed mb-8" style={{ color: "oklch(0.68 0.008 200)" }}>
+            <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
               Teile dein Wissen, stelle Fragen und wachse gemeinsam mit Gleichgesinnten.
             </p>
             <Link href="/feed">
               <span
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
                 style={{
-                  background: "oklch(0.14 0.008 200)",
-                  border: "1px solid oklch(0.28 0.008 200)",
-                  color: "oklch(0.85 0.005 200)",
+                  background: "#111614",
+                  border: "1px solid rgba(45,107,63,0.35)",
+                  color: "rgba(255,255,255,0.85)",
                 }}
                 onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = "oklch(0.52 0.14 148 / 0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.4)";
-                  (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
+                  (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
+                  (e.currentTarget as HTMLElement).style.color = "#34D399";
                 }}
                 onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = "oklch(0.14 0.008 200)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.28 0.008 200)";
-                  (e.currentTarget as HTMLElement).style.color = "oklch(0.85 0.005 200)";
+                  (e.currentTarget as HTMLElement).style.background = "#111614";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
+                  (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
                 }}
               >
                 Zur Community <ArrowRight className="w-3.5 h-3.5" />
@@ -764,19 +764,19 @@ function CommunitySection() {
               <div
                 key={i}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                style={{ background: "oklch(0.12 0.008 200 / 0.85)", border: "1px solid oklch(0.22 0.008 200 / 0.5)" }}
+                style={{ background: "rgba(13,17,14,0.85)", border: "1px solid rgba(45,107,63,0.25)" }}
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                  style={{ background: "oklch(0.52 0.14 148 / 0.2)", color: "oklch(0.65 0.16 148)" }}
+                  style={{ background: "rgba(45,155,110,0.20)", color: "#34D399" }}
                 >
                   {item.icon}
                 </div>
                 <div className="min-w-0">
-                  <span className="text-sm font-medium" style={{ color: "oklch(0.85 0.005 200)" }}>
+                  <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.85)" }}>
                     {item.title}
                   </span>
-                  <span className="text-sm ml-1" style={{ color: "oklch(0.55 0.008 200)" }}>
+                  <span className="text-sm ml-1" style={{ color: "rgba(255,255,255,0.55)" }}>
                     {item.text}
                   </span>
                 </div>

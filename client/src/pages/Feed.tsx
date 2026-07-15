@@ -33,13 +33,13 @@ const CATEGORIES = [
 ] as const;
 
 const CAT_STYLE: Record<string, { bg: string; text: string; border: string }> = {
-  plant:       { bg: "oklch(0.52 0.14 148 / 0.12)", text: "oklch(0.65 0.16 148)", border: "oklch(0.52 0.14 148 / 0.25)" },
-  aquarium:    { bg: "oklch(0.52 0.14 220 / 0.12)", text: "oklch(0.65 0.14 220)", border: "oklch(0.52 0.14 220 / 0.25)" },
-  question:    { bg: "oklch(0.55 0.14 280 / 0.12)", text: "oklch(0.68 0.14 280)", border: "oklch(0.55 0.14 280 / 0.25)" },
-  tip:         { bg: "oklch(0.72 0.14 78 / 0.12)",  text: "oklch(0.78 0.14 78)",  border: "oklch(0.72 0.14 78 / 0.25)" },
-  showcase:    { bg: "oklch(0.60 0.14 350 / 0.12)", text: "oklch(0.70 0.14 350)", border: "oklch(0.60 0.14 350 / 0.25)" },
-  marketplace: { bg: "oklch(0.55 0.14 170 / 0.12)", text: "oklch(0.65 0.14 170)", border: "oklch(0.55 0.14 170 / 0.25)" },
-  other:       { bg: "oklch(0.25 0.008 200)",        text: "oklch(0.60 0.008 200)", border: "oklch(0.30 0.008 200)" },
+  plant:       { bg: "rgba(45,155,110,0.12)", text: "#34D399", border: "rgba(45,155,110,0.25)" },
+  aquarium:    { bg: "rgba(45,100,200,0.12)", text: "rgba(100,160,240,0.90)", border: "rgba(45,100,200,0.25)" },
+  question:    { bg: "rgba(120,80,200,0.12)", text: "rgba(160,120,240,0.90)", border: "rgba(120,80,200,0.25)" },
+  tip:         { bg: "rgba(212,175,55,0.12)",  text: "#D4AF37",              border: "rgba(212,175,55,0.25)" },
+  showcase:    { bg: "rgba(200,60,80,0.12)",   text: "rgba(240,100,120,0.90)", border: "rgba(200,60,80,0.25)" },
+  marketplace: { bg: "rgba(45,155,110,0.12)", text: "#34D399",              border: "rgba(45,155,110,0.25)" },
+  other:       { bg: "rgba(45,107,63,0.35)",  text: "rgba(255,255,255,0.60)", border: "rgba(45,107,63,0.30)" },
 };
 
 function CategoryBadge({ category }: { category: string }) {
@@ -93,27 +93,27 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
     <article
       className="overflow-hidden rounded-2xl transition-all duration-200"
       style={{
-        background: "oklch(0.11 0.008 200)",
-        border: "1px solid oklch(0.21 0.008 200)",
+        background: "#0D110E",
+        border: "1px solid rgba(45,107,63,0.30)",
       }}
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10 ring-2" style={{ "--tw-ring-color": "oklch(0.52 0.14 148 / 0.2)" } as any}>
+          <Avatar className="w-10 h-10 ring-2" style={{ "--tw-ring-color": "rgba(45,155,110,0.20)" } as any}>
             <AvatarImage src={post.userAvatarUrl} />
             <AvatarFallback
               className="text-sm font-bold"
-              style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}
+              style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}
             >
               {post.userName?.charAt(0)?.toUpperCase() ?? "U"}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-semibold leading-none" style={{ color: "oklch(0.92 0.005 200)" }}>
+            <p className="text-sm font-semibold leading-none" style={{ color: "#FFFFFF" }}>
               {post.userName ?? "Unbekannt"}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "oklch(0.48 0.008 200)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
               {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: de })}
             </p>
           </div>
@@ -130,7 +130,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
               <DropdownMenuContent
                 align="end"
                 className="rounded-xl"
-                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
               >
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive cursor-pointer"
@@ -175,7 +175,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
 
       {/* ── Content ── */}
       <div className="px-5 py-4">
-        <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "oklch(0.82 0.005 200)" }}>
+        <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: "rgba(255,255,255,0.82)" }}>
           {post.content}
         </p>
       </div>
@@ -183,20 +183,20 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
       {/* ── Actions ── */}
       <div
         className="flex items-center gap-1 px-5 pb-4"
-        style={{ borderTop: "1px solid oklch(0.16 0.009 200)", paddingTop: "0.75rem" }}
+        style={{ borderTop: "1px solid rgba(13,17,14,0.85)", paddingTop: "0.75rem" }}
       >
         <button
           onClick={handleLike}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
           style={{
-            color: post.isLiked ? "oklch(0.70 0.18 15)" : "oklch(0.50 0.008 200)",
-            background: post.isLiked ? "oklch(0.60 0.18 15 / 0.10)" : "transparent",
+            color: post.isLiked ? "rgba(240,80,80,0.90)" : "rgba(255,255,255,0.50)",
+            background: post.isLiked ? "rgba(240,80,80,0.10)" : "transparent",
           }}
           onMouseEnter={e => {
-            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "oklch(0.70 0.18 15)";
+            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "rgba(240,80,80,0.90)";
           }}
           onMouseLeave={e => {
-            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "oklch(0.50 0.008 200)";
+            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.50)";
           }}
         >
           <Heart className={cn("w-4 h-4", post.isLiked && "fill-current")} />
@@ -205,10 +205,10 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
         <button
           onClick={() => setShowComments(!showComments)}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
-          style={{ color: showComments ? "oklch(0.65 0.16 148)" : "oklch(0.50 0.008 200)" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)"; }}
+          style={{ color: showComments ? "#34D399" : "rgba(255,255,255,0.50)" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#34D399"; }}
           onMouseLeave={e => {
-            if (!showComments) (e.currentTarget as HTMLElement).style.color = "oklch(0.50 0.008 200)";
+            if (!showComments) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.50)";
           }}
         >
           <MessageCircle className="w-4 h-4" />
@@ -218,21 +218,21 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
 
       {/* ── Comments ── */}
       {showComments && (
-        <div className="px-5 pb-5 space-y-3" style={{ borderTop: "1px solid oklch(0.16 0.008 200)" }}>
+        <div className="px-5 pb-5 space-y-3" style={{ borderTop: "1px solid rgba(13,17,14,0.85)" }}>
           <div className="pt-3 space-y-3">
             {commentsData?.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 <Avatar className="w-7 h-7 flex-shrink-0">
                   <AvatarImage src={comment.userAvatarUrl ?? undefined} />
-                  <AvatarFallback className="text-xs" style={{ background: "oklch(0.16 0.009 200)", color: "oklch(0.60 0.008 200)" }}>
+                  <AvatarFallback className="text-xs" style={{ background: "rgba(13,17,14,0.85)", color: "rgba(255,255,255,0.60)" }}>
                     {comment.userName?.charAt(0)?.toUpperCase() ?? "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 rounded-xl px-3 py-2" style={{ background: "oklch(0.15 0.008 200)" }}>
-                  <p className="text-xs font-semibold mb-0.5" style={{ color: "oklch(0.80 0.005 200)" }}>
+                <div className="flex-1 rounded-xl px-3 py-2" style={{ background: "rgba(13,17,14,0.90)" }}>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: "rgba(255,255,255,0.80)" }}>
                     {comment.userName ?? "Unbekannt"}
                   </p>
-                  <p className="text-sm" style={{ color: "oklch(0.65 0.008 200)" }}>{comment.content}</p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.65)" }}>{comment.content}</p>
                 </div>
               </div>
             ))}
@@ -241,7 +241,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
             <div className="flex gap-2 pt-1">
               <Avatar className="w-7 h-7 flex-shrink-0">
                 <AvatarImage src={user.avatarUrl ?? undefined} />
-                <AvatarFallback className="text-xs" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
+                <AvatarFallback className="text-xs" style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}>
                   {user.name?.charAt(0)?.toUpperCase() ?? "U"}
                 </AvatarFallback>
               </Avatar>
@@ -252,12 +252,12 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
                   placeholder="Kommentar schreiben..."
                   className="flex-1 rounded-xl px-3 py-2 text-sm outline-none transition-colors"
                   style={{
-                    background: "oklch(0.15 0.008 200)",
-                    border: "1px solid oklch(0.22 0.008 200)",
-                    color: "oklch(0.88 0.005 200)",
+                    background: "rgba(13,17,14,0.90)",
+                    border: "1px solid rgba(45,107,63,0.30)",
+                    color: "rgba(255,255,255,0.88)",
                   }}
-                  onFocus={e => { (e.target as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.5)"; }}
-                  onBlur={e => { (e.target as HTMLElement).style.borderColor = "oklch(0.22 0.008 200)"; }}
+                  onFocus={e => { (e.target as HTMLElement).style.borderColor = "rgba(45,155,110,0.50)"; }}
+                  onBlur={e => { (e.target as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)"; }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey && commentText.trim()) {
                       e.preventDefault();
@@ -372,14 +372,14 @@ function CreatePost() {
   return (
     <div
       className="rounded-2xl p-5 space-y-4"
-      style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+      style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}
     >
       <div className="flex gap-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={user.avatarUrl ?? undefined} />
           <AvatarFallback
             className="text-sm font-bold"
-            style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}
+            style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}
           >
             {user.name?.charAt(0)?.toUpperCase() ?? "U"}
           </AvatarFallback>
@@ -390,9 +390,9 @@ function CreatePost() {
           placeholder="Teile deine Fortschritte, Fragen oder Inspirationen..."
           className="flex-1 min-h-[80px] resize-none text-sm rounded-xl"
           style={{
-            background: "oklch(0.15 0.008 200)",
-            border: "1px solid oklch(0.22 0.008 200)",
-            color: "oklch(0.88 0.005 200)",
+            background: "rgba(13,17,14,0.90)",
+            border: "1px solid rgba(45,107,63,0.30)",
+            color: "rgba(255,255,255,0.88)",
           }}
         />
       </div>
@@ -403,9 +403,9 @@ function CreatePost() {
           <button
             onClick={() => { setImagePreview(null); setImageBase64(null); setImageMimeType(null); }}
             className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
-            style={{ background: "oklch(0.08 0.008 200 / 0.8)" }}
+            style={{ background: "rgba(7,10,8,0.80)" }}
           >
-            <X className="w-3.5 h-3.5" style={{ color: "oklch(0.90 0.005 200)" }} />
+            <X className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.90)" }} />
           </button>
         </div>
       )}
@@ -417,18 +417,18 @@ function CreatePost() {
             controls
             playsInline
             className="max-h-72 w-full rounded-xl"
-            style={{ background: "oklch(0.06 0.008 200)" }}
+            style={{ background: "rgba(5,8,6,1)" }}
           />
           <div className="flex items-center gap-2 mt-2">
-            <Video className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.16 148)" }} />
-            <span className="text-xs truncate" style={{ color: "oklch(0.55 0.008 200)" }}>{videoName}</span>
+            <Video className="w-3.5 h-3.5" style={{ color: "#34D399" }} />
+            <span className="text-xs truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{videoName}</span>
           </div>
           <button
             onClick={() => { setVideoPreview(null); setVideoBase64(null); setVideoMimeType(null); setVideoName(null); }}
             className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center"
-            style={{ background: "oklch(0.08 0.008 200 / 0.8)" }}
+            style={{ background: "rgba(7,10,8,0.80)" }}
           >
-            <X className="w-3.5 h-3.5" style={{ color: "oklch(0.90 0.005 200)" }} />
+            <X className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.90)" }} />
           </button>
         </div>
       )}
@@ -439,14 +439,14 @@ function CreatePost() {
             <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
             <div
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
-              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.55)", border: "1px solid rgba(45,107,63,0.30)" }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.75 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.30 0.008 200)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.75)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.55)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)";
               }}
             >
               <ImagePlus className="w-4 h-4" />
@@ -457,14 +457,14 @@ function CreatePost() {
             <input type="file" accept="video/mp4,video/webm,video/quicktime,video/ogg" className="hidden" onChange={handleVideoSelect} />
             <div
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 cursor-pointer"
-              style={{ color: "oklch(0.55 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.55)", border: "1px solid rgba(45,107,63,0.30)" }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.65 0.16 148)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.40 0.12 148)";
+                (e.currentTarget as HTMLElement).style.color = "#34D399";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
               }}
               onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.color = "oklch(0.55 0.008 200)";
-                (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.21 0.008 200)";
+                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.55)";
+                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)";
               }}
             >
               <Video className="w-4 h-4" />
@@ -475,15 +475,15 @@ function CreatePost() {
             <SelectTrigger
               className="h-9 text-xs w-32 rounded-xl"
               style={{
-                background: "oklch(0.15 0.008 200)",
-                border: "1px solid oklch(0.22 0.008 200)",
-                color: "oklch(0.70 0.008 200)",
+                background: "rgba(13,17,14,0.90)",
+                border: "1px solid rgba(45,107,63,0.30)",
+                color: "rgba(255,255,255,0.70)",
               }}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
             >
               {CATEGORIES.map(c => (
                 <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
@@ -533,7 +533,7 @@ function FeaturedAccountsRow() {
     <div className="mb-5">
       <p
         className="text-xs font-bold uppercase mb-3 flex items-center gap-1.5"
-        style={{ color: "oklch(0.65 0.16 148)", letterSpacing: "0.14em" }}
+        style={{ color: "#34D399", letterSpacing: "0.14em" }}
       >
         EMPFOHLENE ACCOUNTS
         <span style={{ fontSize: "0.85em" }}>📣</span>
@@ -547,8 +547,8 @@ function FeaturedAccountsRow() {
             rel="noopener noreferrer"
             className="flex-shrink-0 w-28 rounded-2xl p-3 transition-all duration-150 active:scale-95"
             style={{
-              background: "oklch(0.14 0.008 200)",
-              border: "1px solid oklch(0.22 0.008 200)",
+              background: "rgba(13,17,14,0.90)",
+              border: "1px solid rgba(45,107,63,0.30)",
               textDecoration: "none",
             }}
           >
@@ -556,12 +556,12 @@ function FeaturedAccountsRow() {
             <div className="relative mb-2">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden mx-auto"
-                style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }}
+                style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
               >
                 {acc.imageUrl ? (
                   <img src={acc.imageUrl} alt={acc.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-xl font-bold" style={{ color: "oklch(0.65 0.16 148)" }}>
+                  <span className="text-xl font-bold" style={{ color: "#34D399" }}>
                     {acc.name?.charAt(0)?.toUpperCase() ?? "?"}
                   </span>
                 )}
@@ -569,20 +569,20 @@ function FeaturedAccountsRow() {
               {/* Platform-Badge */}
               <div
                 className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-xs"
-                style={{ background: "oklch(0.10 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                style={{ background: "#070A08", border: "1px solid rgba(45,107,63,0.30)" }}
               >
                 {PLATFORM_ICONS[acc.platform ?? ""] ?? "🌐"}
               </div>
             </div>
             <p
               className="text-xs font-semibold text-center truncate"
-              style={{ color: "oklch(0.88 0.005 200)" }}
+              style={{ color: "rgba(255,255,255,0.88)" }}
             >
               {acc.name}
             </p>
             <p
               className="text-xs text-center mt-0.5 capitalize"
-              style={{ color: "oklch(0.55 0.008 200)" }}
+              style={{ color: "rgba(255,255,255,0.55)" }}
             >
               {acc.platform ?? ""}
             </p>
@@ -615,14 +615,14 @@ export default function Feed() {
       <div className="mb-5">
         <p
           className="text-xs font-bold uppercase mb-1"
-          style={{ color: "oklch(0.65 0.16 148)", letterSpacing: "0.14em" }}
+          style={{ color: "#34D399", letterSpacing: "0.14em" }}
         >
           COMMUNITY
         </p>
         <div className="flex items-center justify-between">
           <h1
             className="font-brand leading-none"
-            style={{ fontSize: "clamp(2rem, 7vw, 2.8rem)", color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
+            style={{ fontSize: "clamp(2rem, 7vw, 2.8rem)", color: "#FFFFFF", letterSpacing: "0.01em" }}
           >
             Feed
           </h1>
@@ -630,28 +630,28 @@ export default function Feed() {
             <div className="flex items-center gap-2">
               <button
                 className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
-                style={{ background: "oklch(0.16 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                style={{ background: "rgba(13,17,14,0.85)", border: "1px solid rgba(45,107,63,0.30)" }}
                 onClick={() => toast.info("Mitglieder – demnächst verfügbar")}
               >
-                <Users className="w-4 h-4" style={{ color: "oklch(0.65 0.008 200)" }} />
+                <Users className="w-4 h-4" style={{ color: "rgba(255,255,255,0.65)" }} />
               </button>
               <button
                 className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
-                style={{ background: "oklch(0.16 0.008 200)", border: "1px solid oklch(0.22 0.008 200)" }}
+                style={{ background: "rgba(13,17,14,0.85)", border: "1px solid rgba(45,107,63,0.30)" }}
                 onClick={() => toast.info("Direktnachrichten – demnächst verfügbar")}
               >
-                <MessageCircle className="w-4 h-4" style={{ color: "oklch(0.65 0.008 200)" }} />
+                <MessageCircle className="w-4 h-4" style={{ color: "rgba(255,255,255,0.65)" }} />
               </button>
               <button
                 className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 active:scale-95"
-                style={{ background: "oklch(0.52 0.14 148)", border: "none" }}
+                style={{ background: "#2D9B6E", border: "none" }}
                 onClick={() => {
                   const el = document.getElementById("create-post-area");
                   el?.scrollIntoView({ behavior: "smooth" });
                   el?.querySelector("textarea")?.focus();
                 }}
               >
-                <Plus className="w-4 h-4" style={{ color: "oklch(0.08 0.008 200)" }} />
+                <Plus className="w-4 h-4" style={{ color: "#070A08" }} />
               </button>
             </div>
           )}
@@ -668,9 +668,9 @@ export default function Feed() {
               onClick={() => setFilter(cat.value)}
               className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
               style={{
-                background: isActive ? "transparent" : "oklch(0.16 0.008 200)",
-                color: isActive ? "oklch(0.65 0.16 148)" : "oklch(0.60 0.008 200)",
-                border: isActive ? "2px solid oklch(0.65 0.16 148)" : "2px solid oklch(0.22 0.008 200)",
+                background: isActive ? "transparent" : "rgba(13,17,14,0.85)",
+                color: isActive ? "#34D399" : "rgba(255,255,255,0.60)",
+                border: isActive ? "2px solid #34D399" : "2px solid rgba(45,107,63,0.30)",
               }}
             >
               {cat.label}
@@ -696,7 +696,7 @@ export default function Feed() {
             <div
               key={i}
               className="rounded-2xl overflow-hidden"
-              style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.16 0.009 200)" }}
+              style={{ background: "#0D110E", border: "1px solid rgba(13,17,14,0.85)" }}
             >
               <div className="flex items-center gap-3 p-5">
                 <Skeleton className="w-10 h-10 rounded-full" />
@@ -716,14 +716,14 @@ export default function Feed() {
           <div className="text-center py-20">
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}
+              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
             >
-              <MessageCircle className="w-7 h-7" style={{ color: "oklch(0.40 0.008 200)" }} />
+              <MessageCircle className="w-7 h-7" style={{ color: "rgba(255,255,255,0.40)" }} />
             </div>
-            <p className="font-semibold mb-1" style={{ color: "oklch(0.70 0.008 200)" }}>
+            <p className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.70)" }}>
               Noch keine Beiträge
             </p>
-            <p className="text-sm" style={{ color: "oklch(0.45 0.008 200)" }}>
+            <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
               Sei der Erste und teile deine Sammlung!
             </p>
           </div>

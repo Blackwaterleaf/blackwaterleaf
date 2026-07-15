@@ -16,10 +16,10 @@ export default function ModeratorDashboard() {
   if (!user || (user.role !== "moderator" && user.role !== "admin")) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
-        <div className="rounded-2xl p-6 text-center" style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-          <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.65 0.16 40)" }} />
-          <h2 className="text-lg font-semibold mb-2" style={{ color: "oklch(0.88 0.005 200)" }}>Zugriff verweigert</h2>
-          <p style={{ color: "oklch(0.55 0.008 200)" }}>Nur Moderatoren und Admins können diesen Bereich sehen.</p>
+        <div className="rounded-2xl p-6 text-center" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+          <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "#D4AF37" }} />
+          <h2 className="text-lg font-semibold mb-2" style={{ color: "rgba(255,255,255,0.88)" }}>Zugriff verweigert</h2>
+          <p style={{ color: "rgba(255,255,255,0.55)" }}>Nur Moderatoren und Admins können diesen Bereich sehen.</p>
         </div>
       </div>
     );
@@ -29,15 +29,15 @@ export default function ModeratorDashboard() {
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-brand text-3xl mb-2" style={{ color: "oklch(0.90 0.005 200)" }}>Moderatoren-Dashboard</h1>
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Verwalte gemeldete Inhalte und bestätige KI-Bestimmungen</p>
+        <h1 className="font-brand text-3xl mb-2" style={{ color: "rgba(255,255,255,0.90)" }}>Moderatoren-Dashboard</h1>
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Verwalte gemeldete Inhalte und bestätige KI-Bestimmungen</p>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-          <TabsTrigger value="reported-posts" style={{ color: "oklch(0.55 0.008 200)" }}>Gemeldete Beiträge</TabsTrigger>
-          <TabsTrigger value="ai-identifications" style={{ color: "oklch(0.55 0.008 200)" }}>KI-Bestimmungen</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2" style={{ background: "#111614", border: "1px solid rgba(45,107,63,0.30)" }}>
+          <TabsTrigger value="reported-posts" style={{ color: "rgba(255,255,255,0.55)" }}>Gemeldete Beiträge</TabsTrigger>
+          <TabsTrigger value="ai-identifications" style={{ color: "rgba(255,255,255,0.55)" }}>KI-Bestimmungen</TabsTrigger>
         </TabsList>
 
         {/* Gemeldete Beiträge */}
@@ -72,9 +72,9 @@ function ReportedPostsTab() {
 
   if (!reportedPosts || (Array.isArray(reportedPosts) && reportedPosts.length === 0)) {
     return (
-      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.52 0.14 148)" }} />
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine gemeldeten Beiträge. Alles ist sauber! ✨</p>
+      <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "#2D9B6E" }} />
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Keine gemeldeten Beiträge. Alles ist sauber! ✨</p>
       </Card>
     );
   }
@@ -82,10 +82,10 @@ function ReportedPostsTab() {
   return (
     <div className="space-y-4">
       {Array.isArray(reportedPosts) && reportedPosts.map((report: any) => (
-        <Card key={report.id} style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-4">
+        <Card key={report.id} style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-4">
           <div className="mb-4">
-            <p className="text-sm font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>Grund: {report.reason}</p>
-            <p className="text-sm mt-2" style={{ color: "oklch(0.55 0.008 200)" }}>{report.post?.content}</p>
+            <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.88)" }}>Grund: {report.reason}</p>
+            <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>{report.post?.content}</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -93,7 +93,7 @@ function ReportedPostsTab() {
               variant="outline"
               disabled={resolveMutation.isPending}
               onClick={() => resolveMutation.mutate({ reportId: report.id, status: "dismissed" })}
-              style={{ color: "oklch(0.52 0.14 148)" }}
+              style={{ color: "#2D9B6E" }}
             >
               <CheckCircle className="w-4 h-4 mr-1" /> Genehmigen
             </Button>
@@ -102,7 +102,7 @@ function ReportedPostsTab() {
               variant="outline"
               disabled={resolveMutation.isPending}
               onClick={() => resolveMutation.mutate({ reportId: report.id, status: "resolved", action: "delete_content" })}
-              style={{ color: "oklch(0.65 0.16 40)" }}
+              style={{ color: "#D4AF37" }}
             >
               <Trash2 className="w-4 h-4 mr-1" /> Löschen
             </Button>
@@ -124,17 +124,17 @@ function AiIdentificationsTab() {
 
   if (!pendingIds || (Array.isArray(pendingIds) && pendingIds.length === 0)) {
     return (
-      <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.52 0.14 148)" }} />
-        <p style={{ color: "oklch(0.55 0.008 200)" }}>Keine ausstehenden Bestimmungen. Alles ist aktuell! ✨</p>
+      <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+        <CheckCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "#2D9B6E" }} />
+        <p style={{ color: "rgba(255,255,255,0.55)" }}>Keine ausstehenden Bestimmungen. Alles ist aktuell! ✨</p>
       </Card>
     );
   }
 
   return (
-    <Card style={{ background: "oklch(0.11 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }} className="p-6 text-center">
-      <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "oklch(0.55 0.008 200)" }} />
-      <p style={{ color: "oklch(0.55 0.008 200)" }}>KI-Bestimmungs-Review wird in Kürze implementiert.</p>
+    <Card style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }} className="p-6 text-center">
+      <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: "rgba(255,255,255,0.55)" }} />
+      <p style={{ color: "rgba(255,255,255,0.55)" }}>KI-Bestimmungs-Review wird in Kürze implementiert.</p>
     </Card>
   );
 }

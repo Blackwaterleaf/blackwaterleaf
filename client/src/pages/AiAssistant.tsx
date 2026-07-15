@@ -165,23 +165,23 @@ export default function AiAssistant() {
       <div
         className="px-4 pt-4 pb-3 flex-shrink-0"
         style={{
-          background: "oklch(0.10 0.008 200)",
-          borderBottom: "1px solid oklch(0.16 0.009 200)",
+          background: "#070A08",
+          borderBottom: "1px solid rgba(45,107,63,0.25)",
         }}
       >
         <div className="container max-w-3xl mx-auto">
           <h1
             className="font-brand leading-none mb-0.5"
-            style={{ fontSize: "clamp(1.8rem, 6vw, 2.4rem)", color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
+            style={{ fontSize: "clamp(1.8rem, 6vw, 2.4rem)", color: "#FFFFFF", letterSpacing: "0.01em" }}
           >
             KI-Assistent
           </h1>
           {contextName ? (
-            <p className="text-sm mb-3" style={{ color: "oklch(0.60 0.008 200)" }}>
+            <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.60)" }}>
               {contextType === "plant" ? "🌿" : "💧"} Kontext: {contextName}
             </p>
           ) : (
-            <p className="text-sm mb-3" style={{ color: "oklch(0.60 0.008 200)" }}>
+            <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.60)" }}>
               {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Dein Begleiter für Botanik & Aquaristik & Channa"}
             </p>
           )}
@@ -193,9 +193,9 @@ export default function AiAssistant() {
                 onClick={() => setMode("chat")}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "chat" ? "oklch(0.52 0.14 148)" : "oklch(0.16 0.008 200)",
-                  color: mode === "chat" ? "oklch(0.08 0.008 200)" : "oklch(0.65 0.008 200)",
-                  border: mode === "chat" ? "none" : "1px solid oklch(0.24 0.008 200)",
+                  background: mode === "chat" ? "#2D9B6E" : "rgba(13,17,14,0.85)",
+                  color: mode === "chat" ? "#FFFFFF" : "rgba(255,255,255,0.65)",
+                  border: mode === "chat" ? "none" : "1px solid rgba(45,107,63,0.30)",
                 }}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
@@ -205,9 +205,9 @@ export default function AiAssistant() {
                 onClick={() => setMode("identify")}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "identify" ? "oklch(0.52 0.14 148)" : "oklch(0.16 0.008 200)",
-                  color: mode === "identify" ? "oklch(0.08 0.008 200)" : "oklch(0.65 0.008 200)",
-                  border: mode === "identify" ? "none" : "1px solid oklch(0.24 0.008 200)",
+                  background: mode === "identify" ? "#2D9B6E" : "rgba(13,17,14,0.85)",
+                  color: mode === "identify" ? "#FFFFFF" : "rgba(255,255,255,0.65)",
+                  border: mode === "identify" ? "none" : "1px solid rgba(45,107,63,0.30)",
                 }}
               >
                 <ScanSearch className="w-3.5 h-3.5" />
@@ -217,9 +217,9 @@ export default function AiAssistant() {
                 onClick={() => { setChannaMode(v => !v); setMode("chat"); }}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: channaMode ? "oklch(0.62 0.17 35 / 0.25)" : "oklch(0.16 0.008 200)",
-                  color: channaMode ? "oklch(0.72 0.17 45)" : "oklch(0.65 0.008 200)",
-                  border: channaMode ? "1px solid oklch(0.62 0.17 35 / 0.40)" : "1px solid oklch(0.24 0.008 200)",
+                  background: channaMode ? "rgba(212,175,55,0.20)" : "rgba(13,17,14,0.85)",
+                  color: channaMode ? "#D4AF37" : "rgba(255,255,255,0.65)",
+                  border: channaMode ? "1px solid rgba(212,175,55,0.40)" : "1px solid rgba(45,107,63,0.30)",
                 }}
               >
                 <Fish className="w-3.5 h-3.5" />
@@ -244,7 +244,7 @@ export default function AiAssistant() {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center pt-10 pb-6 px-4 animate-fade-in">
                   {/* Sparkles-Icon */}
-                  <div className="mb-5" style={{ color: "oklch(0.65 0.16 148)" }}>
+                  <div className="mb-5"                   style={{ color: "#34D399" }}>
                     <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M26 4L29.5 18.5L44 22L29.5 25.5L26 40L22.5 25.5L8 22L22.5 18.5L26 4Z" fill="currentColor" opacity="0.9" />
                       <path d="M42 8L43.5 13.5L49 15L43.5 16.5L42 22L40.5 16.5L35 15L40.5 13.5L42 8Z" fill="currentColor" opacity="0.6" />
@@ -254,11 +254,11 @@ export default function AiAssistant() {
 
                   <h2
                     className="font-brand text-2xl font-bold mb-2 text-center"
-                    style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.01em" }}
+                    style={{                     color: "#FFFFFF", letterSpacing: "0.01em" }}
                   >
                     Stell deine erste Frage
                   </h2>
-                  <p className="text-sm text-center mb-6" style={{ color: "oklch(0.60 0.008 200)" }}>
+                  <p className="text-sm text-center mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
                     Tippe eine Frage oder wähle einen Vorschlag.
                   </p>
 
@@ -266,11 +266,11 @@ export default function AiAssistant() {
                     <div
                       className="mb-6 p-4 rounded-2xl w-full max-w-sm"
                       style={{
-                        background: "oklch(0.14 0.008 200)",
-                        border: "1px solid oklch(0.22 0.008 200)",
+                        background: "rgba(13,17,14,0.90)",
+                        border: "1px solid rgba(45,107,63,0.30)",
                       }}
                     >
-                      <p className="text-sm mb-3 text-center" style={{ color: "oklch(0.65 0.008 200)" }}>
+                      <p className="text-sm mb-3 text-center" style={{ color: "rgba(255,255,255,0.60)" }}>
                         Melde dich an, um den KI-Assistenten zu nutzen.
                       </p>
                       <Button asChild size="sm" className="w-full press-active btn-glow">
@@ -288,9 +288,9 @@ export default function AiAssistant() {
                         disabled={!isAuthenticated}
                         className="w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
-                          background: "oklch(0.14 0.008 200)",
-                          border: "1px solid oklch(0.22 0.008 200)",
-                          color: "oklch(0.88 0.005 200)",
+                          background: "rgba(13,17,14,0.85)",
+                          border: "1px solid rgba(45,107,63,0.30)",
+                          color: "rgba(255,255,255,0.88)",
                           fontSize: "0.9rem",
                         }}
                       >
@@ -316,8 +316,8 @@ export default function AiAssistant() {
                       className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{
                         background:
-                          "linear-gradient(135deg, oklch(0.68 0.16 152 / 0.25), oklch(0.68 0.16 152 / 0.10))",
-                        border: "1px solid oklch(0.68 0.16 152 / 0.3)",
+                          "linear-gradient(135deg, rgba(45,155,110,0.25), rgba(45,155,110,0.10))",
+                        border: "1px solid rgba(45,155,110,0.30)",
                       }}
                     >
                       <Bot className="w-4 h-4 text-primary" />
@@ -328,8 +328,8 @@ export default function AiAssistant() {
                       <AvatarFallback
                         className="text-xs font-semibold"
                         style={{
-                          background: "oklch(0.68 0.16 152 / 0.2)",
-                          color: "oklch(0.68 0.16 152)",
+                          background: "rgba(45,155,110,0.20)",
+                          color: "#34D399",
                         }}
                       >
                         {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
@@ -349,12 +349,12 @@ export default function AiAssistant() {
                       msg.role === "user"
                         ? {
                             background:
-                              "linear-gradient(135deg, oklch(0.68 0.16 152 / 0.20), oklch(0.68 0.16 152 / 0.12))",
-                            border: "1px solid oklch(0.68 0.16 152 / 0.25)",
+                              "linear-gradient(135deg, rgba(45,155,110,0.20), rgba(45,155,110,0.12))",
+                            border: "1px solid rgba(45,155,110,0.25)",
                           }
                         : {
-                            background: "oklch(0.12 0.010 240)",
-                            border: "1px solid oklch(0.22 0.010 240)",
+                            background: "rgba(13,17,14,0.90)",
+                            border: "1px solid rgba(45,107,63,0.30)",
                           }
                     }
                   >
@@ -368,7 +368,7 @@ export default function AiAssistant() {
                             <div
                               className="mt-3 pt-3"
                               style={{
-                                borderTop: "1px solid oklch(0.22 0.010 240)",
+                                borderTop: "1px solid rgba(45,107,63,0.30)",
                               }}
                             >
                               <p className="text-xs text-muted-foreground mb-1.5">
@@ -382,8 +382,8 @@ export default function AiAssistant() {
                                 placeholder="z.B. Channa bleheri benötigt 22–26°C, nicht über 28°C ..."
                                 className="min-h-[60px] resize-none text-sm"
                                 style={{
-                                  background: "oklch(0.09 0.008 240)",
-                                  border: "1px solid oklch(0.22 0.010 240)",
+                                  background: "rgba(7,10,8,0.95)",
+                                  border: "1px solid rgba(45,107,63,0.30)",
                                 }}
                               />
                               <div className="flex gap-2 mt-2">
@@ -434,8 +434,8 @@ export default function AiAssistant() {
                     className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{
                       background:
-                        "linear-gradient(135deg, oklch(0.68 0.16 152 / 0.25), oklch(0.68 0.16 152 / 0.10))",
-                      border: "1px solid oklch(0.68 0.16 152 / 0.3)",
+                        "linear-gradient(135deg, rgba(45,155,110,0.25), rgba(45,155,110,0.10))",
+                      border: "1px solid rgba(45,155,110,0.30)",
                     }}
                   >
                     <Bot className="w-4 h-4 text-primary" />
@@ -443,8 +443,8 @@ export default function AiAssistant() {
                   <div
                     className="rounded-2xl rounded-tl-sm px-4 py-3"
                     style={{
-                      background: "oklch(0.12 0.010 240)",
-                      border: "1px solid oklch(0.22 0.010 240)",
+                      background: "rgba(13,17,14,0.90)",
+                      border: "1px solid rgba(45,107,63,0.30)",
                     }}
                   >
                     <div className="flex items-center gap-1.5">
@@ -473,8 +473,8 @@ export default function AiAssistant() {
           <div
             className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
             style={{
-              background: "oklch(0.10 0.008 200 / 0.95)",
-              borderTop: "1px solid oklch(0.21 0.008 200)",
+              background: "rgba(7,10,8,0.97)",
+              borderTop: "1px solid rgba(45,107,63,0.25)",
             }}
           >
             <div className="container max-w-3xl mx-auto flex gap-3">
@@ -488,9 +488,9 @@ export default function AiAssistant() {
                 disabled={!isAuthenticated || isLoading}
                 className="flex-1 min-h-[44px] max-h-32 resize-none text-sm"
                 style={{
-                  background: "oklch(0.15 0.008 200)",
-                  border: "1px solid oklch(0.22 0.008 200)",
-                  color: "oklch(0.88 0.005 200)",
+                  background: "rgba(13,17,14,0.90)",
+                  border: "1px solid rgba(45,107,63,0.30)",
+                  color: "rgba(255,255,255,0.88)",
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {

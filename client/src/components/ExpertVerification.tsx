@@ -12,15 +12,15 @@ interface ExpertVerificationProps {
 const getTrustLevelColor = (trustLevel: ExpertVerificationProps['trustLevel']) => {
   switch (trustLevel) {
     case 'low':
-      return 'oklch(0.7 0.15 30)'; // A muted gold/orange
+      return 'rgba(212,140,55,0.90)'; // A muted gold/orange
     case 'medium':
-      return 'oklch(0.75 0.18 60)'; // A warmer gold
+      return '#D4AF37'; // A warmer gold
     case 'high':
-      return 'oklch(0.8 0.2 90)'; // A brighter gold
+      return '#D4AF37'; // A brighter gold
     case 'very-high':
-      return 'oklch(0.85 0.22 120)'; // A very bright, almost white gold
+      return '#D4AF37'; // A very bright, almost white gold
     default:
-      return 'oklch(0.5 0 0)'; // Default to a neutral color
+      return 'rgba(255,255,255,0.50)'; // Default to a neutral color
   }
 };
 
@@ -78,11 +78,11 @@ const ExpertVerification: React.FC<ExpertVerificationProps> = ({
     <div
       className={cn(
         "flex items-center gap-2 p-2 rounded-lg font-inter text-xs",
-        "bg-[oklch(0.10_0.008_200)] border border-[oklch(0.20_0.008_200)]",
+        "bg-[#070A08] border border-[rgba(45,107,63,0.30)]",
         className
       )}
       style={{
-        boxShadow: `0 0 8px 0 ${trustColor.replace('oklch(', 'oklch(').replace(')', ' / 0.3)')}`,
+        boxShadow: `0 0 8px 0 ${trustColor.replace('rgba(', 'rgba(').replace(')', '').replace(/,([^,]*)$/, ', 0.3)')}`,
       }}
     >
       <ShieldCheck className="w-4 h-4" style={{ color: trustColor }} />
@@ -95,9 +95,9 @@ const ExpertVerification: React.FC<ExpertVerificationProps> = ({
               key={field}
               className="flex items-center gap-1 px-2 py-0.5 rounded-full"
               style={{
-                background: 'oklch(0.15 0.008 200)',
-                color: 'oklch(0.7 0.05 150)',
-                border: '1px solid oklch(0.25 0.008 200)',
+                background: '#161C19',
+                color: 'rgba(45,155,110,0.70)',
+                border: '1px solid rgba(45,107,63,0.35)',
               }}
             >
               {getExpertiseIcon(field)}
@@ -110,9 +110,9 @@ const ExpertVerification: React.FC<ExpertVerificationProps> = ({
       <span
         className="ml-auto px-2 py-0.5 rounded-full font-bold"
         style={{
-          background: `oklch(0.15 0.008 200)`,
+          background: `#161C19`,
           color: trustColor,
-          border: `1px solid ${trustColor.replace('oklch(', 'oklch(').replace(')', ' / 0.5)')}`,
+          border: `1px solid ${trustColor}`,
         }}
       >
         Vertrauen: {trustLevel.charAt(0).toUpperCase() + trustLevel.slice(1)}
