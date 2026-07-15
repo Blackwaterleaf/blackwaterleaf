@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
@@ -60,6 +61,7 @@ const ANALYSIS_STEPS = [
   "Vergleiche mit Botanik-Datenbank ...",
   "Prüfe Aquaristik-Bestände ...",
   "Bestimme Art und Gattung ...",
+  "Validiere mit PlantNet ...",
   "Erstelle Pflegehinweis ...",
 ];
 
@@ -349,6 +351,13 @@ export default function PlantIdentify() {
                     style={{ width: `${Math.round(((stepIndex + 1) / ANALYSIS_STEPS.length) * 100)}%`, transition: "width 0.8s ease-out" }}
                   />
                 </div>
+                {/* PlantNet-Phase-Indikator */}
+                {stepIndex >= 6 && (
+                  <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'rgba(45,155,110,0.08)', border: '1px solid rgba(45,155,110,0.20)' }}>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" style={{ color: '#34D399' }} />
+                    <span className="text-[11px]" style={{ color: '#34D399' }}>PlantNet-Datenbank wird abgefragt ...</span>
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground text-center">
                   KI analysiert {filledSlots.length} Foto{filledSlots.length > 1 ? "s" : ""} – bitte warten ...
                 </p>
@@ -407,19 +416,48 @@ export default function PlantIdentify() {
               )}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <Badge variant="outline" className={confidenceColor(result.confidence)}>
-                {result.confidence}% sicher
-              </Badge>
+              <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className={`${confidenceColor(result.confidence)} cursor-help`}>
+                    {result.confidence}% sicher
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-[220px] text-xs">
+                  {result.confidence >= 75
+                    ? "Hohe Zuverlässigkeit – Bestimmung sehr wahrscheinlich korrekt."
+                    : result.confidence >= 45
+                    ? "Mittlere Zuverlässigkeit – weitere Fotos können die Genauigkeit erhöhen."
+                    : "Geringe Zuverlässigkeit – bitte mehrere Fotos aus verschiedenen Winkeln hochladen."}
+                </TooltipContent>
+              </Tooltip>
+              </TooltipProvider>
+<TooltipProvider delayDuration={200}>
               {result.plantNetVerified && (
-                <Badge variant="outline" className="text-[10px] border-yellow-500/40 flex items-center gap-1" style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.40)' }}>
-                  <ShieldCheck className="w-3 h-3" /> Doppelt verifiziert
-                </Badge>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-[10px] border-yellow-500/40 flex items-center gap-1 cursor-help" style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.40)' }}>
+                      <ShieldCheck className="w-3 h-3" /> Doppelt verifiziert
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-[200px] text-xs">
+                    KI-Bestimmung und PlantNet-Datenbank stimmen überein. Höchste Zuverlässigkeit.
+                  </TooltipContent>
+                </Tooltip>
               )}
               {!result.plantNetVerified && result.taxonomyVerified && (
-                <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> DB-Verifiziert
-                </Badge>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-[10px] border-emerald-500/40 text-emerald-400 bg-emerald-500/10 flex items-center gap-1 cursor-help">
+                      <ShieldCheck className="w-3 h-3" /> DB-Verifiziert
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-[200px] text-xs">
+                    Art in der BlackwaterLeaf-Taxonomie-Datenbank verifiziert (POWO/FishBase).
+                  </TooltipContent>
+                </Tooltip>
               )}
+              </TooltipProvider>
             </div>
           </div>
 
@@ -472,9 +510,18 @@ export default function PlantIdentify() {
           {/* PlantNet Alternativen */}
           {result.plantNetAlternatives && result.plantNetAlternatives.length > 0 && (
             <div className="rounded-lg p-3 space-y-1.5" style={{ background: 'rgba(45,155,110,0.06)', border: '1px solid rgba(45,155,110,0.20)' }}>
-              <p className="text-xs font-medium flex items-center gap-1.5" style={{ color: '#34D399' }}>
-                <ShieldCheck className="w-3.5 h-3.5" /> PlantNet-Vergleich
-              </p>
+              <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <p className="text-xs font-medium flex items-center gap-1.5 cursor-help w-fit" style={{ color: '#34D399' }}>
+                    <ShieldCheck className="w-3.5 h-3.5" /> PlantNet-Vergleich
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[220px] text-xs">
+                  PlantNet ist eine unabhängige Pflanzen-KI der Universität Montpellier. Die Scores zeigen wie sicher PlantNet die jeweilige Art erkennt.
+                </TooltipContent>
+              </Tooltip>
+              </TooltipProvider>
               {result.plantNetAlternatives.slice(0, 3).map((alt, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-xs italic" style={{ color: 'rgba(255,255,255,0.70)' }}>{alt.species}</span>
