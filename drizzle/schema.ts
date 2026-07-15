@@ -495,3 +495,64 @@ export const featuredAccounts = mysqlTable("featured_accounts", {
 
 export type FeaturedAccount = typeof featuredAccounts.$inferSelect;
 export type InsertFeaturedAccount = typeof featuredAccounts.$inferInsert;
+
+// ─── Taxonomie-Datenbank (verifizierte Arten) ────────────────────────────────
+// Validierte Pflanzennamen für KI-Bestimmungs-Whitelist-Check.
+// Quellen: POWO (Kew Gardens), WFO, GBIF, FishBase.
+export const taxonomySpecies = mysqlTable("taxonomy_species", {
+  id: int("id").autoincrement().primaryKey(),
+  // Wissenschaftlicher Name ohne Sorte, z.B. "Alocasia baginda"
+  scientificName: varchar("scientificName", { length: 255 }).notNull().unique(),
+  // Sortenname/Kultivar, z.B. "Dragon Scale" (ohne Anführungszeichen)
+  cultivar: varchar("cultivar", { length: 255 }),
+  // Gattung, z.B. "Alocasia"
+  genus: varchar("genus", { length: 100 }).notNull(),
+  // Familie, z.B. "Araceae"
+  family: varchar("family", { length: 100 }),
+  // Gebräuchliche Namen als JSON: {"de": "Drachenschuppen-Alocasia", "en": "Dragon Scale Alocasia"}
+  commonNames: json("commonNames"),
+  // Synonyme als JSON-Array: ["Alocasia sp. Dragon Scale"]
+  synonyms: json("synonyms"),
+  // Sichtbare Schlüsselmerkmale für Confidence-Score-Berechnung
+  keyFeatures: json("keyFeatures"),
+  // Natürlicher Lebensraum, z.B. "Tropischer Regenwald, Borneo"
+  habitat: varchar("habitat", { length: 255 }),
+  // Pflegeschwierigkeit
+  careLevel: mysqlEnum("careLevel", ["einfach", "mittel", "anspruchsvoll"]),
+  // Lichtbedarf
+  light: varchar("light", { length: 100 }),
+  // Wasserbedarf
+  water: varchar("water", { length: 100 }),
+  // Kategorie für Filterung
+  category: mysqlEnum("category", ["alocasia", "philodendron", "monstera", "aquatic", "channa", "other"]).default("other").notNull(),
+  // Datenquelle, z.B. "POWO", "WFO", "GBIF", "FishBase", "manual"
+  source: varchar("source", { length: 255 }),
+  // ID bei der Quelle
+  sourceId: varchar("sourceId", { length: 255 }),
+  // Manuell verifiziert
+  verified: boolean("verified").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TaxonomySpecies = typeof taxonomySpecies.$inferSelect;
+export type InsertTaxonomySpecies = typeof taxonomySpecies.$inferInsert;
+
+// ─── KI-Halluzinations-Blacklist ─────────────────────────────────────────────
+// Bekannte erfundene/falsche Artnamen die die KI halluziniert.
+// Admin kann neue Einträge hinzufügen. Wird bei jeder Bestimmung geprüft.
+export const aiHallucinationBlacklist = mysqlTable("ai_hallucination_blacklist", {
+  id: int("id").autoincrement().primaryKey(),
+  // Der halluzinierte Begriff (case-insensitive Vergleich)
+  term: varchar("term", { length: 255 }).notNull().unique(),
+  // Warum dieser Begriff falsch ist
+  reason: text("reason"),
+  // Korrekte Alternative (falls bekannt)
+  correctAlternative: varchar("correctAlternative", { length: 255 }),
+  // Wer hat den Eintrag hinzugefügt
+  addedBy: int("addedBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AiHallucinationBlacklist = typeof aiHallucinationBlacklist.$inferSelect;
+export type InsertAiHallucinationBlacklist = typeof aiHallucinationBlacklist.$inferInsert;

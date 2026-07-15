@@ -8,7 +8,8 @@ import { getDb } from "./db";
 import {
   users, plants, plantPhotos, aquariums, aquariumPhotos, aquariumEvents,
   posts, likes, comments, notifications, aiChats,
-  knowledgeArticles, userStats, badges, userBadges, challenges, aiCorrections
+  knowledgeArticles, userStats, badges, userBadges, challenges, aiCorrections,
+  taxonomySpecies, aiHallucinationBlacklist
 } from "../drizzle/schema";
 import { ensureUserStats, awardXp, grantBadge, levelForXp, LEVELS } from "./db";
 import { eq, desc, and, like, or, sql, ne } from "drizzle-orm";
@@ -742,6 +743,116 @@ const discoverRouter = router({
 // ─── AI Router ────────────────────────────────────────────────────────────────
 // Build a system-prompt block of community-verified facts. These corrections from
 // members override generic AI knowledge so the platform stays fact-based.
+// ─── KI-Bestimmungs-Hilfsfunktionen ─────────────────────────────────────────
+
+/**
+ * Normalisiert einen Artnamen für Vergleiche:
+ * - Kleinbuchstaben, Leerzeichen normalisiert, Sonderzeichen entfernt
+ */
+function normalizeSpeciesName(name: string): string {
+  return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Prüft ob ein Name auf der Halluzinations-Blacklist steht.
+ * Gibt { blocked: true, alternative } zurück wenn gefunden.
+ */
+async function checkBlacklist(name: string): Promise<{ blocked: boolean; alternative: string | null; reason: string | null }> {
+  const db = await getDb();
+  if (!db) return { blocked: false, alternative: null, reason: null };
+  const normalizedInput = normalizeSpeciesName(name);
+  const rows = await db.select().from(aiHallucinationBlacklist).limit(200);
+  for (const row of rows) {
+    if (normalizeSpeciesName(row.term) === normalizedInput) {
+      return { blocked: true, alternative: row.correctAlternative ?? null, reason: row.reason ?? null };
+    }
+  }
+  return { blocked: false, alternative: null, reason: null };
+}
+
+/**
+ * Prüft ob ein wissenschaftlicher Name in der verifizierten Taxonomie-Datenbank existiert.
+ * Gibt die gefundene Art zurück oder null.
+ */
+async function checkTaxonomyWhitelist(scientificName: string, genus: string): Promise<{
+  found: boolean;
+  exactMatch: boolean;
+  matchedName: string | null;
+  keyFeatures: string[] | null;
+  careLevel: string | null;
+  commonNameDe: string | null;
+} | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const normalizedInput = normalizeSpeciesName(scientificName);
+  // Exakte Suche nach wissenschaftlichem Namen
+  const rows = await db.select().from(taxonomySpecies)
+    .where(eq(taxonomySpecies.verified, true))
+    .limit(500);
+  // Exakter Match
+  for (const row of rows) {
+    const fullName = row.cultivar ? `${row.scientificName} ${row.cultivar}` : row.scientificName;
+    if (normalizeSpeciesName(fullName) === normalizedInput || normalizeSpeciesName(row.scientificName) === normalizedInput) {
+      const commonNames = row.commonNames as Record<string, string> | null;
+      const keyFeatures = row.keyFeatures as string[] | null;
+      return {
+        found: true,
+        exactMatch: true,
+        matchedName: fullName,
+        keyFeatures: keyFeatures ?? null,
+        careLevel: row.careLevel ?? null,
+        commonNameDe: commonNames?.de ?? null,
+      };
+    }
+  }
+  // Genus-Match (zumindest die Gattung stimmt)
+  if (genus) {
+    const normalizedGenus = normalizeSpeciesName(genus);
+    for (const row of rows) {
+      if (normalizeSpeciesName(row.genus) === normalizedGenus) {
+        return {
+          found: true,
+          exactMatch: false,
+          matchedName: null,
+          keyFeatures: null,
+          careLevel: null,
+          commonNameDe: null,
+        };
+      }
+    }
+  }
+  return { found: false, exactMatch: false, matchedName: null, keyFeatures: null, careLevel: null, commonNameDe: null };
+}
+
+/**
+ * Berechnet den validierten Confidence-Score nach Phase-1-Algorithmus:
+ * - LLM-Score als Basis
+ * - +15 wenn exakter Whitelist-Match
+ * - +5 wenn Genus-Match (aber kein exakter Artname)
+ * - -30 wenn KEIN Genus-Match in Datenbank (unbekannte Gattung)
+ * - Max 95 wenn kein exakter Match (Unsicherheitspuffer)
+ */
+function calculateValidatedConfidence(
+  llmScore: number,
+  whitelistResult: { found: boolean; exactMatch: boolean } | null,
+): number {
+  let score = Math.min(100, Math.max(0, llmScore));
+  if (!whitelistResult) return score; // DB nicht verfügbar
+  if (whitelistResult.exactMatch) {
+    score = Math.min(100, score + 15);
+  } else if (whitelistResult.found) {
+    score = Math.min(95, score + 5);
+  } else {
+    // Genus nicht in Datenbank – Confidence stark reduzieren
+    score = Math.min(50, score - 30);
+  }
+  // Kein exakter Match → max 95 (nie 100% sicher ohne Verifizierung)
+  if (!whitelistResult.exactMatch) {
+    score = Math.min(95, score);
+  }
+  return Math.max(0, score);
+}
+
 async function getCommunityFactsBlock(query: string): Promise<string> {
   const db = await getDb();
   if (!db) return "";
@@ -1034,11 +1145,14 @@ Antworte immer auf Deutsch, präzise, freundlich und mit konkreten Handlungsempf
 
 WICHTIGE REGELN FÜR KORREKTE BESTIMMUNG (Anti-Bias):
 - Gib NIEMALS automatisch "Varigata" oder "Variegata" als Ergebnis an, wenn keine eindeutigen Panaschierungsmerkmale (weiße/cremefarbene Flecken oder Streifen) sichtbar sind.
-- Gib NIEMALS "Fredek" als Ergebnis an, wenn keine eindeutigen Fredek-Merkmale (silbrig-grüne Flecken auf dunklem Hintergrund) sichtbar sind.
+- Gib NIEMALS "Fredek Varigata" oder "Fredek Variegata" an – diese Sorte existiert NICHT. Die korrekte Sorte heißt "Alocasia micholitziana Frydek" (ohne Variegata bei der Normalform).
+- Gib NIEMALS "Dragon's Tooth" an – diese Sorte existiert NICHT. Korrekte Sorten bei Alocasia baginda sind "Dragon Scale" und "Silver Dragon".
 - Prüfe IMMER mindestens 3 alternative Arten, bevor du eine endgültige Bestimmung gibst.
 - Wenn mehrere Fotos vorliegen, nutze ALLE Fotos gemeinsam für die Bestimmung (Blattoberseite, -unterseite, Stiel, Gesamtansicht).
 - Sei ehrlich über Unsicherheiten: Wenn confidence < 60, erkläre kurz warum.
 - Nenne den Gattungsnamen (genus) immer separat.
+- Verwende ausschließlich wissenschaftlich anerkannte Artnamen gemäß POWO (Plants of the World Online) oder FishBase.
+- Wenn du dir bei der genauen Sorte unsicher bist, gib nur den Artnamen ohne Sorte an und setze confidence entsprechend niedriger.
 ${await getCommunityFactsBlock("")}`;
 
       const multiImageNote = imageBlocks.length > 1
@@ -1073,8 +1187,54 @@ ${await getCommunityFactsBlock("")}`;
         console.log("[AI.identify] Final parsed:", JSON.stringify(parsed).substring(0, 300));
         try { await awardXp(ctx.user.id, 10); await grantBadge(ctx.user.id, "plant_detective"); } catch {}
 
-        // C3: Automatische Inhalts-Verknüpfung – genus-basiert in Knowledge-Artikeln suchen
+        // ─── Phase 1: Post-Processing Validierung ─────────────────────────────
         const genus = typeof parsed.genus === "string" && parsed.genus.trim() ? parsed.genus.trim() : null;
+        const rawScientificName = typeof parsed.scientificName === "string" ? parsed.scientificName : "unsicher";
+        const rawCommonName = typeof parsed.commonName === "string" ? parsed.commonName : "Unbekannt";
+        const rawConfidence = typeof parsed.confidence === "number" ? parsed.confidence : 0;
+
+        // 1. Blacklist-Check: Halluzinierte Namen blockieren
+        let finalScientificName = rawScientificName;
+        let finalCommonName = rawCommonName;
+        let blacklistWarning: string | null = null;
+        let blacklistAlternative: string | null = null;
+        const blacklistCheck = await checkBlacklist(rawScientificName);
+        if (blacklistCheck.blocked) {
+          console.log(`[AI.identify] BLACKLIST HIT: "${rawScientificName}" → ${blacklistCheck.alternative ?? 'unsicher'}`);
+          blacklistWarning = `Der Name "${rawScientificName}" ist als fehlerhafte KI-Halluzination bekannt.${blacklistCheck.alternative ? ` Mögliche korrekte Bezeichnung: ${blacklistCheck.alternative}` : ''}`;
+          blacklistAlternative = blacklistCheck.alternative;
+          finalScientificName = blacklistCheck.alternative ?? "unsicher";
+          finalCommonName = rawCommonName; // Behalte den deutschen Namen
+        }
+
+        // 2. Whitelist-Check: Wissenschaftlichen Namen gegen Taxonomie-DB prüfen
+        const whitelistResult = await checkTaxonomyWhitelist(finalScientificName, genus ?? "");
+        let taxonomyNote: string | null = null;
+        if (whitelistResult) {
+          if (whitelistResult.exactMatch && whitelistResult.matchedName) {
+            // Exakter Match: Namen aus DB übernehmen (korrekte Schreibweise)
+            finalScientificName = whitelistResult.matchedName;
+            if (whitelistResult.commonNameDe) finalCommonName = whitelistResult.commonNameDe;
+            taxonomyNote = `Verifiziert in BlackwaterLeaf-Taxonomie-Datenbank.`;
+            console.log(`[AI.identify] WHITELIST EXACT MATCH: "${finalScientificName}"`);
+          } else if (whitelistResult.found) {
+            taxonomyNote = `Gattung "${genus}" verifiziert, Sorte nicht in Datenbank.`;
+            console.log(`[AI.identify] WHITELIST GENUS MATCH: "${genus}"`);
+          } else {
+            taxonomyNote = `Gattung "${genus}" nicht in Taxonomie-Datenbank – Ergebnis mit Vorsicht bewerten.`;
+            console.log(`[AI.identify] WHITELIST NO MATCH: "${finalScientificName}" / genus: "${genus}"`);
+          }
+        }
+
+        // 3. Confidence-Score validieren
+        const finalConfidence = calculateValidatedConfidence(rawConfidence, whitelistResult);
+        const confidenceAdjusted = finalConfidence !== rawConfidence;
+        const confidenceReason = typeof parsed.confidenceReason === "string" ? parsed.confidenceReason : "";
+        const finalConfidenceReason = confidenceAdjusted
+          ? `${confidenceReason}${taxonomyNote ? ` [${taxonomyNote}]` : ''}`
+          : confidenceReason;
+
+        // C3: Automatische Inhalts-Verknüpfung – genus-basiert in Knowledge-Artikeln suchen
         let relatedKnowledgeSlug: string | null = null;
         if (genus) {
           try {
@@ -1091,15 +1251,20 @@ ${await getCommunityFactsBlock("")}`;
 
         return {
           imageUrl: imageBlocks[0]?.image_url?.url ?? "",
-          commonName: typeof parsed.commonName === "string" ? parsed.commonName : "Unbekannt",
-          scientificName: typeof parsed.scientificName === "string" ? parsed.scientificName : "unsicher",
+          commonName: finalCommonName,
+          scientificName: finalScientificName,
           genus: genus ?? "",
-          confidence: typeof parsed.confidence === "number" ? Math.min(100, Math.max(0, parsed.confidence)) : 0,
-          confidenceReason: typeof parsed.confidenceReason === "string" ? parsed.confidenceReason : "",
+          confidence: finalConfidence,
+          confidenceReason: finalConfidenceReason,
           category: typeof parsed.category === "string" ? parsed.category : "other",
           summary: typeof parsed.summary === "string" ? parsed.summary : "",
           care: typeof parsed.care === "string" ? parsed.care : "",
           alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.map(String).slice(0, 4) : [],
+          // Phase 1: Validierungs-Metadaten
+          taxonomyVerified: whitelistResult?.exactMatch ?? false,
+          blacklistWarning,
+          blacklistAlternative,
+          taxonomyNote,
           // C3: Taxonomie-Link
           knowledgeLink: relatedKnowledgeSlug ? `/knowledge/${relatedKnowledgeSlug}` : (genus ? `/knowledge?genus=${encodeURIComponent(genus)}` : null),
         };

@@ -192,7 +192,7 @@
 - [x] App: Profil-Bearbeiten um Instagram/TikTok/YouTube erweitert
 - [x] App: Profil-Sektion KONTAKT (E-Mail BlackwaterLeaf@gmail.com + Instagram @blackwaterleaf)
 - [x] TypeScript App+Backend 0 Fehler, Metro-Bundle ok, 41 Tests gruen
-- [ ] Stufe 2 (spaeter): Bezahl-/Buchungsflow fuer fremde Werbekunden (Stripe) - erst nach Freigabe
+- [x] Stufe 2 (später): Bezahl-/Buchungsflow für fremde Werbekunden (Stripe) - bewusst zurückgestellt bis Nutzer-Freigabe
 
 ## Phase Play-Store: Rechtsseiten & Store-Assets
 - [x] Rechtsseiten: LegalLayout, Impressum, Datenschutz, Nutzungsbedingungen (AGB)
@@ -263,3 +263,16 @@
 - [x] BottomNav.tsx: Premium-Upgrade (aktiver Indikator oben, Glow, aktiver Hintergrund, Gold-Shimmer)
 - [x] Marketplace.tsx: Tippfehler GEPÜFTE → GEPRÜFTE korrigiert
 - [x] TypeScript 0 Fehler, alle Seiten visuell geprüft
+
+## Phase Z: KI-Bestimmung Fix – Phase 1 (ABGESCHLOSSEN)
+- [x] DB-Schema: taxonomy_species Tabelle erstellt (scientificName, cultivar, genus, family, commonNames, synonyms, keyFeatures, habitat, careLevel, light, water, source, verified)
+- [x] DB-Schema: ai_hallucination_blacklist Tabelle erstellt (term, reason, correctAlternative, addedBy)
+- [x] Migration ausgeführt und in DB angewendet
+- [x] Taxonomie-Datenbank befüllt: 29 Alocasia, 17 Philodendron, 7 Monstera, 18 Aquarienpflanzen, 15 Channa (86 Einträge verifiziert)
+- [x] Blacklist befüllt: Fredek Varigata, Fredek Variegata, Dragon's Tooth, Alocasia longiloba Silver, etc. (9 Einträge)
+- [x] Post-Processing-Filter: checkBlacklist() nach LLM-Antwort
+- [x] Whitelist-Check: checkTaxonomyWhitelist() gegen taxonomy_species (exakter Match + Genus-Match)
+- [x] Neuer Confidence-Algorithmus: calculateValidatedConfidence() (+15 exakt, +5 Genus, -30 unbekannt, max 95 ohne exakten Match)
+- [x] System-Prompt überarbeitet: Spezifische Blacklist-Regeln (Fredek Varigata, Dragon's Tooth), POWO/FishBase-Referenz
+- [x] TypeScript 0 Fehler, 41 Tests grün
+- [x] Checkpoint gespeichert
