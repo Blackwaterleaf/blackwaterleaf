@@ -1,73 +1,123 @@
-// BlackwaterLeaf Service Worker v1.0
-const CACHE_NAME = 'blackwaterleaf-v1';
-const STATIC_ASSETS = [
+// BlackwaterLeaf Service Worker v2.0
+// Strategie: Network-First für Navigation, Cache-First für statische Assets
+// Offline-Fallback für alle Navigation-Requests
+
+const CACHE_VERSION = 'v2';
+const CACHE_NAME = `blackwaterleaf-${CACHE_VERSION}`;
+const OFFLINE_URL = '/offline.html';
+
+// Shell-URLs die beim Install gecacht werden
+const PRECACHE_URLS = [
   '/',
-  '/feed',
-  '/plants',
-  '/aquariums',
-  '/discover',
-  '/ai',
+  '/offline.html',
 ];
 
-// Install: cache shell
+// ── Install: Shell + Offline-Fallback cachen ────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {
-        // Ignore cache failures during install
-      });
-    })
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll(PRECACHE_URLS).catch(() => {})
+    )
   );
 });
 
-// Activate: clean old caches
+// ── Activate: Alte Caches aufräumen ───────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys
+          .filter((key) => key.startsWith('blackwaterleaf-') && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
       )
     ).then(() => self.clients.claim())
   );
 });
 
-// Fetch: network-first for API, cache-first for assets
+// ── Fetch: Strategien je nach Request-Typ ───────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // Skip non-GET and API requests
-  if (event.request.method !== 'GET') return;
+  // Nur GET-Requests behandeln
+  if (request.method !== 'GET') return;
+
+  // API-Requests und Manus-Storage immer direkt ans Netz
   if (url.pathname.startsWith('/api/')) return;
   if (url.pathname.startsWith('/manus-storage/')) return;
+  if (url.pathname.startsWith('/__manus__/')) return;
 
-  // For navigation requests: network first, fallback to cache
-  if (event.request.mode === 'navigate') {
+  // Navigation (HTML-Seiten): Network-First mit Offline-Fallback
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
         })
-        .catch(() => caches.match('/') || caches.match(event.request))
+        .catch(async () => {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          const offlinePage = await caches.match(OFFLINE_URL);
+          if (offlinePage) return offlinePage;
+          return caches.match('/') || new Response('Offline', { status: 503 });
+        })
     );
     return;
   }
 
-  // For static assets: cache first
+  // Statische Assets (JS, CSS, Bilder, Fonts): Cache-First
+  if (url.pathname.match(/\.(js|css|woff2?|ttf|otf|png|jpg|jpeg|webp|svg|ico)$/)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok && response.type !== 'opaque') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        }).catch(() => cached || new Response('', { status: 503 }));
+      })
+    );
+    return;
+  }
+
+  // Alle anderen Requests: Network-First
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (response.ok && response.type !== 'opaque') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      });
+    fetch(request).catch(() => caches.match(request))
+  );
+});
+
+// ── Push Notifications ────────────────────────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let data = { title: 'BlackwaterLeaf', body: 'Neue Benachrichtigung', url: '/' };
+  try { data = { ...data, ...event.data.json() }; } catch {}
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/manus-storage/bl-icon-192_dce3d7d5.png',
+      badge: '/manus-storage/bl-icon-192_dce3d7d5.png',
+      data: { url: data.url },
+      vibrate: [100, 50, 100],
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url === url && 'focus' in client) return client.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });

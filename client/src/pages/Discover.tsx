@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { Seo } from "@/components/Seo";
+import { SeoEnhanced } from "@/components/SeoEnhanced";
 import {
   Leaf,
   Droplets,
@@ -88,10 +88,11 @@ export default function Discover() {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <Seo
-        title="Entdecken - BlackwaterLeaf Community"
+      <SeoEnhanced
+        title="Entdecken"
         path="/discover"
-        description="Entdecke Pflanzen, Aquarien, Wissen und Community auf BlackwaterLeaf."
+        description="Entdecke Pflanzen, Aquarien, Wissen und Community auf BlackwaterLeaf. Deine Plattform für Aquaristik, Aquascaping, Channa-Haltung und Zimmerpflanzen."
+        keywords={["Aquaristik", "Aquascaping", "Schwarzwasser", "Channa", "Pflanzen", "Community", "Pflanzenbestimmung"]}
       />
 
       {/* HERO-BEREICH */}
