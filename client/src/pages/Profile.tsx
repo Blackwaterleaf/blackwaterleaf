@@ -1,6 +1,9 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { Camera, Droplets, Leaf, MapPin, Pencil, Save, X, Award, Zap, Shield } from "lucide-react";
+import {
+  Camera, Droplets, Leaf, Pencil, Save, X, Award, Zap,
+  Shield, ChevronRight, Star, TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -10,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Seo } from "@/components/Seo";
 
 interface ProfileProps { userId?: number; }
 
@@ -40,7 +44,11 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   });
 
   const uploadAvatarMutation = trpc.users.uploadAvatar.useMutation({
-    onSuccess: () => { utils.auth.me.invalidate(); utils.users.getProfile.invalidate(); toast.success("Avatar aktualisiert!"); },
+    onSuccess: () => {
+      utils.auth.me.invalidate();
+      utils.users.getProfile.invalidate();
+      toast.success("Avatar aktualisiert!");
+    },
     onError: (e) => toast.error(e.message || "Fehler beim Hochladen"),
   });
 
@@ -67,13 +75,11 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-6 pb-24 lg:pb-8 space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="w-20 h-20 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-24" />
-          </div>
+      <div className="max-w-lg mx-auto px-4 py-8 pb-24 space-y-6">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="w-24 h-24 rounded-full" />
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-32" />
         </div>
       </div>
     );
@@ -81,133 +87,246 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
   if (!user) return null;
 
+  // Gamification-Werte
+  const level = game?.level?.level ?? 0;
+  const xp = game?.stats?.xp ?? 0;
+  const streak = game?.stats?.streak ?? 0;
+  const badgeCount = game?.badges?.length ?? 0;
+  const levelTitle = game?.level?.title ?? "Einsteiger";
+
+  // Interessen aus Bio extrahieren oder Standardwerte
+  const interests = (display?.interests as string[] | undefined) ?? ["Pflanzen", "Aquaristik"];
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-24 lg:pb-8">
-      {/* Profile Header */}
-      <div className="rounded-2xl p-6 mb-6" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
-        <div className="flex items-start gap-4 mb-6">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            <Avatar className="w-20 h-20 border-2" style={{ borderColor: "oklch(0.52 0.14 148)" }}>
-              <AvatarImage src={display?.avatarUrl ?? undefined} />
-              <AvatarFallback className="text-2xl font-bold" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
-                {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
-              </AvatarFallback>
-            </Avatar>
-            <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150" style={{ background: "oklch(0.52 0.14 148)" }}>
-              <Camera className="w-3.5 h-3.5" style={{ color: "oklch(0.12 0.008 200)" }} />
+    <div className="max-w-lg mx-auto px-4 py-8 pb-24 lg:pb-8">
+      <Seo
+        title="Mein Profil – BlackwaterLeaf"
+        path="/profile"
+        description="Dein persönliches BlackwaterLeaf-Profil: Pflanzensammlung, Aquarien, XP-Fortschritt und Community-Beiträge."
+      />
+
+      {/* ── Avatar & Name (zentriert wie Native App) ── */}
+      <div className="flex flex-col items-center mb-8">
+        {/* Avatar mit Kamera-Button */}
+        <div className="relative mb-4">
+          {editing ? (
+            <label className="w-24 h-24 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
+              style={{ background: "oklch(0.52 0.14 148 / 0.15)", border: "2px solid oklch(0.52 0.14 148)" }}>
+              <Camera className="w-8 h-8" style={{ color: "oklch(0.65 0.16 148)" }} />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             </label>
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            {editing ? (
-              <div className="space-y-3">
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Dein Name" className="font-semibold" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
-                <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Über dich..." className="min-h-[60px] resize-none text-sm" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
-                <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="Standort" className="text-sm" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }} />
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
-                    <X className="w-3.5 h-3.5 mr-1" /> Abbrechen
-                  </Button>
-                  <Button size="sm" disabled={updateMutation.isPending}
-                    onClick={() => updateMutation.mutate({ name: name.trim() || undefined, bio: bio.trim() || undefined, location: location.trim() || undefined })}
-                    style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}
-                  >
-                    <Save className="w-3.5 h-3.5 mr-1" /> Speichern
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="font-brand text-2xl" style={{ color: "oklch(0.90 0.005 200)" }}>{display?.name ?? "Unbekannt"}</h1>
-                  {display?.role === "moderator" && (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: "oklch(0.52 0.14 148 / 0.2)", border: "1px solid oklch(0.52 0.14 148 / 0.4)" }}>
-                      <Shield className="w-3.5 h-3.5" style={{ color: "oklch(0.52 0.14 148)" }} />
-                      <span className="text-xs font-semibold" style={{ color: "oklch(0.52 0.14 148)" }}>Moderator</span>
-                    </div>
-                  )}
-                  {display?.role === "admin" && (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full" style={{ background: "oklch(0.65 0.16 40 / 0.2)", border: "1px solid oklch(0.65 0.16 40 / 0.4)" }}>
-                      <Award className="w-3.5 h-3.5" style={{ color: "oklch(0.65 0.16 40)" }} />
-                      <span className="text-xs font-semibold" style={{ color: "oklch(0.65 0.16 40)" }}>Admin</span>
-                    </div>
-                  )}
-                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={startEditing}>
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-                {display?.bio && <p className="text-sm mb-2" style={{ color: "oklch(0.55 0.008 200)" }}>{display.bio}</p>}
-                {display?.location && (
-                  <p className="text-xs flex items-center gap-1" style={{ color: "oklch(0.48 0.008 200)" }}>
-                    <MapPin className="w-3 h-3" /> {display.location}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          ) : (
+            <>
+              <Avatar className="w-24 h-24" style={{ border: "2px solid oklch(0.52 0.14 148 / 0.4)" }}>
+                <AvatarImage src={display?.avatarUrl ?? undefined} />
+                <AvatarFallback className="text-3xl font-bold"
+                  style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)" }}>
+                  {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
+                </AvatarFallback>
+              </Avatar>
+              {/* Kamera-Badge */}
+              <label
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
+                style={{ background: "oklch(0.52 0.14 148)", border: "2px solid oklch(0.08 0.008 200)" }}
+              >
+                <Camera className="w-4 h-4" style={{ color: "oklch(0.08 0.008 200)" }} />
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
+            </>
+          )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 pt-5" style={{ borderTop: "1px solid oklch(0.18 0.008 200)" }}>
-          <div className="text-center">
-            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{plants?.length ?? 0}</p>
-            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Pflanzen</p>
+        {editing ? (
+          /* Edit-Modus */
+          <div className="w-full space-y-3">
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Dein Name"
+              className="text-center font-brand text-xl"
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+            />
+            <Textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              placeholder="Über dich..."
+              className="min-h-[60px] resize-none text-sm text-center"
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+            />
+            <Input
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="Standort (optional)"
+              className="text-center text-sm"
+              style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.22 0.008 200)", color: "oklch(0.88 0.005 200)" }}
+            />
+            <div className="flex gap-2 justify-center">
+              <Button size="sm" variant="outline" onClick={() => setEditing(false)}>
+                <X className="w-3.5 h-3.5 mr-1" /> Abbrechen
+              </Button>
+              <Button
+                size="sm"
+                disabled={updateMutation.isPending}
+                onClick={() => updateMutation.mutate({
+                  name: name.trim() || undefined,
+                  bio: bio.trim() || undefined,
+                  location: location.trim() || undefined,
+                })}
+                style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}
+              >
+                <Save className="w-3.5 h-3.5 mr-1" /> Speichern
+              </Button>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{aquariums?.length ?? 0}</p>
-            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Aquarien</p>
+        ) : (
+          /* Anzeige-Modus (zentriert wie Native App) */
+          <>
+            {/* Name */}
+            <div className="flex items-center gap-2 mb-1">
+              <h1
+                className="font-brand text-3xl tracking-wide"
+                style={{ color: "oklch(0.95 0.005 200)", letterSpacing: "0.06em" }}
+              >
+                {display?.name?.toUpperCase() ?? "PROFIL"}
+              </h1>
+              {display?.role === "moderator" && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "oklch(0.52 0.14 148 / 0.2)", border: "1px solid oklch(0.52 0.14 148 / 0.4)" }}>
+                  <Shield className="w-3 h-3" style={{ color: "oklch(0.52 0.14 148)" }} />
+                  <span className="text-xs font-semibold" style={{ color: "oklch(0.52 0.14 148)" }}>Mod</span>
+                </div>
+              )}
+              {display?.role === "admin" && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: "oklch(0.65 0.16 40 / 0.2)", border: "1px solid oklch(0.65 0.16 40 / 0.4)" }}>
+                  <Award className="w-3 h-3" style={{ color: "oklch(0.65 0.16 40)" }} />
+                  <span className="text-xs font-semibold" style={{ color: "oklch(0.65 0.16 40)" }}>Admin</span>
+                </div>
+              )}
+            </div>
+
+            {/* E-Mail */}
+            <p className="text-sm mb-2" style={{ color: "oklch(0.50 0.008 200)" }}>
+              {display?.email ?? ""}
+            </p>
+
+            {/* Bio */}
+            {display?.bio && (
+              <p className="text-sm text-center mb-4 max-w-xs" style={{ color: "oklch(0.65 0.008 200)" }}>
+                {display.bio}
+              </p>
+            )}
+
+            {/* Profil bearbeiten Button (wie Native App) */}
+            <button
+              onClick={startEditing}
+              className="px-8 py-2.5 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
+              style={{
+                background: "transparent",
+                border: "1.5px solid oklch(0.35 0.008 200)",
+                color: "oklch(0.75 0.005 200)",
+              }}
+            >
+              Profil bearbeiten
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ── 4 Stats-Karten (wie Native App: Level, XP, Streak, Abzeichen) ── */}
+      <div className="grid grid-cols-4 gap-2.5 mb-5">
+        {[
+          { value: level, label: "Level", color: "oklch(0.65 0.16 148)", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+          { value: xp, label: "XP", color: "oklch(0.65 0.16 148)", icon: <Zap className="w-3.5 h-3.5" /> },
+          { value: streak, label: "Streak", color: "oklch(0.65 0.16 148)", icon: <Star className="w-3.5 h-3.5" /> },
+          { value: badgeCount, label: "Abzeichen", color: "oklch(0.65 0.16 148)", icon: <Award className="w-3.5 h-3.5" /> },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-2xl p-3 flex flex-col items-center justify-center"
+            style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+          >
+            <p
+              className="text-2xl font-bold leading-none mb-1"
+              style={{ color: stat.color }}
+            >
+              {stat.value}
+            </p>
+            <p className="text-xs" style={{ color: "oklch(0.50 0.008 200)" }}>
+              {stat.label}
+            </p>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold" style={{ color: "oklch(0.88 0.005 200)" }}>{posts?.posts.length ?? 0}</p>
-            <p className="text-xs mt-1" style={{ color: "oklch(0.48 0.008 200)" }}>Beiträge</p>
+        ))}
+      </div>
+
+      {/* ── "Dein Profil" Karte (wie Native App) ── */}
+      <div
+        className="rounded-2xl p-4 mb-5"
+        style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="font-semibold mb-1.5" style={{ color: "oklch(0.88 0.005 200)" }}>
+              Dein Profil
+            </p>
+            <p className="text-sm mb-1" style={{ color: "oklch(0.65 0.008 200)" }}>
+              Level: <span className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>{levelTitle}</span>
+            </p>
+            <p className="text-sm" style={{ color: "oklch(0.65 0.008 200)" }}>
+              Interessen:{" "}
+              <span className="font-semibold" style={{ color: "oklch(0.88 0.005 200)" }}>
+                {interests.join(", ")}
+              </span>
+            </p>
           </div>
+          <button
+            onClick={startEditing}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 active:scale-95"
+            style={{ background: "oklch(0.18 0.008 200)", border: "1px solid oklch(0.25 0.008 200)" }}
+          >
+            <Pencil className="w-3.5 h-3.5" style={{ color: "oklch(0.60 0.008 200)" }} />
+          </button>
         </div>
       </div>
 
-      {/* Gamification: Level, XP, Streak & Abzeichen */}
-      {game?.stats && (
-        <div className="rounded-2xl p-6 mb-6" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
-          <h2 className="font-brand text-lg mb-4" style={{ color: "oklch(0.90 0.005 200)" }}>Fortschritt &amp; Abzeichen</h2>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: "oklch(0.65 0.16 148)" }}>
-                <Zap className="w-3.5 h-3.5 inline mr-1" /> Level {game.level.level} · {game.level.title}
-              </p>
-              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>{game.stats.xp} XP · {game.stats.streak} Tage Streak</p>
-            </div>
-            <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
-              <Link href="/ranking">Ranking</Link>
-            </Button>
-          </div>
-          {game.level.nextLevelXp != null && (
-            <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: "oklch(0.14 0.008 200)" }}>
-              <div className="h-full rounded-full transition-all"
-                style={{ background: "oklch(0.52 0.14 148)", width: `${Math.min(100, Math.round((game.stats.xp / game.level.nextLevelXp) * 100))}%` }} />
-            </div>
-          )}
-          <div>
-            <p className="text-xs mb-2 flex items-center gap-1" style={{ color: "oklch(0.48 0.008 200)" }}>
-              <Award className="w-3.5 h-3.5" /> Abzeichen ({game.badges.length})
-            </p>
-            {game.badges.length === 0 ? (
-              <p className="text-xs" style={{ color: "oklch(0.38 0.008 200)" }}>Noch keine Abzeichen – werde aktiv, um welche zu verdienen!</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {game.badges.map((b: any) => (
-                  <span key={b.id} className="text-xs px-2 py-1 rounded-md" style={{ background: "oklch(0.52 0.14 148 / 0.15)", color: "oklch(0.65 0.16 148)", border: "1px solid oklch(0.52 0.14 148 / 0.25)" }} title={b.description}>
-                    {b.name}
+      {/* ── "MEINE BEREICHE" Sektion (wie Native App) ── */}
+      <div className="mb-6">
+        <p
+          className="text-xs font-bold uppercase mb-3"
+          style={{ color: "oklch(0.50 0.008 200)", letterSpacing: "0.12em" }}
+        >
+          MEINE BEREICHE
+        </p>
+        <div className="space-y-2">
+          {[
+            { href: "/plants", icon: <Leaf className="w-5 h-5" style={{ color: "oklch(0.65 0.16 148)" }} />, label: "Meine Pflanzen", count: plants?.length },
+            { href: "/aquariums", icon: <Droplets className="w-5 h-5" style={{ color: "oklch(0.55 0.14 220)" }} />, label: "Meine Aquarien", count: aquariums?.length },
+          ].map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div
+                className="flex items-center gap-3 px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
+                style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+              >
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "oklch(0.52 0.14 148 / 0.12)" }}
+                >
+                  {item.icon}
+                </div>
+                <span className="flex-1 font-medium" style={{ color: "oklch(0.88 0.005 200)" }}>
+                  {item.label}
+                </span>
+                {item.count !== undefined && (
+                  <span className="text-sm mr-1" style={{ color: "oklch(0.50 0.008 200)" }}>
+                    {item.count}
                   </span>
-                ))}
+                )}
+                <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "oklch(0.40 0.008 200)" }} />
               </div>
-            )}
-          </div>
+            </Link>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Tabs */}
+      {/* ── Tabs: Sammlung & Beiträge ── */}
       <h2 className="font-brand text-xl mb-4" style={{ color: "oklch(0.90 0.005 200)", letterSpacing: "0.03em" }}>
         Sammlung &amp; Beiträge
       </h2>
@@ -222,8 +341,8 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           {plants?.length === 0 ? (
             <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
               <Leaf className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
-              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Pflanzen</p>
-              <Button asChild size="sm" className="mt-3" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
+              <p className="text-sm mb-3" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Pflanzen</p>
+              <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
                 <Link href="/plants/new">Pflanze hinzufügen</Link>
               </Button>
             </div>
@@ -231,7 +350,9 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {plants?.map((plant) => (
                 <Link key={plant.id} href={`/plants/${plant.id}`}>
-                  <div className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+                  <div
+                    className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+                    style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)"; }}
                   >
@@ -258,8 +379,8 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           {aquariums?.length === 0 ? (
             <div className="text-center py-10 rounded-2xl" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}>
               <Droplets className="w-8 h-8 mx-auto mb-2" style={{ color: "oklch(0.30 0.008 200)" }} />
-              <p className="text-sm" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Aquarien</p>
-              <Button asChild size="sm" className="mt-3" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
+              <p className="text-sm mb-3" style={{ color: "oklch(0.55 0.008 200)" }}>Noch keine Aquarien</p>
+              <Button asChild size="sm" style={{ background: "oklch(0.52 0.14 148)", color: "oklch(0.12 0.008 200)" }}>
                 <Link href="/aquariums/new">Aquarium hinzufügen</Link>
               </Button>
             </div>
@@ -267,7 +388,9 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {aquariums?.map((aq) => (
                 <Link key={aq.id} href={`/aquariums/${aq.id}`}>
-                  <div className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200" style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
+                  <div
+                    className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+                    style={{ background: "oklch(0.12 0.008 200)", border: "1px solid oklch(0.20 0.008 200)" }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.52 0.14 148 / 0.35)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "oklch(0.20 0.008 200)"; }}
                   >
@@ -316,4 +439,3 @@ export default function Profile({ userId: _userId }: ProfileProps) {
     </div>
   );
 }
-
