@@ -24,7 +24,7 @@ export default function KnowledgeArticle({ slug }: { slug: string }) {
   const metaDescription = article
     ? (article.excerpt && article.excerpt.trim().length > 0
         ? article.excerpt
-        : `${article.title} – Ratgeber & Wissen rund um Aquaristik, Channa, Aquascaping und Pflanzen bei BlackwaterLeaf.`
+        : `${article.title} – Ratgeber & Wissen rund um Aquaristik, Channa, Aquascaping und Botanik bei BlackwaterLeaf.`
       ).slice(0, 160)
     : undefined;
 

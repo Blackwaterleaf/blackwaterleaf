@@ -14,7 +14,7 @@
  *   onSearch={(query) => handleSearch(query)}
  *   results={searchResults}
  *   isLoading={isLoading}
- *   placeholder=\"Pflanzen, Aquarien oder Beiträge suchen...\"
+ *   placeholder=\"Botanik, Aquarien oder Beiträge suchen...\"
  * />
  */
 

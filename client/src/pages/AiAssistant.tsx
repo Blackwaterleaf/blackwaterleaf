@@ -157,7 +157,7 @@ export default function AiAssistant() {
   return (
     <div className="flex flex-col bl-ai-shell">
       <Seo
-        title="KI-Assistent – Pflanzen & Aquaristik Beratung"
+        title="KI-Assistent – Botanik & Aquaristik Beratung"
         path="/ai"
         description="Der BlackwaterLeaf KI-Assistent beantwortet deine Fragen zu Pflanzenpflege, Aquaristik, Channa-Haltung und Wasserwerten – faktenbasiert und auf Deutsch."
       />
@@ -182,7 +182,7 @@ export default function AiAssistant() {
             </p>
           ) : (
             <p className="text-sm mb-3" style={{ color: "oklch(0.60 0.008 200)" }}>
-              {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Dein Begleiter für Pflanzen, Aquaristik & Channa"}
+              {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Dein Begleiter für Botanik & Aquaristik & Channa"}
             </p>
           )}
 

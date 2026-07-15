@@ -96,7 +96,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   const levelTitle = game?.level?.title ?? "Einsteiger";
 
   // Interessen aus Bio extrahieren oder Standardwerte
-  const interests = (display?.interests as string[] | undefined) ?? ["Pflanzen", "Aquaristik"];
+  const interests = (display?.interests as string[] | undefined) ?? ["Botanik", "Aquaristik"];
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 pb-24 lg:pb-8">
@@ -355,7 +355,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
       </h2>
       <Tabs defaultValue="plants">
         <TabsList className="mb-4 w-full" style={{ background: "oklch(0.14 0.008 200)", border: "1px solid oklch(0.21 0.008 200)" }}>
-          <TabsTrigger value="plants" className="flex-1">Pflanzen</TabsTrigger>
+          <TabsTrigger value="plants" className="flex-1">Botanik</TabsTrigger>
           <TabsTrigger value="aquariums" className="flex-1">Aquarien</TabsTrigger>
           <TabsTrigger value="posts" className="flex-1">Beiträge</TabsTrigger>
         </TabsList>

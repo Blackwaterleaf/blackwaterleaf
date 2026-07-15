@@ -606,7 +606,7 @@ export default function Feed() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 pb-24 lg:pb-8">
       <Seo
-        title="Community Feed – Aquaristik & Pflanzen"
+        title="Community Feed – Aquaristik & Botanik"
         path="/feed"
         description="Der BlackwaterLeaf Community Feed: Teile Fortschritte, Showcases und Fragen rund um Aquaristik, Aquascaping, Channa und Zimmerpflanzen – und lerne von Gleichgesinnten."
       />

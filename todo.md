@@ -220,3 +220,15 @@
 - [x] KI-Seite (AiAssistant): pixel-genau nach Native App umbauen
 - [x] Community/Feed-Seite: pixel-genau nach Native App umbauen
 - [x] Profil-Seite: pixel-genau nach Native App umbauen
+
+## Phase W: Terminologie-Update "Pflanzen" → "Botanik"
+- [x] Discover.tsx: Kategorie-Button "Pflanzen" → "Botanik" (href /plants bleibt)
+- [x] AppLayout / Bottom-Nav: Falls "Pflanzen" als Tab-Label vorkommt → "Botanik"
+- [x] Home.tsx: allgemeine "Pflanzen"-Erwähnungen → "Botanik" (außer "Pflanzensammlung", "Pflanzenpflege")
+- [x] SEO-Texte (Seo.tsx, SeoEnhanced.tsx): "Aquaristik & Pflanzen" → "Aquaristik & Botanik"
+- [x] AiAssistant.tsx: "Pflanzen & Aquaristik" → "Botanik & Aquaristik" in Titeln/Subtiteln
+- [x] Feed.tsx: SEO-Titel "Aquaristik & Pflanzen" → "Aquaristik & Botanik"
+- [x] Knowledge.tsx: SEO-Titel "Channa & Pflanzen" → "Channa & Botanik"
+- [x] ExpertVerification.tsx + ReputationSystem.tsx: 'Pflanzen' → 'Botanik' in Fachgebiet-Labels
+- [x] Plants.tsx: Seiten-Titel "Pflanzen – Sammlung" → "Botanik – Sammlung"
+- [x] Profile.tsx: Tab-Label "Pflanzen" → "Botanik"; Interessen-Default "Pflanzen" → "Botanik"

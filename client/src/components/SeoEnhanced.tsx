@@ -179,7 +179,7 @@ export function SeoEnhanced({
     ? fullTitle
       ? title
       : `${title} | ${SITE_NAME}`
-    : `${SITE_NAME} – Aquaristik & Pflanzen`;
+    : `${SITE_NAME} – Aquaristik & Botanik`;
 
   const canonical =
     canonicalUrl || `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;

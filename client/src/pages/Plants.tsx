@@ -138,7 +138,7 @@ export default function Plants() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 pb-24 lg:pb-8">
       <Seo
-        title="Pflanzen – Sammlung & Pflege dokumentieren"
+        title="Botanik – Sammlung & Pflege dokumentieren"
         path="/plants"
         description="Dokumentiere deine Zimmerpflanzen und Wasserpflanzen mit Pflegeparametern, Foto-Timeline und KI-Unterstützung. Entdecke seltene Pflanzen in der BlackwaterLeaf Community."
       />

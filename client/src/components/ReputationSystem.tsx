@@ -53,7 +53,7 @@ const getExpertiseIcon = (field: ExpertiseRank['field']) => {
 const getExpertiseLabel = (field: ExpertiseRank['field']) => {
   switch (field) {
     case 'plant':
-      return 'Pflanzen';
+      return 'Botanik';
     case 'aquarium':
       return 'Aquaristik';
     case 'terrarium':

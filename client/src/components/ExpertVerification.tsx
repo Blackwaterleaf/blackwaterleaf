@@ -46,7 +46,7 @@ const getExpertiseIcon = (field: ExpertVerificationProps['expertiseFields'][numb
 const getExpertiseLabel = (field: ExpertVerificationProps['expertiseFields'][number]) => {
   switch (field) {
     case 'plant':
-      return 'Pflanzen';
+      return 'Botanik';
     case 'aquarium':
       return 'Aquaristik';
     case 'terrarium':

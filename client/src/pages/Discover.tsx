@@ -34,7 +34,7 @@ const C = {
 
 // ─── Kategorie-Buttons ───────────────────────────────────────────
 const CATEGORIES = [
-  { label: "Pflanzen",  icon: Leaf,    href: "/plants"   },
+  { label: "Botanik",  icon: Leaf,    href: "/plants"   },
   { label: "Aquarien",  icon: Droplets, href: "/aquariums" },
   { label: "Ranking",   icon: Trophy,  href: "/ranking"  },
   { label: "Suche",     icon: Search,  href: "/discover" },
@@ -122,8 +122,8 @@ export default function Discover() {
       <SeoEnhanced
         title="Entdecken"
         path="/discover"
-        description="Entdecke Pflanzen, Aquarien, Wissen und Community auf BlackwaterLeaf."
-        keywords={["Aquaristik", "Aquascaping", "Schwarzwasser", "Channa", "Pflanzen", "Community", "Pflanzenbestimmung"]}
+        description="Entdecke Botanik, Aquarien, Wissen und Community auf BlackwaterLeaf."
+        keywords={["Aquaristik", "Aquascaping", "Schwarzwasser", "Channa", "Botanik", "Community", "Pflanzenbestimmung"]}
       />
 
       {/* ── HERO ─────────────────────────────────────────────── */}

@@ -231,7 +231,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { icon: Leaf,     value: "Pflanzen",   label: "Pflege & Inspiration" },
+              { icon: Leaf,     value: "Botanik",   label: "Pflege & Inspiration" },
               { icon: Fish,     value: "Aquaristik", label: "Technik & Guides" },
               { icon: Zap,      value: "KI-Hilfe",   label: "Antworten rund um die Uhr" },
               { icon: Shield,   value: "Werbefrei",  label: "Deine Daten geschützt" },
@@ -274,7 +274,7 @@ export default function Home() {
         image={IMG_PLANTS}
         icon={<Leaf className="w-6 h-6" style={{ color: "oklch(0.62 0.16 148)" }} />}
         title="PFLANZENWELT"
-        description="Pflege, Tipps & Inspiration für gesunde Pflanzen und beeindruckende Setups."
+        description="Pflege, Tipps & Inspiration für Botanik und beeindruckende Setups."
         href="/plants"
         btnLabel="Mehr entdecken"
         imagePosition="right"
@@ -498,7 +498,7 @@ function KISection() {
               KI ASSISTENT
             </h2>
             <p className="text-base leading-relaxed mb-8" style={{ color: "oklch(0.68 0.008 200)" }}>
-              Dein smarter Helfer für alle Fragen rund um Pflanzen & Aquaristik.
+              Dein smarter Helfer für alle Fragen rund um Botanik & Aquaristik.
             </p>
             <Link href="/ai">
               <span
@@ -530,7 +530,7 @@ function KISection() {
             style={{ border: "1px solid oklch(0.52 0.14 148 / 0.2)" }}
           >
             <p className="text-sm font-medium mb-4" style={{ color: "oklch(0.75 0.008 200)" }}>
-              Frag mich alles über Pflanzen & Aquaristik.
+              Frag mich alles über Botanik & Aquaristik.
             </p>
             <div className="space-y-2">
               {[
@@ -604,7 +604,7 @@ function DownloadSection() {
               HOL DIR DIE APP
             </h2>
             <p className="text-base leading-relaxed mb-6" style={{ color: "oklch(0.68 0.008 200)", maxWidth: "460px" }}>
-              BlackwaterLeaf für dein Smartphone: Community, Pflanzen & Aquarien
+              BlackwaterLeaf für dein Smartphone: Community, Botanik & Aquarien
               verwalten, KI-Assistent und mehr – immer dabei.
             </p>
 
@@ -681,7 +681,7 @@ function DownloadSection() {
                     BLACKWATER<span style={{ color: "oklch(0.62 0.16 148)" }}>LEAF</span>
                   </span>
                   <span className="text-xs" style={{ color: "oklch(0.55 0.008 200)" }}>
-                    Deine Community für Pflanzen & Aquaristik
+                    Deine Community für Botanik & Aquaristik
                   </span>
                 </div>
               </div>

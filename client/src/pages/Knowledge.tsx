@@ -150,7 +150,7 @@ export default function Knowledge() {
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <Seo
-        title="Wissensdatenbank – Aquaristik, Channa & Pflanzen"
+        title="Wissensdatenbank – Aquaristik, Channa & Botanik"
         path="/knowledge"
         description="Die BlackwaterLeaf Wissensdatenbank: fundierte Ratgeber zu Aquaristik, Aquascaping, Schwarzwasser-Biotopen, Channa-Arten und Zimmerpflanzen."
       />
