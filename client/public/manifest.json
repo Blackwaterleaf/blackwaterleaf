@@ -1,13 +1,13 @@
 {
   "name": "BlackwaterLeaf – Nature in Flow",
   "short_name": "BlackwaterLeaf",
-  "description": "Deine Sammlung. Perfekt dokumentiert. Community für Aquaristik & Pflanzen.",
+  "description": "Deine Sammlung. Perfekt dokumentiert. Community für Aquaristik & Botanik.",
   "start_url": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#0a0f0d",
-  "theme_color": "#0a0f0d",
+  "background_color": "#070A08",
+  "theme_color": "#070A08",
   "lang": "de",
   "categories": ["lifestyle", "social", "utilities"],
   "icons": [
