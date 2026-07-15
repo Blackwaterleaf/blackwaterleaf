@@ -149,16 +149,15 @@ export default function Discover() {
 
         {/* Hero-Content */}
         <div className="relative px-5 pt-8 pb-10">
-          {/* Subheadline */}
+          {/* BLACKWATERLEAF COMMUNITY Label */}
           <p
-            className="text-xs font-semibold uppercase mb-5"
+            className="text-xs font-semibold uppercase mb-6"
             style={{
-              color: "rgba(255,255,255,0.55)",
-              letterSpacing: "0.12em",
-              lineHeight: 1.6,
+              color: "rgba(255,255,255,0.60)",
+              letterSpacing: "0.18em",
             }}
           >
-            FÜR PFLANZENLIEBHABER. FÜR AQUARIANER.{"\n"}FÜR MENSCHEN, DIE MEHR WOLLEN.
+            BLACKWATERLEAF COMMUNITY
           </p>
 
           {/* Headline */}
@@ -175,57 +174,42 @@ export default function Discover() {
               <br />
               <span style={{ color: C.white }}>TEILEN.</span>
               <br />
-              {/* WACHSEN. in Gold-Gradient wie im Mockup */}
-              <span
-                style={{
-                  background: `linear-gradient(90deg, ${C.gold} 0%, ${C.mint} 100%)`,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
+              {/* WACHSEN. in reinem Gold #D4AF37 */}
+              <span style={{ color: C.gold }}>
                 WACHSEN.
               </span>
             </h1>
           </div>
 
-          {/* Beschreibung */}
-          <p
-            className="text-base leading-relaxed mb-8"
-            style={{ color: C.white70, maxWidth: 340 }}
-          >
-            BlackwaterLeaf ist mehr als eine Community. Es ist ein Ort für Wissen, Inspiration und echte Leidenschaft.
-          </p>
-
-          {/* CTA-Buttons */}
-          <div className="flex flex-col gap-3">
-            <Link href="/feed">
+          {/* CTA-Buttons – nebeneinander wie im Mockup */}
+          <div className="flex gap-3 mt-6">
+            <Link href="/discover">
               <button
-                className="w-full py-4 rounded-full font-semibold text-base transition-all duration-150 active:scale-[0.97]"
+                className="py-3 px-6 rounded-full font-semibold text-sm transition-all duration-150 active:scale-[0.97]"
                 style={{
                   background: C.smaragd,
                   color: C.white,
-                  fontSize: "1rem",
-                  letterSpacing: "0.01em",
-                  boxShadow: `0 0 20px rgba(45,155,110,0.35)`,
+                  letterSpacing: "0.06em",
+                  boxShadow: `0 0 20px rgba(45,155,110,0.40)`,
+                  fontSize: "0.8rem",
                 }}
               >
-                Community entdecken
+                ENTDECKEN
               </button>
             </Link>
-            <Link href="/knowledge">
+            <Link href="/feed">
               <button
-                className="w-full py-4 rounded-full font-semibold text-base transition-all duration-150 active:scale-[0.97]"
+                className="py-3 px-6 rounded-full font-semibold text-sm transition-all duration-150 active:scale-[0.97]"
                 style={{
-                  background: "rgba(13,17,14,0.60)",
+                  background: "rgba(13,17,14,0.55)",
                   backdropFilter: "blur(8px)",
-                  border: `1.5px solid rgba(45,107,63,0.60)`,
+                  border: `1.5px solid rgba(255,255,255,0.25)`,
                   color: C.white,
-                  fontSize: "1rem",
-                  letterSpacing: "0.01em",
+                  letterSpacing: "0.06em",
+                  fontSize: "0.8rem",
                 }}
               >
-                Wissen ansehen
+                COMMUNITY
               </button>
             </Link>
           </div>
