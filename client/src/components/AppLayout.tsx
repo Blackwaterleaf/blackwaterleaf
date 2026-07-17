@@ -16,65 +16,78 @@ import {
   LogOut,
   User,
   Settings,
-  Leaf,
-  BookOpen,
   Users,
   Bot,
-  Store,
-  Sparkles,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import BottomNav from "./BottomNav";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 const IMG_LOGO = "/manus-storage/logo-circle_c176197b.png";
 
-const NAV_ITEMS = [
-  { href: "/discover", label: "Entdecken", icon: Leaf },
-  { href: "/knowledge", label: "Wissen", icon: BookOpen },
-  { href: "/marketplace", label: "Markt", icon: Store },
-  { href: "/ai", label: "KI", icon: Sparkles },
-  { href: "/feed", label: "Community", icon: Users },
-  { href: "/profile", label: "Profil", icon: User },
-];
-
+/**
+ * Top-Header
+ * Regelwerk:
+ *   - Logo "Blackwater Leaf" links
+ *   - Suche, Benachrichtigungen, Profilbild rechts
+ *   - Glassmorphism-Hintergrund
+ *   - Sticky, blur-Effekt beim Scrollen (stärker bei scroll > 10px)
+ */
 function TopNav() {
   const [location] = useLocation();
   const { isAuthenticated, user } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
+
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => { window.location.href = "/"; },
   });
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50"
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: "rgba(7,10,8,0.94)",
-        backdropFilter: "blur(24px) saturate(1.6)",
-        WebkitBackdropFilter: "blur(24px) saturate(1.6)",
-        borderBottom: "1px solid rgba(45,107,63,0.28)",
-        boxShadow: "0 1px 0 rgba(212,175,55,0.06), 0 4px 20px rgba(0,0,0,0.30)",
+        background: scrolled
+          ? "rgba(0,0,0,0.75)"
+          : "rgba(7,10,8,0.85)",
+        backdropFilter: scrolled ? "blur(28px) saturate(1.8)" : "blur(20px) saturate(1.4)",
+        WebkitBackdropFilter: scrolled ? "blur(28px) saturate(1.8)" : "blur(20px) saturate(1.4)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: scrolled
+          ? "0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(212,175,55,0.06)"
+          : "0 1px 0 rgba(212,175,55,0.04)",
       }}
     >
-      <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
-
+      <div
+        className="flex items-center justify-between gap-4"
+        style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px", height: 60 }}
+      >
         {/* ── Logo ── */}
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
-          <img
-            src={IMG_LOGO}
-            alt="BlackwaterLeaf"
-            className="w-9 h-9 rounded-full transition-transform duration-200 group-hover:scale-105"
-            style={{ filter: "drop-shadow(0 0 8px rgba(45,155,110,0.40))" }}
-          />
-          <div className="hidden sm:block">
+        <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
+          <div className="relative">
+            <img
+              src={IMG_LOGO}
+              alt="BlackwaterLeaf"
+              className="w-8 h-8 rounded-full transition-transform duration-200 group-hover:scale-105"
+              style={{ filter: "drop-shadow(0 0 8px rgba(45,155,110,0.45))" }}
+            />
+          </div>
+          <div className="hidden sm:flex flex-col leading-none">
             <span
-              className="font-brand text-base tracking-widest leading-none block"
-              style={{ color: "#FFFFFF" }}
+              className="font-brand text-sm tracking-widest"
+              style={{ color: "rgba(255,255,255,0.95)" }}
             >
               BLACKWATER<span style={{ color: "#2D9B6E" }}>LEAF</span>
             </span>
             <span
-              className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5"
-              style={{ color: "rgba(255,255,255,0.45)" }}
+              className="text-[9px] tracking-[0.2em] uppercase mt-0.5"
+              style={{ color: "rgba(255,255,255,0.4)" }}
             >
               Community
             </span>
@@ -82,57 +95,92 @@ function TopNav() {
         </Link>
 
         {/* ── Right Side ── */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Search */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Suche */}
           <Link href="/discover">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-9 h-9 rounded-lg"
-              style={{ color: "rgba(255,255,255,0.60)" }}
+            <motion.button
+              className="flex items-center justify-center rounded-xl"
+              style={{
+                width: 36,
+                height: 36,
+                color: "rgba(255,255,255,0.6)",
+                background: "transparent",
+              }}
+              whileHover={{
+                background: "rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.9)",
+              }}
+              whileTap={{ scale: 0.92 }}
             >
               <Search className="w-4 h-4" />
-            </Button>
+            </motion.button>
           </Link>
 
           {isAuthenticated ? (
             <>
-              {/* Notifications */}
+              {/* Benachrichtigungen */}
               <Link href="/notifications">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-9 h-9 rounded-lg"
-                  style={{ color: "rgba(255,255,255,0.60)" }}
+                <motion.button
+                  className="flex items-center justify-center rounded-xl"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    color: "rgba(255,255,255,0.6)",
+                    background: "transparent",
+                  }}
+                  whileHover={{
+                    background: "rgba(255,255,255,0.06)",
+                    color: "rgba(255,255,255,0.9)",
+                  }}
+                  whileTap={{ scale: 0.92 }}
                 >
                   <Bell className="w-4 h-4" />
-                </Button>
+                </motion.button>
               </Link>
 
-              {/* Avatar dropdown */}
+              {/* Avatar-Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors duration-200 hover:bg-white/5 focus-visible:outline-none">
-                    <Avatar className="w-8 h-8 ring-2 ring-primary/30">
+                  <motion.button
+                    className="flex items-center gap-2 rounded-xl px-2 py-1.5"
+                    style={{ background: "transparent" }}
+                    whileHover={{ background: "rgba(255,255,255,0.05)" }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Avatar
+                      className="w-7 h-7"
+                      style={{
+                        ring: "2px solid rgba(45,155,110,0.4)",
+                        boxShadow: "0 0 0 2px rgba(45,155,110,0.35)",
+                      }}
+                    >
                       <AvatarImage src={user?.avatarUrl ?? undefined} />
                       <AvatarFallback
                         className="text-xs font-semibold"
-                        style={{ background: "rgba(45,155,110,0.20)", color: "#34D399" }}
+                        style={{
+                          background: "rgba(45,155,110,0.20)",
+                          color: "#2D9B6E",
+                        }}
                       >
                         {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:block text-sm font-medium max-w-[100px] truncate" style={{ color: "rgba(255,255,255,0.85)" }}>
+                    <span
+                      className="hidden md:block text-sm font-medium max-w-[100px] truncate"
+                      style={{ color: "rgba(255,255,255,0.85)" }}
+                    >
                       {user?.name}
                     </span>
-                  </button>
+                  </motion.button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
                   className="w-52 rounded-xl"
                   style={{
-                    background: "#111614",
-                    border: "1px solid rgba(45,107,63,0.30)",
+                    background: "rgba(0,0,0,0.85)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.1)",
                   }}
                 >
                   <DropdownMenuItem asChild>
@@ -149,7 +197,7 @@ function TopNav() {
                   </DropdownMenuItem>
                   {(user?.role === "moderator" || user?.role === "admin") && (
                     <>
-                      <DropdownMenuSeparator style={{ background: "rgba(45,107,63,0.30)" }} />
+                      <DropdownMenuSeparator style={{ background: "rgba(255,255,255,0.08)" }} />
                       <DropdownMenuItem asChild>
                         <Link href="/moderator" className="flex items-center gap-2 cursor-pointer">
                           <Users className="w-4 h-4" />
@@ -174,7 +222,7 @@ function TopNav() {
                       )}
                     </>
                   )}
-                  <DropdownMenuSeparator style={{ background: "rgba(45,107,63,0.30)" }} />
+                  <DropdownMenuSeparator style={{ background: "rgba(255,255,255,0.08)" }} />
                   <DropdownMenuItem
                     className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                     onClick={() => logoutMutation.mutate()}
@@ -187,9 +235,21 @@ function TopNav() {
             </>
           ) : (
             <Link href={getLoginUrl()}>
-              <Button size="sm" style={{ background: "#2D9B6E" }}>
+              <motion.button
+                className="px-4 py-1.5 rounded-xl text-sm font-semibold"
+                style={{
+                  background: "#2D9B6E",
+                  color: "rgba(255,255,255,0.95)",
+                  border: "1px solid rgba(45,155,110,0.5)",
+                }}
+                whileHover={{
+                  background: "#35b880",
+                  boxShadow: "0 0 16px rgba(45,155,110,0.4)",
+                }}
+                whileTap={{ scale: 0.95 }}
+              >
                 Login
-              </Button>
+              </motion.button>
             </Link>
           )}
         </div>
@@ -204,7 +264,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ background: "#070A08" }}>
       <TopNav />
-      <main className="pt-16 pb-24 px-4 max-w-[1400px] mx-auto">
+      <main className="pt-16 bl-main-pad px-4" style={{ maxWidth: 1400, margin: "0 auto" }}>
         {children}
       </main>
       {isAuthenticated && <BottomNav />}

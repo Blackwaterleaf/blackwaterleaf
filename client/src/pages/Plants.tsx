@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLoginUrl } from "@/const";
+import { motion } from "framer-motion";
 
 const CATEGORY_LABELS: Record<string, string> = {
   aquatic:      "Wasserpflanze",
@@ -28,23 +29,22 @@ const DIFFICULTY_COLOR: Record<string, string> = {
   expert:       "rgba(240,80,80,0.90)",
 };
 
-function PlantCard({ plant }: { plant: any }) {
+function PlantCard({ plant, index = 0 }: { plant: any; index?: number }) {
   return (
     <Link href={`/plants/${plant.id}`}>
-      <article
-        className="overflow-hidden rounded-2xl cursor-pointer group transition-all duration-300"
+      <motion.article
+        className="overflow-hidden rounded-2xl cursor-pointer group anim-glass-reflex"
         style={{
-          background: "#0D110E",
-          border: "1px solid rgba(45,107,63,0.30)",
+          background: "rgba(0,0,0,0.45)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.1)",
         }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)";
-          (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)";
-          (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-        }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: index * 0.06, ease: [0.23, 1, 0.32, 1] }}
+        whileHover={{ y: -3, borderColor: "rgba(45,155,110,0.45)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
+        whileTap={{ scale: 0.98 }}
       >
         {/* Cover image */}
         <div className="relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
@@ -79,7 +79,7 @@ function PlantCard({ plant }: { plant: any }) {
           {/* Gradient overlay */}
           <div
             className="absolute bottom-0 left-0 right-0 h-12"
-            style={{ background: "linear-gradient(to top, #0D110E, transparent)" }}
+            style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }}
           />
         </div>
 
@@ -124,7 +124,7 @@ function PlantCard({ plant }: { plant: any }) {
             )}
           </div>
         </div>
-      </article>
+      </motion.article>
     </Link>
   );
 }
@@ -231,8 +231,8 @@ export default function Plants() {
       {/* ── Plant grid ── */}
       {isAuthenticated && !isLoading && plants && plants.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {plants.map((plant) => (
-            <PlantCard key={plant.id} plant={plant} />
+          {plants.map((plant, idx) => (
+            <PlantCard key={plant.id} plant={plant} index={idx} />
           ))}
         </div>
       )}

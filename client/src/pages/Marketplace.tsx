@@ -1,6 +1,7 @@
 import { Seo } from "@/components/Seo";
 import { useState } from "react";
 import { ArrowRight, ShieldCheck, Mail } from "lucide-react";
+import { motion } from "framer-motion";
 
 // Farb-Konstanten
 const C = {
@@ -101,7 +102,12 @@ export default function Marketplace() {
       <div className="px-4 pb-5">
         <div
           className="flex items-start gap-3 p-4 rounded-2xl"
-          style={{ background: C.card, border: C.cardBorder }}
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
         >
           <div
             className="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold mt-0.5"
@@ -127,9 +133,12 @@ export default function Marketplace() {
                 onClick={() => setActiveCategory(cat.value)}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: isActive ? "transparent" : "rgba(13,17,14,0.85)",
-                  color: isActive ? C.greenLight : C.textSecondary,
-                  border: isActive ? `2px solid ${C.greenLight}` : "2px solid rgba(45,107,63,0.35)",
+                  background: isActive ? "#2D9B6E" : "rgba(0,0,0,0.4)",
+                  color: isActive ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.65)",
+                  border: isActive ? "1px solid rgba(45,155,110,0.7)" : "1px solid rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  boxShadow: isActive ? "0 0 16px rgba(45,155,110,0.35)" : "none",
                 }}
               >
                 {cat.label}
@@ -141,15 +150,17 @@ export default function Marketplace() {
 
       {/* KATEGORIE-KARTE */}
       <div className="px-4 pb-5">
-        <div
+        <motion.div
           className="rounded-2xl overflow-hidden"
           style={{
-            background: "rgba(13,17,14,0.90)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid rgba(45,107,63,0.30)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.50)",
+            background: "rgba(0,0,0,0.45)",
+            backdropFilter: "blur(20px) saturate(1.4)",
+            WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
           }}
+          whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
+          transition={{ duration: 0.2 }}
         >
           <div
             className="relative overflow-hidden"
@@ -192,7 +203,7 @@ export default function Marketplace() {
               {CATEGORY_DESCRIPTIONS[activeCategory]}
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* PARTNER-SEKTION */}
@@ -205,7 +216,12 @@ export default function Marketplace() {
         </h2>
 
         {/* Leerer Zustand */}
-        <div className="rounded-2xl p-5" style={{ background: C.card, border: C.cardBorder }}>
+        <div className="rounded-2xl p-5" style={{
+          background: "rgba(0,0,0,0.4)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}>
           <div className="flex items-start gap-3 mb-3">
             <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: C.greenLight }} />
             <div>
@@ -226,9 +242,11 @@ export default function Marketplace() {
         <div
           className="relative rounded-2xl p-5 overflow-hidden"
           style={{
-            background: "linear-gradient(160deg, rgba(22,40,28,0.95) 0%, rgba(13,17,14,0.98) 100%)",
+            background: "rgba(0,0,0,0.45)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             border: "1px solid rgba(212,175,55,0.25)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.40), inset 0 1px 0 rgba(212,175,55,0.08)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.08)",
           }}
         >
           {/* Gold-Glow oben rechts */}

@@ -14,6 +14,7 @@ import {
 import { ensureUserStats, awardXp, grantBadge, levelForXp, LEVELS } from "./db";
 import { eq, desc, and, like, or, sql, ne } from "drizzle-orm";
 import { storagePut } from "./storage";
+import { validateFileType } from "./_core/uploadValidation";
 import { invokeLLM } from "./_core/llm";
 import { nanoid } from "nanoid";
 import { socialRouter, threadsRouter } from "./routers/community";
@@ -68,6 +69,15 @@ const usersRouter = router({
     .input(z.object({ base64: z.string(), mimeType: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const buffer = Buffer.from(input.base64, "base64");
+      // SECURITY FIX: Upload-Größenbegrenzung 2 MB
+      if (buffer.length > 2 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Datei ist zu groß (max. 2 MB)." });
+      }
+      // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+      const validation = await validateFileType(buffer, "image");
+      if (!validation.valid) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Dateityp. Erlaubt: JPEG, PNG, GIF, WebP." });
+      }
       const ext = input.mimeType.split("/")[1] ?? "jpg";
       const key = `avatars/${ctx.user.id}-${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -134,11 +144,20 @@ const plantsRouter = router({
       if (coverImageBase64 && coverImageMimeType) {
         try {
           const buffer = Buffer.from(coverImageBase64, "base64");
+          // SECURITY FIX: Upload-Größenbegrenzung 5 MB
+          if (buffer.length > 5 * 1024 * 1024) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Datei ist zu groß (max. 5 MB)." });
+          }
+          // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+          const validation = await validateFileType(buffer, "image");
+          if (!validation.valid) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Dateityp. Erlaubt: JPEG, PNG, GIF, WebP." });
+          }
           const ext = coverImageMimeType.split("/")[1] ?? "jpg";
           const key = `plants/${ctx.user.id}/${Date.now()}.${ext}`;
           const stored = await storagePut(key, buffer, coverImageMimeType);
           coverImageUrl = stored.url;
-        } catch (e) { /* ignore upload errors, plant still created */ }
+        } catch (e) { if (e instanceof TRPCError) throw e; /* ignore other upload errors, plant still created */ }
       }
       const result = await db.insert(plants).values({ ...rest, coverImageUrl, userId: ctx.user.id });
       try { await awardXp(ctx.user.id, 15); await grantBadge(ctx.user.id, "plant_expert"); } catch {}
@@ -197,6 +216,15 @@ const plantsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to add photos to this plant" });
       }
       const buffer = Buffer.from(input.base64, "base64");
+      // SECURITY FIX: Upload-Größenbegrenzung 5 MB
+      if (buffer.length > 5 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Datei ist zu groß (max. 5 MB)." });
+      }
+      // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+      const mimeValidation = await validateFileType(buffer, "image");
+      if (!mimeValidation.valid) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Dateityp. Erlaubt: JPEG, PNG, GIF, WebP." });
+      }
       const ext = input.mimeType.split("/")[1] ?? "jpg";
       const key = `plants/${input.plantId}/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -343,6 +371,15 @@ const aquariumsRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to add photos to this aquarium" });
       }
       const buffer = Buffer.from(input.base64, "base64");
+      // SECURITY FIX: Upload-Größenbegrenzung 5 MB
+      if (buffer.length > 5 * 1024 * 1024) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Datei ist zu groß (max. 5 MB)." });
+      }
+      // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+      const mimeValidation = await validateFileType(buffer, "image");
+      if (!mimeValidation.valid) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Dateityp. Erlaubt: JPEG, PNG, GIF, WebP." });
+      }
       const ext = input.mimeType.split("/")[1] ?? "jpg";
       const key = `aquariums/${input.aquariumId}/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, input.mimeType);
@@ -483,6 +520,11 @@ const postsRouter = router({
         if (buffer.length > 25 * 1024 * 1024) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Video ist zu groß (max. 25 MB)." });
         }
+        // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+        const videoMimeValidation = await validateFileType(buffer, "video");
+        if (!videoMimeValidation.valid) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Videodateityp. Erlaubt: MP4, WebM, MOV, OGG." });
+        }
         const ext = input.videoMimeType === "video/quicktime" ? "mov" : (input.videoMimeType.split("/")[1] ?? "mp4");
         const key = `posts/${ctx.user.id}/${Date.now()}.${ext}`;
         const stored = await storagePut(key, buffer, input.videoMimeType);
@@ -493,6 +535,15 @@ const postsRouter = router({
 
       if (input.imageBase64 && input.imageMimeType) {
         const buffer = Buffer.from(input.imageBase64, "base64");
+        // SECURITY FIX: Upload-Größenbegrenzung 5 MB
+        if (buffer.length > 5 * 1024 * 1024) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Bild ist zu groß (max. 5 MB)." });
+        }
+        // SECURITY FIX: MIME-Type Validierung via Magic Bytes
+        const imgMimeValidation = await validateFileType(buffer, "image");
+        if (!imgMimeValidation.valid) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Ungültiger Dateityp. Erlaubt: JPEG, PNG, GIF, WebP." });
+        }
         const ext = input.imageMimeType.split("/")[1] ?? "jpg";
         const key = `posts/${ctx.user.id}/${Date.now()}.${ext}`;
         const stored = await storagePut(key, buffer, input.imageMimeType);
@@ -914,6 +965,63 @@ async function validateWithPlantNet(
   } catch (e) {
     console.error('[PlantNet] Error:', e instanceof Error ? e.message : String(e));
     return null;
+  }
+}
+
+/**
+ * GBIF Referenzbilder-Abruf (Phase 2, Aufgabe 3).
+ * Sucht verifizierte Vergleichsbilder für einen wissenschaftlichen Artnamen.
+ * Gibt nur CC-BY und CC0 lizenzierte Bilder zurück.
+ */
+interface GbifImage {
+  url: string;
+  license: string;
+  source: string;
+  creator: string;
+}
+
+async function getGbifImages(scientificName: string): Promise<GbifImage[]> {
+  if (!scientificName || scientificName === 'unsicher') return [];
+  try {
+    // Schritt 1: TaxonKey via species/match
+    const matchUrl = `https://api.gbif.org/v1/species/match?name=${encodeURIComponent(scientificName)}&verbose=false`;
+    const matchResp = await fetch(matchUrl, { signal: AbortSignal.timeout(5000) });
+    if (!matchResp.ok) return [];
+    const matchData = await matchResp.json() as any;
+    const taxonKey = matchData.usageKey ?? matchData.speciesKey;
+    if (!taxonKey) { console.log(`[GBIF] No taxonKey for: ${scientificName}`); return []; }
+    console.log(`[GBIF] taxonKey=${taxonKey} for ${scientificName}`);
+    // Schritt 2: Bilder via occurrence/search
+    const imgUrl = `https://api.gbif.org/v1/occurrence/search?taxonKey=${taxonKey}&mediaType=StillImage&limit=10`;
+    const imgResp = await fetch(imgUrl, { signal: AbortSignal.timeout(5000) });
+    if (!imgResp.ok) return [];
+    const imgData = await imgResp.json() as any;
+    const results: GbifImage[] = [];
+    for (const occ of (imgData.results ?? [])) {
+      for (const media of (occ.media ?? [])) {
+        if (!media.identifier) continue;
+        const license: string = (media.license ?? '').toLowerCase();
+        // Nur CC0 und CC-BY (nicht CC-BY-NC, CC-BY-SA etc.)
+        const isOpen = license.includes('cc0') || license.includes('cc-by/4') || license.includes('cc-by/3') || license.includes('publicdomain');
+        if (!isOpen) continue;
+        const url: string = media.identifier;
+        // Nur direkte Bild-URLs (jpg/jpeg/png/webp)
+        if (!/\.(jpe?g|png|webp)(\?.*)?$/i.test(url) && !url.includes('inaturalist') && !url.includes('gbif') && !url.includes('wikimedia')) continue;
+        results.push({
+          url,
+          license: media.license ?? 'CC',
+          source: media.publisher ?? occ.datasetName ?? 'GBIF',
+          creator: media.creator ?? occ.recordedBy ?? '',
+        });
+        if (results.length >= 5) break;
+      }
+      if (results.length >= 5) break;
+    }
+    console.log(`[GBIF] Found ${results.length} images for ${scientificName}`);
+    return results;
+  } catch (e) {
+    console.error('[GBIF] Error:', e instanceof Error ? e.message : String(e));
+    return [];
   }
 }
 

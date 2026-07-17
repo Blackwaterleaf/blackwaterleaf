@@ -310,3 +310,33 @@
 - [ ] Feedback-Buttons "Stimmt das? Ja / Nein"
 - [ ] Alternativen mit Prozentanzeige
 - [ ] Link zu /botanik/:genus/:art
+
+## Phase AB: Aufgabe 3 – GBIF Referenzbilder
+- [ ] Backend: getGbifImages(scientificName) Funktion (TaxonKey → CC-BY/CC0 Bilder)
+- [ ] identify-Procedure: GBIF-Bilder parallel abrufen und zurückgeben
+- [ ] UI: "Vergleichsbilder"-Sektion (horizontal scrollbar, Glassmorphism-Card)
+- [ ] UI: Quelle + Lizenz unter jedem Bild (klein, grau)
+- [ ] STOPP nach dieser Aufgabe
+
+## Phase AC: Aufgabe 4 – Feedback-Loop
+- [ ] DB-Schema: verified_identifications Tabelle
+- [ ] Backend: confirmIdentification / denyIdentification Procedures
+- [ ] UI: "✓ Ja, stimmt!" / "✗ Nein, sieht anders aus" Buttons
+- [ ] Bei 3+ gleichen Korrekturen → automatisch in Community-Fakten
+- [ ] STOPP nach dieser Aufgabe
+
+## Phase AD: Aufgabe 5 – UI Redesign
+- [ ] Gold-Badge bei Confidence >80%, Emerald bei 60-79%, Unsicher <60%
+- [ ] Glassmorphism-Card für Ergebnis
+- [ ] Erkannte Merkmale als Mint-Bullets
+- [ ] Alternativen mit Score
+- [ ] Link zu /botanik/{gattung}/{art}
+- [ ] STOPP nach dieser Aufgabe
+
+## Phase AE: Capacitor APK-Build
+- [ ] Capacitor installieren + initialisieren (com.blackwaterleaf.app)
+- [ ] Android-Plattform hinzufügen
+- [ ] App-Icon: BWL-Logo (rund, Gold-Ring)
+- [ ] Splash Screen: BWL-Logo auf #070A08
+- [ ] Release-APK signiert generieren (minSdkVersion 24, targetSdkVersion 34)
+- [ ] STOPP nach APK-Build

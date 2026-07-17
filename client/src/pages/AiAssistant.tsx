@@ -16,6 +16,7 @@ import {
   Fish,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import PlantIdentify from "@/components/PlantIdentify";
 import { useSearch } from "wouter";
 import { toast } from "sonner";
@@ -165,8 +166,11 @@ export default function AiAssistant() {
       <div
         className="px-4 pt-4 pb-3 flex-shrink-0"
         style={{
-          background: "#070A08",
-          borderBottom: "1px solid rgba(45,107,63,0.25)",
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 1px 0 rgba(45,155,110,0.12)",
         }}
       >
         <div className="container max-w-3xl mx-auto">
@@ -252,22 +256,24 @@ export default function AiAssistant() {
                   />
 
                   {/* Sparkles-Icon mit Glow-Ring */}
-                  <div
+                  <motion.div
                     className="mb-5 relative flex items-center justify-center w-20 h-20 rounded-2xl"
                     style={{
-                      background: "rgba(13,17,14,0.90)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid rgba(45,155,110,0.30)",
-                      boxShadow: "0 0 28px rgba(52,211,153,0.18)",
-                      color: "#34D399",
+                      background: "rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(20px)",
+                      border: "1px solid rgba(45,155,110,0.35)",
+                      boxShadow: "0 0 32px rgba(45,155,110,0.25), inset 0 1px 0 rgba(255,255,255,0.08)",
+                      color: "#2D9B6E",
                     }}
+                    animate={{ boxShadow: ["0 0 24px rgba(45,155,110,0.20)", "0 0 40px rgba(45,155,110,0.35)", "0 0 24px rgba(45,155,110,0.20)"] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <svg width="40" height="40" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M26 4L29.5 18.5L44 22L29.5 25.5L26 40L22.5 25.5L8 22L22.5 18.5L26 4Z" fill="currentColor" opacity="0.9" />
                       <path d="M42 8L43.5 13.5L49 15L43.5 16.5L42 22L40.5 16.5L35 15L40.5 13.5L42 8Z" fill="currentColor" opacity="0.6" />
                       <path d="M10 32L11 36L15 37L11 38L10 42L9 38L5 37L9 36L10 32Z" fill="currentColor" opacity="0.5" />
                     </svg>
-                  </div>
+                  </motion.div>
 
                   <h2
                     className="font-brand mb-2 text-center"
@@ -301,20 +307,24 @@ export default function AiAssistant() {
                   {/* Vorschläge als Premium-Glassmorphism-Karten */}
                   <div className="w-full max-w-lg space-y-2">
                     {(channaMode ? CHANNA_SUGGESTIONS : SUGGESTIONS).slice(0, 4).map((suggestion, idx) => (
-                      <button
+                      <motion.button
                         key={suggestion}
                         onClick={() => sendMessage(suggestion)}
                         disabled={!isAuthenticated}
-                        className="w-full text-left px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed group"
+                        className="w-full text-left px-4 py-3.5 rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
-                          background: "rgba(13,17,14,0.85)",
-                          backdropFilter: "blur(12px)",
-                          WebkitBackdropFilter: "blur(12px)",
-                          border: "1px solid rgba(45,107,63,0.28)",
-                          color: "rgba(255,255,255,0.88)",
+                          background: "rgba(0,0,0,0.4)",
+                          backdropFilter: "blur(16px)",
+                          WebkitBackdropFilter: "blur(16px)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          color: "rgba(255,255,255,0.85)",
                           fontSize: "0.875rem",
-                          animationDelay: `${idx * 60}ms`,
                         }}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: idx * 0.07 }}
+                        whileHover={{ y: -2, borderColor: "rgba(45,155,110,0.4)" }}
+                        whileTap={{ scale: 0.97 }}
                       >
                         <span className="flex items-center gap-2">
                           <span
@@ -323,7 +333,7 @@ export default function AiAssistant() {
                           />
                           {suggestion}
                         </span>
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -366,7 +376,7 @@ export default function AiAssistant() {
                   )}
 
                   {/* Bubble */}
-                  <div
+                  <motion.div
                     className={cn(
                       "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
                       msg.role === "user"
@@ -376,15 +386,19 @@ export default function AiAssistant() {
                     style={
                       msg.role === "user"
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(45,155,110,0.20), rgba(45,155,110,0.12))",
-                            border: "1px solid rgba(45,155,110,0.25)",
+                            background: "linear-gradient(135deg, rgba(45,155,110,0.22), rgba(45,155,110,0.10))",
+                            border: "1px solid rgba(45,155,110,0.35)",
+                            backdropFilter: "blur(16px)",
                           }
                         : {
-                            background: "rgba(13,17,14,0.90)",
-                            border: "1px solid rgba(45,107,63,0.30)",
+                            background: "rgba(0,0,0,0.45)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            backdropFilter: "blur(20px)",
                           }
                     }
+                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
                   >
                     {msg.role === "assistant" ? (
                       <>
@@ -451,7 +465,7 @@ export default function AiAssistant() {
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.content}</p>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
               ))}
 
@@ -499,10 +513,12 @@ export default function AiAssistant() {
 
           {/* ── Input Bar ── */}
           <div
-            className="px-4 py-3 backdrop-blur-sm flex-shrink-0"
+            className="px-4 py-3 flex-shrink-0"
             style={{
-              background: "rgba(7,10,8,0.97)",
-              borderTop: "1px solid rgba(45,107,63,0.25)",
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
             }}
           >
             <div className="container max-w-3xl mx-auto flex gap-3">

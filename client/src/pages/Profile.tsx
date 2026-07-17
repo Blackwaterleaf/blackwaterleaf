@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -109,7 +110,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
 
       {/* ── Avatar & Name (zentriert wie Native App) ── */}
       <div className="flex flex-col items-center mb-8">
-        {/* Avatar mit Kamera-Button */}
+        {/* Avatar mit Gold-Ring (Regelwerk: #D4AF37) */}
         <div className="relative mb-4">
           {editing ? (
             <label className="w-24 h-24 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
@@ -119,13 +120,22 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             </label>
           ) : (
             <>
-              <Avatar className="w-24 h-24" style={{ border: "2px solid rgba(45,155,110,0.40)" }}>
+              {/* Gold-Ring-Wrapper */}
+              <div
+                className="rounded-full p-[3px]"
+                style={{
+                  background: "linear-gradient(135deg, #D4AF37, rgba(212,175,55,0.4), #D4AF37)",
+                  boxShadow: "0 0 20px rgba(212,175,55,0.35)",
+                }}
+              >
+              <Avatar className="w-24 h-24" style={{ border: "2px solid #070A08" }}>
                 <AvatarImage src={display?.avatarUrl ?? undefined} />
                 <AvatarFallback className="text-3xl font-bold"
                   style={{ background: "rgba(45,155,110,0.15)", color: "#34D399" }}>
                   {display?.name?.charAt(0)?.toUpperCase() ?? "U"}
                 </AvatarFallback>
               </Avatar>
+              </div>
               {/* Kamera-Badge */}
               <label
                 className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-150 active:scale-95"
@@ -137,7 +147,6 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             </>
           )}
         </div>
-
         {editing ? (
           /* Edit-Modus */
           <div className="w-full space-y-3">
@@ -233,44 +242,49 @@ export default function Profile({ userId: _userId }: ProfileProps) {
         )}
       </div>
 
-      {/* ── 4 Stats-Karten (wie Native App: Level, XP, Streak, Abzeichen) ── */}
+      {/* ── 4 Stats-Karten (Glassmorphism) ── */}
       <div className="grid grid-cols-4 gap-2 mb-5">
         {[
-          { value: level, label: "Level", color: "#34D399" },
-          { value: xp, label: "XP", color: "#D4AF37" },
-          { value: streak, label: "Streak", color: "#34D399" },
-          { value: badgeCount, label: "Abzeichen", color: "#D4AF37" },
+          { value: level, label: "Level", color: "#2D9B6E", glow: "rgba(45,155,110,0.3)" },
+          { value: xp, label: "XP", color: "#D4AF37", glow: "rgba(212,175,55,0.25)" },
+          { value: streak, label: "Streak", color: "#2D9B6E", glow: "rgba(45,155,110,0.3)" },
+          { value: badgeCount, label: "Abzeichen", color: "#D4AF37", glow: "rgba(212,175,55,0.25)" },
         ].map((stat, i) => (
-          <div
+          <motion.div
             key={stat.label}
             className="rounded-2xl p-3 flex flex-col items-center justify-center"
             style={{
-              background: i % 2 === 0
-                ? "linear-gradient(135deg, rgba(45,155,110,0.12), rgba(13,17,14,0.95))"
-                : "linear-gradient(135deg, rgba(212,175,55,0.10), rgba(13,17,14,0.95))",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-              border: `1px solid ${i % 2 === 0 ? "rgba(45,107,63,0.30)" : "rgba(212,175,55,0.22)"}`,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.30)",
+              background: "rgba(0,0,0,0.45)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: `0 2px 12px rgba(0,0,0,0.4), 0 0 0 0 ${stat.glow}`,
             }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.07 }}
+            whileHover={{ boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 12px ${stat.glow}` }}
           >
-            <p
-              className="text-2xl font-bold leading-none mb-1"
-              style={{ color: stat.color }}
-            >
+            <p className="text-2xl font-bold leading-none mb-1" style={{ color: stat.color }}>
               {stat.value}
             </p>
             <p className="text-xs" style={{ color: "rgba(255,255,255,0.50)" }}>
               {stat.label}
             </p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* ── "Dein Profil" Karte (wie Native App) ── */}
+      {/* ── "Dein Profil" Karte (Glassmorphism) ── */}
       <div
         className="rounded-2xl p-4 mb-5"
-        style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
+        style={{
+          background: "rgba(0,0,0,0.4)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+        }}
       >
         <div className="flex items-start justify-between">
           <div>
@@ -313,7 +327,12 @@ export default function Profile({ userId: _userId }: ProfileProps) {
             <Link key={item.href} href={item.href}>
               <div
                 className="flex items-center gap-3 px-4 py-3.5 rounded-2xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
-                style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -362,7 +381,12 @@ export default function Profile({ userId: _userId }: ProfileProps) {
         Sammlung &amp; Beiträge
       </h2>
       <Tabs defaultValue="plants">
-        <TabsList className="mb-4 w-full" style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}>
+        <TabsList className="mb-4 w-full" style={{
+          background: "rgba(0,0,0,0.45)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(255,255,255,0.1)",
+        }}>
           <TabsTrigger value="plants" className="flex-1">Botanik</TabsTrigger>
           <TabsTrigger value="aquariums" className="flex-1">Aquarien</TabsTrigger>
           <TabsTrigger value="posts" className="flex-1">Beiträge</TabsTrigger>
@@ -383,9 +407,13 @@ export default function Profile({ userId: _userId }: ProfileProps) {
                 <Link key={plant.id} href={`/plants/${plant.id}`}>
                   <div
                     className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
-                    style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)"; }}
+                    style={{
+                      background: "rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.4)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
                   >
                     <div className="aspect-square relative overflow-hidden" style={{ background: "#070A08" }}>
                       {plant.coverImageUrl ? (
@@ -421,9 +449,13 @@ export default function Profile({ userId: _userId }: ProfileProps) {
                 <Link key={aq.id} href={`/aquariums/${aq.id}`}>
                   <div
                     className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
-                    style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.35)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.30)"; }}
+                    style={{
+                      background: "rgba(0,0,0,0.45)",
+                      backdropFilter: "blur(16px)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.4)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)"; }}
                   >
                     <div className="aspect-video relative overflow-hidden" style={{ background: "#070A08" }}>
                       {aq.coverImageUrl ? (
@@ -452,7 +484,11 @@ export default function Profile({ userId: _userId }: ProfileProps) {
           ) : (
             <div className="space-y-3">
               {posts?.posts.map((post) => (
-                <div key={post.id} className="rounded-2xl p-4" style={{ background: "#0D110E", border: "1px solid rgba(45,107,63,0.30)" }}>
+                <div key={post.id} className="rounded-2xl p-4" style={{
+                background: "rgba(0,0,0,0.45)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}>
                   {post.imageUrl && (
                     <img src={post.imageUrl} alt="" className="w-full max-h-48 object-cover rounded-lg mb-3" loading="lazy" />
                   )}

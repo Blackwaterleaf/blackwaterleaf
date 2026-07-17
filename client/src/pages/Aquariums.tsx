@@ -4,6 +4,7 @@ import { Seo } from "@/components/Seo";
 import { Droplets, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 const TYPE_LABELS: Record<string, string> = {
   freshwater: "Süßwasser", saltwater: "Salzwasser", blackwater: "Schwarzwasser",
@@ -20,8 +21,10 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 const card = {
-  background: "#0D110E",
-  border: "1px solid rgba(45,107,63,0.30)",
+  background: "rgba(0,0,0,0.45)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  border: "1px solid rgba(255,255,255,0.1)",
 };
 
 export default function Aquariums() {
@@ -102,17 +105,14 @@ export default function Aquariums() {
             const typeColor = TYPE_COLOR[aq.type] ?? TYPE_COLOR.other;
             return (
               <Link key={aq.id} href={`/aquariums/${aq.id}`}>
-                <article
-                  className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
+                <motion.article
+                  className="rounded-2xl overflow-hidden cursor-pointer anim-glass-reflex"
                   style={card}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.border = "1px solid rgba(45,155,110,0.35)";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.border = "1px solid rgba(45,107,63,0.30)";
-                    (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-                  }}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: (aquariums?.indexOf(aq) ?? 0) * 0.07, ease: [0.23, 1, 0.32, 1] }}
+                  whileHover={{ y: -3, borderColor: "rgba(45,155,110,0.45)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {/* Cover image */}
                   <div className="aspect-video relative overflow-hidden" style={{ background: "#070A08" }}>
@@ -149,7 +149,7 @@ export default function Aquariums() {
                       {aq.phValue && <span>pH {aq.phValue}</span>}
                     </div>
                   </div>
-                </article>
+                </motion.article>
               </Link>
             );
           })}

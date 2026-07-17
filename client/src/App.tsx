@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -101,6 +102,7 @@ function Router() {
 }
 
 function App() {
+  useTimeOfDay(); // Tageszeit-Klasse auf body setzen
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">

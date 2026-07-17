@@ -7,9 +7,10 @@ import { de } from "date-fns/locale";
 import {
   Heart, ImagePlus, MessageCircle, MoreHorizontal,
   Send, Trash2, X, Leaf, Fish, HelpCircle, Lightbulb,
-  Star, ShoppingBag, Grid3X3, Video, Users, Plus,
+  Star, ShoppingBag, Grid3X3, Video, Users, Plus, Share2, Bookmark,
 } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -90,12 +91,17 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
   };
 
   return (
-    <article
-      className="overflow-hidden rounded-2xl transition-all duration-200"
+    <motion.article
+      className="overflow-hidden rounded-2xl anim-glass-reflex"
       style={{
-        background: "#0D110E",
-        border: "1px solid rgba(45,107,63,0.30)",
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(20px) saturate(1.4)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.4)",
       }}
+      whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.35)" }}
+      transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-4">
@@ -182,38 +188,71 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
 
       {/* ── Actions ── */}
       <div
-        className="flex items-center gap-1 px-5 pb-4"
-        style={{ borderTop: "1px solid rgba(13,17,14,0.85)", paddingTop: "0.75rem" }}
+        className="flex items-center gap-1 px-4 pb-4"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.75rem" }}
       >
-        <button
+        {/* Like */}
+        <motion.button
           onClick={handleLike}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium"
           style={{
-            color: post.isLiked ? "rgba(240,80,80,0.90)" : "rgba(255,255,255,0.50)",
-            background: post.isLiked ? "rgba(240,80,80,0.10)" : "transparent",
+            color: post.isLiked ? "rgba(240,80,80,0.95)" : "rgba(255,255,255,0.50)",
+            background: post.isLiked ? "rgba(240,80,80,0.12)" : "transparent",
           }}
-          onMouseEnter={e => {
-            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "rgba(240,80,80,0.90)";
-          }}
-          onMouseLeave={e => {
-            if (!post.isLiked) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.50)";
-          }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.88 }}
+          transition={{ duration: 0.15 }}
         >
           <Heart className={cn("w-4 h-4", post.isLiked && "fill-current")} />
-          <span>{post.likesCount}</span>
-        </button>
-        <button
+          <span className="text-xs">{post.likesCount}</span>
+        </motion.button>
+
+        {/* Kommentar */}
+        <motion.button
           onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 active:scale-95"
-          style={{ color: showComments ? "#34D399" : "rgba(255,255,255,0.50)" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#34D399"; }}
-          onMouseLeave={e => {
-            if (!showComments) (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.50)";
-          }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium"
+          style={{ color: showComments ? "#2D9B6E" : "rgba(255,255,255,0.50)" }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.88 }}
+          transition={{ duration: 0.15 }}
         >
           <MessageCircle className="w-4 h-4" />
-          <span>{post.commentsCount}</span>
-        </button>
+          <span className="text-xs">{post.commentsCount}</span>
+        </motion.button>
+
+        {/* Bookmark */}
+        <motion.button
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium"
+          style={{ color: "rgba(255,255,255,0.50)" }}
+          whileHover={{ scale: 1.05, color: "#D4AF37" } as any}
+          whileTap={{ scale: 0.88 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => toast.info("Gespeichert – demnächst verfügbar")}
+        >
+          <Bookmark className="w-4 h-4" />
+        </motion.button>
+
+        <div className="flex-1" />
+
+        {/* Teilen */}
+        <motion.button
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium"
+          style={{ color: "rgba(255,255,255,0.50)" }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.88 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({ title: "BlackwaterLeaf", text: post.content?.slice(0, 80) ?? "", url: window.location.href });
+            } else {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link kopiert!");
+            }
+          }}
+        >
+          <Share2 className="w-4 h-4" />
+          <span className="text-xs hidden sm:inline">Teilen</span>
+        </motion.button>
       </div>
 
       {/* ── Comments ── */}
@@ -282,7 +321,7 @@ function PostCard({ post, onDelete }: { post: any; onDelete: () => void }) {
           )}
         </div>
       )}
-    </article>
+    </motion.article>
   );
 }
 

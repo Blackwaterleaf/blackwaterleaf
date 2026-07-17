@@ -9,6 +9,7 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import AccessibilityProvider from "./components/AccessibilityProvider";
 import "./index.css";
+import "./styles/animations.css";
 
 const queryClient = new QueryClient();
 

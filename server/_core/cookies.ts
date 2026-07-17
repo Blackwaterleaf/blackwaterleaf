@@ -42,7 +42,7 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    sameSite: "lax", // SECURITY FIX: War "none" – erlaubte Cross-Site-Requests (CSRF-Risiko). "lax" sicher für Web-App; Capacitor-App nutzt Bearer-Token Auth.
     secure: isSecureRequest(req),
   };
 }
