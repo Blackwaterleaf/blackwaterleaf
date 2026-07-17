@@ -5,7 +5,7 @@ import { Leaf, Plus, Droplets, Sun, Thermometer, Lock } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 import { motion } from "framer-motion";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -180,9 +180,9 @@ export default function Plants() {
           <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
             Melde dich an, um deine Pflanzensammlung zu verwalten.
           </p>
-          <a href={getLoginUrl()} className="btn-primary">
+          <button onClick={() => startLogin()} className="btn-primary">
             Jetzt anmelden
-          </a>
+          </button>
         </div>
       )}
 

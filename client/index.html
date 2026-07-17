@@ -1,26 +1,90 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>BlackWaterLeaf</title>    
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+    <!-- title / description / canonical / Open Graph / Twitter are managed PER PAGE via react-helmet-async
+         (see client/src/components/Seo.tsx). They are intentionally NOT hard-coded here to avoid duplicate tags.
+         The <title> below is only the initial-paint fallback before React hydrates. -->
+    <title>BlackwaterLeaf – Community für Aquaristik, Aquascaping & Botanik</title>
+    <meta name="keywords" content="Aquaristik, Aquascaping, Schwarzwasser, Channa, Botanik, Community, Pflanzenbestimmung" />
+    <meta name="author" content="BlackwaterLeaf" />
+    <meta name="language" content="de" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color (mobile browser chrome) -->
+    <meta name="theme-color" content="#070A08" />
+    <meta name="msapplication-TileColor" content="#070A08" />
+    <meta name="msapplication-navbutton-color" content="#070A08" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="BlackwaterLeaf" />
+    <link rel="apple-touch-icon" href="/manus-storage/bl-icon-180_1576fddb.png" />
+    <link rel="apple-touch-startup-image" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663777393348/6rZjy2rqpfJHZLWDaNJkik/splash-screen-DfCobq5hNV5TTFwzho64mj.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/manus-storage/bl-icon-512_f807c8a5.png" />
+
+    <!-- Open Graph / Twitter Card are set per-page by Helmet (Seo.tsx). -->
+
+    <!-- Strukturierte Daten (JSON-LD) – global, site-weit -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://blackwaterleaf.com/#organization",
+          "name": "BlackwaterLeaf",
+          "url": "https://blackwaterleaf.com/",
+          "logo": "https://blackwaterleaf.com/manus-storage/bl-icon-512_f807c8a5.png",
+          "description": "Deutschsprachige Community-Plattform für Aquaristik, Aquascaping, Schwarzwasser-Biotope, Channa-Haltung und Zimmerpflanzen.",
+          "areaServed": { "@type": "Country", "name": "Deutschland" }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://blackwaterleaf.com/#website",
+          "url": "https://blackwaterleaf.com/",
+          "name": "BlackwaterLeaf",
+          "inLanguage": "de-DE",
+          "publisher": { "@id": "https://blackwaterleaf.com/#organization" },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": { "@type": "EntryPoint", "urlTemplate": "https://blackwaterleaf.com/discover?q={search_term_string}" },
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Mobile: prevent text size adjustment -->
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%">
+    </script>
   </body>
-
 </html>

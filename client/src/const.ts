@@ -12,6 +12,10 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 // call would desync it from an in-flight login and the callback would reject it
 // with "invalid oauth state". It returns void by design, so there is no URL to
 // stash across renders.
+// Direktes Android-App-Download (aktueller APK-Build). Bei neuem Build hier aktualisieren.
+export const APK_DOWNLOAD_URL =
+  "https://expo.dev/artifacts/eas/2BoOLZTHnEpb2LlD97yfvH0zzEKt2xFxrIGj3XyTYb0.apk";
+
 export const startLogin = () => {
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
   const appId = import.meta.env.VITE_APP_ID;

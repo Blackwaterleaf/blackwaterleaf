@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoTooltip } from "@/components/InfoTooltip";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 import { useLocation } from "wouter";
 
 interface IdentifyResult {
@@ -225,7 +225,7 @@ export default function PlantIdentify() {
         <p className="text-sm text-muted-foreground mb-4">
           Melde dich an, um Arten und Aquarienbewohner per Foto bestimmen zu lassen.
         </p>
-        <Button asChild className="press-active"><a href={getLoginUrl()}>Anmelden</a></Button>
+        <Button asChild className="press-active"><button onClick={() => startLogin()}>Anmelden</button></Button>
       </div>
     );
   }

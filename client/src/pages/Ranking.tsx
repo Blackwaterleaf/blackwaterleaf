@@ -1,7 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { Seo } from "@/components/Seo";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 import {
   Trophy, Flame, Star, Award, Calendar, Target, Crown, Medal, Sparkles, Lock,
 } from "lucide-react";
@@ -103,7 +103,7 @@ export default function Ranking() {
           <p className="text-sm mb-5" style={{ color: "rgba(255,255,255,0.50)" }}>
             Tägliche Belohnungen, Abzeichen und Community-Level warten auf dich.
           </p>
-          <a href={getLoginUrl()} className="btn-primary">Anmelden</a>
+          <button onClick={() => startLogin()} className="btn-primary">Anmelden</button>
         </div>
 
       ) : meLoading ? (

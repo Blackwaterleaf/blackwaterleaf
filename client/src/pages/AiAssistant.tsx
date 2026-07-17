@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Streamdown } from "streamdown";
 import { nanoid } from "nanoid";
-import { getLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 import { Seo } from "@/components/Seo";
 
 interface Message {
@@ -299,7 +299,7 @@ export default function AiAssistant() {
                         Melde dich an, um den KI-Assistenten zu nutzen.
                       </p>
                       <Button asChild size="sm" className="w-full press-active btn-glow">
-                        <a href={getLoginUrl()}>Anmelden</a>
+                        <button onClick={() => startLogin()}>Anmelden</button>
                       </Button>
                     </div>
                   )}

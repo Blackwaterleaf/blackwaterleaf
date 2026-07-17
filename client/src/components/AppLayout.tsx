@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc";
-import { getLoginUrl } from "@/const";
+import { startLogin } from "@/const";
 import {
   Search,
   Bell,
@@ -234,7 +234,7 @@ function TopNav() {
               </DropdownMenu>
             </>
           ) : (
-            <Link href={getLoginUrl()}>
+            <button onClick={() => startLogin()}>
               <motion.button
                 className="px-4 py-1.5 rounded-xl text-sm font-semibold"
                 style={{
@@ -250,7 +250,7 @@ function TopNav() {
               >
                 Login
               </motion.button>
-            </Link>
+            </button>
           )}
         </div>
       </div>
