@@ -232,10 +232,10 @@ function TopNav() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
-          ) : (
-            <button onClick={() => startLogin()}>
-              <motion.button
+         ) : (
+            <motion.button
                 className="px-4 py-1.5 rounded-xl text-sm font-semibold"
+                onClick={() => startLogin()}
                 style={{
                   background: "#2D9B6E",
                   color: "rgba(255,255,255,0.95)",
@@ -248,8 +248,7 @@ function TopNav() {
                 whileTap={{ scale: 0.95 }}
               >
                 Login
-              </motion.button>
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
