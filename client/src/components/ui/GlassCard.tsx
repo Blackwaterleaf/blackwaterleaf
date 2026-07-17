@@ -8,6 +8,7 @@ interface GlassCardProps {
   active?: boolean;
   reflex?: boolean;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function GlassCard({
   active = false,
   reflex = false,
   onClick,
+  style,
 }: GlassCardProps) {
   const base = cn(
     "bwl-glass",
@@ -42,6 +44,7 @@ export default function GlassCard({
       <motion.div
         className={base}
         onClick={onClick}
+        style={style}
         whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
@@ -52,7 +55,7 @@ export default function GlassCard({
   }
 
   return (
-    <div className={base} onClick={onClick}>
+    <div className={base} onClick={onClick} style={style}>
       {children}
     </div>
   );

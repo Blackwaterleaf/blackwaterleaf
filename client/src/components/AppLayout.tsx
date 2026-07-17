@@ -147,12 +147,11 @@ function TopNav() {
                     whileHover={{ background: "rgba(255,255,255,0.05)" }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Avatar
-                      className="w-7 h-7"
-                      style={{
-                        ring: "2px solid rgba(45,155,110,0.4)",
-                        boxShadow: "0 0 0 2px rgba(45,155,110,0.35)",
-                      }}
+                   <Avatar
+                     className="w-7 h-7"
+                     style={{
+                       boxShadow: "0 0 0 2px rgba(45,155,110,0.35)",
+                     }}
                     >
                       <AvatarImage src={user?.avatarUrl ?? undefined} />
                       <AvatarFallback
