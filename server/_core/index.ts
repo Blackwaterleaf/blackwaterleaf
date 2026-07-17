@@ -2,8 +2,6 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -33,51 +31,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-
-  // SECURITY FIX: Helmet Security-Headers (XSS, Clickjacking, MIME-Sniffing)
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:", "https:"],
-        connectSrc: ["'self'", "https:"],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-  }));
-
-  // SECURITY FIX: Reduce body limit and add rate limiting
-  app.use(express.json({ limit: "35mb" }));
-  app.use(express.urlencoded({ limit: "35mb", extended: true }));
-  
-  // Rate limiting for uploads (max 10 uploads per 15 minutes per IP)
-  const uploadLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: "Too many uploads, please try again later",
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  
-  // Apply rate limiting to upload endpoints
-  app.use("/api/trpc/plants.addPhoto", uploadLimiter);
-  app.use("/api/trpc/aquariums.addPhoto", uploadLimiter);
-  app.use("/api/trpc/posts.create", uploadLimiter);
-  app.use("/api/trpc/users.uploadAvatar", uploadLimiter);
+  // Configure body parser with larger size limit for file uploads
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  
-  // General rate limiting (100 requests per 15 minutes per IP)
-  const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  app.use("/api/trpc", generalLimiter);
   // tRPC API
   app.use(
     "/api/trpc",
