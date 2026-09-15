@@ -1,54 +1,86 @@
 "use client";
 
 import { useState } from "react";
-import { trpc } from "@/client/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Download, Upload, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 export default function DataBackupPage() {
-  const [exportLoading, setExportLoading] = useState(false);
-  const [importLoading, setImportLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const exportAllData = trpc.export.exportAllUserData.useQuery();
-  const exportCSV = trpc.export.exportUserDataAsCSV.useQuery();
-  const userInfo = trpc.export.getAllUserInfo.useQuery();
-  const importData = trpc.import.importUserData.useMutation();
-
-  const handleExportJSON = async () => {
-    setExportLoading(true);
+  const handleDownloadAll = async () => {
+    setLoading(true);
     try {
-      const data = await exportAllData.refetch();
-      if (data.data) {
-        const element = document.createElement("a");
-        const file = new Blob([JSON.stringify(data.data, null, 2)], { type: "application/json" });
-        element.href = URL.createObjectURL(file);
-        element.download = `blackwaterleaf_backup_${userInfo.data?.username || "backup"}_${new Date().toISOString().split("T")[0]}.json`;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-        setMessage({ type: "success", text: "✅ Backup erfolgreich heruntergeladen!" });
-      }
+      const response = await fetch("/api/backup/download-all");
+      if (!response.ok) throw new Error("Download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = response.headers.get("content-disposition")?.split("filename=")[1] || "backup.zip";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setMessage({ type: "success", text: "✅ Backup erfolgreich heruntergeladen!" });
     } catch (error) {
-      setMessage({ type: "error", text: `❌ Export fehlgeschlagen: ${error}` });
+      setMessage({ type: "error", text: `❌ Download fehlgeschlagen: ${error}` });
     } finally {
-      setExportLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleImportJSON = async (file: File) => {
-    setImportLoading(true);
+  const handleDownloadJSON = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/backup/download-json");
+      if (!response.ok) throw new Error("Download failed");
+
+      const data = await response.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `backup_${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setMessage({ type: "success", text: "✅ JSON-Backup erfolgreich heruntergeladen!" });
+    } catch (error) {
+      setMessage({ type: "error", text: `❌ Download fehlgeschlagen: ${error}` });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpload = async (file: File) => {
+    setLoading(true);
     try {
       const text = await file.text();
       const backupData = JSON.parse(text);
 
-      await importData.mutateAsync({ backupData });
-      setMessage({ type: "success", text: "✅ Daten erfolgreich wiederhergestellt!" });
+      const response = await fetch("/api/backup/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(backupData),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Upload failed");
+
+      setMessage({
+        type: "success",
+        text: `✅ Daten wiederhergestellt! Pflanzen: ${result.importResults.plants}, Aquarien: ${result.importResults.aquariums}, Beiträge: ${result.importResults.posts}`,
+      });
     } catch (error) {
       setMessage({ type: "error", text: `❌ Import fehlgeschlagen: ${error}` });
     } finally {
-      setImportLoading(false);
+      setLoading(false);
     }
   };
 
@@ -74,32 +106,6 @@ export default function DataBackupPage() {
         </div>
       )}
 
-      {/* User Info Card */}
-      {userInfo.data && (
-        <Card>
-          <CardHeader>
-            <CardTitle>👤 Dein Konto</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p>
-              <strong>Benutzername:</strong> {userInfo.data.username || "Nicht gesetzt"}
-            </p>
-            <p>
-              <strong>E-Mail:</strong> {userInfo.data.email || "Nicht gesetzt"}
-            </p>
-            <p>
-              <strong>Name:</strong> {userInfo.data.name || "Nicht gesetzt"}
-            </p>
-            <p>
-              <strong>Beigetreten:</strong> {new Date(userInfo.data.joinDate).toLocaleDateString("de-DE")}
-            </p>
-            <p>
-              <strong>Status:</strong> {userInfo.data.accountStatus}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Export Options */}
       <Card>
         <CardHeader>
@@ -110,27 +116,42 @@ export default function DataBackupPage() {
           <CardDescription>Lade alle deine Daten als Backup herunter</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button
-            onClick={handleExportJSON}
-            disabled={exportLoading}
-            className="w-full"
-            size="lg"
-          >
-            {exportLoading ? "Wird exportiert..." : "📄 Als JSON Exportieren (Vollständig)"}
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={handleDownloadAll}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+              variant="default"
+            >
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              {loading ? "Wird vorbereitet..." : "📦 Als ZIP Herunterladen (mit allen Dateien)"}
+            </Button>
+
+            <Button
+              onClick={handleDownloadJSON}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+              variant="outline"
+            >
+              {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+              {loading ? "Wird vorbereitet..." : "📄 Als JSON Herunterladen"}
+            </Button>
+          </div>
 
           <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
             <p>
-              <strong>JSON-Export beinhaltet:</strong>
+              <strong>Export beinhaltet:</strong>
             </p>
             <ul className="list-disc pl-5 mt-2">
-              <li>Komplettes Profil & Einstellungen</li>
-              <li>Alle Pflanzen & Aquarien</li>
-              <li>Alle Beiträge, Kommentare & Likes</li>
-              <li>Nachrichten & Unterhaltungen</li>
-              <li>KI-Chat-Verlauf</li>
-              <li>Statistiken & Erfolge</li>
-              <li>Alle Metadaten und Zeitstempel</li>
+              <li>✅ Komplettes Profil & Einstellungen</li>
+              <li>✅ Alle Pflanzen & Aquarien</li>
+              <li>✅ Alle Beiträge & Kommentare</li>
+              <li>✅ Nachrichten & Unterhaltungen</li>
+              <li>✅ KI-Chat-Verlauf</li>
+              <li>✅ Statistiken & Erfolge</li>
+              <li>✅ Alle Metadaten</li>
             </ul>
           </div>
         </CardContent>
@@ -156,10 +177,10 @@ export default function DataBackupPage() {
               accept=".json"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
-                  handleImportJSON(e.target.files[0]);
+                  handleUpload(e.target.files[0]);
                 }
               }}
-              disabled={importLoading}
+              disabled={loading}
               className="hidden"
             />
           </label>
@@ -173,35 +194,6 @@ export default function DataBackupPage() {
         </CardContent>
       </Card>
 
-      {/* Statistics */}
-      {exportAllData.data && (
-        <Card>
-          <CardHeader>
-            <CardTitle>📈 Deine Statistiken</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{exportAllData.data.stats.totalPlants}</p>
-                <p className="text-sm text-gray-500">Pflanzen</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{exportAllData.data.stats.totalAquariums}</p>
-                <p className="text-sm text-gray-500">Aquarien</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{exportAllData.data.stats.totalPosts}</p>
-                <p className="text-sm text-gray-500">Beiträge</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">{exportAllData.data.stats.followers}</p>
-                <p className="text-sm text-gray-500">Follower</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Data Privacy Info */}
       <Card className="bg-purple-50 border-purple-200">
         <CardHeader>
@@ -209,20 +201,38 @@ export default function DataBackupPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-purple-800 text-sm">
           <p>
-            Dein Backup ist für <strong>dich selbst</strong> bestimmt. Du kannst es jederzeit herunterladen
-            und speichern.
+            Dein Backup ist für <strong>dich selbst</strong> bestimmt. Du kannst es jederzeit herunterladen und speichern.
           </p>
           <p>
-            ✅ <strong>Sichere deine Daten regelmäßig</strong>, um im Falle eines Kontoausfalls nicht alles
-            zu verlieren.
+            ✅ <strong>Sichere deine Daten regelmäßig</strong>, um im Falle eines Kontoausfalls nicht alles zu verlieren.
           </p>
           <p>
             ✅ Du hast das Recht auf <strong>Datenportabilität</strong> gemäß DSGVO Art. 20.
           </p>
           <p>
-            ⚠️ <strong>Gib dein Backup nicht an Dritte weiter</strong> – es enthält sensible Informationen
-            über dich!
+            ⚠️ <strong>Gib dein Backup nicht an Dritte weiter</strong> – es enthält sensible Informationen über dich!
           </p>
+        </CardContent>
+      </Card>
+
+      {/* API Documentation */}
+      <Card className="bg-gray-50 border-gray-300">
+        <CardHeader>
+          <CardTitle className="text-gray-900">🔧 API für Entwickler</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm font-mono text-gray-700">
+          <div>
+            <p className="font-bold mb-1">Download Backup als ZIP:</p>
+            <code className="bg-white p-2 rounded border block">GET /api/backup/download-all</code>
+          </div>
+          <div>
+            <p className="font-bold mb-1">Download Backup als JSON:</p>
+            <code className="bg-white p-2 rounded border block">GET /api/backup/download-json</code>
+          </div>
+          <div>
+            <p className="font-bold mb-1">Upload und Restore:</p>
+            <code className="bg-white p-2 rounded border block">POST /api/backup/upload</code>
+          </div>
         </CardContent>
       </Card>
     </div>
