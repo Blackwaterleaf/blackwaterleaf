@@ -19,13 +19,13 @@ export default function DataBackupPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = response.headers.get("content-disposition")?.split("filename=")[1] || "backup.zip";
+      a.download = response.headers.get("content-disposition")?.split("filename=")[1]?.replace(/"/g, "") || "backup.zip";
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      setMessage({ type: "success", text: "✅ Backup erfolgreich heruntergeladen!" });
+      setMessage({ type: "success", text: "✅ ZIP-Backup erfolgreich heruntergeladen!" });
     } catch (error) {
       setMessage({ type: "error", text: `❌ Download fehlgeschlagen: ${error}` });
     } finally {
@@ -125,7 +125,7 @@ export default function DataBackupPage() {
               variant="default"
             >
               {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-              {loading ? "Wird vorbereitet..." : "📦 Als ZIP Herunterladen (mit allen Dateien)"}
+              {loading ? "Wird vorbereitet..." : "📦 Als ZIP Herunterladen (alle Dateien)"}
             </Button>
 
             <Button
@@ -187,8 +187,7 @@ export default function DataBackupPage() {
 
           <div className="p-4 bg-yellow-50 rounded-lg text-sm text-yellow-800 mt-4">
             <p>
-              <strong>⚠️ Wichtig:</strong> Der Import erstellt neue Einträge. Bereits vorhandene Daten werden
-              nicht gelöscht oder überschrieben.
+              <strong>⚠️ Wichtig:</strong> Der Import erstellt neue Einträge. Bereits vorhandene Daten werden nicht gelöscht oder überschrieben.
             </p>
           </div>
         </CardContent>
@@ -223,15 +222,15 @@ export default function DataBackupPage() {
         <CardContent className="space-y-3 text-sm font-mono text-gray-700">
           <div>
             <p className="font-bold mb-1">Download Backup als ZIP:</p>
-            <code className="bg-white p-2 rounded border block">GET /api/backup/download-all</code>
+            <code className="bg-white p-2 rounded border block break-all">GET /api/backup/download-all</code>
           </div>
           <div>
             <p className="font-bold mb-1">Download Backup als JSON:</p>
-            <code className="bg-white p-2 rounded border block">GET /api/backup/download-json</code>
+            <code className="bg-white p-2 rounded border block break-all">GET /api/backup/download-json</code>
           </div>
           <div>
             <p className="font-bold mb-1">Upload und Restore:</p>
-            <code className="bg-white p-2 rounded border block">POST /api/backup/upload</code>
+            <code className="bg-white p-2 rounded border block break-all">POST /api/backup/upload</code>
           </div>
         </CardContent>
       </Card>
