@@ -60,13 +60,11 @@ export const exportRouter = createTRPCRouter({
       // Plants & Photos
       db.query.plants.findMany({
         where: eq(plants.userId, userId),
-        with: { photos: true },
       }),
 
       // Aquariums & Photos & Events
       db.query.aquariums.findMany({
         where: eq(aquariums.userId, userId),
-        with: { photos: true, events: true },
       }),
 
       // Posts
@@ -179,32 +177,6 @@ export const exportRouter = createTRPCRouter({
   }),
 
   /**
-   * Export user data as CSV files (one per category)
-   */
-  exportUserDataAsCSV: protectedProcedure.query(async ({ ctx }) => {
-    if (!ctx.user) throw new Error("Unauthorized");
-
-    const userId = ctx.user.id;
-
-    const [plants, aquariums, posts, comments] = await Promise.all([
-      db.query.plants.findMany({ where: eq(plants.userId, userId) }),
-      db.query.aquariums.findMany({ where: eq(aquariums.userId, userId) }),
-      db.query.posts.findMany({ where: eq(posts.userId, userId) }),
-      db.query.comments.findMany({ where: eq(comments.userId, userId) }),
-    ]);
-
-    return {
-      fileName: `blackwaterleaf_backup_${ctx.user.username || userId}_${new Date().toISOString().split('T')[0]}.zip`,
-      csvFiles: {
-        plants: convertToCSV(plants, ["id", "name", "scientificName", "category", "difficulty", "isPublic", "createdAt"]),
-        aquariums: convertToCSV(aquariums, ["id", "name", "type", "volumeLiters", "filterType", "isPublic", "createdAt"]),
-        posts: convertToCSV(posts, ["id", "content", "category", "likesCount", "commentsCount", "createdAt"]),
-        comments: convertToCSV(comments, ["id", "content", "likesCount", "repliesCount", "createdAt"]),
-      },
-    };
-  }),
-
-  /**
    * Get all user info for account deletion / GDPR compliance
    */
   getAllUserInfo: protectedProcedure.query(async ({ ctx }) => {
@@ -222,28 +194,3 @@ export const exportRouter = createTRPCRouter({
     };
   }),
 });
-
-/**
- * Helper: Convert array to CSV format
- */
-function convertToCSV(data: any[], columns: string[]): string {
-  if (data.length === 0) return columns.join(",");
-
-  const headers = columns.join(",");
-  const rows = data
-    .map(obj =>
-      columns
-        .map(col => {
-          const value = obj[col];
-          if (value === null || value === undefined) return "";
-          if (typeof value === "string" && value.includes(",")) {
-            return `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        })
-        .join(",")
-    )
-    .join("\n");
-
-  return `${headers}\n${rows}`;
-}
