@@ -2,36 +2,18 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { db } from "../_core/db";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
-import {
-  users,
-  plants,
-  aquariums,
-  posts,
-  comments,
-  likes,
-  follows,
-} from "../../drizzle/schema";
+import { users, plants, aquariums, posts, comments } from "../../drizzle/schema";
 
 export const importRouter = createTRPCRouter({
-  /**
-   * Import/restore user data from backup JSON
-   * Validates structure and imports data back into database
-   */
   importUserData: protectedProcedure
-    .input(
-      z.object({
-        backupData: z.any(), // JSON backup data
-      })
-    )
+    .input(z.object({ backupData: z.any() }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) throw new Error("Unauthorized");
 
       const userId = ctx.user.id;
       const backup = input.backupData;
 
-      if (!backup || !backup.data) {
-        throw new Error("Invalid backup format");
-      }
+      if (!backup || !backup.data) throw new Error("Invalid backup format");
 
       const importResults = {
         plants: 0,
@@ -42,83 +24,56 @@ export const importRouter = createTRPCRouter({
       };
 
       try {
-        // Import Plants
         if (backup.data.plants && Array.isArray(backup.data.plants)) {
           for (const plant of backup.data.plants) {
             try {
-              await db.insert(plants).values({
-                ...plant,
-                userId,
-                id: undefined, // Let DB generate new ID
-              });
+              await db.insert(plants).values({ ...plant, userId, id: undefined });
               importResults.plants++;
             } catch (err) {
-              importResults.errors.push(`Plant import failed: ${err}`);
+              importResults.errors.push(`Plant: ${err}`);
             }
           }
         }
 
-        // Import Aquariums
         if (backup.data.aquariums && Array.isArray(backup.data.aquariums)) {
-          for (const aquarium of backup.data.aquariums) {
+          for (const aq of backup.data.aquariums) {
             try {
-              await db.insert(aquariums).values({
-                ...aquarium,
-                userId,
-                id: undefined,
-              });
+              await db.insert(aquariums).values({ ...aq, userId, id: undefined });
               importResults.aquariums++;
             } catch (err) {
-              importResults.errors.push(`Aquarium import failed: ${err}`);
+              importResults.errors.push(`Aquarium: ${err}`);
             }
           }
         }
 
-        // Import Posts
         if (backup.data.posts && Array.isArray(backup.data.posts)) {
           for (const post of backup.data.posts) {
             try {
-              await db.insert(posts).values({
-                ...post,
-                userId,
-                id: undefined,
-              });
+              await db.insert(posts).values({ ...post, userId, id: undefined });
               importResults.posts++;
             } catch (err) {
-              importResults.errors.push(`Post import failed: ${err}`);
+              importResults.errors.push(`Post: ${err}`);
             }
           }
         }
 
-        // Import Comments
         if (backup.data.comments && Array.isArray(backup.data.comments)) {
           for (const comment of backup.data.comments) {
             try {
-              await db.insert(comments).values({
-                ...comment,
-                userId,
-                id: undefined,
-              });
+              await db.insert(comments).values({ ...comment, userId, id: undefined });
               importResults.comments++;
             } catch (err) {
-              importResults.errors.push(`Comment import failed: ${err}`);
+              importResults.errors.push(`Comment: ${err}`);
             }
           }
         }
 
-        return {
-          success: true,
-          message: `Successfully imported data`,
-          importResults,
-        };
+        return { success: true, message: "Import successful", importResults };
       } catch (error) {
         throw new Error(`Import failed: ${error}`);
       }
     }),
 
-  /**
-   * Restore user profile information
-   */
   restoreUserProfile: protectedProcedure
     .input(
       z.object({
@@ -132,7 +87,6 @@ export const importRouter = createTRPCRouter({
       if (!ctx.user) throw new Error("Unauthorized");
 
       const userId = ctx.user.id;
-
       await db
         .update(users)
         .set({
@@ -144,6 +98,6 @@ export const importRouter = createTRPCRouter({
         })
         .where(eq(users.id, userId));
 
-      return { success: true, message: "Profile restored successfully" };
+      return { success: true, message: "Profile restored" };
     }),
 });
