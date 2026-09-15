@@ -1,0 +1,207 @@
+import express, { Request, Response } from "express";
+import { db } from "./_core/db";
+import { eq } from "drizzle-orm";
+import { users, plants, aquariums, posts, comments, aiChats } from "../drizzle/schema";
+import * as archiver from "archiver";
+
+export function registerBackupRoutes(app: express.Express) {
+  app.get("/api/backup/download-all", async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const userName = (req as any).user?.username || `user_${userId}`;
+
+      const [userProfile, userPlants, userAquariums, userPosts, userComments, userAiChats] = await Promise.all([
+        db.query.users.findFirst({ where: eq(users.id, userId) }),
+        db.query.plants.findMany({ where: eq(plants.userId, userId) }),
+        db.query.aquariums.findMany({ where: eq(aquariums.userId, userId) }),
+        db.query.posts.findMany({ where: eq(posts.userId, userId) }),
+        db.query.comments.findMany({ where: eq(comments.userId, userId) }),
+        db.query.aiChats.findMany({ where: eq(aiChats.userId, userId) }),
+      ]);
+
+      const backupData = {
+        exportDate: new Date().toISOString(),
+        userName,
+        userId,
+        profile: userProfile
+          ? {
+              id: userProfile.id,
+              username: userProfile.username,
+              email: userProfile.email,
+              name: userProfile.name,
+              bio: userProfile.bio,
+              location: userProfile.location,
+              interests: userProfile.interests,
+              createdAt: userProfile.createdAt,
+              status: userProfile.status,
+            }
+          : null,
+        data: {
+          plants: userPlants,
+          aquariums: userAquariums,
+          posts: userPosts,
+          comments: userComments,
+          aiChats: userAiChats,
+        },
+        stats: {
+          totalPlants: userPlants.length,
+          totalAquariums: userAquariums.length,
+          totalPosts: userPosts.length,
+          totalComments: userComments.length,
+          totalAiChats: userAiChats.length,
+        },
+      };
+
+      const archive = archiver("zip", { zlib: { level: 9 } });
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `blackwaterleaf_backup_${userName}_${timestamp}.zip`;
+
+      res.setHeader("Content-Type", "application/zip");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+      archive.on("error", (err) => {
+        console.error("Archive error:", err);
+        res.status(500).json({ error: "Failed to create backup" });
+      });
+
+      archive.pipe(res);
+      archive.append(JSON.stringify(backupData, null, 2), { name: `backup_${timestamp}.json` });
+      archive.append(
+        `# BlackwaterLeaf Backup für ${userName}\n\nZurückdatum: ${new Date().toLocaleDateString("de-DE")}\n\nDieser Backup enthält alle deine Daten.`,
+        { name: "README.md" }
+      );
+
+      await archive.finalize();
+    } catch (error) {
+      console.error("Backup download error:", error);
+      res.status(500).json({ error: "Failed to generate backup" });
+    }
+  });
+
+  app.get("/api/backup/download-json", async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const userName = (req as any).user?.username || `user_${userId}`;
+
+      const [userProfile, userPlants, userAquariums, userPosts, userComments, userAiChats] = await Promise.all([
+        db.query.users.findFirst({ where: eq(users.id, userId) }),
+        db.query.plants.findMany({ where: eq(plants.userId, userId) }),
+        db.query.aquariums.findMany({ where: eq(aquariums.userId, userId) }),
+        db.query.posts.findMany({ where: eq(posts.userId, userId) }),
+        db.query.comments.findMany({ where: eq(comments.userId, userId) }),
+        db.query.aiChats.findMany({ where: eq(aiChats.userId, userId) }),
+      ]);
+
+      const backupData = {
+        exportDate: new Date().toISOString(),
+        userName,
+        userId,
+        profile: userProfile
+          ? {
+              id: userProfile.id,
+              username: userProfile.username,
+              email: userProfile.email,
+              name: userProfile.name,
+              bio: userProfile.bio,
+              location: userProfile.location,
+              interests: userProfile.interests,
+              createdAt: userProfile.createdAt,
+            }
+          : null,
+        data: {
+          plants: userPlants,
+          aquariums: userAquariums,
+          posts: userPosts,
+          comments: userComments,
+          aiChats: userAiChats,
+        },
+        stats: {
+          totalPlants: userPlants.length,
+          totalAquariums: userAquariums.length,
+          totalPosts: userPosts.length,
+          totalComments: userComments.length,
+        },
+      };
+
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `blackwaterleaf_backup_${userName}_${timestamp}.json`;
+
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.json(backupData);
+    } catch (error) {
+      console.error("JSON backup error:", error);
+      res.status(500).json({ error: "Failed to generate backup" });
+    }
+  });
+
+  app.post("/api/backup/upload", async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+      const backupData = req.body;
+      if (!backupData || !backupData.data) return res.status(400).json({ error: "Invalid backup" });
+
+      const importResults = { plants: 0, aquariums: 0, posts: 0, comments: 0, errors: [] as string[] };
+
+      if (backupData.data.plants) {
+        for (const plant of backupData.data.plants) {
+          try {
+            await db.insert(plants).values({ ...plant, userId, id: undefined });
+            importResults.plants++;
+          } catch (err) {
+            importResults.errors.push(`Plant: ${err}`);
+          }
+        }
+      }
+
+      if (backupData.data.aquariums) {
+        for (const aq of backupData.data.aquariums) {
+          try {
+            await db.insert(aquariums).values({ ...aq, userId, id: undefined });
+            importResults.aquariums++;
+          } catch (err) {
+            importResults.errors.push(`Aquarium: ${err}`);
+          }
+        }
+      }
+
+      if (backupData.data.posts) {
+        for (const post of backupData.data.posts) {
+          try {
+            await db.insert(posts).values({ ...post, userId, id: undefined });
+            importResults.posts++;
+          } catch (err) {
+            importResults.errors.push(`Post: ${err}`);
+          }
+        }
+      }
+
+      if (backupData.data.comments) {
+        for (const comment of backupData.data.comments) {
+          try {
+            await db.insert(comments).values({ ...comment, userId, id: undefined });
+            importResults.comments++;
+          } catch (err) {
+            importResults.errors.push(`Comment: ${err}`);
+          }
+        }
+      }
+
+      res.json({ success: true, message: "Restored", importResults });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Failed to process backup" });
+    }
+  });
+
+  console.log("✅ Backup routes ready:");
+  console.log("  GET  /api/backup/download-all   - ZIP");
+  console.log("  GET  /api/backup/download-json  - JSON");
+  console.log("  POST /api/backup/upload         - Restore");
+}
