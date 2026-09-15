@@ -7,6 +7,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { registerBackupRoutes } from "./backupRoutes";
+import { registerAdminBackupRoutes } from "./adminBackupRoutes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -53,8 +54,11 @@ async function startServer() {
   app.use("/api/trpc/posts.create", uploadLimiter);
   app.use("/api/trpc/users.uploadAvatar", uploadLimiter);
   
-  // Register backup routes
+  // Register backup routes (for individual users)
   registerBackupRoutes(app);
+  
+  // Register admin backup routes (for entire database)
+  registerAdminBackupRoutes(app);
   
   registerStorageProxy(app);
   registerOAuthRoutes(app);
