@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "BlackWaterLeaf Studio",
+    "slug": "blackwaterleaf-studio",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "blackwaterleaf-studio",
+    "android": {
+      "package": "com.blackwaterleaf.studio",
+      "adaptiveIcon": {
+        "backgroundColor": "#07100f"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.blackwaterleaf.studio"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
