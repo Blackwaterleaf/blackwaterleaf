@@ -216,6 +216,23 @@ export const assistantUsage = mysqlTable(
   ],
 );
 
+/** Private, structured setup records for a member's living worlds. */
+export const privateHabitats = mysqlTable(
+  "private_habitats",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    kind: mysqlEnum("kind", ["aquarium", "plant", "terrarium"]).notNull(),
+    name: varchar("name", { length: 128 }).notNull(),
+    details: json("details").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("private_habitats_user_kind_updated_idx").on(table.userId, table.kind, table.updatedAt)],
+);
+
 export const knowledgeArticles = mysqlTable(
   "knowledge_articles",
   {
@@ -404,6 +421,7 @@ export type InsertObservationRecord = typeof observations.$inferInsert;
 export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
 export type XpEventRecord = typeof xpEvents.$inferSelect;
 export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
+export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;
 export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;

@@ -9,6 +9,7 @@ import { communityRouter } from "./routers/community";
 import { knowledgeRouter } from "./routers/knowledge";
 import { gamificationRouter } from "./routers/gamification";
 import { assistantRouter } from "./routers/assistant";
+import { habitatsRouter } from "./routers/habitats";
 import { adminRouter } from "./routers/admin";
 import { partnersRouter } from "./routers/partners";
 
@@ -22,6 +23,7 @@ export const appRouter = router({
   community: communityRouter,
   gamification: gamificationRouter,
   assistant: assistantRouter,
+  habitats: habitatsRouter,
   admin: adminRouter,
   partners: partnersRouter,
   auth: router({

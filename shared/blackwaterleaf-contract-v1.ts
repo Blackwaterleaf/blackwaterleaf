@@ -215,6 +215,79 @@ export const experienceSummarySchema = z.object({
   ),
 });
 
+export const privateHabitatKindSchema = z.enum(["aquarium", "plant", "terrarium"]);
+
+const nullableNumber = (min: number, max: number) => z.number().finite().min(min).max(max).nullable();
+const nullableText = (max: number) => z.string().trim().max(max).nullable();
+
+export const aquariumDetailsSchema = z
+  .object({
+    volumeLiters: nullableNumber(1, 100_000),
+    lengthCm: nullableNumber(1, 10_000),
+    widthCm: nullableNumber(1, 10_000),
+    heightCm: nullableNumber(1, 10_000),
+    occupants: nullableText(4_000),
+    plants: nullableText(4_000),
+    temperatureC: nullableNumber(-5, 60),
+    ph: nullableNumber(0, 14),
+    gh: nullableNumber(0, 100),
+    kh: nullableNumber(0, 100),
+    nitriteMgL: nullableNumber(0, 100),
+    nitrateMgL: nullableNumber(0, 1_000),
+    conductivityUs: nullableNumber(0, 20_000),
+    equipment: nullableText(4_000),
+    notes: nullableText(4_000),
+  })
+  .strict();
+
+export const plantDetailsSchema = z
+  .object({
+    scientificName: nullableText(160),
+    quantity: nullableNumber(1, 100_000),
+    location: nullableText(256),
+    substrate: nullableText(1_000),
+    potSizeCm: nullableNumber(1, 1_000),
+    light: nullableText(512),
+    watering: nullableText(1_000),
+    humidityPercent: nullableNumber(0, 100),
+    temperatureC: nullableNumber(-5, 60),
+    fertilizer: nullableText(1_000),
+    notes: nullableText(4_000),
+  })
+  .strict();
+
+export const terrariumDetailsSchema = z
+  .object({
+    volumeLiters: nullableNumber(1, 100_000),
+    lengthCm: nullableNumber(1, 10_000),
+    widthCm: nullableNumber(1, 10_000),
+    heightCm: nullableNumber(1, 10_000),
+    occupants: nullableText(4_000),
+    plants: nullableText(4_000),
+    dayTemperatureC: nullableNumber(-5, 60),
+    nightTemperatureC: nullableNumber(-5, 60),
+    humidityPercent: nullableNumber(0, 100),
+    substrate: nullableText(1_000),
+    equipment: nullableText(4_000),
+    notes: nullableText(4_000),
+  })
+  .strict();
+
+export const privateHabitatInputSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("aquarium"), name: z.string().trim().min(1).max(128), details: aquariumDetailsSchema }),
+  z.object({ kind: z.literal("plant"), name: z.string().trim().min(1).max(128), details: plantDetailsSchema }),
+  z.object({ kind: z.literal("terrarium"), name: z.string().trim().min(1).max(128), details: terrariumDetailsSchema }),
+]);
+
+export const privateHabitatSchema = privateHabitatInputSchema.and(
+  z.object({
+    id: z.string().min(1),
+    ownerId: z.string().min(1),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+  }),
+);
+
 export type AccountRole = z.infer<typeof accountRoleSchema>;
 export type AccountStatus = z.infer<typeof accountStatusSchema>;
 export type AppLocale = z.infer<typeof localeSchema>;
@@ -229,6 +302,8 @@ export type CreateObservationInput = z.infer<typeof createObservationInputSchema
 export type KnowledgeArticle = z.infer<typeof knowledgeArticleSchema>;
 export type CommunityPost = z.infer<typeof communityPostSchema>;
 export type PlatformAvailability = z.infer<typeof platformAvailabilitySchema>;
+export type PrivateHabitat = z.infer<typeof privateHabitatSchema>;
+export type PrivateHabitatInput = z.infer<typeof privateHabitatInputSchema>;
 export type ExperienceSummary = z.infer<typeof experienceSummarySchema>;
 
 export function canUseStaffControls(profile: VerifiedAccountProfile | null): boolean {

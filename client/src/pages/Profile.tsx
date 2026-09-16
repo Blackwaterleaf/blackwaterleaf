@@ -4,6 +4,7 @@ import { startLogin } from "@/const";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
+import { HabitatProfiles } from "@/components/HabitatProfiles";
 import { Camera, Languages, LogOut, Save, ShieldCheck, Trophy, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
@@ -203,6 +204,8 @@ export default function Profile() {
               <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
             </section>
           </details>
+
+          <HabitatProfiles />
         </>
       )}
 
