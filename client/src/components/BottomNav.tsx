@@ -1,24 +1,24 @@
 import { useLocation, Link } from "wouter";
-import { Home, Compass, Users, User } from "lucide-react";
+import { Home, Compass, Users, User, Bot } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import RadialMenu from "./RadialMenu";
 
 /**
  * Bottom-Navigation (Mobile)
  * Regelwerk:
- *   - 4 Haupt-Tabs: Home, Entdecken, Community, Profil
+ *   - 5 Haupt-Tabs: Home, Entdecken, Community, KI, Profil
  *   - Glassmorphism-Hintergrund (backdrop-blur-xl, bg-black/60, border-t border-white/10)
  *   - Aktiver Tab: Smaragd (#2D9B6E) Icon + Label
  *   - Inaktiv: rgba(255,255,255,0.6)
  *   - Sanfte Übergangsanimation beim Tab-Wechsel
- *   - Zentraler Plus-Button öffnet radiales Menü
+ *   - Zentraler Schnellaktionskreis lebt innerhalb der Home-/Feed-Ansicht
  */
 
 const NAV_ITEMS = [
   { href: "/",         label: "Home",      icon: Home },
   { href: "/discover", label: "Entdecken", icon: Compass },
   { href: "/feed",     label: "Community", icon: Users },
+  { href: "/ai",       label: "KI",        icon: Bot },
   { href: "/profile",  label: "Profil",    icon: User },
 ];
 
@@ -50,22 +50,7 @@ export default function BottomNav() {
         className="flex items-end justify-around"
         style={{ height: 64, maxWidth: 480, margin: "0 auto", padding: "0 8px" }}
       >
-        {/* Linke 2 Tabs */}
-        {NAV_ITEMS.slice(0, 2).map((item) => (
-          <NavTab
-            key={item.href}
-            href={item.href}
-            label={item.label}
-            icon={item.icon}
-            active={isActive(item.href)}
-          />
-        ))}
-
-        {/* Zentraler Plus-Button (RadialMenu) */}
-        <RadialMenu />
-
-        {/* Rechte 2 Tabs */}
-        {NAV_ITEMS.slice(2).map((item) => (
+        {NAV_ITEMS.map((item) => (
           <NavTab
             key={item.href}
             href={item.href}

@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import LivingSensorRail from "@/components/LivingSensorRail";
+import QuickActionWheel from "@/components/QuickActionWheel";
+import { WorldSelector } from "@/components/WorldSelector";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -710,6 +713,8 @@ export default function Feed() {
         </div>
       </div>
 
+      <LivingSensorRail />
+
       {/* ── Filter Tabs als Pills (wie Native App) ── */}
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
         {[{ value: "all", label: "Alle" }, ...CATEGORIES].map((cat) => {
@@ -733,6 +738,10 @@ export default function Feed() {
 
       {/* ── Empfohlene Accounts (wie Native App) ── */}
       <FeaturedAccountsRow />
+
+      {/* ── Bereichs-Auswahl + zentrales Schnellaktionsrad ── */}
+      <WorldSelector />
+      <QuickActionWheel />
 
       {/* ── Create Post ── */}
       {isAuthenticated && (

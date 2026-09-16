@@ -21,6 +21,10 @@ Die Referenz verwendet vier eigens für diese Übergabe erzeugte, stimmige Natur
 | **Bereichsfarben** | Botanik = gelbgrün; Aquaristik = Cyan; Terraristik = warmes Gelbgrün; KI = Violett. | Jede Themenkarte hat eigenen Akzent und Bildstimmung. |
 | **Mikrointeraktionen** | Glasreflexe, Wasserwellen, schwebende Blasen, Blattbewegung und Karten-Hover sind zurückhaltend. | CSS-Animationen mit `prefers-reduced-motion`-Fallback. |
 
+### Interaktive Bereichsfarben und Icons
+
+Die Auswahlbuttons verwenden keine generischen Bildsymbole. Sie sind als skalierbare, interaktive Lucide-Vektor-Icons mit den verbindlichen Neonfarben aus der Vorlage implementiert. **Botanik** erhält `#C7F35B`, **Aquaristik** das starke Neonblau `#28D8FF`, **Terraristik** das warme Gelbgrün `#E1D661` und der **KI-Assistent** Neonlila `#C36BFF`. Die Komponenten `WorldSelector.tsx` und `QuickActionWheel.tsx` enthalten die Routen, Tastaturfokusse und Touch-Interaktionen für die Wahlkarten bzw. das zentrale Aktionsrad; `world-controls.css` definiert alle Farben, Glaseffekte und Bewegungen.
+
 ## Architekturentscheidung
 
 Die bestehende Repository-Codebasis ist eine React-/TypeScript-PWA. Sie wird sowohl im Browser als auch auf mobilen Geräten ausgeliefert und enthält bereits ein Android-APK-Download-Angebot. Deshalb wurde die Gestaltung in dieser Codebasis implementiert, anstatt das separate Repository `Blackwaterleaf/blackwaterleaf-studio` zu verändern: Dessen Expo-Client gehört laut eigener README zu **BlackWaterLeaf Studio** und nicht zur Natur-/Community-App.
@@ -65,4 +69,7 @@ Die verbindliche visuelle Quelle ist docs/design/reference-screenshot.jpg. Eine 
 | `docs/design/REFERENCE_OVERLAY_HANDOFF.md` | Dieser Implementierungsauftrag und Übergabe-Prompt. |
 | `client/src/pages/DesignReference.tsx` | Funktionsfähige React-Referenzroute. |
 | `client/src/styles/reference-layout.css` | Isolierte Stil-, Responsive- und Animationsdefinitionen. |
+| `client/src/components/WorldSelector.tsx` | Vier funktionsfähige Themen-Wahltasten mit Neonfarben und Zielrouten. |
+| `client/src/components/QuickActionWheel.tsx` | Zentrales, aufklappbares Schnellaktionsrad mit sieben Wähltasten. |
+| `client/src/styles/world-controls.css` | Produktionsreife Farben, Icon-, Karten- und Radstile für die Auswahlkomponenten. |
 | `client/src/App.tsx` | Registriert die Preview unter `/design-reference`. |

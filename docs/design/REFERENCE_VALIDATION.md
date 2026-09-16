@@ -7,3 +7,17 @@ Die Route `/design-reference` wurde unter einer lokalen Vite-Vorschau auf Deskto
 Die bestehende Gesamtprüfung ist außerhalb des Scope der neuen Designseite derzeit nicht grün: `pnpm check` und der Serverteil von `pnpm build` scheitern an bereits im Ausgangsbranch vorhandenen Backup-Routen (`server/_core/adminBackupRoutes.ts`, `server/_core/backupRoutes.ts`, `server/routers/export.ts`, `server/routers/import.ts`, `server/routers/index.ts`), die auf nicht vorhandene interne Module verweisen. Der Vite-Frontend-Schritt selbst wurde erfolgreich erzeugt.
 
 Zusätzliche DOM-Prüfung in der Browservorschau: Die Renderfläche enthielt exakt **1** Smartphone-Container, **6** Overlay-Spezifikationen, **4** Themenkarten und **7** Schnellaktionen. Alle neun gerenderten Bildreferenzen meldeten erfolgreich geladene Bilddaten (`naturalWidth > 0`).
+
+## Interaktive Bereichsauswahl
+
+Die produktive Feed-Route rendert die vier Bereichs-Wahltasten (`.bwl-world-choice`) und das zentrale Schnellaktionsrad (`.bwl-quick-wheel`). Eine DOM-Prüfung bestätigte vier Karten und einen Aktionskreis; der Seitenhintergrund bleibt das definierte dunkle Tannengrün `rgb(7, 10, 8)`. Die Karte verlinken auf `/plants`, `/aquariums`, `/discover` und `/ai`; die sieben Schnellaktionen sind bis zum Öffnen des Aktionsrads aus der Tab-Reihenfolge ausgeblendet.
+
+Beim ersten automatisierten Klicktest wurde der React-Zustand synchron abgefragt; der nachfolgende Testlauf muss die Zustandsaktualisierung asynchron abwarten. Der Button bleibt semantisch mit `aria-expanded` ausgestattet, und die Schnellaktionslinks sind im geschlossenen Zustand nicht fokussierbar.
+
+Die Button-Struktur selbst ist vorhanden und funktionsbereit (`type="button"`, nicht deaktiviert, React-Handler gebunden). Die Browser-Konsole kann den React-State in dieser isolierten Vorschau jedoch nicht zuverlässig durch ein synthetisches DOM-`click()` aktualisieren; die Interaktion wird zusätzlich über eine echte Browser-Klickprüfung vor Übergabe validiert.
+
+Eine echte Browser-Klickprüfung bestätigte anschließend das Aktionsrad: Der Schalter änderte seine Beschriftung von „Schnellaktionen öffnen“ auf „Schnellaktionen schließen“. Nach dem Öffnen waren alle sieben Aktionen als sichtbare, per Tastatur erreichbare Links verfügbar. Der Screenshot zeigte die Farblogik eindeutig: Pflanzen in Neongrün, Aquaristik in intensivem Neonblau, Terraristik in gelbgrün und KI-Assistent in Neonlila.
+
+Nach der finalen Anpassung zeigt der Feed im Ausgangszustand ausschließlich den zentralen, leuchtenden Blattbutton. Die sieben Wahl-Icons sind nicht sichtbar und erscheinen erst über die Klickinteraktion. Die Browseransicht weist den Button korrekt als „Schnellaktionen öffnen“ aus.
+
+Die finale echte Browser-Klickprüfung ist erfolgreich: Ein Klick auf das zentrale Blatt blendet **alle sieben** Auswahl-Icons (Video, Foto, Beitrag, Pflanze hinzufügen, Fisch hinzufügen, Terrarium hinzufügen und KI fragen) rund um den Mittelpunkt ein. Der Zustand wechselt zuverlässig zu „Schnellaktionen schließen“; die Icon-Buttons sind sichtbare, routbare Links.
