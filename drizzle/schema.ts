@@ -20,6 +20,16 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const mobileDevices = mysqlTable("studio_mobile_devices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  expoPushToken: varchar("expoPushToken", { length: 255 }).notNull().unique(),
+  platform: mysqlEnum("platform", ["android", "ios", "web"]).notNull(),
+  status: mysqlEnum("status", ["active", "revoked"]).default("active").notNull(),
+  lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const workspaces = mysqlTable("studio_workspaces", {
   id: int("id").autoincrement().primaryKey(),
   ownerId: int("ownerId").notNull(),
@@ -179,3 +189,4 @@ export type TaskStep = typeof taskSteps.$inferSelect;
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type ApprovalRequest = typeof approvalRequests.$inferSelect;
 export type SandboxSession = typeof sandboxSessions.$inferSelect;
+export type MobileDevice = typeof mobileDevices.$inferSelect;

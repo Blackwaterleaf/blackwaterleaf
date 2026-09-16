@@ -2,6 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
+  mobileDevices,
   approvalDecisions,
   approvalRequests,
   auditEvents,
@@ -76,6 +77,24 @@ export async function getUserByOpenId(openId: string) {
   return result[0];
 }
 
+export async function registerMobileDevice(input: { userId: number; expoPushToken: string; platform: "android" | "ios" | "web" }) {
+  const db = await requireDb();
+  await db.insert(mobileDevices).values({ ...input, status: "active", lastSeenAt: new Date() }).onDuplicateKeyUpdate({ set: { userId: input.userId, platform: input.platform, status: "active", lastSeenAt: new Date() } });
+  return { success: true as const };
+}
+
+export async function listActiveMobilePushTokens(userIds: number[]) {
+  if (userIds.length === 0) return [];
+  const db = await requireDb();
+  return db.select({ userId: mobileDevices.userId, expoPushToken: mobileDevices.expoPushToken }).from(mobileDevices).where(and(inArray(mobileDevices.userId, userIds), eq(mobileDevices.status, "active")));
+}
+
+export async function listWorkspaceReviewerIds(workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select({ userId: workspaceMemberships.userId }).from(workspaceMemberships).where(and(eq(workspaceMemberships.workspaceId, workspaceId), eq(workspaceMemberships.status, "active"), inArray(workspaceMemberships.role, ["owner", "admin", "reviewer"])));
+  return rows.map(row => row.userId);
+}
+
 export async function getWorkspaceForUser(userId: number) {
   const db = await requireDb();
   const result = await db
@@ -131,6 +150,12 @@ export async function listWorkspaceApprovals(taskIds: number[]) {
     .where(inArray(approvalRequests.taskId, taskIds))
     .orderBy(desc(approvalRequests.createdAt))
     .limit(100);
+}
+
+export async function listPendingWorkspaceApprovals(taskIds: number[]) {
+  if (taskIds.length === 0) return [];
+  const db = await requireDb();
+  return db.select().from(approvalRequests).where(and(inArray(approvalRequests.taskId, taskIds), eq(approvalRequests.status, "pending"))).orderBy(desc(approvalRequests.createdAt)).limit(100);
 }
 
 export async function listTaskSteps(taskId: number) {
@@ -254,6 +279,12 @@ export async function createApproval(input: {
     status: "pending",
   });
   return Number(result[0].insertId);
+}
+
+export async function getApprovalForWorkspace(approvalId: number, workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select({ approval: approvalRequests }).from(approvalRequests).innerJoin(tasks, eq(approvalRequests.taskId, tasks.id)).where(and(eq(approvalRequests.id, approvalId), eq(tasks.workspaceId, workspaceId))).limit(1);
+  return rows[0]?.approval;
 }
 
 export async function decideApproval(input: { approvalId: number; userId: number; decision: "approved" | "denied"; reason?: string }) {

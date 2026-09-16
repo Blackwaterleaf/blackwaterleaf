@@ -22,6 +22,19 @@ function requireRole(role: string, allowed: Set<string>) {
   if (!allowed.has(role)) throw new TRPCError({ code: "FORBIDDEN", message: "This Studio action is not allowed for your role." });
 }
 
+async function sendApprovalPush(tokens: string[], taskTitle: string, approvalId: number) {
+  if (tokens.length === 0) return;
+  try {
+    await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(tokens.map(to => ({ to, title: "Studio-Freigabe erforderlich", body: `${taskTitle} wartet auf deine Bestätigung.`, data: { type: "approval", approvalId }, channelId: "approvals", sound: "default", priority: "high" }))),
+    });
+  } catch (error) {
+    console.warn("[Push] Approval notification failed:", error);
+  }
+}
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -122,16 +135,33 @@ export const appRouter = router({
         const approvalId = await db.createApproval({ ...input, requestedBy: ctx.user.id, expiresAt: new Date(Date.now() + 30 * 60 * 1000) });
         await db.updateTask(task.id, { status: "waiting_for_approval" });
         await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "approval.requested", metadata: { approvalId, actionType: input.actionType } });
+        const reviewerIds = await db.listWorkspaceReviewerIds(membership.workspace.id);
+        const devices = await db.listActiveMobilePushTokens(reviewerIds);
+        void sendApprovalPush(devices.map(device => device.expoPushToken), task.title, approvalId);
         return { approvalId };
       }),
+
+    pendingApprovals: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      requireRole(membership.membership.role, reviewerRoles);
+      const tasks = await db.listWorkspaceTasks(membership.workspace.id);
+      return db.listPendingWorkspaceApprovals(tasks.map(task => task.id));
+    }),
+
+    registerMobileDevice: protectedProcedure
+      .input(z.object({ expoPushToken: z.string().min(10).max(255), platform: z.enum(["android", "ios", "web"]) }))
+      .mutation(async ({ ctx, input }) => db.registerMobileDevice({ userId: ctx.user.id, ...input })),
 
     decideApproval: protectedProcedure
       .input(z.object({ approvalId: z.number().int().positive(), decision: z.enum(["approved", "denied"]), reason: z.string().max(1000).optional() }))
       .mutation(async ({ ctx, input }) => {
         const membership = await requireWorkspace(ctx.user.id);
         requireRole(membership.membership.role, reviewerRoles);
+        const approval = await db.getApprovalForWorkspace(input.approvalId, membership.workspace.id);
+        if (!approval) throw new TRPCError({ code: "NOT_FOUND", message: "Approval request not found in this workspace." });
+        if (approval.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "Approval request is no longer pending." });
         await db.decideApproval({ ...input, userId: ctx.user.id });
-        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: `approval.${input.decision}`, metadata: { approvalId: input.approvalId } });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: approval.taskId, actorType: "user", actorId: ctx.user.id, eventType: `approval.${input.decision}`, metadata: { approvalId: input.approvalId } });
         return { success: true as const };
       }),
 

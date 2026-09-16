@@ -6,6 +6,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "blackwaterleaf-studio",
+    "plugins": [
+      ["expo-notifications", { "color": "#9cebc6" }]
+    ],
     "android": {
       "package": "com.blackwaterleaf.studio",
       "adaptiveIcon": {
