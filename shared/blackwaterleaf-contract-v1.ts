@@ -310,6 +310,46 @@ export const privateHabitatSchema = privateHabitatInputSchema.and(
   }),
 );
 
+export const smartDeviceProviderSchema = z.enum([
+  "home_assistant",
+  "aquarium_controller",
+  "water_monitor",
+  "zigbee_matter",
+  "other",
+]);
+
+export const smartDeviceMetricSchema = z.enum([
+  "temperatureC",
+  "ph",
+  "gh",
+  "kh",
+  "nitriteMgL",
+  "nitrateMgL",
+  "conductivityUs",
+]);
+
+export const smartDeviceConnectionStatusSchema = z.enum([
+  "selected",
+  "awaiting_authorization",
+  "connected",
+  "disabled",
+]);
+
+/** Selection only; provider credentials always use a later, provider-specific flow. */
+export const smartDeviceSelectionInputSchema = z.object({
+  provider: smartDeviceProviderSchema,
+  habitatId: z.number().int().positive().nullable(),
+  modelLabel: z.string().trim().min(2).max(128).nullable(),
+  requestedMetrics: z.array(smartDeviceMetricSchema).min(1).max(7).refine(values => new Set(values).size === values.length, "duplicate_metrics"),
+}).strict();
+
+export const smartDeviceConnectionSchema = smartDeviceSelectionInputSchema.extend({
+  id: z.string().min(1),
+  status: smartDeviceConnectionStatusSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
 export type AccountRole = z.infer<typeof accountRoleSchema>;
 export type AccountStatus = z.infer<typeof accountStatusSchema>;
 export type AppLocale = z.infer<typeof localeSchema>;
@@ -329,6 +369,8 @@ export type PrivateHabitatInput = z.infer<typeof privateHabitatInputSchema>;
 export type ExperienceSummary = z.infer<typeof experienceSummarySchema>;
 export type PartnerProduct = z.infer<typeof partnerProductSchema>;
 export type PartnerProductInput = z.infer<typeof partnerProductInputSchema>;
+export type SmartDeviceSelectionInput = z.infer<typeof smartDeviceSelectionInputSchema>;
+export type SmartDeviceConnection = z.infer<typeof smartDeviceConnectionSchema>;
 
 export function canUseStaffControls(profile: VerifiedAccountProfile | null): boolean {
   return Boolean(

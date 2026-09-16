@@ -276,6 +276,31 @@ export const privateHabitats = mysqlTable(
   table => [index("private_habitats_user_kind_updated_idx").on(table.userId, table.kind, table.updatedAt)],
 );
 
+/**
+ * A user's private smart-device selection. OAuth/API credentials are deliberately
+ * not stored here; a provider-specific authorization is required before sync.
+ */
+export const smartDeviceConnections = mysqlTable(
+  "smart_device_connections",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    habitatId: int("habitatId").references(() => privateHabitats.id),
+    provider: mysqlEnum("provider", ["home_assistant", "aquarium_controller", "water_monitor", "zigbee_matter", "other"]).notNull(),
+    modelLabel: varchar("modelLabel", { length: 128 }),
+    requestedMetrics: json("requestedMetrics").notNull(),
+    status: mysqlEnum("status", ["selected", "awaiting_authorization", "connected", "disabled"]).default("selected").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("smart_device_connections_user_updated_idx").on(table.userId, table.updatedAt),
+    index("smart_device_connections_habitat_idx").on(table.habitatId),
+  ],
+);
+
 export const knowledgeArticles = mysqlTable(
   "knowledge_articles",
   {

@@ -5,6 +5,7 @@ import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
 import { HabitatProfiles } from "@/components/HabitatProfiles";
+import { SmartDeviceDialog } from "@/components/SmartDeviceDialog";
 import { Camera, Languages, LogOut, Save, ShieldCheck, Trophy, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
@@ -206,6 +207,10 @@ export default function Profile() {
           </details>
 
           <HabitatProfiles />
+          <section className="smart-device-entry glass-panel">
+            <div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div>
+            <SmartDeviceDialog />
+          </section>
         </>
       )}
 

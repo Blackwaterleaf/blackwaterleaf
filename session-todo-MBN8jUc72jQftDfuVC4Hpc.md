@@ -15,3 +15,4 @@
 - [ ] Remove legacy Manus OAuth only after local-account migration is accepted and existing users have transitioned.
 - [x] Apply the supplied BlackWaterLeaf reference layout: deep-green living overlay, compact sensor strip, realm color system, image-led cards, central seven-action leaf control, and responsive desktop/mobile navigation.
 - [x] Connect the dashboard to private aquarium water/pH values and opt-in current outdoor weather, without persisting browser coordinates; smart-device linking remains a separate, provider-specific connection.
+- [x] Add a private smart-device selection dialog with target-aquarium ownership checks, selectable water metrics, transparent pending state, and no browser- or database-stored provider credentials.

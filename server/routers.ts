@@ -14,6 +14,7 @@ import { adminRouter } from "./routers/admin";
 import { partnersRouter } from "./routers/partners";
 import { localAuthRouter } from "./routers/localAuth";
 import { sensorsRouter } from "./routers/sensors";
+import { smartDevicesRouter } from "./routers/smartDevices";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -29,6 +30,7 @@ export const appRouter = router({
   admin: adminRouter,
   partners: partnersRouter,
   sensors: sensorsRouter,
+  smartDevices: smartDevicesRouter,
   auth: router({
     ...localAuthRouter._def.record,
     me: publicProcedure.query(opts => opts.ctx.user),
