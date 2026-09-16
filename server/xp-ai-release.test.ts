@@ -31,6 +31,13 @@ describe("XP and AI staged release guards", () => {
     expect(index).toContain('app.use("/api/trpc/assistant", aiRateLimiter);');
   });
 
+  it("binds the managed server to its declared port without fallback scanning", () => {
+    const index = source("server/_core/index.ts");
+    expect(index).toContain('const port = parseInt(process.env.PORT || "3000", 10);');
+    expect(index).toContain("server.listen(port");
+    expect(index).not.toContain("findAvailablePort");
+  });
+
   it("grants XP only from server-created source identifiers", () => {
     const assistant = source("server/routers/assistant.ts");
     const observations = source("server/routers/observations.ts");
