@@ -1,6 +1,7 @@
 import type { MarketplaceCartLine, MarketplaceProduct } from "./marketplacePresentation";
 
 const STORAGE_KEY = "blackwaterleaf.marketplace.cart.v1";
+const FAVORITES_STORAGE_KEY = "blackwaterleaf.marketplace.favorites.v1";
 const MAX_QUANTITY = 20;
 
 function isStoredLine(value: unknown): value is MarketplaceCartLine {
@@ -18,6 +19,17 @@ function isStoredLine(value: unknown): value is MarketplaceCartLine {
     && line.quantity <= MAX_QUANTITY;
 }
 
+function isStoredFavorite(value: unknown): value is MarketplaceProduct {
+  if (!value || typeof value !== "object") return false;
+  const product = value as Partial<MarketplaceProduct>;
+  return typeof product.id === "number"
+    && Number.isInteger(product.id)
+    && typeof product.partnerId === "number"
+    && typeof product.partnerName === "string"
+    && typeof product.title === "string"
+    && typeof product.destinationUrl === "string";
+}
+
 export function readMarketplaceCart(): MarketplaceCartLine[] {
   if (typeof window === "undefined") return [];
   try {
@@ -31,6 +43,28 @@ export function readMarketplaceCart(): MarketplaceCartLine[] {
 export function writeMarketplaceCart(lines: MarketplaceCartLine[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines.filter(isStoredLine)));
+}
+
+export function readMarketplaceFavorites(): MarketplaceProduct[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(FAVORITES_STORAGE_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter(isStoredFavorite) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeMarketplaceFavorites(products: MarketplaceProduct[]) {
+  if (typeof window === "undefined") return;
+  const unique = products.filter((product, index, entries) => isStoredFavorite(product) && entries.findIndex(entry => entry.id === product.id) === index);
+  window.localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(unique));
+}
+
+export function toggleMarketplaceFavorite(products: MarketplaceProduct[], product: MarketplaceProduct): MarketplaceProduct[] {
+  return products.some(favorite => favorite.id === product.id)
+    ? products.filter(favorite => favorite.id !== product.id)
+    : [...products, product];
 }
 
 export function addMarketplaceProduct(lines: MarketplaceCartLine[], product: MarketplaceProduct): MarketplaceCartLine[] {

@@ -67,4 +67,14 @@ describe("marketplace UI truth contract", () => {
     expect(styles).toContain(".marketplace-card__offer");
     expect(styles).toContain(".marketplace-card__vendor");
   });
+
+  it("offers accessible heart toggles and a device-local favorites list", () => {
+    expect(marketplace).toContain("toggleMarketplaceFavorite");
+    expect(marketplace).toContain("marketplace-favorite-toggle");
+    expect(marketplace).toContain('aria-pressed={isFavorite}');
+    expect(marketplace).toContain("MarketplaceFavorites");
+    expect(marketplace).toContain("Favoriten bleiben nur auf diesem Gerät");
+    expect(styles).toContain(".marketplace-favorite-toggle");
+    expect(styles).toContain(".marketplace-favorite-list");
+  });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMarketplaceProduct, removeMarketplaceProduct, setMarketplaceQuantity } from "../client/src/lib/marketplaceCart";
+import { addMarketplaceProduct, removeMarketplaceProduct, setMarketplaceQuantity, toggleMarketplaceFavorite } from "../client/src/lib/marketplaceCart";
 import type { MarketplaceProduct } from "../client/src/lib/marketplacePresentation";
 
 const product: MarketplaceProduct = {
@@ -29,5 +29,12 @@ describe("local marketplace cart", () => {
     expect(setMarketplaceQuantity(line, product.id, 25)[0]?.quantity).toBe(20);
     expect(setMarketplaceQuantity(line, product.id, 0)).toEqual([]);
     expect(removeMarketplaceProduct(line, product.id)).toEqual([]);
+  });
+
+  it("toggles a product once in the local favorites list without a purchase quantity", () => {
+    const saved = toggleMarketplaceFavorite([], product);
+    const removed = toggleMarketplaceFavorite(saved, product);
+    expect(saved).toEqual([product]);
+    expect(removed).toEqual([]);
   });
 });
