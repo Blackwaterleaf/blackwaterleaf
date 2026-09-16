@@ -31,3 +31,4 @@
 - [x] Integrate the Habitat Builder as an authenticated, private planning route with a reviewed photorealistic reference fallback, local WebGL fallback, private-record basis, browser-local variants and JSON export; no database migration or PBR activation.
 - [x] Add the Habitat Builder as a sixth, conditional bottom-navigation destination for authenticated admins while retaining the regular five destinations for other accounts.
 - [x] Add a short, reduced-motion-safe navigation transition between all bottom tabs and the conditional Habitat Builder tab.
+- [x] Replace rotation-only Habitat Builder behavior with a bounded local object-placement workspace: select a planning tool, click the enclosure floor to place an abstract marker, then inspect position, rotation, scale or delete it. No asset library, purchase flow, PBR claim, migration or external generation.

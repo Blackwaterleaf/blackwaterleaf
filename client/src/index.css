@@ -485,3 +485,26 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .app-frame.is-tab-switching .tab-transition-surface { opacity:0; transform:translateY(-5px); transition-duration:105ms; }
 .nav-link.is-transition-target { color:#e2d661; transform:translateY(-2px); text-shadow:0 0 16px rgba(226,214,97,.48); }
 @media (prefers-reduced-motion: reduce) { .tab-transition-surface,.app-frame.is-tab-switching .tab-transition-surface,.nav-link.is-transition-target { transition:none; transform:none; } }
+
+
+/* Habitat Builder V2: deliberate object placement and inspector workspace. */
+.habitat-workspace-note { margin:0; color:#b9d0bc; font-size:.7rem; line-height:1.45; }
+.habitat-element { cursor:pointer; }
+.habitat-element em { display:inline-flex; width:max-content; margin-top:2px; color:var(--habitat-accent); border:1px solid color-mix(in srgb,var(--habitat-accent) 30%,transparent); border-radius:999px; padding:3px 5px; background:color-mix(in srgb,var(--habitat-accent) 9%,transparent); font:800 .43rem/1 "JetBrains Mono",monospace; font-style:normal; letter-spacing:.05em; text-transform:uppercase; }
+.habitat-canvas--placing { cursor:crosshair; }
+.habitat-canvas-shell.is-placement-mode::before { content:"PLATZIERMODUS"; position:absolute; z-index:3; top:52px; right:13px; padding:6px 8px; color:#071d18; border-radius:5px; background:var(--habitat-accent); font:800 .48rem/1 "JetBrains Mono",monospace; letter-spacing:.07em; }
+.habitat-inspector { display:grid; align-content:start; gap:10px; padding:17px; border:1px solid color-mix(in srgb,var(--habitat-accent) 34%,rgba(255,255,255,.08)); border-radius:18px; background:linear-gradient(145deg,color-mix(in srgb,var(--habitat-accent) 12%,#092219),rgba(3,19,11,.93)); }
+.habitat-inspector h2 { margin:0; color:#effff0; font:400 1.82rem/.92 "Bebas Neue",sans-serif; letter-spacing:.035em; }
+.habitat-inspector > p { margin:0; color:#bed0bf; font-size:.66rem; line-height:1.45; }
+.habitat-inspector__empty { display:flex; align-items:center; gap:8px; min-height:66px; padding:11px; color:#acc3af; border:1px dashed rgba(185,242,164,.24); border-radius:10px; background:rgba(0,0,0,.13); font:700 .59rem/1.4 "JetBrains Mono",monospace; }
+.habitat-inspector__empty svg { color:var(--habitat-accent); }
+.habitat-inspector-grid { display:grid; gap:9px; padding-top:2px; }
+.habitat-inspector-range { display:grid; gap:7px; padding:9px; border:1px solid rgba(191,246,174,.16); border-radius:9px; background:rgba(0,0,0,.13); }
+.habitat-inspector-range > span { display:flex; justify-content:space-between; gap:7px; color:#b6cdb9; font:800 .49rem/1.2 "JetBrains Mono",monospace; letter-spacing:.04em; text-transform:uppercase; }
+.habitat-inspector-range strong { color:var(--habitat-accent); }
+.habitat-inspector-range input { width:100%; accent-color:var(--habitat-accent); }
+.habitat-delete-placement { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:38px; margin-top:2px; color:#ffd4df; border:1px solid rgba(255,114,151,.34); border-radius:8px; background:rgba(83,13,35,.36); font:800 .56rem/1 "JetBrains Mono",monospace; letter-spacing:.045em; }
+.habitat-delete-placement:hover { border-color:rgba(255,151,181,.72); background:rgba(112,19,47,.54); }
+.habitat-safety-gate--wide { margin-top:1px; }
+@media (min-width:700px) { .habitat-builder-panels { grid-template-columns:minmax(0,1.24fr) minmax(295px,.76fr); }.habitat-safety-gate--wide { grid-template-columns:minmax(200px, .62fr) minmax(0, 1fr); align-items:start; }.habitat-safety-gate--wide > .eyebrow,.habitat-safety-gate--wide > h2 { grid-column:1; }.habitat-safety-gate--wide .habitat-gate-row,.habitat-safety-gate--wide .habitat-placement-check,.habitat-safety-gate--wide .habitat-safety-gate__notice { grid-column:2; }.habitat-safety-gate--wide .habitat-gate-row:first-of-type { grid-row:1; }.habitat-safety-gate--wide .habitat-gate-row:nth-of-type(2) { grid-row:2; }.habitat-safety-gate--wide .habitat-gate-row:nth-of-type(3) { grid-row:3; }.habitat-safety-gate--wide .habitat-placement-check { grid-row:4; }.habitat-safety-gate--wide .habitat-safety-gate__notice { grid-row:5; } }
+@media (prefers-reduced-motion: reduce) { .habitat-canvas--placing { cursor:default; } }

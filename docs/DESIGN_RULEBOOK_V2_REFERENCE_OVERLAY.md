@@ -133,7 +133,7 @@ Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der P
 | `/community` | Regenwald/Bach, `GEMEINSAM WACHSEN`, `COMMUNITY IN BEWEGUNG.` | Dominanter ehrlicher Feed-Empty-State mit Login-CTA und zwei Karten Beobachten/Teilen. Composer nachgeordnet. |
 | `/profile` | Blattwelt, `DEIN KONTO`, `IDENTITÄT BLEIBT VERIFIZIERT.` | Bei signed-out: Auth-Overlay. Danach zwei echte Karten für Sprache und Einheiten. Authentifizierte Detaildaten bleiben privat. |
 | `/knowledge` | Blattwelt, `WISSEN & EVIDENZ`, `WISSEN BRAUCHT QUELLEN.` | Ehrlicher Wissens-Empty-State und zwei Karten Quellen/Naturwissen. Published-, Error- und Empty-Zustand getrennt. |
-| `/habitat-builder` | Aquarium-Cyan oder Terrarium-Gold, `HABITAT PLANEN`, private Grundlage | Auth-Overlay ohne private Daten; angemeldet eigene Anlage oder Maßentwurf, fotorealistische Referenz plus nicht-PBR-Glasansicht, vier 2×2-Wahlbereiche, expliziter Sicherheits-Gate, lokale Varianten und JSON-Export. Keine Haltungs-, Diagnose-, Kauf-, Statik- oder Elektrofreigabe. |
+| `/habitat-builder` | Aquarium-Cyan oder Terrarium-Gold, `HABITAT PLANEN`, private Grundlage | Auth-Overlay ohne private Daten; angemeldet eigene Anlage oder Maßentwurf, fotorealistische Referenz plus nicht-PBR-Glasansicht, vier 2×2-Objektwerkzeuge, klickbare Platzierung auf der Bodenfläche und Objektinspektor für begrenzte Position, Drehung, Größe und Entfernung. Platzierte Formen sind abstrakte lokale Planungsmarker, keine Arten-, Produkt- oder PBR-Bibliothek. Expliziter Sicherheits-Gate, lokale Varianten und JSON-Export. Keine Haltungs-, Diagnose-, Kauf-, Statik- oder Elektrofreigabe. |
 
 ## 9. Abnahmeregel „Icon für Icon, Farbe für Farbe“
 
