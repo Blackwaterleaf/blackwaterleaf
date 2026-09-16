@@ -221,6 +221,24 @@ export async function closeSandboxSession(sessionId: number, status: "closed" | 
   await db.update(sandboxSessions).set({ status, endedAt: new Date() }).where(eq(sandboxSessions.id, sessionId));
 }
 
+export async function getTaskEvidence(taskId: number, workspaceId: number) {
+  const db = await requireDb();
+  const task = await getTaskForWorkspace(taskId, workspaceId);
+  if (!task) return undefined;
+  const [steps, messages, approvals, sessions, audit] = await Promise.all([
+    db.select().from(taskSteps).where(eq(taskSteps.taskId, taskId)).orderBy(taskSteps.sequence),
+    db.select().from(taskMessages).where(eq(taskMessages.taskId, taskId)).orderBy(taskMessages.createdAt),
+    db.select().from(approvalRequests).where(eq(approvalRequests.taskId, taskId)).orderBy(approvalRequests.createdAt),
+    db.select().from(sandboxSessions).where(eq(sandboxSessions.taskId, taskId)).orderBy(sandboxSessions.createdAt),
+    db.select().from(auditEvents).where(and(eq(auditEvents.workspaceId, workspaceId), eq(auditEvents.taskId, taskId))).orderBy(auditEvents.createdAt),
+  ]);
+  const approvalIds = approvals.map(approval => approval.id);
+  const decisions = approvalIds.length === 0
+    ? []
+    : await db.select().from(approvalDecisions).where(inArray(approvalDecisions.approvalRequestId, approvalIds)).orderBy(approvalDecisions.createdAt);
+  return { task, steps, messages, approvals, decisions, sessions, audit };
+}
+
 export async function createApproval(input: {
   taskId: number;
   requestedBy: number;

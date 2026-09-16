@@ -143,6 +143,15 @@ export const appRouter = router({
         if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
         return { task, steps: await db.listTaskSteps(task.id), messages: await db.listTaskMessages(task.id) };
       }),
+
+    evidencePack: protectedProcedure
+      .input(z.object({ taskId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        const evidence = await db.getTaskEvidence(input.taskId, membership.workspace.id);
+        if (!evidence) throw new TRPCError({ code: "NOT_FOUND", message: "Evidence pack task not found." });
+        return { ...evidence, generatedAt: new Date() };
+      }),
   }),
 });
 
