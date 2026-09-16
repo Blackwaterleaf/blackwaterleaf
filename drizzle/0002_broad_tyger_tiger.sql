@@ -1,0 +1,1 @@
+ALTER TABLE `user_consents` MODIFY COLUMN `purpose` enum('terms','privacy','profile_publication','observation_publishing','media_processing','community_publishing','location_processing','ai_processing') NOT NULL;

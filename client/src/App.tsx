@@ -1,114 +1,69 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useTimeOfDay } from "@/hooks/useTimeOfDay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import AppLayout from "./components/AppLayout";
+import Assistant from "./pages/Assistant";
+import Community from "./pages/Community";
+import Explore from "./pages/Explore";
 import Home from "./pages/Home";
-import Feed from "./pages/Feed";
-import Plants from "./pages/Plants";
-import PlantCreate from "./pages/PlantCreate";
-import PlantDetail from "./pages/PlantDetail";
-import Aquariums from "./pages/Aquariums";
-import AquariumCreate from "./pages/AquariumCreate";
-import AquariumDetail from "./pages/AquariumDetail";
-import Profile from "./pages/Profile";
-import Discover from "./pages/Discover";
-import AiAssistant from "./pages/AiAssistant";
-import Notifications from "./pages/Notifications";
 import Knowledge from "./pages/Knowledge";
-import KnowledgeArticle from "./pages/KnowledgeArticle";
-import Ranking from "./pages/Ranking";
-import PwaInstallPrompt from "./components/PwaInstallPrompt";
-import Impressum from "./pages/legal/Impressum";
-import Datenschutz from "./pages/legal/Datenschutz";
-import Nutzungsbedingungen from "./pages/legal/Nutzungsbedingungen";
-import ModeratorDashboard from "./pages/ModeratorDashboard";
-import AdminPanel from "./pages/AdminPanel";
-import AiIdentificationReview from "./pages/AiIdentificationReview";
+import Profile from "./pages/Profile";
+import Realm from "./pages/Realm";
+import FlowDestination from "./pages/FlowDestination";
+import AdminDashboard from "./pages/AdminDashboard";
+import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
+import MarketplaceProduct from "./pages/MarketplaceProduct";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/feed">
-        <AppLayout><Feed /></AppLayout>
+      <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/:section"} component={AdminDashboard} />
+      <Route path={"/login"} component={AccountAccess} />
+      <Route path={"/register"} component={AccountAccess} />
+      <Route path={"/forgot-password"} component={AccountAccess} />
+      <Route path={"/verify-email"} component={AccountAccess} />
+      <Route path={"/reset-password"} component={AccountAccess} />
+      <Route>
+        <AppShell>
+          <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/explore"} component={Explore} />
+        <Route path={"/community"} component={Community} />
+        <Route path={"/assistant"} component={Assistant} />
+        <Route path={"/profile"} component={Profile} />
+        <Route path={"/knowledge"} component={Knowledge} />
+        <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
+        <Route path={"/marketplace"} component={Marketplace} />
+        <Route path={"/flow/:flow"} component={FlowDestination} />
+        <Route path={"/world/:realm"} component={Realm} />
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
+          </Switch>
+        </AppShell>
       </Route>
-      <Route path="/plants">
-        <AppLayout><Plants /></AppLayout>
-      </Route>
-      <Route path="/plants/new">
-        <AppLayout><PlantCreate /></AppLayout>
-      </Route>
-      <Route path="/plants/:id">
-        {(params) => <AppLayout><PlantDetail id={Number(params.id)} /></AppLayout>}
-      </Route>
-      <Route path="/aquariums">
-        <AppLayout><Aquariums /></AppLayout>
-      </Route>
-      <Route path="/aquariums/new">
-        <AppLayout><AquariumCreate /></AppLayout>
-      </Route>
-      <Route path="/aquariums/:id">
-        {(params) => <AppLayout><AquariumDetail id={Number(params.id)} /></AppLayout>}
-      </Route>
-      <Route path="/profile">
-        <AppLayout><Profile /></AppLayout>
-      </Route>
-      <Route path="/profile/:id">
-        {(params) => <AppLayout><Profile userId={Number(params.id)} /></AppLayout>}
-      </Route>
-      <Route path="/discover">
-        <AppLayout><Discover /></AppLayout>
-      </Route>
-      <Route path="/knowledge">
-        <AppLayout><Knowledge /></AppLayout>
-      </Route>
-      <Route path="/knowledge/:slug">
-        {(params) => <AppLayout><KnowledgeArticle slug={String(params.slug)} /></AppLayout>}
-      </Route>
-      <Route path="/ranking">
-        <AppLayout><Ranking /></AppLayout>
-      </Route>
-      <Route path="/marketplace">
-        <AppLayout><Marketplace /></AppLayout>
-      </Route>
-      <Route path="/ai">
-        <AppLayout><AiAssistant /></AppLayout>
-      </Route>
-      <Route path="/notifications">
-        <AppLayout><Notifications /></AppLayout>
-      </Route>
-      <Route path="/moderator">
-        <AppLayout><ModeratorDashboard /></AppLayout>
-      </Route>
-      <Route path="/admin">
-        <AppLayout><AdminPanel /></AppLayout>
-      </Route>
-      <Route path="/ai-review">
-        <AppLayout><AiIdentificationReview /></AppLayout>
-      </Route>
-      <Route path="/impressum" component={Impressum} />
-      <Route path="/datenschutz" component={Datenschutz} />
-      <Route path="/agb" component={Nutzungsbedingungen} />
-      <Route path="/nutzungsbedingungen" component={Nutzungsbedingungen} />
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
     </Switch>
   );
 }
 
+// NOTE: About Theme
+// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
+//   to keep consistent foreground/background color across components
+// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+
 function App() {
-  useTimeOfDay(); // Tageszeit-Klasse auf body setzen
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider
+        defaultTheme="dark"
+        // switchable
+      >
         <TooltipProvider>
           <Toaster />
-          <PwaInstallPrompt />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

@@ -1,1 +1,0 @@
-ALTER TABLE `knowledge_articles` MODIFY COLUMN `genus` varchar(64) DEFAULT '';

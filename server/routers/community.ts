@@ -1,323 +1,306 @@
-/**
- * Community-Module für BlackwaterLeaf.
- *
- * Modular aufgebaut gemäß Developer Master Handbook: Jedes Modul ist ein
- * eigenständiger tRPC-Router, der in `appRouter` eingehängt wird. So lassen
- * sich weitere Module (V2/V3) ohne Umbau ergänzen.
- *
- * Enthaltene Module:
- *  - social      → öffentliche Profile, Folgen/Entfolgen, Follower-Listen
- *  - threads     → threaded Kommentare (Antworten) + Kommentar-Likes
- *  - groups      → Fachgruppen (Pflanzen/Aquaristik/Terraristik), Beitritt, Gruppen-Feed
- *  - messaging   → private 1:1- und Gruppen-Konversationen + Nachrichten
- *  - moderation  → Melden von Inhalten, Melde-Queue, Rollen-Aktionen, Audit-Log
- *  - admin       → KPI-Dashboard mit echten DB-Kennzahlen (nur Admin)
- */
-
-import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
+import { communityPosts, mediaAssets, postComments, postLikes, users } from "../../drizzle/schema";
+import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import {
-  users, posts, comments, commentLikes, follows,
-  groups, groupMembers, conversations, conversationParticipants, messages,
-  reports, moderationLogs, notifications, likes, plants, aquariums,
-} from "../../drizzle/schema";
-import { eq, desc, and, or, like, sql, inArray, ne } from "drizzle-orm";
-import { storagePut } from "../storage";
-import { awardXp } from "../db";
+import { storageGetSignedUrl, storagePut } from "../storage";
+import { validateImageUpload } from "../uploadValidation";
+import { canReadCommunityPost, isResourceOwner } from "../accessPolicy";
+import { hasCurrentConsent } from "../consents";
+import { assertValidMediaContext } from "../mediaIntegrity";
 
-// ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
-
-/** Wirft, wenn keine DB verfügbar ist; gibt sonst die Instanz zurück. */
-async function requireDb() {
+async function requireDatabase() {
   const db = await getDb();
-  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB not available" });
+  if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
 }
 
-/** Erzeugt einen Notifications-Eintrag defensiv (Fehler werden verschluckt). */
-async function notify(
-  db: Awaited<ReturnType<typeof requireDb>>,
-  entry: {
-    userId: number;
-    type: "like" | "comment" | "reply" | "follow" | "mention" | "message" | "group_invite" | "group_post" | "moderation" | "care_reminder" | "system";
-    title: string;
-    message: string;
-    relatedPostId?: number;
-    relatedUserId?: number;
-    relatedCommentId?: number;
-    relatedGroupId?: number;
-    relatedConversationId?: number;
-  },
-) {
-  try {
-    await db.insert(notifications).values(entry);
-  } catch {
-    /* Benachrichtigung ist nicht kritisch */
-  }
+async function publicMediaForPost(postId: number, userId: number) {
+  const db = await requireDatabase();
+  const rows = await db
+    .select()
+    .from(mediaAssets)
+    .where(
+      and(
+        eq(mediaAssets.postId, postId),
+        eq(mediaAssets.userId, userId),
+        eq(mediaAssets.visibility, "public"),
+      ),
+    );
+  return Promise.all(
+    rows.map(async item => ({
+      id: String(item.id),
+      ownerId: String(item.userId),
+      kind: item.kind,
+      mimeType: item.mimeType,
+      byteSize: item.byteSize,
+      width: item.width,
+      height: item.height,
+      accessUrl: await storageGetSignedUrl(item.storageKey),
+      visibility: item.visibility,
+      createdAt: item.createdAt.toISOString(),
+    })),
+  );
 }
 
-/** Slug aus einem Namen erzeugen (a-z0-9-). */
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || `gruppe-${Date.now()}`;
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// MODUL: social — Profile & Folgen
-// ════════════════════════════════════════════════════════════════════════════
-const socialRouter = router({
-  /** Öffentliches Profil inkl. Zähler und (falls angemeldet) Follow-Status. */
-  publicProfile: publicProcedure
-    .input(z.object({ userId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) return null;
-      const rows = await db.select({
-        id: users.id, name: users.name, username: users.username,
-        avatarUrl: users.avatarUrl, bio: users.bio, location: users.location,
-        role: users.role, plan: users.plan,
-        followersCount: users.followersCount, followingCount: users.followingCount,
-        createdAt: users.createdAt,
-      }).from(users).where(eq(users.id, input.userId)).limit(1);
-      const profile = rows[0];
-      if (!profile) return null;
-
-      // Zähler für Beiträge/Pflanzen/Aquarien (öffentlich).
-      const [postCountRows, plantCountRows, aquaCountRows] = await Promise.all([
-        db.select({ c: sql<number>`COUNT(*)` }).from(posts).where(eq(posts.userId, input.userId)),
-        db.select({ c: sql<number>`COUNT(*)` }).from(plants).where(and(eq(plants.userId, input.userId), eq(plants.isPublic, true))),
-        db.select({ c: sql<number>`COUNT(*)` }).from(aquariums).where(and(eq(aquariums.userId, input.userId), eq(aquariums.isPublic, true))),
-      ]);
-
-      let isFollowing = false;
-      if (ctx.user && ctx.user.id !== input.userId) {
-        const f = await db.select().from(follows)
-          .where(and(eq(follows.followerId, ctx.user.id), eq(follows.followingId, input.userId))).limit(1);
-        isFollowing = f.length > 0;
-      }
-
-      return {
-        ...profile,
-        postsCount: Number(postCountRows[0]?.c ?? 0),
-        plantsCount: Number(plantCountRows[0]?.c ?? 0),
-        aquariumsCount: Number(aquaCountRows[0]?.c ?? 0),
-        isFollowing,
-        isSelf: ctx.user?.id === input.userId,
-      };
-    }),
-
-  /** Einem Nutzer folgen. Idempotent. */
-  follow: protectedProcedure
-    .input(z.object({ userId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      if (input.userId === ctx.user.id) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Du kannst dir nicht selbst folgen." });
-      }
-      const db = await requireDb();
-      const existing = await db.select().from(follows)
-        .where(and(eq(follows.followerId, ctx.user.id), eq(follows.followingId, input.userId))).limit(1);
-      if (existing.length > 0) return { following: true };
-      await db.insert(follows).values({ followerId: ctx.user.id, followingId: input.userId });
-      await db.update(users).set({ followingCount: sql`${users.followingCount} + 1` }).where(eq(users.id, ctx.user.id));
-      await db.update(users).set({ followersCount: sql`${users.followersCount} + 1` }).where(eq(users.id, input.userId));
-      await notify(db, {
-        userId: input.userId, type: "follow",
-        title: "Neuer Follower",
-        message: `${ctx.user.name ?? "Jemand"} folgt dir jetzt.`,
-        relatedUserId: ctx.user.id,
-      });
-      try { await awardXp(ctx.user.id, 2); } catch {}
-      return { following: true };
-    }),
-
-  /** Einem Nutzer entfolgen. Idempotent. */
-  unfollow: protectedProcedure
-    .input(z.object({ userId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = await requireDb();
-      const existing = await db.select().from(follows)
-        .where(and(eq(follows.followerId, ctx.user.id), eq(follows.followingId, input.userId))).limit(1);
-      if (existing.length === 0) return { following: false };
-      await db.delete(follows).where(and(eq(follows.followerId, ctx.user.id), eq(follows.followingId, input.userId)));
-      await db.update(users).set({ followingCount: sql`GREATEST(${users.followingCount} - 1, 0)` }).where(eq(users.id, ctx.user.id));
-      await db.update(users).set({ followersCount: sql`GREATEST(${users.followersCount} - 1, 0)` }).where(eq(users.id, input.userId));
-      return { following: false };
-    }),
-
-  /** Follower eines Nutzers auflisten. */
-  followers: publicProcedure
-    .input(z.object({ userId: z.number(), limit: z.number().min(1).max(100).default(50) }))
+export const communityRouter = router({
+  feed: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ input }) => {
-      const db = await getDb();
-      if (!db) return [];
-      return db.select({
-        id: users.id, name: users.name, username: users.username,
-        avatarUrl: users.avatarUrl, bio: users.bio,
-        followersCount: users.followersCount,
-      }).from(follows)
-        .innerJoin(users, eq(follows.followerId, users.id))
-        .where(eq(follows.followingId, input.userId))
-        .orderBy(desc(follows.createdAt))
+      const db = await requireDatabase();
+      const rows = await db
+        .select({ post: communityPosts, author: users })
+        .from(communityPosts)
+        .innerJoin(users, eq(communityPosts.userId, users.id))
+        .where(
+          and(
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+            eq(users.status, "active"),
+          ),
+        )
+        .orderBy(desc(communityPosts.createdAt))
         .limit(input.limit);
+
+      return Promise.all(
+        rows
+          .filter(({ post, author }) =>
+            canReadCommunityPost({
+              authorStatus: author.status,
+              visibility: post.visibility,
+              publicationStatus: post.status,
+            }),
+          )
+          .map(async ({ post, author }) => ({
+          contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
+          id: String(post.id),
+          author: {
+            id: String(author.id),
+            name: author.name,
+            username: author.username,
+            avatarUrl: author.avatarStorageKey
+              ? await storageGetSignedUrl(author.avatarStorageKey).catch(() => null)
+              : null,
+            role: author.role,
+            status: author.status,
+            roleOrigin: "server_verified" as const,
+          },
+          content: post.content,
+          realm: post.realm,
+          media: await publicMediaForPost(post.id, post.userId),
+          visibility: "public" as const,
+          likesCount: post.likesCount,
+          commentsCount: post.commentsCount,
+          createdAt: post.createdAt.toISOString(),
+          updatedAt: post.updatedAt.toISOString(),
+        })),
+      );
     }),
 
-  /** Nutzer, denen ein Nutzer folgt. */
-  following: publicProcedure
-    .input(z.object({ userId: z.number(), limit: z.number().min(1).max(100).default(50) }))
-    .query(async ({ input }) => {
-      const db = await getDb();
-      if (!db) return [];
-      return db.select({
-        id: users.id, name: users.name, username: users.username,
-        avatarUrl: users.avatarUrl, bio: users.bio,
-        followersCount: users.followersCount,
-      }).from(follows)
-        .innerJoin(users, eq(follows.followingId, users.id))
-        .where(eq(follows.followerId, input.userId))
-        .orderBy(desc(follows.createdAt))
-        .limit(input.limit);
-    }),
+  myPosts: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db
+      .select()
+      .from(communityPosts)
+      .where(eq(communityPosts.userId, ctx.user.id))
+      .orderBy(desc(communityPosts.updatedAt));
+  }),
 
-  /** Personalisierter Feed: Beiträge von Nutzern, denen man folgt. */
-  followingFeed: protectedProcedure
-    .input(z.object({ limit: z.number().min(1).max(50).default(20), offset: z.number().min(0).default(0) }))
-    .query(async ({ ctx, input }) => {
-      const db = await requireDb();
-      const followingRows = await db.select({ id: follows.followingId })
-        .from(follows).where(eq(follows.followerId, ctx.user.id));
-      const ids = followingRows.map(r => r.id);
-      if (ids.length === 0) return { posts: [], total: 0 };
-      const postList = await db.select({
-        id: posts.id, userId: posts.userId, content: posts.content,
-        imageUrl: posts.imageUrl, videoUrl: posts.videoUrl, mediaType: posts.mediaType,
-        category: posts.category, likesCount: posts.likesCount, commentsCount: posts.commentsCount,
-        createdAt: posts.createdAt, userName: users.name, userAvatarUrl: users.avatarUrl,
-      }).from(posts)
-        .leftJoin(users, eq(posts.userId, users.id))
-        .where(inArray(posts.userId, ids))
-        .orderBy(desc(posts.createdAt))
-        .limit(input.limit).offset(input.offset);
-      const userLikes = await db.select({ postId: likes.postId }).from(likes).where(eq(likes.userId, ctx.user.id));
-      const liked = new Set(userLikes.map(l => l.postId));
-      return { posts: postList.map(p => ({ ...p, isLiked: liked.has(p.id) })), total: postList.length };
-    }),
-});
-
-// ════════════════════════════════════════════════════════════════════════════
-// MODUL: threads — Threaded Kommentare & Kommentar-Likes
-// ════════════════════════════════════════════════════════════════════════════
-const threadsRouter = router({
-  /** Alle Kommentare eines Beitrags inkl. Verschachtelung (flach mit parentId). */
-  list: publicProcedure
-    .input(z.object({ postId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      const db = await getDb();
-      if (!db) return [];
-      const rows = await db.select({
-        id: comments.id, userId: comments.userId, postId: comments.postId,
-        parentId: comments.parentId, content: comments.content,
-        likesCount: comments.likesCount, repliesCount: comments.repliesCount,
-        createdAt: comments.createdAt,
-        userName: users.name, userAvatarUrl: users.avatarUrl,
-      }).from(comments)
-        .leftJoin(users, eq(comments.userId, users.id))
-        .where(eq(comments.postId, input.postId))
-        .orderBy(comments.createdAt);
-
-      let likedIds = new Set<number>();
-      if (ctx.user) {
-        const cl = await db.select({ commentId: commentLikes.commentId })
-          .from(commentLikes).where(eq(commentLikes.userId, ctx.user.id));
-        likedIds = new Set(cl.map(c => c.commentId));
-      }
-      return rows.map(r => ({ ...r, isLiked: likedIds.has(r.id) }));
-    }),
-
-  /** Antwort/Kommentar hinzufügen. parentId optional (→ Antwort). */
-  add: protectedProcedure
-    .input(z.object({
-      postId: z.number(),
-      parentId: z.number().optional(),
-      content: z.string().min(1).max(1000),
-    }))
+  createDraft: protectedProcedure
+    .input(
+      z.object({
+        content: z.string().trim().min(1).max(10_000),
+        realm: observationRealmSchema.nullable().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const db = await requireDb();
-      const result = await db.insert(comments).values({
-        userId: ctx.user.id, postId: input.postId,
-        parentId: input.parentId ?? null, content: input.content,
+      const db = await requireDatabase();
+      const inserted = await db.insert(communityPosts).values({
+        userId: ctx.user.id,
+        content: input.content,
+        realm: input.realm ?? null,
+        visibility: "private",
+        status: "draft",
       });
-      await db.update(posts).set({ commentsCount: sql`${posts.commentsCount} + 1` }).where(eq(posts.id, input.postId));
+      return { id: String(inserted[0].insertId), status: "draft" } as const;
+    }),
+
+  uploadDraftImage: protectedProcedure
+    .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const posts = await db
+        .select()
+        .from(communityPosts)
+        .where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)))
+        .limit(1);
+      const post = posts[0];
+      if (!post || !isResourceOwner(ctx.user.id, post.userId)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
+      }
+
+      if (!(await hasCurrentConsent(db, ctx.user.id, "media_processing"))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "media_processing_consent_required" });
+      }
+
+      const image = validateImageUpload(input.base64, input.mimeType);
+      assertValidMediaContext({ kind: "post_image", observationId: null, postId: post.id });
+      const stored = await storagePut(
+        `users/${ctx.user.id}/posts/${post.id}/image.${image.extension}`,
+        image.buffer,
+        image.mimeType,
+      );
+      const inserted = await db.insert(mediaAssets).values({
+        userId: ctx.user.id,
+        postId: post.id,
+        kind: "post_image",
+        mimeType: image.mimeType,
+        byteSize: image.byteSize,
+        accessUrl: stored.url,
+        storageKey: stored.key,
+        visibility: "private",
+      });
+      return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
+    }),
+
+  publish: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    if (!(await hasCurrentConsent(db, ctx.user.id, "community_publishing"))) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "community_publishing_consent_required" });
+    }
+    const posts = await db
+      .select()
+      .from(communityPosts)
+      .where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)))
+      .limit(1);
+    if (!posts[0] || !isResourceOwner(ctx.user.id, posts[0].userId)) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
+    }
+
+    await db.transaction(async tx => {
+      await tx
+        .update(communityPosts)
+        .set({ status: "published", visibility: "public" })
+        .where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)));
+      await tx
+        .update(mediaAssets)
+        .set({ visibility: "public" })
+        .where(and(eq(mediaAssets.postId, input.postId), eq(mediaAssets.userId, ctx.user.id)));
+    });
+    return { status: "published", visibility: "public" } as const;
+  }),
+
+  like: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const visible = await db
+      .select({ id: communityPosts.id })
+      .from(communityPosts)
+      .innerJoin(users, eq(communityPosts.userId, users.id))
+      .where(
+        and(
+          eq(communityPosts.id, input.postId),
+          eq(communityPosts.status, "published"),
+          eq(communityPosts.visibility, "public"),
+          eq(users.status, "active"),
+        ),
+      )
+      .limit(1);
+    if (!visible[0]) throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+
+    const existing = await db
+      .select({ id: postLikes.id })
+      .from(postLikes)
+      .where(and(eq(postLikes.postId, input.postId), eq(postLikes.userId, ctx.user.id)))
+      .limit(1);
+    if (existing[0]) return { liked: true } as const;
+
+    await db.transaction(async tx => {
+      await tx.insert(postLikes).values({ postId: input.postId, userId: ctx.user.id });
+      await tx
+        .update(communityPosts)
+        .set({ likesCount: sql`${communityPosts.likesCount} + 1` })
+        .where(eq(communityPosts.id, input.postId));
+    });
+    return { liked: true } as const;
+  }),
+
+  comments: publicProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ input }) => {
+    const db = await requireDatabase();
+    const visible = await db
+      .select({ id: communityPosts.id })
+      .from(communityPosts)
+      .where(
+        and(
+          eq(communityPosts.id, input.postId),
+          eq(communityPosts.status, "published"),
+          eq(communityPosts.visibility, "public"),
+        ),
+      )
+      .limit(1);
+    if (!visible[0]) return [];
+    return db
+      .select({
+        id: postComments.id,
+        postId: postComments.postId,
+        parentId: postComments.parentId,
+        content: postComments.content,
+        createdAt: postComments.createdAt,
+        authorId: users.id,
+        authorName: users.name,
+        authorUsername: users.username,
+      })
+      .from(postComments)
+      .innerJoin(users, eq(postComments.userId, users.id))
+      .where(
+        and(
+          eq(postComments.postId, input.postId),
+          eq(postComments.status, "visible"),
+          eq(users.status, "active"),
+        ),
+      )
+      .orderBy(postComments.createdAt);
+  }),
+
+  addComment: protectedProcedure
+    .input(z.object({ postId: z.number().int().positive(), parentId: z.number().int().positive().nullable().optional(), content: z.string().trim().min(1).max(2_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const visible = await db
+        .select({ id: communityPosts.id })
+        .from(communityPosts)
+        .where(
+          and(
+            eq(communityPosts.id, input.postId),
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+          ),
+        )
+        .limit(1);
+      if (!visible[0]) throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
 
       if (input.parentId) {
-        // Reply-Zähler am Eltern-Kommentar erhöhen + Autor benachrichtigen.
-        await db.update(comments).set({ repliesCount: sql`${comments.repliesCount} + 1` }).where(eq(comments.id, input.parentId));
-        const parent = await db.select().from(comments).where(eq(comments.id, input.parentId)).limit(1);
-        if (parent[0] && parent[0].userId !== ctx.user.id) {
-          await notify(db, {
-            userId: parent[0].userId, type: "reply",
-            title: "Neue Antwort",
-            message: `${ctx.user.name ?? "Jemand"} hat auf deinen Kommentar geantwortet.`,
-            relatedPostId: input.postId, relatedUserId: ctx.user.id, relatedCommentId: input.parentId,
-          });
-        }
-      } else {
-        // Top-Level-Kommentar: Beitragsautor benachrichtigen.
-        const post = await db.select().from(posts).where(eq(posts.id, input.postId)).limit(1);
-        if (post[0] && post[0].userId !== ctx.user.id) {
-          await notify(db, {
-            userId: post[0].userId, type: "comment",
-            title: "Neuer Kommentar",
-            message: `${ctx.user.name ?? "Jemand"} hat deinen Beitrag kommentiert.`,
-            relatedPostId: input.postId, relatedUserId: ctx.user.id,
-          });
-        }
+        const parents = await db
+          .select({ id: postComments.id })
+          .from(postComments)
+          .where(and(eq(postComments.id, input.parentId), eq(postComments.postId, input.postId)))
+          .limit(1);
+        if (!parents[0]) throw new TRPCError({ code: "BAD_REQUEST", message: "parent_comment_not_in_post" });
       }
-      try { await awardXp(ctx.user.id, 3); } catch {}
-      return { id: Number(result[0].insertId) };
-    }),
 
-  /** Eigenen Kommentar löschen (nur Autor oder Moderator/Admin). */
-  delete: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = await requireDb();
-      const rows = await db.select().from(comments).where(eq(comments.id, input.id)).limit(1);
-      const c = rows[0];
-      if (!c) return { success: true };
-      const isOwner = c.userId === ctx.user.id;
-      const isStaff = ctx.user.role === "admin" || ctx.user.role === "moderator";
-      if (!isOwner && !isStaff) throw new TRPCError({ code: "FORBIDDEN" });
-      await db.delete(comments).where(eq(comments.id, input.id));
-      await db.update(posts).set({ commentsCount: sql`GREATEST(${posts.commentsCount} - 1, 0)` }).where(eq(posts.id, c.postId));
-      if (c.parentId) {
-        await db.update(comments).set({ repliesCount: sql`GREATEST(${comments.repliesCount} - 1, 0)` }).where(eq(comments.id, c.parentId));
-      }
-      return { success: true };
-    }),
-
-  /** Kommentar liken/entliken (Toggle). */
-  toggleLike: protectedProcedure
-    .input(z.object({ commentId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const db = await requireDb();
-      const existing = await db.select().from(commentLikes)
-        .where(and(eq(commentLikes.userId, ctx.user.id), eq(commentLikes.commentId, input.commentId))).limit(1);
-      if (existing.length > 0) {
-        await db.delete(commentLikes).where(and(eq(commentLikes.userId, ctx.user.id), eq(commentLikes.commentId, input.commentId)));
-        await db.update(comments).set({ likesCount: sql`GREATEST(${comments.likesCount} - 1, 0)` }).where(eq(comments.id, input.commentId));
-        return { liked: false };
-      }
-      await db.insert(commentLikes).values({ userId: ctx.user.id, commentId: input.commentId });
-      await db.update(comments).set({ likesCount: sql`${comments.likesCount} + 1` }).where(eq(comments.id, input.commentId));
-      return { liked: true };
+      await db.transaction(async tx => {
+        await tx.insert(postComments).values({
+          postId: input.postId,
+          userId: ctx.user.id,
+          parentId: input.parentId ?? null,
+          content: input.content,
+        });
+        await tx
+          .update(communityPosts)
+          .set({ commentsCount: sql`${communityPosts.commentsCount} + 1` })
+          .where(eq(communityPosts.id, input.postId));
+      });
+      return { success: true } as const;
     }),
 });
-
-export { socialRouter, threadsRouter, requireDb, notify, slugify };

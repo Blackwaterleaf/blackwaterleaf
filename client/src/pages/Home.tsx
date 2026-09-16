@@ -1,790 +1,100 @@
+import { LeafCore } from "@/components/LeafCore";
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
+import { StatePanel } from "@/components/StatePanel";
+import { WorldCard } from "@/components/WorldCard";
+import { useI18n } from "@/i18n";
+import { publicPartnerCardPresentation } from "@/lib/partnerPresentation";
+import { trpc } from "@/lib/trpc";
+import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
+import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
+import type { WeatherEffect } from "@shared/current-weather";
+import { ArrowRight, Leaf, RadioTower } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "wouter";
-import { Seo } from "@/components/Seo";
-import { startLogin, APK_DOWNLOAD_URL } from "@/const";
-import { toast } from "sonner";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import {
-  Leaf, Fish, Bot, Users, Play, ArrowRight,
-  Shield, Heart, BookOpen,
-  Zap, MessageSquare, Camera,
-  Download, Smartphone, Monitor, CheckCircle2,
-} from "lucide-react";
-
-/* ── Brand images (already uploaded to S3) ── */
-const IMG_HERO      = "/manus-storage/hero-main_962b134d.png";
-const IMG_WISSEN    = "/manus-storage/wissen-pflege_9290790e.png";
-const IMG_COMMUNITY = "/manus-storage/community-forum_5e681ef4.png";
-const IMG_CHANNA    = "/manus-storage/channa-tank_aeefb736.webp";
-const IMG_PLANTS    = "/manus-storage/plants-golden_070e92ad.png";
-const IMG_LOGO      = "/manus-storage/logo-circle_c176197b.png";
-
-/* ── Was dich in der Community erwartet (keine erfundenen Nutzer/Aktivitäten) ── */
-const COMMUNITY_HIGHLIGHTS = [
-  { icon: "L", title: "Setups teilen", text: "Zeig dein Aquascape oder deine Pflanzensammlung." },
-  { icon: "F", title: "Fragen stellen", text: "Hol dir Rat zu Pflege, Technik und Problemen." },
-  { icon: "W", title: "Wissen finden", text: "Fundierte Guides statt Halbwissen." },
-  { icon: "K", title: "KI-Assistent", text: "Schnelle Antworten rund um die Uhr." },
-];
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
-  const [, navigate] = useLocation();
+  const { t, locale } = useI18n();
+  const pageTitle = HOME_SEO_TITLES[locale];
+  const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
+  const community = trpc.community.feed.useQuery({ limit: 1 }, { retry: false });
+  const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
+  const [weatherEffect, setWeatherEffect] = useState<WeatherEffect>("none");
+  const applyWeatherEffect = useCallback((effect: WeatherEffect) => {
+    setWeatherEffect(current => current === effect ? current : effect);
+  }, []);
 
-  const previewLanding = typeof window !== "undefined" && window.location.search.includes("__noauth=1");
-
-  // Redirect logged-in users straight to the feed
   useEffect(() => {
-    if (!previewLanding && !loading && isAuthenticated) {
-      navigate("/feed");
-    }
-  }, [isAuthenticated, loading, navigate, previewLanding]);
+    document.title = pageTitle;
+  }, [pageTitle]);
 
-  if (loading) return null;
-  if (isAuthenticated && !previewLanding) return null;
+  const copy = locale === "de"
+    ? { welcome: "Dein Raum für lebendige Welten", overview: "Dein Überblick", status: "Aktueller Stand", values: "Werte im Blick", partner: "Ausgewählt & transparent" }
+    : { welcome: "Your place for living worlds", overview: "Your overview", status: "Current status", values: "Values at a glance", partner: "Selected & transparent" };
 
   return (
-    <div className="min-h-screen" style={{ background: "#070A08" }}>
-      <Seo
-        path="/"
-        title="Aquaristik & Zimmerpflanzen Community"
-        fullTitle={false}
-        description="BlackwaterLeaf: Deutschsprachige Community für Aquaristik, Aquascaping und Zimmerpflanzen. Dokumentiere, lerne und tausche dich aus – mit KI-Unterstützung."
-      />
+    <div className={`home-stack weather-effect--${weatherEffect}`}>
+      <div className="weather-atmosphere" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+      <LiveSensorStrip compact onWeatherEffectChange={applyWeatherEffect} />
 
-      {/* ══════════════════════════════════════════════════════
-          TOP NAV (standalone for landing page)
-          ══════════════════════════════════════════════════════ */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{
-          background: "rgba(7,10,8,0.92)",
-          backdropFilter: "blur(20px) saturate(1.5)",
-          WebkitBackdropFilter: "blur(20px) saturate(1.5)",
-          borderBottom: "1px solid rgba(45,107,63,0.25)",
-        }}
-      >
-        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between gap-8">
-          {/* Logo */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <img
-              src={IMG_LOGO}
-              alt="BlackwaterLeaf"
-              className="w-9 h-9 rounded-full"
-              style={{ filter: "drop-shadow(0 0 8px rgba(45,155,110,0.50))" }}
-            />
-            <div className="hidden sm:block">
-              <span className="font-brand text-base tracking-widest leading-none block" style={{ color: "#FFFFFF" }}>
-                BLACKWATER<span style={{ color: "#2D9B6E" }}>LEAF</span>
-              </span>
-              <span className="text-[9px] tracking-[0.2em] uppercase block leading-none mt-0.5" style={{ color: "rgba(45,107,63,0.45)" }}>
-                Community
-              </span>
-            </div>
-          </div>
-
-          {/* Center nav */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {[
-              { href: "/discover", label: "Entdecken" },
-              { href: "/knowledge", label: "Wissen" },
-              { href: "/feed", label: "Community" },
-              { href: "/ai", label: "KI Assistent" },
-              { href: "#download", label: "App laden" },
-            ].map((item) => {
-              const isHash = item.href.startsWith("#");
-              const cls = "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer block transition-all duration-200";
-              const onEnter = (e: React.MouseEvent<HTMLElement>) => {
-                (e.currentTarget as HTMLElement).style.color = "#FFFFFF";
-                (e.currentTarget as HTMLElement).style.background = "#161C19";
-              };
-              const onLeave = (e: React.MouseEvent<HTMLElement>) => {
-                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.68)";
-                (e.currentTarget as HTMLElement).style.background = "transparent";
-              };
-              if (isHash) {
-                return (
-                  <a key={item.href} href={item.href} className={cls} style={{ color: "rgba(255,255,255,0.68)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
-                    {item.label}
-                  </a>
-                );
-              }
-              return (
-                <Link key={item.href} href={item.href}>
-                  <span className={cls} style={{ color: "rgba(255,255,255,0.68)" }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right */}
-          <div className="flex items-center gap-3">
-            {!isAuthenticated && (
-              <button onClick={() => startLogin()} className="btn-primary text-sm">
-                Anmelden
-              </button>
-            )}
+      <section className="home-hero hero-scene" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}>
+        <span className="hero-light" aria-hidden="true" />
+        <div className="hero-copy">
+          <p className="eyebrow">{copy.welcome}</p>
+          <h1 className="glitch-title" data-text={t("home.hero.title")}>{t("home.hero.title")}</h1>
+          <p>{t("home.hero.body")}</p>
+          <div className="hero-actions">
+            <Link href="/explore" className="primary-action">{t("home.hero.action")}<ArrowRight size={16} /></Link>
+            <Link href="/profile" className="hero-text-link">{locale === "de" ? "Mein Bereich" : "My area"}</Link>
           </div>
         </div>
-      </header>
+        <aside className="hero-note" aria-label={copy.status}>
+          <Leaf size={18} />
+          <span><strong>{locale === "de" ? "Privat starten" : "Start privately"}</strong><small>{locale === "de" ? "Du entscheidest, was sichtbar wird." : "You decide what becomes visible."}</small></span>
+        </aside>
+      </section>
 
-      {/* ══════════════════════════════════════════════════════
-          HERO SECTION
-          ══════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img
-            src={IMG_HERO}
-            alt="BlackwaterLeaf"
-            className="img-cover"
-            style={{ filter: "brightness(0.45) saturate(1.2)" }}
-          />
-          {/* Left overlay for text readability */}
-          <div className="absolute inset-0 img-overlay-left" />
-          {/* Bottom fade */}
-          <div className="absolute bottom-0 left-0 right-0 h-48 img-overlay-bottom" />
+      <section className="home-areas">
+        <div className="section-heading section-heading--airy">
+          <div><span className="eyebrow">{copy.overview}</span><h2>{t("home.worlds.title")}</h2></div>
+          <Link href="/explore" className="section-link">{locale === "de" ? "Alle Bereiche" : "All areas"}<ArrowRight size={15} /></Link>
         </div>
-
-        {/* Hero content */}
-        <div className="relative z-10 max-w-[1400px] mx-auto px-6 pt-24 pb-20 w-full">
-          <div className="max-w-xl">
-            {/* Eyebrow */}
-            <p
-              className="text-xs tracking-[0.25em] uppercase mb-6 fade-in"
-              style={{ color: "#34D399" }}
-            >
-              Für Pflanzenliebhaber. Für Aquarianer. Für Menschen, die mehr wollen.
-            </p>
-
-            {/* Main headline */}
-            <h1 className="fade-in delay-100" style={{ marginBottom: "1rem" }}>
-              <span
-                className="font-brand block leading-none"
-                style={{
-                  fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "rgba(255,255,255,0.96)",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                WISSEN.
-              </span>
-              <span
-                className="font-brand block leading-none"
-                style={{
-                  fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "rgba(255,255,255,0.96)",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                TEILEN.
-              </span>
-              <span
-                className="font-brand block leading-none"
-                style={{
-                  fontSize: "clamp(3.5rem, 7vw, 6rem)",
-                  color: "#34D399",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                WACHSEN.
-              </span>
-            </h1>
-
-            {/* Subtext */}
-            <p
-              className="text-base leading-relaxed mb-8 fade-in delay-200"
-              style={{ color: "rgba(255,255,255,0.72)", maxWidth: "420px" }}
-            >
-              BlackwaterLeaf ist mehr als eine Community.<br />
-              Es ist ein Ort für Wissen, Inspiration und echte Leidenschaft.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex items-center gap-4 flex-wrap fade-in delay-300">
-              <Link href={isAuthenticated ? "/feed" : "#"} onClick={!isAuthenticated ? () => startLogin() : undefined}>
-                <span className="btn-primary cursor-pointer">
-                  Community entdecken <ArrowRight className="w-4 h-4" />
-                </span>
-              </Link>
-              <a href="#download" className="btn-ghost flex items-center gap-2">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.20)" }}
-                >
-                  <Download className="w-3.5 h-3.5" style={{ color: "rgba(255,255,255,0.96)" }} />
-                </div>
-                <span style={{ color: "rgba(255,255,255,0.80)" }}>App herunterladen</span>
-              </a>
-            </div>
-          </div>
+        <div className="world-rail world-rail--home">
+          {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} imageAlt={HOME_WORLD_IMAGE_ALTS[locale][world.realm]} />)}
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          STATS BAR
-          ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "#0D110E", borderTop: "1px solid rgba(45,107,63,0.30)", borderBottom: "1px solid rgba(45,107,63,0.30)" }}>
-        <div className="max-w-[1400px] mx-auto px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { icon: Leaf,     value: "Botanik",   label: "Pflege & Inspiration" },
-              { icon: Fish,     value: "Aquaristik", label: "Technik & Guides" },
-              { icon: Zap,      value: "KI-Hilfe",   label: "Antworten rund um die Uhr" },
-              { icon: Shield,   value: "Werbefrei",  label: "Deine Daten geschützt" },
-            ].map((stat) => {
-              const Icon = stat.icon;
-              return (
-                <div key={stat.label} className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(45,155,110,0.12)" }}
-                  >
-                    <Icon className="w-4 h-4" style={{ color: "#34D399" }} />
-                  </div>
-                  <div>
-                    <p className="text-base font-bold leading-none" style={{ color: "#FFFFFF" }}>
-                      {stat.value}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.50)" }}>
-                      {stat.label}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <section className="home-capture-zone" aria-label={locale === "de" ? "Schnellaktionen" : "Quick actions"}>
+        <p>{locale === "de" ? "Dein Moment" : "Your moment"}</p>
+        <LeafCore />
       </section>
 
-      {/* ══════════════════════════════════════════════════════
-          DOWNLOAD / APP SECTION
-          ══════════════════════════════════════════════════════ */}
-      <DownloadSection />
-
-      {/* ══════════════════════════════════════════════════════
-          FEATURE SECTIONS (4 große Blöcke wie im Mockup)
-          ══════════════════════════════════════════════════════ */}
-
-      {/* 1. PFLANZENWELT */}
-      <FeatureSection
-        image={IMG_PLANTS}
-        icon={<Leaf className="w-6 h-6" style={{ color: "#34D399" }} />}
-        title="PFLANZENWELT"
-        description="Pflege, Tipps & Inspiration für Botanik und beeindruckende Setups."
-        href="/plants"
-        btnLabel="Mehr entdecken"
-        imagePosition="right"
-      />
-
-      {/* 2. AQUARISTIK */}
-      <FeatureSection
-        image={IMG_CHANNA}
-        icon={<Fish className="w-6 h-6" style={{ color: "#34D399" }} />}
-        title="AQUARISTIK"
-        description="Technik, Guides & Aquarienwelten für Anfänger und Profis."
-        href="/aquariums"
-        btnLabel="Mehr entdecken"
-        imagePosition="right"
-        dark
-      />
-
-      {/* 3. KI ASSISTENT */}
-      <KISection />
-
-      {/* 4. COMMUNITY */}
-      <CommunitySection />
-
-      {/* ══════════════════════════════════════════════════════
-          TRUST FOOTER BAR
-          ══════════════════════════════════════════════════════ */}
-      <section style={{ background: "#0D110E", borderTop: "1px solid rgba(45,107,63,0.30)" }}>
-        <div className="max-w-[1400px] mx-auto px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: Heart,   title: "Mit Liebe zur Natur",sub: "Nachhaltigkeit liegt uns am Herzen" },
-              { icon: Shield,  title: "Sicher & Werbefrei", sub: "Deine Daten sind geschützt" },
-              { icon: BookOpen,title: "Fundiertes Wissen",  sub: "Guides statt Halbwissen" },
-              { icon: Users,   title: "Community-getrieben", sub: "Von Enthusiasten für Enthusiasten" },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="flex items-start gap-3">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: "rgba(45,155,110,0.10)", border: "1px solid rgba(45,155,110,0.20)" }}
-                  >
-                    <Icon className="w-4 h-4" style={{ color: "#34D399" }} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold leading-tight" style={{ color: "rgba(255,255,255,0.88)" }}>
-                      {item.title}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>
-                      {item.sub}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <section className="home-moment">
+        <div className="section-heading"><div><span className="eyebrow">{t("home.feed.eyebrow")}</span><h2>{t("home.feed.title")}</h2></div><span className="connection-pill"><i />{platform.data?.community === "available" ? "BEREIT" : t("common.notConnected")}</span></div>
+        {community.isLoading ? (
+          <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} />
+        ) : community.isError ? (
+          <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={t("home.feed.emptyBody")} />
+        ) : community.data?.[0] ? (
+          <article className="featured-moment glass-panel">
+            <div className="moment-copy"><span className="eyebrow">{locale === "de" ? "Echter Naturmoment" : "Real nature moment"}</span><h3>{community.data[0].author.name ?? community.data[0].author.username ?? "BlackWaterLeaf"}</h3><p>{community.data[0].content}</p></div>
+            {community.data[0].media[0] ? <img src={community.data[0].media[0].accessUrl} alt="" /> : null}
+          </article>
+        ) : (
+          <section className="empty-moment" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}>
+            <div><span className="eyebrow">{t("home.feed.pending")}</span><h3>{t("home.feed.emptyTitle")}</h3><p>{t("home.feed.emptyBody")}</p></div>
+          </section>
+        )}
       </section>
 
-      {/* ── Footer ── */}
-      <footer style={{ background: "#070A08", borderTop: "1px solid #161C19" }}>
-        <div className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={IMG_LOGO} alt="BL" className="w-7 h-7 rounded-full opacity-80" />
-            <span className="font-brand text-sm tracking-widest" style={{ color: "rgba(255,255,255,0.45)" }}>
-              BLACKWATERLEAF
-            </span>
-          </div>
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.38)" }}>
-            © 2025 BlackwaterLeaf · Natur. Wissen. Gemeinschaft.
-          </p>
-          <div className="flex items-center gap-4">
-            <a href="/datenschutz" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
-              Datenschutz
-            </a>
-            <a href="/impressum" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
-              Impressum
-            </a>
-            <a href="/agb" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
-              AGB
-            </a>
-            <a href="mailto:BlackwaterLeaf@gmail.com" className="text-xs transition-colors duration-200 hover:text-primary" style={{ color: "rgba(45,107,63,0.45)" }}>
-              Kontakt
-            </a>
-          </div>
-        </div>
-      </footer>
+      <section className="partner-home-section glass-panel">
+        <div className="section-heading"><div><span className="eyebrow">{locale === "de" ? "Empfehlungen" : "Recommendations"}</span><h2>{copy.partner}</h2></div><Link className="partner-marketplace-link" href="/marketplace">{locale === "de" ? "MARKTPLATZ" : "MARKETPLACE"}<ArrowRight size={14} /></Link></div>
+        {partners.isLoading ? <p className="partner-empty">{locale === "de" ? "Partnerplatzierungen werden geprüft." : "Partner placements are being verified."}</p> : partners.isError ? <p className="partner-empty">{locale === "de" ? "Partnerplatzierungen sind derzeit nicht verfügbar." : "Partner placements are currently unavailable."}</p> : partners.data?.length ? <div className="partner-home-grid">{partners.data.map(partner => { const card = publicPartnerCardPresentation(partner, locale); return <article className="partner-home-card" key={partner.placementId}><span>{card.disclosureLabel}</span><h3>{card.displayName}</h3><p>{card.partyLabel}</p>{card.destinationUrl ? <a href={card.destinationUrl} target="_blank" rel="sponsored nofollow noopener">{locale === "de" ? "Partnerseite öffnen" : "Open partner page"}<ArrowRight size={14} /></a> : null}{card.products.kind === "products" ? <div className="partner-product-teasers"><small>{locale === "de" ? "Produkte · Werbung" : "Products · advertisement"}</small>{card.products.products.map(product => <a key={product.id} className="partner-product-teaser" href={product.destinationUrl} target="_blank" rel="sponsored nofollow noopener">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : null}<span>{product.title}</span>{product.priceLabel ? <strong>{product.priceLabel}</strong> : null}<ArrowRight size={13} /></a>)}</div> : <p className="partner-product-empty">{card.products.message}</p>}</article>; })}</div> : <p className="partner-empty">{locale === "de" ? "Noch keine aktiv freigegebene Partnerplatzierung." : "No actively approved partner placement yet."}</p>}
+      </section>
+
+      <section className="truth-panel glass-panel">
+        <RadioTower size={22} />
+        <div><span className="eyebrow">{t("home.truth.eyebrow")}</span><h2>{t("home.truth.title")}</h2><p>{t("home.truth.body")}</p></div>
+      </section>
     </div>
-  );
-}
-
-/* ── Feature Section Component ── */
-function FeatureSection({
-  image, icon, title, description, href, btnLabel, imagePosition = "right", dark = false,
-}: {
-  image: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  href: string;
-  btnLabel: string;
-  imagePosition?: "left" | "right";
-  dark?: boolean;
-}) {
-  return (
-    <section
-      className="relative overflow-hidden"
-      style={{
-        background: dark ? "#070A08" : "#070A08",
-        borderBottom: "1px solid #161C19",
-        minHeight: "420px",
-      }}
-    >
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <img
-          src={image}
-          alt={title}
-          className="img-cover"
-          style={{ filter: "brightness(0.35) saturate(1.1)" }}
-        />
-        <div className="absolute inset-0 img-overlay-left" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
-        <div className="max-w-md">
-          {/* Icon */}
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-            style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
-          >
-            {icon}
-          </div>
-
-          {/* Title */}
-          <h2
-            className="font-brand mb-3 leading-none"
-            style={{
-              fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              color: "rgba(255,255,255,0.96)",
-              letterSpacing: "0.04em",
-            }}
-          >
-            {title}
-          </h2>
-
-          {/* Description */}
-          <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
-            {description}
-          </p>
-
-          {/* CTA */}
-          <Link href={href}>
-            <span
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
-              style={{
-                background: "#111614",
-                border: "1px solid rgba(45,107,63,0.35)",
-                color: "rgba(255,255,255,0.85)",
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
-                (e.currentTarget as HTMLElement).style.color = "#34D399";
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.background = "#111614";
-                (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
-                (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
-              }}
-            >
-              {btnLabel} <ArrowRight className="w-3.5 h-3.5" />
-            </span>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── KI Assistent Section ── */
-function KISection() {
-  return (
-    <section
-      className="relative overflow-hidden"
-      style={{
-        background: "#070A08",
-        borderBottom: "1px solid #161C19",
-        minHeight: "420px",
-      }}
-    >
-      {/* Subtle grid background */}
-      <div
-        className="absolute inset-0 opacity-20"
-        style={{
-          backgroundImage: "radial-gradient(rgba(45,155,110,0.15) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-      {/* Glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full opacity-10"
-        style={{ background: "#2D9B6E", filter: "blur(80px)" }}
-      />
-
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: text */}
-          <div>
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
-            >
-              <Bot className="w-5 h-5" style={{ color: "#34D399" }} />
-            </div>
-            <h2
-              className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
-            >
-              KI ASSISTENT
-            </h2>
-            <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
-              Dein smarter Helfer für alle Fragen rund um Botanik & Aquaristik.
-            </p>
-            <Link href="/ai">
-              <span
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
-                style={{
-                  background: "#111614",
-                  border: "1px solid rgba(45,107,63,0.35)",
-                  color: "rgba(255,255,255,0.85)",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
-                  (e.currentTarget as HTMLElement).style.color = "#34D399";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = "#111614";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
-                  (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
-                }}
-              >
-                Assistent starten <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </Link>
-          </div>
-
-          {/* Right: mock chat UI */}
-          <div
-            className="bwl-glass p-5 rounded-2xl max-w-sm mx-auto w-full"
-            style={{ border: "1px solid rgba(45,155,110,0.20)" }}
-          >
-            <p className="text-sm font-medium mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
-              Frag mich alles über Botanik & Aquaristik.
-            </p>
-            <div className="space-y-2">
-              {[
-                { icon: Leaf,          label: "Pflanzenpflege" },
-                { icon: Fish,          label: "Aquarium Probleme" },
-                { icon: Zap,           label: "CO₂ & Düngung" },
-                { icon: Camera,        label: "Beleuchtung" },
-                { icon: MessageSquare, label: "und vieles mehr..." },
-              ].map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.label}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 cursor-pointer"
-                    style={{ background: "#161C19", border: "1px solid rgba(45,107,63,0.30)" }}
-                  >
-                    <Icon className="w-4 h-4 flex-shrink-0" style={{ color: "#2D9B6E" }} />
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>{item.label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Download / App Section ── */
-function DownloadSection() {
-  const handleApk = () => {
-    toast.success("Download startet … Öffne die Datei anschließend zum Installieren.");
-  };
-  return (
-    <section
-      id="download"
-      className="relative overflow-hidden scroll-mt-20"
-      style={{
-        background: "#070A08",
-        borderBottom: "1px solid #161C19",
-      }}
-    >
-      {/* Subtle grid + glow */}
-      <div
-        className="absolute inset-0 opacity-[0.12]"
-        style={{
-          backgroundImage: "radial-gradient(rgba(45,155,110,0.25) 1px, transparent 1px)",
-          backgroundSize: "30px 30px",
-        }}
-      />
-      <div
-        className="absolute top-0 right-1/4 w-[28rem] h-[28rem] rounded-full opacity-10 pointer-events-none"
-        style={{ background: "#2D9B6E", filter: "blur(90px)" }}
-      />
-
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: text + buttons */}
-          <div>
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
-            >
-              <Smartphone className="w-5 h-5" style={{ color: "#34D399" }} />
-            </div>
-            <h2
-              className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
-            >
-              HOL DIR DIE APP
-            </h2>
-            <p className="text-base leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.68)", maxWidth: "460px" }}>
-              BlackwaterLeaf für dein Smartphone: Community, Botanik & Aquarien
-              verwalten, KI-Assistent und mehr – immer dabei.
-            </p>
-
-            {/* Feature ticks */}
-            <div className="space-y-2 mb-8">
-              {[
-                "Kostenlos & werbefrei",
-                "Fotos, Pflege-Tagebuch & KI-Bestimmung",
-                "Direkt mit deinem Konto synchronisiert",
-              ].map((t) => (
-                <div key={t} className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: "#34D399" }} />
-                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.72)" }}>{t}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Download buttons */}
-            <div className="flex flex-wrap items-center gap-4">
-              <a
-                href={APK_DOWNLOAD_URL}
-                onClick={handleApk}
-                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-semibold cursor-pointer transition-all duration-200"
-                style={{ background: "#2D9B6E", color: "#0D110E" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#2D9B6E"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#2D9B6E"; }}
-              >
-                <Download className="w-5 h-5" />
-                <span className="text-left leading-tight">
-                  <span className="block text-[10px] uppercase tracking-wider opacity-80">Android · APK</span>
-                  <span className="block text-sm">Jetzt herunterladen</span>
-                </span>
-              </a>
-
-              <button
-                onClick={() => toast.info("Google Play: bald verfügbar. Nutze so lange den direkten Download.")}
-                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl font-medium cursor-pointer transition-all duration-200"
-                style={{ background: "#111614", border: "1px solid rgba(45,107,63,0.35)", color: "rgba(255,255,255,0.85)" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.45)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)"; }}
-              >
-                <Play className="w-5 h-5" style={{ color: "#34D399" }} />
-                <span className="text-left leading-tight">
-                  <span className="block text-[10px] uppercase tracking-wider opacity-70">Google Play</span>
-                  <span className="block text-sm">Bald verfügbar</span>
-                </span>
-              </button>
-            </div>
-
-            {/* PC hint */}
-            <div className="flex items-center gap-2 mt-6">
-              <Monitor className="w-4 h-4 flex-shrink-0" style={{ color: "rgba(255,255,255,0.50)" }} />
-              <span className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
-                Am PC? Du kannst BlackwaterLeaf auch direkt im Browser nutzen.
-              </span>
-            </div>
-          </div>
-
-          {/* Right: phone mock */}
-          <div className="flex justify-center">
-            <div
-              className="relative rounded-[2.5rem] p-3"
-              style={{ background: "#070A08", border: "1px solid rgba(45,107,63,0.35)", width: "260px", boxShadow: "0 30px 80px -20px rgba(45,155,110,0.35)" }}
-            >
-              <div className="rounded-[2rem] overflow-hidden" style={{ background: "#070A08", aspectRatio: "9 / 19" }}>
-                <div className="h-full flex flex-col items-center justify-center gap-4 px-6 text-center">
-                  <img
-                    src={IMG_LOGO}
-                    alt="BlackwaterLeaf"
-                    className="w-20 h-20 rounded-2xl"
-                    style={{ filter: "drop-shadow(0 0 16px rgba(45,155,110,0.50))" }}
-                  />
-                  <span className="font-brand text-lg tracking-widest" style={{ color: "#FFFFFF" }}>
-                    BLACKWATER<span style={{ color: "#34D399" }}>LEAF</span>
-                  </span>
-                  <span className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>
-                    Deine Community für Botanik & Aquaristik
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ── Community Section ── */
-function CommunitySection() {
-  return (
-    <section
-      className="relative overflow-hidden"
-      style={{
-        background: "#070A08",
-        borderBottom: "1px solid #161C19",
-        minHeight: "420px",
-      }}
-    >
-      {/* Background image */}
-      <div className="absolute inset-0">
-        <img
-          src={"/manus-storage/community-forum_5e681ef4.png"}
-          alt="Community"
-          className="img-cover"
-          style={{ filter: "brightness(0.30) saturate(1.0)" }}
-        />
-        <div className="absolute inset-0 img-overlay-left" />
-      </div>
-
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: text */}
-          <div>
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-              style={{ background: "rgba(45,155,110,0.15)", border: "1px solid rgba(45,155,110,0.25)" }}
-            >
-              <Users className="w-5 h-5" style={{ color: "#34D399" }} />
-            </div>
-            <h2
-              className="font-brand mb-3 leading-none"
-              style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", color: "rgba(255,255,255,0.96)", letterSpacing: "0.04em" }}
-            >
-              COMMUNITY
-            </h2>
-            <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.68)" }}>
-              Teile dein Wissen, stelle Fragen und wachse gemeinsam mit Gleichgesinnten.
-            </p>
-            <Link href="/feed">
-              <span
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all duration-200"
-                style={{
-                  background: "#111614",
-                  border: "1px solid rgba(45,107,63,0.35)",
-                  color: "rgba(255,255,255,0.85)",
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = "rgba(45,155,110,0.15)";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,155,110,0.40)";
-                  (e.currentTarget as HTMLElement).style.color = "#34D399";
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = "#111614";
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(45,107,63,0.35)";
-                  (e.currentTarget as HTMLElement).style.color = "rgba(255,255,255,0.85)";
-                }}
-              >
-                Zur Community <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </Link>
-          </div>
-
-          {/* Right: activity feed */}
-          <div className="max-w-sm mx-auto w-full space-y-3">
-            {COMMUNITY_HIGHLIGHTS.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl"
-                style={{ background: "rgba(13,17,14,0.85)", border: "1px solid rgba(45,107,63,0.25)" }}
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                  style={{ background: "rgba(45,155,110,0.20)", color: "#34D399" }}
-                >
-                  {item.icon}
-                </div>
-                <div className="min-w-0">
-                  <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.85)" }}>
-                    {item.title}
-                  </span>
-                  <span className="text-sm ml-1" style={{ color: "rgba(255,255,255,0.55)" }}>
-                    {item.text}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
