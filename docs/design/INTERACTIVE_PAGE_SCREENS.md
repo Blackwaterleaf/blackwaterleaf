@@ -1,6 +1,6 @@
 # BlackwaterLeaf: Grafische Zielseiten
 
-> **Zweck:** Diese sieben Grafiken sind die verbindlichen visuellen Zielbilder für die Seiten, die sich **nach einem Tipp auf eine Auswahl** öffnen. Sie sind keine erneuten Startseiten: Jede Grafik zeigt ihren eigenen Hero, ihre vier Hauptaktionen und ihre eigene Akzentfarbe.
+> **Zweck:** Diese Grafiken sind die verbindlichen visuellen Zielbilder für die Seiten, die sich **nach einem Tipp auf eine Auswahl** öffnen. Sie sind keine erneuten Startseiten: Jede Grafik zeigt ihren eigenen Hero, ihre Hauptaktionen und ihre eigene Akzentfarbe.
 
 Die Komposition folgt dem bestätigten KI-Screen: Markenleiste, Sensorleiste, großer visueller Bereichs-Hero, vier bildbasierte Funktionskarten und die schwebende Bottom Navigation. Für eine Umsetzung in Web und App werden die vorhandenen Seitenfunktionen und Routen beibehalten; nur deren visuelle Darstellung wird entlang dieser Bildreferenzen angeglichen.
 
@@ -13,6 +13,10 @@ Die Komposition folgt dem bestätigten KI-Screen: Markenleiste, Sensorleiste, gr
 | **Live-Bereich** | `/flow/live` | Neon-Blau `#28D8FF` | [Live-Screen](screens/05-live-bereich.jpg) |
 | **Foto** | `/flow/foto` | Neon-Grün `#C7F35B` | [Foto-Screen](screens/06-foto.jpg) |
 | **Beitrag** | `/flow/beitrag` → `/feed` | Blatt-Grün `#C7F35B` | [Beitrags-Screen](screens/07-beitrag.jpg) |
+| **Entdecken** | `/explore` | Vier Bereichsfarben | [Entdecken-Screen](screens/08-entdecken.jpg) |
+| **Community** | `/community` | Neon-Grün `#C7F35B` | [Community-Screen](screens/09-community.jpg) |
+| **Profil** | `/profile` | Neon-Grün `#C7F35B` | [Profil-Screen](screens/10-profil.jpg) |
+| **Wissen** | `/knowledge` | Neon-Grün `#C7F35B` | [Wissen-Screen](screens/11-wissen.jpg) |
 
 ## 1. Botanik – Seite nach dem Tippen
 
@@ -36,7 +40,7 @@ Die **Terraristikseite** übernimmt dieselbe Struktur, aber mit einem eigenstän
 
 ![Grafische Zielseite KI-Assistent](screens/04-ki-assistent.jpg)
 
-Die **KI-Seite** ist die bestätigte Stilreferenz: violette KI-Motive im botanischen Umfeld, mit klaren Einstiegen für Chat, Bestimmung, Aquariumfragen und Wissen.
+Die **KI-Seite** trägt bewusst den veröffentlichten Grundsatz „Echte KI-Hilfe. Keine Scheinantwort.“. Violette KI-Motive im botanischen Umfeld führen klar zu Frage, Bestimmung, Aquariumverständnis und Quellenwissen.
 
 ## 5. Live-Bereich – Seite nach dem Tippen
 
@@ -56,6 +60,30 @@ Die **Fotoseite** ist eine klare Aufnahme-Entscheidung: Der große Button zur Ka
 
 Die **Beitragsseite** führt in den Feed-Editor. Ihr eigener Hero, Composer-Vorschau und die vier nachgelagerten Optionen verhindern, dass der Beitragsweg wie ein generischer Dialog wirkt.
 
+## 8. Entdecken – veröffentlichte Hauptseite
+
+![Grafische Zielseite Entdecken](screens/08-entdecken.jpg)
+
+Die veröffentlichte Route `/explore` führt in den World Index. Der Bildschirm macht die vier tatsächlich angebotenen Welten sichtbar: Botanik, Aquaristik, Terraristik und KI-Assistent. Der Home-Screen ist bereits durch `reference-screenshot.jpg` abgedeckt; diese Grafik ist die Zielansicht **nach** dem Tippen auf „Entdecken“.
+
+## 9. Community – veröffentlichte Hauptseite
+
+![Grafische Zielseite Community](screens/09-community.jpg)
+
+Die veröffentlichte Route `/community` zeigt derzeit nur echte, freigegebene Beiträge. Deshalb visualisiert der Screen konsequent den **leeren Feed-Zustand** und erfindet keine Mitglieder, Likes, Kommentare oder Beiträge. Das ist der unmittelbare Zielscreen nach dem Tippen auf „Community“.
+
+## 10. Profil – veröffentlichte Hauptseite
+
+![Grafische Zielseite Profil](screens/10-profil.jpg)
+
+Die veröffentlichte Route `/profile` verlangt für private Beobachtungen eine sichere Anmeldung und enthält Sprache sowie Einheiten. Der Screen zeigt genau diese drei vorhandenen Funktionen im Overlay-Design, ohne ein falsches Benutzerprofil zu erfinden.
+
+## 11. Wissen – veröffentlichte Hauptseite
+
+![Grafische Zielseite Wissen](screens/11-wissen.jpg)
+
+Die veröffentlichte Route `/knowledge` kommuniziert aktuell, dass noch keine quellenbelegten Wissenseinträge veröffentlicht sind. Die Grafik gibt diesem ehrlichen Leerzustand eine hochwertige, klar als Wissen erkennbare Zieloberfläche.
+
 ## Umsetzungsregel
 
-Beim Implementieren zählt der **Bildaufbau**: Die obere Marken- und Sensorzone bleibt konstant; Bildwelt, Neonfarbe, Titel, Hero und vier Funktionskarten wechseln pro Bereich. Keine neue Icon-Sammlung und keine austauschbaren, textlastigen Dashboard-Karten erzeugen. Jede Karte muss zu einer vorhandenen Funktion oder zu einer ausdrücklich als zukünftige Funktion markierten Seite führen.
+Beim Implementieren zählt der **Bildaufbau**: Die obere Marken- und Sensorzone bleibt konstant; Bildwelt, Neonfarbe, Titel, Hero und vier Funktionskarten wechseln pro Bereich. Keine neue Icon-Sammlung und keine austauschbaren, textlastigen Dashboard-Karten erzeugen. Jede Karte muss zu einer vorhandenen Funktion oder zu einer ausdrücklich als zukünftige Funktion markierten Seite führen. Leerzustände der veröffentlichten Community-, Profil- und Wissensseiten bleiben transparent; keine Inhalte, Personen oder Messwerte erfinden.
