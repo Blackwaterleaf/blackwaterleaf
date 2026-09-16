@@ -1,4 +1,4 @@
-import { Bot, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
+import { Bell, Bot, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -44,11 +44,16 @@ export function AppShell({ children }: PropsWithChildren) {
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
           <span className="brand-mark"><Leaf size={21} strokeWidth={1.8} /></span>
           <span className="brand-name">BLACKWATERLEAF</span>
-          {experience.data?.status === "ready" ? <span className="system-chip">LVL_{experience.data.level}</span> : null}
-          <span className="system-chip">SYS_01</span>
         </Link>
+        <nav className="desktop-navigation" aria-label="Hauptnavigation">
+          {navigation.map(item => {
+            const active = item.href === "/" ? location === "/" : location.startsWith(item.href);
+            return <Link key={item.href} href={item.href} className={active ? "active" : ""}>{t(item.label)}</Link>;
+          })}
+        </nav>
         <div className="top-actions">
           <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
+          <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
           <Link href="/profile" className="icon-button profile-button" aria-label={t("tabs.profile")}><UserRound size={18} /></Link>
         </div>
       </header>

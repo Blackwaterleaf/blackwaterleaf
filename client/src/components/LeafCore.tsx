@@ -1,4 +1,4 @@
-import { Bot, Camera, Fish, Leaf, Plus, ScanLine, UsersRound, X } from "lucide-react";
+import { Bot, Box, Camera, Fish, Leaf, MessageCircle, Plus, ScanLine, Sprout, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { useI18n } from "@/i18n";
@@ -8,10 +8,11 @@ export function LeafCore() {
   const { t } = useI18n();
   const actions = [
     { label: t("leaf.photo"), href: "/world/botany", icon: Camera },
-    { label: t("leaf.observe"), href: "/world/terrarium", icon: ScanLine },
-    { label: t("leaf.post"), href: "/community", icon: UsersRound },
-    { label: t("leaf.plant"), href: "/world/botany", icon: Leaf },
-    { label: t("leaf.aquarium"), href: "/world/aquarium", icon: Fish },
+    { label: t("leaf.observe"), href: "/world/aquarium", icon: ScanLine },
+    { label: t("leaf.post"), href: "/community", icon: MessageCircle },
+    { label: t("leaf.plant"), href: "/profile", icon: Sprout },
+    { label: t("leaf.aquarium"), href: "/profile", icon: Fish },
+    { label: "Terrarium", href: "/profile", icon: Box },
     { label: t("leaf.ask"), href: "/assistant", icon: Bot },
   ];
 
@@ -19,32 +20,19 @@ export function LeafCore() {
     <div className={`leaf-core ${open ? "is-open" : ""}`}>
       <div className="leaf-ripples" aria-hidden="true"><i /><i /><i /></div>
       <div className="radial-actions" aria-hidden={!open}>
-        {actions.map((action, index) => {
+        {actions.map(action => {
           const Icon = action.icon;
           return (
-            <Link
-              key={action.label}
-              href={action.href}
-              className="radial-action"
-              style={{ "--radial-index": index } as React.CSSProperties}
-              tabIndex={open ? 0 : -1}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={15} />
+            <Link key={action.label} href={action.href} className="radial-action" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
+              <span className="radial-action-icon"><Icon size={18} /></span>
               <span>{action.label}</span>
             </Link>
           );
         })}
       </div>
-      <button
-        type="button"
-        className="leaf-trigger"
-        aria-label={open ? t("leaf.close") : t("leaf.open")}
-        aria-expanded={open}
-        onClick={() => setOpen(value => !value)}
-      >
+      <button type="button" className="leaf-trigger" aria-label={open ? t("leaf.close") : t("leaf.open")} aria-expanded={open} onClick={() => setOpen(value => !value)}>
         <span className="leaf-trigger-glow" aria-hidden="true" />
-        {open ? <X size={24} /> : <Leaf size={27} fill="currentColor" />}
+        {open ? <X size={27} /> : <Leaf size={31} fill="currentColor" />}
         <span className="leaf-plus"><Plus size={11} /></span>
       </button>
     </div>

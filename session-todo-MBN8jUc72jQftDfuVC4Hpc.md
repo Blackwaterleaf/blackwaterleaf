@@ -13,3 +13,4 @@
 - [ ] Store a sending-only Resend credential as the protected `RESEND_API_KEY` project secret.
 - [ ] Run real confirmation and reset email delivery tests after sender verification.
 - [ ] Remove legacy Manus OAuth only after local-account migration is accepted and existing users have transitioned.
+- [x] Apply the supplied BlackWaterLeaf reference layout: deep-green living overlay, compact sensor strip, realm color system, image-led cards, central seven-action leaf control, and responsive desktop/mobile navigation.
