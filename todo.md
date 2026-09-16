@@ -29,8 +29,8 @@
 - [x] Desktop- und Mobile-Screenshots aller Kernrouten erstellen und auf Living-UI, Kontrast, Überlauf, Navigation und Leerzustände prüfen.
 - [x] `docs/WEB_NATIVE_PARITY_MATRIX_FINAL.md` mit evidenzbasiertem Status je Kernfunktion erstellen; nur tatsächlich verifizierte Punkte als paritätisch markieren.
 - [x] Vor der ersten Übergabe genau einen Projekt-Checkpoint erstellen und die Staging-Version bereitstellen.
-- [ ] Domainumschaltung von der aktiven Webador-Seite auf die geprüfte Web-App erst nach separater ausdrücklicher Freigabe und dokumentiertem Rückfallplan durchführen.
-- [ ] Nach Bestätigung aus dem DNS-verwaltenden Chat ausschließlich die öffentliche Auflösung von `blackwaterleaf.com` und `www.blackwaterleaf.com`, HTTPS, Zertifikat und Rückfallwerte prüfen; in diesem Projekt keinerlei parallele DNS-Änderung ausführen.
+- [x] Domainumschaltung von der aktiven Webador-Seite auf die geprüfte Web-App erst nach separater ausdrücklicher Freigabe und dokumentiertem Rückfallplan durchführen.
+- [x] Nach Bestätigung aus dem DNS-verwaltenden Chat ausschließlich die öffentliche Auflösung von `blackwaterleaf.com` und `www.blackwaterleaf.com`, HTTPS, Zertifikat und Rückfallwerte prüfen; in diesem Projekt keinerlei parallele DNS-Änderung ausführen.
 - [x] Deutsch als Haupt- und Standardsprache für neue Sitzungen setzen und nach Anmeldung die serverseitige Kontosprache gegenüber der Browser-Locale priorisieren; Englisch bleibt auswählbar.
 
 - [x] Mobiles Profil- und Kontolayout komprimieren: Hero, Identität, Status, XP und primäre Kontofunktionen ohne übergroße Flächen oder verdeckte Formularfelder auf S23-Ultra-naher Ansicht darstellen.
