@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "BlackWaterLeaf Natur",
+    "slug": "blackwaterleaf-natur",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "blackwaterleaf-natur",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.blackwaterleaf.natur"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#031108",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.blackwaterleaf.natur"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-status-bar"
+    ],
+    "extra": {
+      "apiOrigin": "https://blackwaterleaf.com",
+      "nativePrivateFlows": "requires_registered_mobile_oauth"
+    }
+  }
+}

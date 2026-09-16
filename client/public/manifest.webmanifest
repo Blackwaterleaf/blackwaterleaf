@@ -1,0 +1,26 @@
+{
+  "name": "BlackWaterLeaf",
+  "short_name": "BlackWaterLeaf",
+  "description": "Botanik, Aquaristik, Terraristik, Wissen und transparente KI-Hilfe.",
+  "lang": "de",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#030806",
+  "theme_color": "#030806",
+  "icons": [
+    {
+      "src": "/icons/blackwaterleaf-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/blackwaterleaf-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
