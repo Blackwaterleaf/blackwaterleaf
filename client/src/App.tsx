@@ -7,6 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home";
+import DesignReference from "./pages/DesignReference";
 import Feed from "./pages/Feed";
 import Plants from "./pages/Plants";
 import PlantCreate from "./pages/PlantCreate";
@@ -34,6 +35,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/design-reference" component={DesignReference} />
       <Route path="/feed">
         <AppLayout><Feed /></AppLayout>
       </Route>
