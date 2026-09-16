@@ -25,4 +25,5 @@
 - [x] Compare PR #5 Production Overlay, PR #6 Reference Overlay Marketplace, the native/Expo sources, and the current web application against the binding V2 design rulebook; PR #6 remains the functional basis and PR #5/Expo are visual-only references.
 - [x] Complete and validate V2 overlay parity for 404, signed-out Profile, account access, Marketplace, and marketplace product states without altering database, domain, authentication behavior, or partner contracts. Checkpoint: `fba41db0`; GitHub update branch: `feature/reference-overlay-marketplace-20260916`, commit `6c5e492`.
 - [x] Add the user-approved Marktplatz tab to the bottom navigation and replace stacked price treatment with a compact professional offer row.
-- [ ] Add local marketplace favorites with a heart action per product card and a device-local favorites list.
+- [x] Add local marketplace favorites with a heart action per product card and a device-local favorites list.
+- [ ] Restore the nonce-protected Manus login as a temporary account access path until transactional email delivery is configured.

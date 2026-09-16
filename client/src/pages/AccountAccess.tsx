@@ -1,5 +1,6 @@
 import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
+import { startLogin } from "@/const";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, CheckCircle2, KeyRound, Leaf, LockKeyhole, Mail, ShieldCheck, UserPlus } from "lucide-react";
@@ -102,6 +103,7 @@ export default function AccountAccess() {
   const emailNeeded = mode === "login" || mode === "register" || mode === "forgot";
   const passwordNeeded = mode === "login" || mode === "register" || mode === "reset";
   const mailDisabled = (mode === "register" || mode === "forgot") && !isEmailReady;
+  const showManusFallback = !isEmailReady;
 
   return (
     <main className="account-access-page reference-page reference-page--botany">
@@ -114,7 +116,7 @@ export default function AccountAccess() {
         <h1 className="glitch-title" data-text={headline.title}>{headline.title}</h1>
         <p className="account-access-intro">{headline.body}</p>
 
-        {mailDisabled ? <p className="form-status" role="status">Die E-Mail-Zustellung wird gerade eingerichtet. Anmeldung mit einem bereits bestätigten Konto bleibt möglich.</p> : null}
+        {showManusFallback ? <div className="account-manus-fallback" role="status"><p>Die eigene E-Mail-Anmeldung wird gerade eingerichtet. Bis dahin kannst du BlackWaterLeaf sicher über dein Manus-Konto nutzen.</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
         {notice ? <p className="account-success" role="status"><CheckCircle2 size={17} />{notice}</p> : null}
         {error ? <p className="account-error" role="alert">{error}</p> : null}
 

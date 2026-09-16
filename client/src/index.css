@@ -403,3 +403,10 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
   .marketplace-favorite-line { grid-template-columns: 48px minmax(0, 1fr) auto auto; gap: 7px; }
   .marketplace-favorite-line img, .marketplace-favorite-line .marketplace-cart-fallback { width: 48px; height: 48px; }
 }
+
+/* Temporary access bridge: local email remains fail-closed until delivery is configured. */
+.account-manus-fallback { display: grid; gap: 10px; margin: 12px 0 4px; padding: 13px; border: 1px solid rgba(131, 237, 248, .36); border-radius: 13px; background: linear-gradient(145deg, rgba(5, 59, 65, .58), rgba(3, 31, 19, .78)); }
+.account-manus-fallback p { margin: 0; color: #c7e3de; font-size: .72rem; line-height: 1.5; }
+.account-manus-fallback small { color: #8fbdb5; font: 700 .54rem/1.4 "Inter", sans-serif; }
+.account-manus-signin { justify-content: center; width: 100%; min-height: 42px; color: #c7f8fc; border-color: rgba(131, 237, 248, .48); background: rgba(6, 68, 75, .56); font-size: .56rem; }
+.account-manus-signin:hover, .account-manus-signin:focus-visible { color: #edffff; border-color: #83edf8; background: rgba(8, 93, 100, .7); outline: none; }
