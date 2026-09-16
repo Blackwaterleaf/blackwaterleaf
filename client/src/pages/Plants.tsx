@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { startLogin } from "@/const";
 import { motion } from "framer-motion";
+import LivingSensorRail from "@/components/LivingSensorRail";
 
 const CATEGORY_LABELS: Record<string, string> = {
   aquatic:      "Wasserpflanze",
@@ -136,12 +137,23 @@ export default function Plants() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+    <div className="bwl-production-page max-w-6xl mx-auto px-4 py-5 pb-24 lg:pb-8">
       <Seo
         title="Botanik – Sammlung & Pflege dokumentieren"
         path="/plants"
         description="Dokumentiere deine Zimmerpflanzen und Wasserpflanzen mit Pflegeparametern, Foto-Timeline und KI-Unterstützung. Entdecke seltene Pflanzen in der BlackwaterLeaf Community."
       />
+
+      <LivingSensorRail />
+
+      <section className="bwl-production-hero" aria-labelledby="botanik-hero-title">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg" alt="Tropische Blätter im dunklen Regenwaldlicht" />
+        <div className="bwl-production-hero-copy">
+          <span>PFLANZEN WORLD</span>
+          <h1 id="botanik-hero-title">NATUR IST <strong>KUNST.</strong></h1>
+          <p>Deine Pflanzen. Dein Wachstum. Dein Moment.</p>
+        </div>
+      </section>
 
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between mb-8 gap-4">

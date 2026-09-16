@@ -1,10 +1,12 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Seo } from "@/components/Seo";
-import { Droplets, Plus } from "lucide-react";
+import { Droplets, Lock, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import LivingSensorRail from "@/components/LivingSensorRail";
+import { startLogin } from "@/const";
 
 const TYPE_LABELS: Record<string, string> = {
   freshwater: "Süßwasser", saltwater: "Salzwasser", blackwater: "Schwarzwasser",
@@ -12,19 +14,20 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_COLOR: Record<string, string> = {
-  blackwater: "#2D9B6E",
-  planted:    "#2D9B6E",
-  freshwater: "rgba(100,160,240,0.90)",
-  saltwater:  "rgba(100,180,220,0.90)",
+  blackwater: "#28D8FF",
+  planted:    "#28D8FF",
+  freshwater: "#28D8FF",
+  saltwater:  "#75E7FF",
   biotope:    "#D4AF37",
   other:      "rgba(255,255,255,0.50)",
 };
 
 const card = {
-  background: "rgba(0,0,0,0.45)",
+  background: "linear-gradient(145deg, rgba(3,28,38,0.76), rgba(2,13,17,0.87))",
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)",
-  border: "1px solid rgba(255,255,255,0.1)",
+  border: "1px solid rgba(40,216,255,0.26)",
+  boxShadow: "inset 0 1px 0 rgba(212,250,255,0.13), 0 12px 32px rgba(0,0,0,0.27), 0 0 22px rgba(40,216,255,0.07)",
 };
 
 export default function Aquariums() {
@@ -34,12 +37,23 @@ export default function Aquariums() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+    <div className="bwl-production-page bwl-production-page-aquarium max-w-5xl mx-auto px-4 py-5 pb-24 lg:pb-8">
       <Seo
         title="Aquarien – Becken & Wasserwerte dokumentieren"
         path="/aquariums"
         description="Verwalte deine Aquarien mit Wasserwerten, Ereignisprotokoll und Foto-Timeline. Von Schwarzwasser-Biotop bis Aquascape – dokumentiert in der BlackwaterLeaf Community."
       />
+
+      <LivingSensorRail />
+
+      <section className="bwl-production-hero" aria-labelledby="aquarium-hero-title">
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/WzGGUGFNZmLSWrMr.jpg" alt="Bepflanzte Unterwasserwelt eines Schwarzwasser-Aquariums" />
+        <div className="bwl-production-hero-copy">
+          <span>AQUARISTIK</span>
+          <h1 id="aquarium-hero-title">AQUA<strong>RISTIK</strong></h1>
+          <p>Dein Becken, deine Wasserwerte, deine Unterwasserwelt.</p>
+        </div>
+      </section>
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between mb-8">
@@ -56,7 +70,7 @@ export default function Aquariums() {
         </div>
         {isAuthenticated && (
           <Link href="/aquariums/new">
-            <button className="btn-primary flex items-center gap-2">
+            <button className="btn-primary bwl-aquarium-action flex items-center gap-2">
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Aquarium hinzufügen</span>
               <span className="sm:hidden">Neu</span>
@@ -78,13 +92,31 @@ export default function Aquariums() {
             </div>
           ))}
         </div>
-      ) : aquariums?.length === 0 ? (
-        <div className="text-center py-20 rounded-2xl" style={card}>
+      ) : !isAuthenticated ? (
+        <div className="text-center py-20 rounded-2xl bwl-aquarium-glass" style={card}>
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "rgba(100,160,240,0.10)", border: "1px solid rgba(100,160,240,0.20)" }}
+            style={{ background: "rgba(40,216,255,0.10)", border: "1px solid rgba(40,216,255,0.30)" }}
           >
-            <Droplets className="w-8 h-8" style={{ color: "rgba(100,160,240,0.90)" }} />
+            <Lock className="w-8 h-8" style={{ color: "#28D8FF" }} />
+          </div>
+          <h3 className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
+            Anmeldung erforderlich
+          </h3>
+          <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.50)" }}>
+            Melde dich an, um deine echten Becken, Wasserwerte und Fotos zu verwalten.
+          </p>
+          <button className="btn-primary bwl-aquarium-action inline-flex items-center gap-2" onClick={() => startLogin()}>
+            Sicher anmelden
+          </button>
+        </div>
+      ) : aquariums?.length === 0 ? (
+        <div className="text-center py-20 rounded-2xl bwl-aquarium-glass" style={card}>
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: "rgba(40,216,255,0.10)", border: "1px solid rgba(40,216,255,0.30)" }}
+          >
+            <Droplets className="w-8 h-8" style={{ color: "#28D8FF" }} />
           </div>
           <h3 className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
             Noch keine Aquarien
@@ -93,7 +125,7 @@ export default function Aquariums() {
             Dokumentiere dein erstes Aquarium mit Wasserwerten und Fotos.
           </p>
           <Link href="/aquariums/new">
-            <button className="btn-primary inline-flex items-center gap-2">
+            <button className="btn-primary bwl-aquarium-action inline-flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Erstes Aquarium anlegen
             </button>
@@ -111,7 +143,7 @@ export default function Aquariums() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: (aquariums?.indexOf(aq) ?? 0) * 0.07, ease: [0.23, 1, 0.32, 1] }}
-                  whileHover={{ y: -3, borderColor: "rgba(45,155,110,0.45)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
+                  whileHover={{ y: -3, borderColor: "rgba(40,216,255,0.55)", boxShadow: "0 8px 32px rgba(0,0,0,0.4), 0 0 22px rgba(40,216,255,0.16)" }}
                   whileTap={{ scale: 0.98 }}
                 >
                   {/* Cover image */}

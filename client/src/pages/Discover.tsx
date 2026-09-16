@@ -35,37 +35,37 @@ const CATEGORY_CARDS = [
     label: "Pflanzen World",
     sub: "Entdecken",
     icon: Leaf,
-    href: "/plants",
+    href: "/flow/botanik",
     bg: "linear-gradient(160deg, rgba(45,155,110,0.35) 0%, rgba(7,10,8,0.95) 100%)",
-    img: "/manus-storage/plants-golden_070e92ad.png",
+    img: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg",
     accent: "#2D9B6E",
   },
   {
     label: "Aquaristik",
     sub: "Entdecken",
     icon: Fish,
-    href: "/aquariums",
-    bg: "linear-gradient(160deg, rgba(45,212,191,0.25) 0%, rgba(7,10,8,0.95) 100%)",
-    img: "/manus-storage/channa-tank_aeefb736.webp",
-    accent: "#2dd4bf",
+    href: "/flow/aquaristik",
+    bg: "linear-gradient(160deg, rgba(40,216,255,0.30) 0%, rgba(3,15,21,0.95) 100%)",
+    img: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/WzGGUGFNZmLSWrMr.jpg",
+    accent: "#28D8FF",
   },
   {
     label: "Terraristik",
     sub: "Entdecken",
     icon: Bug,
-    href: "/aquariums",
-    bg: "linear-gradient(160deg, rgba(45,107,63,0.35) 0%, rgba(7,10,8,0.95) 100%)",
-    img: "/manus-storage/hero-jungle_a3fa6bfc.jpg",
-    accent: "#2D9B6E",
+    href: "/flow/terraristik",
+    bg: "linear-gradient(160deg, rgba(225,214,97,0.24) 0%, rgba(20,18,5,0.95) 100%)",
+    img: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/QhxUwiwrRwBwYvdI.jpg",
+    accent: "#E1D661",
   },
   {
     label: "KI-Assistent",
     sub: "Fragen & Helfen",
     icon: Sparkles,
-    href: "/ai",
-    bg: "linear-gradient(160deg, rgba(52,211,153,0.20) 0%, rgba(7,10,8,0.95) 100%)",
-    img: "/manus-storage/hero-main_962b134d.png",
-    accent: "#34D399",
+    href: "/flow/ki-assistent",
+    bg: "linear-gradient(160deg, rgba(195,107,255,0.28) 0%, rgba(18,5,29,0.95) 100%)",
+    img: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/odpbOWfqtBBNMRrK.jpg",
+    accent: "#C36BFF",
   },
 ] as const;
 
@@ -119,7 +119,7 @@ export default function Discover() {
           style={{ top: "-10%", bottom: "-10%" }}
         >
           <img
-            src="/manus-storage/hero-jungle_a3fa6bfc.jpg"
+            src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg"
             alt="BlackwaterLeaf Natur"
             className="img-cover"
             style={{ filter: "brightness(0.5) saturate(1.3)" }}
@@ -143,7 +143,7 @@ export default function Discover() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            BLACKWATERLEAF COMMUNITY
+            DEINE WELT
           </motion.p>
 
           <motion.h1
@@ -153,11 +153,11 @@ export default function Discover() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <span style={{ color: "rgba(255,255,255,0.96)" }}>WISSEN.</span>
+            <span style={{ color: "rgba(255,255,255,0.96)" }}>ENTDECKE.</span>
             <br />
-            <span style={{ color: "rgba(255,255,255,0.96)" }}>TEILEN.</span>
+            <span style={{ color: "rgba(255,255,255,0.96)" }}>DEINE</span>
             <br />
-            <span style={{ color: "#D4AF37" }}>WACHSEN.</span>
+          <span style={{ color: "#C7F35B" }}>WELT.</span>
           </motion.h1>
 
           <motion.div
@@ -166,7 +166,7 @@ export default function Discover() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Link href="/discover">
+            <Link href="/flow/botanik">
               <motion.button
                 className="py-2.5 px-6 rounded-full font-semibold text-sm anim-breathe"
                 style={{
@@ -178,7 +178,7 @@ export default function Discover() {
                 }}
                 whileTap={{ scale: 0.95 }}
               >
-                ENTDECKEN
+                BEREICHE ÖFFNEN
               </motion.button>
             </Link>
             <Link href="/feed">
@@ -296,7 +296,7 @@ export default function Discover() {
             className="text-xs font-bold uppercase"
             style={{ color: "#D4AF37", letterSpacing: "0.14em" }}
           >
-            ACCOUNT DES TAGES
+            {accountOfDay ? "ACCOUNT DES TAGES" : "COMMUNITY"}
           </span>
         </div>
 
@@ -343,18 +343,15 @@ export default function Discover() {
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: "rgba(45,155,110,0.15)",
-                  border: "2px solid rgba(212,175,55,0.5)",
+                  background: "rgba(199,243,91,0.12)",
+                  border: "2px solid rgba(199,243,91,0.34)",
                 }}
               >
-                <span className="text-xl font-bold font-brand" style={{ color: "#2D9B6E" }}>K</span>
+                <Users className="w-5 h-5" style={{ color: "#C7F35B" }} />
               </div>
               <div>
-                <p className="font-bold text-base" style={{ color: "rgba(255,255,255,0.95)" }}>KiemenKumpel</p>
-                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>Aquaristiker mit Herz &amp; Verstand</p>
-                <p className="text-sm font-semibold mt-1.5 flex items-center gap-1" style={{ color: "#2D9B6E" }}>
-                  Profil ansehen <ArrowRight className="w-3.5 h-3.5" />
-                </p>
+                <p className="font-bold text-base" style={{ color: "rgba(255,255,255,0.95)" }}>Noch keine freigegebenen Profile</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>Sichtbare Accounts erscheinen erst nach einer echten Freigabe.</p>
               </div>
             </div>
           </GlassCard>

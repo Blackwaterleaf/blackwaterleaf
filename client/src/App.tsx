@@ -7,6 +7,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home";
+import DesignReference from "./pages/DesignReference";
+import LivingFlow from "./pages/LivingFlow";
 import Feed from "./pages/Feed";
 import Plants from "./pages/Plants";
 import PlantCreate from "./pages/PlantCreate";
@@ -29,11 +31,16 @@ import ModeratorDashboard from "./pages/ModeratorDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import AiIdentificationReview from "./pages/AiIdentificationReview";
 import Marketplace from "./pages/Marketplace";
+import "./styles/production-overlay.css";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/design-reference" component={DesignReference} />
+      <Route path="/flow/:flow">
+        {(params) => <LivingFlow flow={String(params.flow)} />}
+      </Route>
       <Route path="/feed">
         <AppLayout><Feed /></AppLayout>
       </Route>

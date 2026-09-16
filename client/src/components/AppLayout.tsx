@@ -257,15 +257,13 @@ function TopNav() {
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-
   return (
     <div className="min-h-screen" style={{ background: "#070A08" }}>
       <TopNav />
       <main className="pt-16 bl-main-pad px-4" style={{ maxWidth: 1400, margin: "0 auto" }}>
         {children}
       </main>
-      {isAuthenticated && <BottomNav />}
+      <BottomNav />
     </div>
   );
 }
