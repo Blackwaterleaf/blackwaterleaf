@@ -121,6 +121,106 @@ export function isPublicPartnerProduct(input: {
   return input.productStatus === "active" && hasActivePartnerPublication(input);
 }
 
+export type PublicMarketplaceProduct = {
+  id: number;
+  partnerId: number;
+  partnerName: string;
+  partnerType: "person" | "company";
+  partnerUrl: string | null;
+  disclosureLabel: string;
+  title: string;
+  description: string | null;
+  destinationUrl: string;
+  priceLabel: string | null;
+  imageUrl: string | null;
+};
+
+/**
+ * A marketplace entry is an external partner offer, not an in-app sale. The
+ * same verified, current authorization gate that controls home placements
+ * controls every public catalogue item.
+ */
+async function getPublicMarketplaceProducts(db: Database): Promise<PublicMarketplaceProduct[]> {
+  const partnerRows = await db
+    .select({
+      partnerId: partnerProfiles.id,
+      partnerName: partnerProfiles.displayName,
+      partnerType: partnerProfiles.partyType,
+      partnerUrl: partnerProfiles.destinationUrl,
+      disclosureLabel: partnerProfiles.disclosureLabel,
+      placementStatus: partnerPlacements.status,
+      startsAt: partnerPlacements.startsAt,
+      endsAt: partnerPlacements.endsAt,
+    })
+    .from(partnerPlacements)
+    .innerJoin(partnerProfiles, eq(partnerPlacements.partnerId, partnerProfiles.id))
+    .where(and(
+      eq(partnerPlacements.placement, "home"),
+      eq(partnerPlacements.status, "active"),
+      eq(partnerProfiles.status, "approved"),
+    ));
+  const [latestAuthorizations, activeProducts] = await Promise.all([
+    getLatestAuthorizations(db),
+    db
+      .select({
+        id: partnerProducts.id,
+        partnerId: partnerProducts.partnerId,
+        title: partnerProducts.title,
+        description: partnerProducts.description,
+        destinationUrl: partnerProducts.destinationUrl,
+        priceLabel: partnerProducts.priceLabel,
+        imageStorageKey: partnerProducts.imageStorageKey,
+        status: partnerProducts.status,
+        updatedAt: partnerProducts.updatedAt,
+      })
+      .from(partnerProducts)
+      .where(eq(partnerProducts.status, "active"))
+      .orderBy(desc(partnerProducts.updatedAt)),
+  ]);
+  const now = Date.now();
+  const eligiblePartners = new Map(
+    partnerRows
+      .filter(partner => hasActivePartnerPublication({
+        partnerStatus: "approved",
+        authorizationState: latestAuthorizations.get(partner.partnerId)?.state ?? "missing",
+        placementStatus: partner.placementStatus,
+        startsAt: partner.startsAt,
+        endsAt: partner.endsAt,
+        now,
+      }))
+      .map(partner => [partner.partnerId, partner]),
+  );
+
+  return Promise.all(activeProducts.flatMap(product => {
+    const partner = eligiblePartners.get(product.partnerId);
+    if (!partner || !isPublicPartnerProduct({
+      productStatus: product.status,
+      partnerStatus: "approved",
+      authorizationState: latestAuthorizations.get(product.partnerId)?.state ?? "missing",
+      placementStatus: partner.placementStatus,
+      startsAt: partner.startsAt,
+      endsAt: partner.endsAt,
+      now,
+    })) return [];
+    return [{
+      id: product.id,
+      partnerId: product.partnerId,
+      partnerName: partner.partnerName,
+      partnerType: partner.partnerType,
+      partnerUrl: partner.partnerUrl,
+      disclosureLabel: partner.disclosureLabel,
+      title: product.title,
+      description: product.description,
+      destinationUrl: product.destinationUrl,
+      priceLabel: product.priceLabel,
+      imageStorageKey: product.imageStorageKey,
+    }];
+  }).map(async product => ({
+    ...product,
+    imageUrl: product.imageStorageKey ? await storageGetSignedUrl(product.imageStorageKey) : null,
+  })));
+}
+
 export const partnersRouter = router({
   homepage: publicProcedure.query(async () => {
     const db = await requireDatabase();
@@ -182,6 +282,20 @@ export const partnersRouter = router({
       }))),
     })));
   }),
+
+  marketplace: publicProcedure.query(async () => {
+    const db = await requireDatabase();
+    return getPublicMarketplaceProducts(db);
+  }),
+
+  marketplaceProduct: publicProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const product = (await getPublicMarketplaceProducts(db)).find(item => item.id === input.id);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "marketplace_product_not_found" });
+      return product;
+    }),
 
   list: adminProcedure.query(async () => {
     const db = await requireDatabase();

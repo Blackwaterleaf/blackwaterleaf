@@ -15,6 +15,8 @@ import Realm from "./pages/Realm";
 import FlowDestination from "./pages/FlowDestination";
 import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
+import Marketplace from "./pages/Marketplace";
+import MarketplaceProduct from "./pages/MarketplaceProduct";
 
 function Router() {
   return (
@@ -35,6 +37,8 @@ function Router() {
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={Profile} />
         <Route path={"/knowledge"} component={Knowledge} />
+        <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
+        <Route path={"/marketplace"} component={Marketplace} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
         <Route path={"/404"} component={NotFound} />

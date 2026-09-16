@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, Leaf, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -59,6 +59,7 @@ export function AppShell({ children }: PropsWithChildren) {
         </nav>
         <div className="top-actions">
           <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
+          <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
           <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
           <Link href="/profile" className="icon-button profile-button" aria-label={t("tabs.profile")}><UserRound size={18} /></Link>
         </div>

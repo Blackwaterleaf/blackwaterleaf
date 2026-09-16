@@ -181,7 +181,7 @@ function PartnerProducts({ partnerId, partnerName }: { partnerId: number; partne
   };
 
   return <section className="partner-products" aria-label={`Händlerprodukte für ${partnerName}`}>
-    <p className="eyebrow">[HÄNDLERPRODUKTE]</p><h3>Produkte von {partnerName}</h3><p>Produkte sind externe Empfehlungen. BlackWaterLeaf verarbeitet weder Warenkorb noch Zahlung.</p>
+    <p className="eyebrow">[HÄNDLERPRODUKTE]</p><h3>Produkte von {partnerName}</h3><p>Produkte erscheinen nach Freigabe im BlackWaterLeaf-Marktplatz. Die Merkliste bleibt lokal; Zahlung, Versand und Kaufabschluss erfolgen ausschließlich beim jeweiligen Partner.</p>
     <form className="form-grid partner-product-form" onSubmit={submit}>
       <label className="field"><span>Produktname</span><input required maxLength={160} value={form.title} onChange={event => setForm(current => ({ ...current, title: event.target.value }))} /></label>
       <label className="field"><span>Produkt-URL (nur HTTPS)</span><input required type="url" placeholder="https://…" value={form.destinationUrl} onChange={event => setForm(current => ({ ...current, destinationUrl: event.target.value }))} /></label>
