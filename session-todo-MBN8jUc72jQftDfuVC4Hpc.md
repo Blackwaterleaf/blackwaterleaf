@@ -16,3 +16,4 @@
 - [x] Apply the supplied BlackWaterLeaf reference layout: deep-green living overlay, compact sensor strip, realm color system, image-led cards, central seven-action leaf control, and responsive desktop/mobile navigation.
 - [x] Connect the dashboard to private aquarium water/pH values and opt-in current outdoor weather, without persisting browser coordinates; smart-device linking remains a separate, provider-specific connection.
 - [x] Add a private smart-device selection dialog with target-aquarium ownership checks, selectable water metrics, transparent pending state, and no browser- or database-stored provider credentials.
+- [x] Audit all eleven supplied BlackWaterLeaf reference screens and replace the earlier general visual review with a binding screen-by-screen design rulebook and handoff protocol before the next UI implementation phase.
