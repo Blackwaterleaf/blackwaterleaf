@@ -155,7 +155,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-mark { width: 34px; height: 34px; }
 .brand-name { font-size: 1.22rem; }
 .profile-button { color: #c7f35b; border-color: rgba(199, 243, 91, .48); }
-.bottom-navigation { display: grid !important; grid-template-columns: repeat(4, 1fr); width: min(calc(100% - 24px), 620px); height: 62px; border-radius: 20px; background: rgba(1, 14, 8, .88); }
+.bottom-navigation { display: grid !important; grid-template-columns: repeat(5, 1fr); width: min(calc(100% - 24px), 620px); height: 62px; border-radius: 20px; background: rgba(1, 14, 8, .88); }
 .nav-link { position: relative; font-size: .52rem; }
 .nav-link.active::after { content: ""; position: absolute; bottom: 1px; width: 18px; height: 2px; border-radius: 99px; background: currentColor; box-shadow: 0 0 11px currentColor; }
 .home-stack, .page-stack, .reference-page { gap: 18px; }
@@ -353,3 +353,27 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 /* Recovery stays in the botanical semantic color family; alert iconography is not a fifth product tone. */
 .reference-not-found .reference-empty-state--error { border-color: rgba(199, 243, 91, .58); background: radial-gradient(circle at 50% 10%, rgba(199, 243, 91, .16), transparent 34%), linear-gradient(145deg, rgba(17, 64, 27, .91), rgba(3, 23, 10, .95)); }
 .reference-not-found .reference-empty-state--error .reference-empty-state__orbit { color: #c7f35b; border-color: rgba(199, 243, 91, .55); background: rgba(24, 78, 30, .28); box-shadow: 0 0 30px rgba(199, 243, 91, .16); }
+
+/* Compact commerce hierarchy: a price is a single visual anchor, never a loose vertical stack. */
+.marketplace-card__offer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; padding: 8px 9px; border: 1px solid rgba(97, 225, 237, .18); border-radius: 10px; background: linear-gradient(90deg, rgba(7, 61, 65, .66), rgba(5, 31, 24, .48)); }
+.marketplace-card__price { display: flex; align-items: baseline; min-width: 0; gap: 6px; color: #8ceefb; }
+.marketplace-card__price span { flex: 0 0 auto; color: #8ab8b3; font: 800 .42rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.marketplace-card__price strong { overflow: hidden; color: #d8fffd; font: 800 clamp(.68rem, 2.6vw, .82rem)/1 "JetBrains Mono", monospace; text-overflow: ellipsis; white-space: nowrap; }
+.marketplace-card__vendor { overflow: hidden; max-width: 44%; color: #a9c4bf; font: 700 .5rem/1.2 "Inter", sans-serif; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.marketplace-card__actions { margin-top: 1px; }
+.nav-link:nth-child(3) { color: #7fefff; }
+.nav-link:nth-child(3).active { color: #7fefff; text-shadow: 0 0 14px rgba(90, 231, 247, .52); }
+
+@media (min-width: 760px) {
+  .marketplace-card__offer { padding: 9px 10px; }
+  .marketplace-card__price strong { font-size: .84rem; }
+}
+
+@media (max-width: 390px) {
+  .bottom-navigation { width: calc(100% - 16px); padding-inline: 5px; }
+  .nav-link { font-size: .45rem; }
+  .marketplace-card__offer { gap: 5px; padding: 7px; }
+  .marketplace-card__price { gap: 4px; }
+  .marketplace-card__price strong { font-size: .62rem; }
+  .marketplace-card__vendor { max-width: 42%; font-size: .46rem; }
+}

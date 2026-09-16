@@ -31,7 +31,7 @@ Jede Zielseite folgt derselben vertikalen Grundfolge:
 3. Ein eigener bildgestützter Bereichs-Hero.
 4. Ein echter Zustandsblock, falls die Route Authentifizierung, Verbindung, Freigabe, Leerstand oder Fehler erklärt.
 5. Bildbasierte Funktionskarten oder Wahlbereiche in der im Screen vorgegebenen Zahl.
-6. Eine schwebende, vierteilige Bottom Navigation.
+6. Eine schwebende Bottom Navigation. Sie umfasst die vier Referenzziele sowie den vom Produktauftrag freigegebenen Marktplatz.
 
 Formulare, Composer, Chatbereiche, Listen und Detaildaten bleiben erhalten. Sie erscheinen jedoch **nachgeordnet** hinter einem echten Karten- oder Call-to-Action-Einstieg. Sie dürfen den Hero, die Sensorleiste oder die Wahlbereiche nicht als Hauptkomposition verdrängen.
 
@@ -109,10 +109,11 @@ Die heutigen, funktional belegten Routen sind die Wahrheit für bestehende Funkt
 | Beitrag-Erstellung | `/flow/beitrag` | gezielt neu anzulegen | Community |
 | Entdecken | `/explore` | vorhanden | Entdecken |
 | Community | `/community` | vorhanden | Community |
+| Marktplatz | `/marketplace` und `/marketplace/product/:id` | vorhanden | Marktplatz |
 | Profil | `/profile` | vorhanden | Profil |
 | Wissen | `/knowledge` | vorhanden | Entdecken |
 
-Die Referenznavigation enthält exakt **Home, Entdecken, Community und Profil**. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als fünfter Eintrag in der Referenz-Bottom-Navigation. Die bisherige Fünf-Tab-Shell ist für diese Zielseiten somit zu ersetzen oder durch eine referenzspezifische Navigation zu überlagern. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
+Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als eigener Eintrag in der Bottom-Navigation. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
 
 `/flow/botanik`, `/flow/aquaristik`, `/flow/terraristik` und `/flow/ki-assistent` werden **nicht** aus älteren Handoff-Tabellen übernommen, solange kein eigener Produktauftrag dies verlangt. Sie widersprechen der derzeitigen App-Routenwahrheit. Nur Live, Foto und Beitrag sind als neue Zielseiten explizit vorgesehen.
 
@@ -140,7 +141,7 @@ Eine Zielseite ist erst freigegeben, wenn alle folgenden Punkte gleichzeitig erf
 2. Ihre Akzentfarbe entspricht exakt der Bereichsfarbe.
 3. Jede sichtbare Funktionskarte hat das passende Bildmotiv, Icon, Titel, Chevron und einen nachgewiesenen Link- oder Nichtverfügbar-Zustand.
 4. Die Kartenzahl und Rasterform entsprechen dem Zielscreen.
-5. Markenleiste, Sensorleiste und vierteilige Bottom Navigation entsprechen der Referenzhierarchie.
+5. Markenleiste, Sensorleiste und die Bottom Navigation mit den vier Referenzzielen plus Marktplatz entsprechen der Referenzhierarchie.
 6. Jeder Sensor-, Feed-, Profil-, KI- und Wissenszustand bleibt real, privat, fehlend, verbunden oder fehlerhaft wie im echten Datenvertrag.
 7. Die mobile Ansicht bei 412 × 915 und eine Desktopansicht werden visuell geprüft; keine Touchfläche wird von der Navigation verdeckt.
 8. Keyboard-Fokus, Kontrast und `prefers-reduced-motion` bleiben funktionsfähig.
@@ -152,7 +153,7 @@ Die folgenden früheren Annahmen sind nicht länger zulässig:
 
 - Ein realm-spezifisches Hintergrundbild plus generisches Formular erfüllt keinen Bereichsscreen.
 - Eine allgemeine Glasoptik ersetzt keine bildbasierte Hero-/Kartenkomposition.
-- Die heutige Fünf-Tab-Navigation ist nicht die Referenznavigation.
+- Eine beliebige Fünf-Tab-Navigation ist nicht die Referenznavigation. Zulässig ist ausschließlich die festgelegte Folge **Home · Entdecken · Marktplatz · Community · Profil**.
 - Ein vorhandener `LiveSensorStrip` legitimiert keine Referenzwerte und ersetzt nicht die geforderte visuelle Viererleiste.
 - Ein Community-, Knowledge-, Profil- oder KI-Panel darf nicht als generischer Ersatz für den jeweiligen Hero, Empty-State oder Auth-Overlay gelten.
 - Die Bildserie ist keine Quelle für Testdaten, Beispielkonten, Messwerte oder fiktive Features.

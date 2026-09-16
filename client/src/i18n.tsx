@@ -6,6 +6,7 @@ export type UnitSystem = "metric" | "imperial";
 const de = {
   "tabs.home": "Home",
   "tabs.explore": "Entdecken",
+  "tabs.marketplace": "Marktplatz",
   "tabs.community": "Community",
   "tabs.assistant": "KI",
   "tabs.profile": "Profil",
@@ -94,6 +95,7 @@ type TranslationKey = keyof typeof de;
 const en: Record<TranslationKey, string> = {
   "tabs.home": "Home",
   "tabs.explore": "Explore",
+  "tabs.marketplace": "Marketplace",
   "tabs.community": "Community",
   "tabs.assistant": "AI",
   "tabs.profile": "Profile",
