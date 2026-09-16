@@ -26,4 +26,4 @@
 - [x] Complete and validate V2 overlay parity for 404, signed-out Profile, account access, Marketplace, and marketplace product states without altering database, domain, authentication behavior, or partner contracts. Checkpoint: `fba41db0`; GitHub update branch: `feature/reference-overlay-marketplace-20260916`, commit `6c5e492`.
 - [x] Add the user-approved Marktplatz tab to the bottom navigation and replace stacked price treatment with a compact professional offer row.
 - [x] Add local marketplace favorites with a heart action per product card and a device-local favorites list.
-- [ ] Restore the nonce-protected Manus login as a temporary account access path until transactional email delivery is configured.
+- [x] Restore the nonce-protected Manus login as a temporary account access path until transactional email delivery is configured. Checkpoint: `15f189ce`; GitHub update branch: `feature/reference-overlay-marketplace-20260916`, commit `dfd8974`.
