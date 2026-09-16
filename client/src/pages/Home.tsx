@@ -3,8 +3,10 @@ import { StatePanel } from "@/components/StatePanel";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
+import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
 import { ArrowRight, RadioTower } from "lucide-react";
+import { useEffect } from "react";
 import { Link } from "wouter";
 
 function atmosphereForHour(hour: number, labels: { morning: string; day: string; evening: string; night: string }) {
@@ -16,6 +18,7 @@ function atmosphereForHour(hour: number, labels: { morning: string; day: string;
 
 export default function Home() {
   const { t, locale } = useI18n();
+  const pageTitle = HOME_SEO_TITLES[locale];
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.feed.useQuery({ limit: 1 }, { retry: false });
   const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
@@ -25,6 +28,10 @@ export default function Home() {
     evening: t("home.atmosphere.evening"),
     night: t("home.atmosphere.night"),
   });
+
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
 
   return (
     <div className="home-stack">
@@ -79,7 +86,7 @@ export default function Home() {
       <section>
         <div className="section-heading"><div><span className="eyebrow">[REALM_MATRIX]</span><h2>{t("home.worlds.title")}</h2></div><span className="system-chip">{t("home.worlds.meta")}</span></div>
         <div className="world-rail">
-          {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} />)}
+          {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} imageAlt={HOME_WORLD_IMAGE_ALTS[locale][world.realm]} />)}
         </div>
       </section>
 

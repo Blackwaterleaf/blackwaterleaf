@@ -30,6 +30,7 @@
 - [x] `docs/WEB_NATIVE_PARITY_MATRIX_FINAL.md` mit evidenzbasiertem Status je Kernfunktion erstellen; nur tatsächlich verifizierte Punkte als paritätisch markieren.
 - [x] Vor der ersten Übergabe genau einen Projekt-Checkpoint erstellen und die Staging-Version bereitstellen.
 - [ ] Domainumschaltung von der aktiven Webador-Seite auf die geprüfte Web-App erst nach separater ausdrücklicher Freigabe und dokumentiertem Rückfallplan durchführen.
+- [ ] Nach Bestätigung aus dem DNS-verwaltenden Chat ausschließlich die öffentliche Auflösung von `blackwaterleaf.com` und `www.blackwaterleaf.com`, HTTPS, Zertifikat und Rückfallwerte prüfen; in diesem Projekt keinerlei parallele DNS-Änderung ausführen.
 - [x] Deutsch als Haupt- und Standardsprache für neue Sitzungen setzen und nach Anmeldung die serverseitige Kontosprache gegenüber der Browser-Locale priorisieren; Englisch bleibt auswählbar.
 
 - [x] Mobiles Profil- und Kontolayout komprimieren: Hero, Identität, Status, XP und primäre Kontofunktionen ohne übergroße Flächen oder verdeckte Formularfelder auf S23-Ultra-naher Ansicht darstellen.
@@ -46,4 +47,13 @@
 - [x] Versionierte Partnerfreigabeereignisse als eigene, additive Datenstruktur für Erteilung und Widerruf ergänzen; aktive Frontseitenwerbung nur bei aktuell bestätigter Freigabe zulassen.
 - [ ] Positiven Admin-Partnerfluss erst mit einer real autorisierten Person oder Firma abnehmen: Entwurf, Genehmigung, aktive Platzierung, Pause/Entfernung sowie öffentliche Kennzeichnung prüfen. Bis dahin bleiben Leerzustand und autorisierte Negativtests der gültige Nachweis.
 - [x] Admin-, Moderator-, Partner-, Eigentums-, Sichtbarkeits- und mobile Layouttests sowie TypeScript-, Produktionsbuild- und Sicherheitsprüfungen erfolgreich ausführen.
-- [ ] Aktualisierten Stagingcheckpoint zur Abnahme bereitstellen; Domainumschaltung weiterhin nur nach separater ausdrücklicher Freigabe durchführen.
+- [x] Aktualisierten Stagingcheckpoint zur Abnahme bereitstellen; Domainumschaltung weiterhin nur nach separater ausdrücklicher Freigabe durchführen.
+- [x] Webador-DNS und Manus-Domainzuordnung rein lesend für Apex und `www` abgleichen, Verifizierungsstatus dokumentieren und keinerlei parallele DNS-Änderung ausführen.
+- [x] Den im Manus-Domänendialog angebotenen Root-Domain-Fallback rein lesend erfassen und vor jeder Änderung gegen die Webador-Records prüfen; keinen A-Wert schätzen.
+- [x] Die exakte Ersetzung von `@` und `www` nach dem bestätigten Manus-Domänendialog zur finalen Browserbestätigung vorlegen; Mail-, SPF-, DKIM- und übrige DNS-Records unverändert lassen.
+- [x] Nach separater finaler Browserbestätigung ausschließlich die beiden bestätigten Website-Records bei Webador speichern.
+- [ ] DNS-Propagation, öffentliche HTTPS-Antwort, Zertifikat und die Manus-Verifizierung für Apex und `www` prüfen; Rückfallwerte dokumentieren, ohne weitere DNS-Änderung vorzunehmen.
+- [x] Für die Startseite einen Meta-Keywords-Tag mit mindestens 3 und höchstens 8 fokussierten BlackWaterLeaf-Keywords ergänzen.
+- [x] Den Laufzeittitel der Startseite mit `document.title` auf mindestens 30 und höchstens 60 Zeichen setzen.
+- [x] Für alle vier Startseitenbilder beschreibende, eindeutige Alt-Texte ergänzen und die SEO-Grenzen automatisiert prüfen.
+- [ ] SEO-Änderungen mit Metadaten, Laufzeittitel, Alt-Texten und Prüfnachweis als wiederherstellbaren Checkpoint bereitstellen.

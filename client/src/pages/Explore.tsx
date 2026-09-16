@@ -1,11 +1,12 @@
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
+import { HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_CONFIG } from "@/lib/worlds";
 import { BookOpenText } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Explore() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   return (
     <div className="page-stack">
       <section className="page-hero bracket-panel">
@@ -19,7 +20,7 @@ export default function Explore() {
           <span className="system-chip">04 REALMS</span>
         </div>
         <div className="world-grid">
-          {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} />)}
+          {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} imageAlt={HOME_WORLD_IMAGE_ALTS[locale][world.realm]} />)}
         </div>
       </section>
       <Link href="/knowledge" className="knowledge-link glass-panel">
