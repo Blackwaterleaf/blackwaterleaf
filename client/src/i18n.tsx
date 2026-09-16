@@ -194,6 +194,129 @@ export function translate(locale: AppLocale, key: TranslationKey): string {
   return locale === "de" ? de[key] : en[key];
 }
 
+type HabitatKindI18n = "aquarium" | "plant" | "terrarium";
+type HabitatFieldCopy = { label: string; hint?: string };
+export type HabitatCopy = {
+  sectionTitle: string;
+  sectionMeta: string;
+  intro: string;
+  loading: string;
+  empty: string;
+  noValues: string;
+  addHabitat: string;
+  privateSetup: string;
+  privateEdit: string;
+  createTitle: string;
+  editSuffix: string;
+  cancel: string;
+  save: string;
+  update: string;
+  saving: string;
+  saved: string;
+  updated: string;
+  saveFailed: string;
+  count: (value: number) => string;
+  relativeHumidity: string;
+  kinds: Record<HabitatKindI18n, { label: string; plural: string }>;
+  fields: Record<HabitatKindI18n, Record<string, HabitatFieldCopy>>;
+};
+
+const habitatDe: HabitatCopy = {
+  sectionTitle: "Meine Anlagen & Werte",
+  sectionMeta: "Privat · Aquarien, Pflanzen & Terrarien",
+  intro: "Lege deine Anlagen strukturiert an. Diese Angaben bleiben nur in deinem Konto und erscheinen nicht in deinem öffentlichen Profil oder der Community.",
+  loading: "Anlagen werden geladen …",
+  empty: "Noch keine Anlage angelegt. Wähle oben einen Bereich aus.",
+  noValues: "Noch keine Werte hinterlegt",
+  addHabitat: "Anlage hinzufügen",
+  privateSetup: "PRIVATE EINRICHTUNG",
+  privateEdit: "PRIVATE BEARBEITUNG",
+  createTitle: "anlegen",
+  editSuffix: "bearbeiten",
+  cancel: "Abbrechen",
+  save: "ANLAGE PRIVAT SPEICHERN",
+  update: "ANLAGE AKTUALISIEREN",
+  saving: "SPEICHERE …",
+  saved: "Anlage privat gespeichert.",
+  updated: "Anlage aktualisiert.",
+  saveFailed: "Anlage konnte nicht gespeichert werden.",
+  count: value => `${value} angelegt`,
+  relativeHumidity: "% LF",
+  kinds: {
+    aquarium: { label: "Aquarium", plural: "Aquarien" },
+    plant: { label: "Pflanze", plural: "Pflanzen" },
+    terrarium: { label: "Terrarium", plural: "Terrarien" },
+  },
+  fields: {
+    aquarium: {
+      name: { label: "Name des Aquariums" }, volumeLiters: { label: "Volumen", hint: "Liter" }, dimensions: { label: "Maße", hint: "L × B × H in cm" },
+      temperatureC: { label: "Temperatur", hint: "°C" }, ph: { label: "pH" }, gh: { label: "GH", hint: "°dGH" }, kh: { label: "KH", hint: "°dKH" },
+      nitriteMgL: { label: "Nitrit", hint: "mg/l" }, nitrateMgL: { label: "Nitrat", hint: "mg/l" }, conductivityUs: { label: "Leitwert", hint: "µS/cm" },
+      occupants: { label: "Besatz", hint: "Tiere, Anzahl, Varianten" }, plants: { label: "Pflanzen", hint: "Arten oder Gruppen" }, equipment: { label: "Technik", hint: "Filter, Licht, Heizer, CO₂ …" }, notes: { label: "Notizen" },
+    },
+    plant: {
+      name: { label: "Name der Pflanze" }, scientificName: { label: "Botanischer Name" }, quantity: { label: "Anzahl" }, location: { label: "Standort", hint: "z. B. Fenster Ost" },
+      substrate: { label: "Substrat" }, potSizeCm: { label: "Topfgröße", hint: "cm" }, light: { label: "Licht", hint: "hell, indirekt …" }, watering: { label: "Gießen" },
+      humidityPercent: { label: "Luftfeuchte", hint: "%" }, temperatureC: { label: "Temperatur", hint: "°C" }, fertilizer: { label: "Düngung" }, notes: { label: "Notizen" },
+    },
+    terrarium: {
+      name: { label: "Name des Terrariums" }, volumeLiters: { label: "Volumen", hint: "Liter" }, dimensions: { label: "Maße", hint: "L × B × H in cm" },
+      dayTemperatureC: { label: "Tagtemperatur", hint: "°C" }, nightTemperatureC: { label: "Nachttemperatur", hint: "°C" }, humidityPercent: { label: "Luftfeuchte", hint: "%" },
+      occupants: { label: "Bewohner", hint: "Art, Anzahl, Geschlecht" }, plants: { label: "Pflanzen" }, substrate: { label: "Substrat" }, equipment: { label: "Technik", hint: "Licht, Beregnung, Heizung …" }, notes: { label: "Notizen" },
+    },
+  },
+};
+
+const habitatEn: HabitatCopy = {
+  sectionTitle: "My habitats & values",
+  sectionMeta: "Private · aquariums, plants & terrariums",
+  intro: "Create structured records for your habitats. These details remain in your account and never appear on your public profile or in the community.",
+  loading: "Loading habitats …",
+  empty: "No habitat has been created yet. Choose an area above.",
+  noValues: "No values recorded yet",
+  addHabitat: "Add habitat",
+  privateSetup: "PRIVATE SETUP",
+  privateEdit: "PRIVATE EDIT",
+  createTitle: "create",
+  editSuffix: "edit",
+  cancel: "Cancel",
+  save: "SAVE HABITAT PRIVATELY",
+  update: "UPDATE HABITAT",
+  saving: "SAVING …",
+  saved: "Habitat saved privately.",
+  updated: "Habitat updated.",
+  saveFailed: "The habitat could not be saved.",
+  count: value => `${value} created`,
+  relativeHumidity: "% RH",
+  kinds: {
+    aquarium: { label: "Aquarium", plural: "Aquariums" },
+    plant: { label: "Plant", plural: "Plants" },
+    terrarium: { label: "Terrarium", plural: "Terrariums" },
+  },
+  fields: {
+    aquarium: {
+      name: { label: "Aquarium name" }, volumeLiters: { label: "Volume", hint: "litres" }, dimensions: { label: "Dimensions", hint: "L × W × H in cm" },
+      temperatureC: { label: "Temperature", hint: "°C" }, ph: { label: "pH" }, gh: { label: "GH", hint: "°dGH" }, kh: { label: "KH", hint: "°dKH" },
+      nitriteMgL: { label: "Nitrite", hint: "mg/l" }, nitrateMgL: { label: "Nitrate", hint: "mg/l" }, conductivityUs: { label: "Conductivity", hint: "µS/cm" },
+      occupants: { label: "Occupants", hint: "animals, count, variants" }, plants: { label: "Plants", hint: "species or groups" }, equipment: { label: "Equipment", hint: "filter, lighting, heater, CO₂ …" }, notes: { label: "Notes" },
+    },
+    plant: {
+      name: { label: "Plant name" }, scientificName: { label: "Botanical name" }, quantity: { label: "Quantity" }, location: { label: "Location", hint: "for example east-facing window" },
+      substrate: { label: "Substrate" }, potSizeCm: { label: "Pot size", hint: "cm" }, light: { label: "Light", hint: "bright, indirect …" }, watering: { label: "Watering" },
+      humidityPercent: { label: "Humidity", hint: "%" }, temperatureC: { label: "Temperature", hint: "°C" }, fertilizer: { label: "Fertiliser" }, notes: { label: "Notes" },
+    },
+    terrarium: {
+      name: { label: "Terrarium name" }, volumeLiters: { label: "Volume", hint: "litres" }, dimensions: { label: "Dimensions", hint: "L × W × H in cm" },
+      dayTemperatureC: { label: "Day temperature", hint: "°C" }, nightTemperatureC: { label: "Night temperature", hint: "°C" }, humidityPercent: { label: "Humidity", hint: "%" },
+      occupants: { label: "Occupants", hint: "species, count, sex" }, plants: { label: "Plants" }, substrate: { label: "Substrate" }, equipment: { label: "Equipment", hint: "lighting, misting, heating …" }, notes: { label: "Notes" },
+    },
+  },
+};
+
+export function habitatText(locale: AppLocale): HabitatCopy {
+  return locale === "de" ? habitatDe : habitatEn;
+}
+
 type I18nContextValue = {
   locale: AppLocale;
   unitSystem: UnitSystem;

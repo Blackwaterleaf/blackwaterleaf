@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveAccountLocale, resolveLocale, resolveUnitSystem, translate } from "../client/src/i18n";
+import { habitatText, resolveAccountLocale, resolveLocale, resolveUnitSystem, translate } from "../client/src/i18n";
 
 describe("BlackWaterLeaf i18n", () => {
   it("prefers a valid stored locale over the browser locale", () => {
@@ -29,5 +29,14 @@ describe("BlackWaterLeaf i18n", () => {
     expect(translate("en", "assistant.rule")).toContain("NO AI RESPONSE");
     expect(translate("de", "community.emptyBody")).toContain("keine Personen");
     expect(translate("en", "community.emptyBody")).toContain("No people");
+  });
+
+  it("localizes private habitats consistently without weakening their privacy notice", () => {
+    expect(habitatText("de").sectionTitle).toBe("Meine Anlagen & Werte");
+    expect(habitatText("en").sectionTitle).toBe("My habitats & values");
+    expect(habitatText("de").intro).toContain("öffentlichen Profil");
+    expect(habitatText("en").intro).toContain("public profile");
+    expect(habitatText("de").noValues).toBe("Noch keine Werte hinterlegt");
+    expect(habitatText("en").noValues).toBe("No values recorded yet");
   });
 });

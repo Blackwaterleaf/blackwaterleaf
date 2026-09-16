@@ -52,8 +52,14 @@
 - [x] Den im Manus-Domänendialog angebotenen Root-Domain-Fallback rein lesend erfassen und vor jeder Änderung gegen die Webador-Records prüfen; keinen A-Wert schätzen.
 - [x] Die exakte Ersetzung von `@` und `www` nach dem bestätigten Manus-Domänendialog zur finalen Browserbestätigung vorlegen; Mail-, SPF-, DKIM- und übrige DNS-Records unverändert lassen.
 - [x] Nach separater finaler Browserbestätigung ausschließlich die beiden bestätigten Website-Records bei Webador speichern.
-- [ ] DNS-Propagation, öffentliche HTTPS-Antwort, Zertifikat und die Manus-Verifizierung für Apex und `www` prüfen; Rückfallwerte dokumentieren, ohne weitere DNS-Änderung vorzunehmen.
+- [x] DNS-Propagation, öffentliche HTTPS-Antwort, Zertifikat und die Manus-Verifizierung für Apex und `www` prüfen; Rückfallwerte dokumentieren, ohne weitere DNS-Änderung vorzunehmen.
 - [x] Für die Startseite einen Meta-Keywords-Tag mit mindestens 3 und höchstens 8 fokussierten BlackWaterLeaf-Keywords ergänzen.
 - [x] Den Laufzeittitel der Startseite mit `document.title` auf mindestens 30 und höchstens 60 Zeichen setzen.
 - [x] Für alle vier Startseitenbilder beschreibende, eindeutige Alt-Texte ergänzen und die SEO-Grenzen automatisiert prüfen.
-- [ ] SEO-Änderungen mit Metadaten, Laufzeittitel, Alt-Texten und Prüfnachweis als wiederherstellbaren Checkpoint bereitstellen.
+- [x] SEO-Änderungen mit Metadaten, Laufzeittitel, Alt-Texten und Prüfnachweis als wiederherstellbaren Checkpoint bereitstellen.
+- [x] Die Fehlzuordnung von `www.blackwaterleaf.com` auf den fremden Manus-Deploymentstand rein lesend klären und die aktuelle Parity-App als einziges beabsichtigtes Custom-Domain-Ziel bestätigen; keine weitere DNS-Änderung vornehmen.
+- [x] Nach Korrektur der Manus-Domainzuordnung Apex und `www` auf die identische Parity-App, deutsches SEO-Metadatenprofil und gültiges TLS prüfen.
+- [x] Die öffentliche HTML-Antwort von `https://blackwaterleaf.com` und `https://www.blackwaterleaf.com` rein lesend auf das deutsche SEO-Metadatenprofil prüfen und dokumentieren; bei `www` die kanonische Weiterleitung auf Apex mitbelegen.
+- [x] Den neu synchronisierten Bereich „Meine Anlagen & Werte“ gegen den gemeinsamen Vertrag, private Eigentumsgrenzen, Nullwerttreue, Migration und S23-Ultra-nahe Darstellung prüfen; keine Daten vorsäen oder fremden Code überschreiben.
+- [x] Fehlenden `TRPCError`-Import im privaten Anlagenrouter ergänzen und den Router anschließend mit TypeScript sowie den bestehenden Vertragstests validieren.
+- [x] Den privaten Anlagenbereich in den bestehenden deutsch-englischen i18n-Vertrag überführen; Deutsch bleibt Standard, Englisch muss alle sichtbaren Schaltflächen, Status- und Formulartexte abdecken.

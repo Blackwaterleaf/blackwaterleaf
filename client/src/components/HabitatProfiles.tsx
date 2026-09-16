@@ -2,6 +2,7 @@ import type { PrivateHabitatInput } from "@shared/blackwaterleaf-contract-v1";
 import { Box, Fish, Pencil, Plus, Save, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
+import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
 
 type HabitatKind = PrivateHabitatInput["kind"];
 type HabitatRecord = {
@@ -15,10 +16,10 @@ type HabitatRecord = {
 };
 type FormValues = Record<string, string> & { kind: HabitatKind; name: string };
 
-const META: Record<HabitatKind, { label: string; plural: string; accent: string; icon: typeof Fish }> = {
-  aquarium: { label: "Aquarium", plural: "Aquarien", accent: "cyan", icon: Fish },
-  plant: { label: "Pflanze", plural: "Pflanzen", accent: "mint", icon: Sprout },
-  terrarium: { label: "Terrarium", plural: "Terrarien", accent: "gold", icon: Box },
+const META: Record<HabitatKind, { accent: string; icon: typeof Fish }> = {
+  aquarium: { accent: "cyan", icon: Fish },
+  plant: { accent: "mint", icon: Sprout },
+  terrarium: { accent: "gold", icon: Box },
 };
 
 const FIELDS: Record<HabitatKind, { label: string; key: string; kind?: "number" | "textarea"; hint?: string }[]> = {
@@ -144,14 +145,20 @@ function inputFromForm(form: FormValues): PrivateHabitatInput {
   };
 }
 
-function summary(record: HabitatRecord) {
+function numericSummary(value: unknown, suffix: string) {
+  return typeof value === "number" && Number.isFinite(value) ? `${value} ${suffix}` : null;
+}
+
+export function summarizeHabitat(record: Pick<HabitatRecord, "kind" | "details">, copy: HabitatCopy) {
   const details = record.details as Record<string, unknown>;
-  if (record.kind === "aquarium") return [details.volumeLiters ? `${details.volumeLiters} L` : null, details.temperatureC ? `${details.temperatureC} °C` : null, details.ph ? `pH ${details.ph}` : null].filter(Boolean).join(" · ");
+  if (record.kind === "aquarium") return [numericSummary(details.volumeLiters, "L"), numericSummary(details.temperatureC, "°C"), typeof details.ph === "number" && Number.isFinite(details.ph) ? `pH ${details.ph}` : null].filter(Boolean).join(" · ");
   if (record.kind === "plant") return [details.scientificName, details.location].filter(Boolean).join(" · ");
-  return [details.volumeLiters ? `${details.volumeLiters} L` : null, details.humidityPercent ? `${details.humidityPercent} % LF` : null, details.dayTemperatureC ? `${details.dayTemperatureC} °C` : null].filter(Boolean).join(" · ");
+  return [numericSummary(details.volumeLiters, "L"), numericSummary(details.humidityPercent, copy.relativeHumidity), numericSummary(details.dayTemperatureC, "°C")].filter(Boolean).join(" · ");
 }
 
 export function HabitatProfiles() {
+  const { locale } = useI18n();
+  const copy = habitatText(locale);
   const utils = trpc.useUtils();
   const habitats = trpc.habitats.mine.useQuery();
   const create = trpc.habitats.create.useMutation();
@@ -180,34 +187,34 @@ export function HabitatProfiles() {
       await utils.habitats.mine.invalidate();
       setForm(null);
       setEditingId(null);
-      setStatus(editingId ? "Anlage aktualisiert." : "Anlage privat gespeichert.");
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "anlage_speichern_fehlgeschlagen");
+      setStatus(editingId ? copy.updated : copy.saved);
+    } catch {
+      setStatus(copy.saveFailed);
     }
   };
 
   return (
     <details className="account-section habitat-section">
-      <summary><span>Meine Anlagen & Werte</span><small>Privat · Aquarien, Pflanzen & Terrarien</small></summary>
+      <summary><span>{copy.sectionTitle}</span><small>{copy.sectionMeta}</small></summary>
       <div className="habitat-body">
-        <p className="habitat-intro">Lege deine Anlagen strukturiert an. Diese Angaben bleiben nur in deinem Konto und erscheinen nicht in deinem öffentlichen Profil oder der Community.</p>
-        <div className="habitat-kind-grid" aria-label="Anlage hinzufügen">
+        <p className="habitat-intro">{copy.intro}</p>
+        <div className="habitat-kind-grid" aria-label={copy.addHabitat}>
           {(Object.keys(META) as HabitatKind[]).map(kind => {
             const meta = META[kind]; const Icon = meta.icon;
-            return <button key={kind} type="button" className={`habitat-kind habitat-kind--${meta.accent}`} onClick={() => startNew(kind)}><Icon size={18} /><span>{meta.plural}</span><small>{counts[kind]} angelegt</small><Plus size={14} /></button>;
+            return <button key={kind} type="button" className={`habitat-kind habitat-kind--${meta.accent}`} onClick={() => startNew(kind)}><Icon size={18} /><span>{copy.kinds[kind].plural}</span><small>{copy.count(counts[kind])}</small><Plus size={14} /></button>;
           })}
         </div>
 
-        {habitats.isLoading ? <p className="form-status">Anlagen werden geladen …</p> : null}
+        {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
         {records.length ? <div className="habitat-list">{records.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
-          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{meta.label.toUpperCase()}</small><strong>{record.name}</strong><p>{summary(record) || "Noch keine Werte hinterlegt"}</p></div><button type="button" className="icon-button" aria-label={`${record.name} bearbeiten`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
-        })}</div> : <p className="habitat-empty">Noch keine Anlage angelegt. Wähle oben einen Bereich aus.</p>}
+          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p></div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
+        })}</div> : <p className="habitat-empty">{copy.empty}</p>}
 
         {form ? <form className="habitat-editor" onSubmit={save}>
-          <div className="form-heading"><div><p className="eyebrow">[{editingId ? "PRIVATE_EDIT" : "PRIVATE_SETUP"}]</p><h2>{editingId ? `${META[form.kind].label} bearbeiten` : `${META[form.kind].label} anlegen`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>Abbrechen</button></div>
-          <div className="form-grid">{FIELDS[form.kind].map(field => <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{field.label}{field.hint ? ` · ${field.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>)}</div>
-          <button type="submit" className="primary-action" disabled={create.isPending || update.isPending}><Save size={16} />{create.isPending || update.isPending ? "SPEICHERE …" : editingId ? "ANLAGE AKTUALISIEREN" : "ANLAGE PRIVAT SPEICHERN"}</button>
+          <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>
+          <div className="form-grid">{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
+          <button type="submit" className="primary-action" disabled={create.isPending || update.isPending}><Save size={16} />{create.isPending || update.isPending ? copy.saving : editingId ? copy.update : copy.save}</button>
         </form> : null}
         {status ? <p className="form-status" role="status">{status}</p> : null}
       </div>

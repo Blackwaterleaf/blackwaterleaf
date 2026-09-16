@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { summarizeHabitat } from "../client/src/components/HabitatProfiles";
+import { habitatText } from "../client/src/i18n";
 import {
   aquariumDetailsSchema,
   plantDetailsSchema,
@@ -82,5 +84,10 @@ describe("private habitat profile contracts", () => {
       equipment: null,
       notes: null,
     })).toThrow();
+  });
+
+  it("preserves contractually valid zero values in the private UI summary", () => {
+    expect(summarizeHabitat({ kind: "aquarium", details: { volumeLiters: 240, temperatureC: 0, ph: 0 } }, habitatText("de"))).toBe("240 L · 0 °C · pH 0");
+    expect(summarizeHabitat({ kind: "terrarium", details: { humidityPercent: 0, dayTemperatureC: 0 } }, habitatText("de"))).toBe("0 % LF · 0 °C");
   });
 });
