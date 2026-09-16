@@ -70,6 +70,9 @@ export default function Home() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [runningTaskId, setRunningTaskId] = useState<number | null>(null);
   const [lastRunResult, setLastRunResult] = useState<AgentRunResult | null>(null);
+  const [lastRunTaskId, setLastRunTaskId] = useState<number | null>(null);
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [approvalDecision, setApprovalDecision] = useState<"approved" | "denied" | null>(null);
 
   const overview = trpc.studio.overview.useQuery(undefined, { enabled: Boolean(user) });
   const createWorkspace = trpc.studio.createWorkspace.useMutation({
@@ -81,9 +84,17 @@ export default function Home() {
     onError: error => toast.error(error.message),
   });
   const runAgent = trpc.studio.runAgent.useMutation({
-    onMutate: variables => { setRunningTaskId(variables.taskId); setLastRunResult(null); },
+    onMutate: variables => { setRunningTaskId(variables.taskId); setLastRunTaskId(variables.taskId); setLastRunResult(null); },
     onSuccess: result => { setRunningTaskId(null); setLastRunResult(result); overview.refetch(); toast.success(result.worker === "not_configured" ? "Agentenanalyse abgeschlossen; Worker wartet auf Sicherheitskonfiguration" : "Agentenlauf abgeschlossen"); },
     onError: error => { setRunningTaskId(null); overview.refetch(); toast.error(error.message); },
+  });
+  const requestApproval = trpc.studio.requestApproval.useMutation({
+    onSuccess: () => { overview.refetch(); toast.success("Freigabeanforderung protokolliert"); },
+    onError: error => toast.error(error.message),
+  });
+  const decideApproval = trpc.studio.decideApproval.useMutation({
+    onSuccess: (_, variables) => { setApprovalDecision(variables.decision); overview.refetch(); toast.success(variables.decision === "approved" ? "Sandbox-Schritt freigegeben" : "Sandbox-Schritt abgelehnt"); },
+    onError: error => toast.error(error.message),
   });
 
   const tasks = [...(overview.data?.tasks ?? [])];
@@ -148,7 +159,7 @@ export default function Home() {
         <header className="studio-topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button><div><div className="studio-small-label">{active === "workspace" ? "ARBEITSRAUM" : navItems.find(item => item.key === active)?.label.toUpperCase()}</div><h2>{active === "workspace" ? "Guten Morgen, {name}".replace("{name}", user.name?.split(" ")[0] || "Studio") : navItems.find(item => item.key === active)?.label}</h2></div><div className="topbar-actions"><div className="connection-pill"><span className="status-dot" /> Control API online</div><Button className="studio-primary-button" onClick={() => setComposerOpen(true)}><Plus size={16} /> Neuer Auftrag</Button></div></header>
         <main className="studio-content">
           {active === "workspace" ? <>
-            {runAgent.isPending || lastRunResult ? <AgentExecutionPanel running={runAgent.isPending} result={lastRunResult} /> : null}
+            {runAgent.isPending || lastRunResult ? <AgentExecutionPanel running={runAgent.isPending} result={lastRunResult} approvalDecision={approvalDecision} onOpenApproval={() => setApprovalOpen(true)} /> : null}
             <section className="hero-grid"><div className="hero-panel"><div className="hero-kicker"><span className="hero-kicker-dot" /> KONTROLLIERTE AGENTENARBEIT</div><h1>Vom Ziel zum<br /><span>klaren Ergebnis.</span></h1><p>Formuliere ein Ziel. Gib nur den nötigen Kontext frei. Verfolge jeden Schritt.</p><Button className="studio-light-button" onClick={() => setComposerOpen(true)}>Arbeitsauftrag starten <ArrowUpRight size={16} /></Button><div className="hero-grid-lines" /></div><div className="hero-signal-panel"><div className="signal-orbit orbit-one" /><div className="signal-orbit orbit-two" /><div className="signal-core"><Bot size={22} /></div><div className="signal-caption"><span className="status-dot" /> Agent Control Plane<div>isolated worker <strong>not configured</strong></div></div></div></section>
             <section className="metric-grid"><Metric label="Aktive Aufträge" value={stats.active} hint="aus echten Statusereignissen" icon={Activity} accent="mint" /><Metric label="Abgeschlossen" value={stats.completed} hint="mit Ergebniszuordnung" icon={CheckCircle2} accent="blue" /><Metric label="Freigaben" value={stats.approvals} hint="wartend auf Entscheidung" icon={ShieldCheck} accent="violet" /></section>
             <section className="dashboard-grid"><Card className="studio-card task-card"><CardHeader className="studio-card-head"><div><div className="studio-small-label">LETZTE AUFTRÄGE</div><CardTitle>Arbeitsstrom</CardTitle></div><Button variant="ghost" size="sm" className="studio-ghost-button" onClick={() => setActive("tasks")}>Alle anzeigen <ChevronRight size={14} /></Button></CardHeader><CardContent>{tasks.length === 0 ? <EmptyState icon={FolderKanban} title="Noch keine Aufträge" copy="Dein erster Arbeitsauftrag erscheint hier mit echtem serverseitigem Status." action="Auftrag anlegen" onAction={() => setComposerOpen(true)} /> : <div className="task-list">{tasks.slice(0, 5).map(task => <div className="task-row" key={task.id}><div className={`task-icon ${task.status}`}><TerminalSquare size={17} /></div><div className="min-w-0 flex-1"><div className="task-title truncate">{task.title}</div><div className="task-meta">#{task.id} · {new Date(task.updatedAt).toLocaleString("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div><Badge className={`status-badge ${task.status}`}>{statusLabel[task.status] || task.status}</Badge>{task.status === "ready" && canOperate ? <Button size="icon" variant="ghost" className="row-run-button" disabled={runAgent.isPending} onClick={() => runAgent.mutate({ taskId: task.id })}><Play size={14} /></Button> : null}</div>)}</div>}</CardContent></Card><Card className="studio-card activity-card"><CardHeader className="studio-card-head"><div><div className="studio-small-label">SICHERHEIT & SYSTEM</div><CardTitle>Ausführungsstatus</CardTitle></div><LockKeyhole size={17} className="text-white/35" /></CardHeader><CardContent><div className="status-stack"><StatusRow icon={Bot} label="Agent Control Plane" value="Verfügbar" tone="good" /><StatusRow icon={TerminalSquare} label="Isolated Worker" value="Nicht konfiguriert" tone="neutral" /><StatusRow icon={LockKeyhole} label="Netzwerkzugriff" value="Deaktiviert" tone="good" /><StatusRow icon={FileKey2} label="Datei-Mounts" value="Keine" tone="good" /></div><div className="status-footnote"><CircleDashed size={14} /> Jeder echte Worker-Lauf benötigt eine separate Freigabe und Isolation.</div></CardContent></Card></section>
@@ -156,11 +167,20 @@ export default function Home() {
         </main>
       </div>
       {composerOpen ? <TaskComposer title={taskTitle} goal={taskGoal} setTitle={setTaskTitle} setGoal={setTaskGoal} pending={createTask.isPending} onClose={() => setComposerOpen(false)} onSubmit={() => createTask.mutate({ title: taskTitle, goal: taskGoal, priority: "medium" })} /> : null}
+      {approvalOpen && lastRunTaskId ? <ApprovalDialog taskId={lastRunTaskId} pending={requestApproval.isPending || decideApproval.isPending} decision={approvalDecision} onClose={() => setApprovalOpen(false)} onDecide={async decision => {
+        const request = await requestApproval.mutateAsync({ taskId: lastRunTaskId, actionType: "sandbox_execute", resourceScope: "isolated-worker:task-output", riskSummary: "Der Worker darf ausschließlich freigegebene Task-Eingaben verarbeiten. Netzwerk bleibt deaktiviert; Laufzeit und Speicher sind begrenzt." });
+        await decideApproval.mutateAsync({ approvalId: request.approvalId, decision, reason: decision === "approved" ? "Manuell im Ausführungsdialog bestätigt" : "Manuell im Ausführungsdialog abgelehnt" });
+      }} /> : null}
     </div>
   );
 }
 
-function AgentExecutionPanel({ running, result }: { running: boolean; result: AgentRunResult | null }) {
+function ApprovalDialog({ taskId, pending, decision, onClose, onDecide }: { taskId: number; pending: boolean; decision: "approved" | "denied" | null; onClose: () => void; onDecide: (decision: "approved" | "denied") => Promise<void> }) {
+  const [confirmStep, setConfirmStep] = useState(false);
+  return <div className="composer-backdrop"><div className="approval-dialog"><div className="composer-head"><div><div className="studio-small-label">MANUELLE FREIGABE · TASK #{taskId}</div><h2>Sandbox-Schritt prüfen</h2></div><button className="icon-button" onClick={onClose}><X size={18} /></button></div><div className="approval-risk-banner"><ShieldCheck size={18} /><div><strong>Kontrollierte Ausführung</strong><p>Die Freigabe gilt nur für diesen Auftrag und wird im Auditlog gespeichert.</p></div></div><div className="approval-detail-grid"><ApprovalDetail icon={TerminalSquare} label="Aktion" value="Isolated Worker starten" /><ApprovalDetail icon={FileKey2} label="Dateizugriff" value="Keine Mounts" /><ApprovalDetail icon={Network} label="Netzwerk" value="Deaktiviert" /><ApprovalDetail icon={Clock3} label="Gültigkeit" value="30 Minuten" /></div><div className="approval-scope"><div className="studio-small-label">RESSOURCENUMFANG</div><p>Nur freigegebene Eingaben dieses Auftrags. Keine Produktionsdatenbank, keine dauerhaften Secrets, keine externen Domains.</p></div>{decision ? <div className={`approval-final ${decision}`}><CheckCircle2 size={17} /><span>Diese Ausführung wurde {decision === "approved" ? "freigegeben" : "abgelehnt"}.</span></div> : <div className="approval-actions">{confirmStep ? <><Button variant="ghost" className="studio-ghost-button" disabled={pending} onClick={() => setConfirmStep(false)}>Zurück</Button><Button variant="outline" className="approval-deny-button" disabled={pending} onClick={() => void onDecide("denied")}>Ablehnen</Button><Button className="studio-primary-button" disabled={pending} onClick={() => void onDecide("approved")}>{pending ? "Wird protokolliert…" : "Endgültig freigeben"}</Button></> : <><Button variant="ghost" className="studio-ghost-button" onClick={onClose}>Abbrechen</Button><Button className="studio-primary-button" onClick={() => setConfirmStep(true)}><ShieldCheck size={14} /> Entscheidung fortsetzen</Button></>}</div>}</div></div>;
+}
+function ApprovalDetail({ icon: Icon, label, value }: { icon: typeof TerminalSquare; label: string; value: string }) { return <div className="approval-detail"><Icon size={15} /><div><div className="studio-small-label">{label}</div><strong>{value}</strong></div></div>; }
+function AgentExecutionPanel({ running, result, approvalDecision, onOpenApproval }: { running: boolean; result: AgentRunResult | null; approvalDecision: "approved" | "denied" | null; onOpenApproval: () => void }) {
   const completed = Boolean(result);
   const steps = [
     { label: "Auftrag angenommen", detail: "Control API bestätigt den Lauf", state: "done", icon: CheckCircle2 },
@@ -174,6 +194,7 @@ function AgentExecutionPanel({ running, result }: { running: boolean; result: Ag
     <div className="execution-steps">{steps.map(step => <div className={`execution-step ${step.state}`} key={step.label}><div className="execution-step-icon">{step.state === "active" ? <span className="mini-spinner" /> : <step.icon size={14} />}</div><div className="flex-1"><div className="execution-step-label">{step.label}</div><div className="execution-step-detail">{step.detail}</div></div><span className={`execution-step-state ${step.state}`}>{step.state === "done" ? "OK" : step.state === "active" ? "LIVE" : step.state === "blocked" ? "BLOCKED" : "WAIT"}</span></div>)}</div>
     {result?.result ? <div className="execution-result"><div className="execution-result-label"><Sparkles size={14} /> ERGEBNIS</div><p>{result.result.summary}</p><div className="execution-result-meta"><span><Cpu size={13} /> Control Plane</span><span><Clock3 size={13} /> Session #{result.sessionId}</span><span><Network size={13} /> Netzwerk aus</span></div></div> : null}
     {result?.worker === "not_configured" ? <div className="execution-warning"><TriangleAlert size={15} /><span>Für beliebige Codeausführung fehlt noch ein isolierter Worker. Studio hat deshalb bewusst keinen Code ausgeführt.</span></div> : null}
+    {!running ? <div className="approval-inline"><div><div className="approval-inline-title"><ShieldCheck size={14} /> Freigabe für den nächsten Schritt</div><div className="approval-inline-copy">Isolated Worker · keine Netzwerkverbindung · 180 Sekunden · 512 MB</div></div>{approvalDecision ? <span className={`approval-decision ${approvalDecision}`}>{approvalDecision === "approved" ? "Freigegeben" : "Abgelehnt"}</span> : <Button size="sm" className="studio-primary-button" onClick={onOpenApproval}><ShieldCheck size={14} /> Prüfen & freigeben</Button>}</div> : null}
   </section>;
 }
 function Metric({ label, value, hint, icon: Icon, accent }: { label: string; value: number; hint: string; icon: typeof Activity; accent: string }) { return <div className={`metric-card ${accent}`}><div className="metric-icon"><Icon size={17} /></div><div><div className="studio-small-label">{label}</div><div className="metric-value">{value}</div><div className="metric-hint">{hint}</div></div></div>; }
