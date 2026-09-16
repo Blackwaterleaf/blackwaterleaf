@@ -30,6 +30,17 @@ describe("marketplace UI truth contract", () => {
     expect(router).toContain("marketplaceProduct: publicProcedure");
   });
 
+  it("renders imported categories, variants, source-labelled images, and a verified product gallery", () => {
+    expect(marketplace).toContain("marketplaceCategoryLabel");
+    expect(marketplace).toContain("marketplace-filters--categories");
+    expect(detail).toContain("item.gallery.length");
+    expect(detail).toContain("marketplace-gallery-thumbnails");
+    expect(detail).toContain("item.variantSummary");
+    expect(detail).toContain("product.data?.seoTitle");
+    expect(router).toContain("getPublicProductGallery");
+    expect(styles).toContain(".marketplace-product-gallery");
+  });
+
   it("uses a clearly labelled abstract loading phase and accessible product-card motion", () => {
     expect(marketplace).toContain("<MarketplaceLoading />");
     expect(marketplace).toContain('aria-busy="true"');

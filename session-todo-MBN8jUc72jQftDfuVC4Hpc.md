@@ -20,3 +20,5 @@
 - [x] Replace the assistant placeholder cards with functional protected chat, one-time plant image analysis, and owned-private-aquarium analysis workflows.
 - [x] Apply the approved additive database improvements: current consent state and history, private water-value timeline, verified query indexes, media context guards, and comment-parent integrity.
 - [ ] Reconcile the historical Drizzle migration baseline before any global `drizzle-kit migrate` run; the controlled additive `0012` update is applied, while `0013` is metadata reconciliation only.
+- [x] Import the reviewed KiemenKumpel Shopify export into the authorized Kiemen-Kumpel marketplace profile, including 105 public products and 151 verified source images, categories, variants, source handles and product-level SEO metadata; one inactive source article and the non-merchandise 0,00-€ operational surcharge remain excluded from public sale.
+- [x] Validate the public KiemenKumpel marketplace catalogue, categories, primary images, galleries, product SEO metadata, responsive detail view, full test suite, and production build.
