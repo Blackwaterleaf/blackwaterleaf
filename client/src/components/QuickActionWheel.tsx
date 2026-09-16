@@ -13,13 +13,13 @@ type QuickAction = {
 };
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: "Video", href: "/feed", icon: Video, position: "north-west", tone: "neutral" },
-  { label: "Foto", href: "/feed", icon: Camera, position: "north", tone: "neutral" },
-  { label: "Beitrag", href: "/feed", icon: PenLine, position: "north-east", tone: "neutral" },
-  { label: "Pflanze\nhinzufügen", href: "/plants/new", icon: Leaf, position: "west", tone: "botany" },
-  { label: "Fisch\nhinzufügen", href: "/aquariums/new", icon: Fish, position: "east", tone: "aquarium" },
-  { label: "Terrarium\nhinzufügen", href: "/aquariums/new", icon: Sprout, position: "south-west", tone: "terrarium" },
-  { label: "KI fragen", href: "/ai", icon: Bot, position: "south-east", tone: "ai" },
+  { label: "Video", href: "/flow/live", icon: Video, position: "north-west", tone: "neutral" },
+  { label: "Foto", href: "/flow/foto", icon: Camera, position: "north", tone: "neutral" },
+  { label: "Beitrag", href: "/flow/beitrag", icon: PenLine, position: "north-east", tone: "neutral" },
+  { label: "Pflanze\nhinzufügen", href: "/flow/botanik", icon: Leaf, position: "west", tone: "botany" },
+  { label: "Fisch\nhinzufügen", href: "/flow/aquaristik", icon: Fish, position: "east", tone: "aquarium" },
+  { label: "Terrarium\nhinzufügen", href: "/flow/terraristik", icon: Sprout, position: "south-west", tone: "terrarium" },
+  { label: "KI fragen", href: "/flow/ki-assistent", icon: Bot, position: "south-east", tone: "ai" },
 ];
 
 /** A touch-friendly version of the quick-action wheel shown in the reference layout. */

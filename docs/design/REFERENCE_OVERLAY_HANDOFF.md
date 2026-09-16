@@ -25,6 +25,8 @@ Die Referenz verwendet vier eigens für diese Übergabe erzeugte, stimmige Natur
 
 Die Auswahlbuttons verwenden keine generischen Bildsymbole. Sie sind als skalierbare, interaktive Lucide-Vektor-Icons mit den verbindlichen Neonfarben aus der Vorlage implementiert. **Botanik** erhält `#C7F35B`, **Aquaristik** das starke Neonblau `#28D8FF`, **Terraristik** das warme Gelbgrün `#E1D661` und der **KI-Assistent** Neonlila `#C36BFF`. Die Komponenten `WorldSelector.tsx` und `QuickActionWheel.tsx` enthalten die Routen, Tastaturfokusse und Touch-Interaktionen für die Wahlkarten bzw. das zentrale Aktionsrad; `world-controls.css` definiert alle Farben, Glaseffekte und Bewegungen.
 
+Die sieben Schnellaktionen sind nun als eigene Overlay-Zielseiten implementiert. Ihr verbindlicher Routen-, Funktions- und Gestaltungsvertrag liegt in [`docs/design/LIVING_FLOW_HANDOFF.md`](LIVING_FLOW_HANDOFF.md). Die zentrale Route `/flow/:flow` stellt Botanik, Aquaristik, Terraristik, KI-Assistent, Live, Foto und Beitrag bereit.
+
 ## Architekturentscheidung
 
 Die bestehende Repository-Codebasis ist eine React-/TypeScript-PWA. Sie wird sowohl im Browser als auch auf mobilen Geräten ausgeliefert und enthält bereits ein Android-APK-Download-Angebot. Deshalb wurde die Gestaltung in dieser Codebasis implementiert, anstatt das separate Repository `Blackwaterleaf/blackwaterleaf-studio` zu verändern: Dessen Expo-Client gehört laut eigener README zu **BlackWaterLeaf Studio** und nicht zur Natur-/Community-App.
@@ -72,4 +74,7 @@ Die verbindliche visuelle Quelle ist docs/design/reference-screenshot.jpg. Eine 
 | `client/src/components/WorldSelector.tsx` | Vier funktionsfähige Themen-Wahltasten mit Neonfarben und Zielrouten. |
 | `client/src/components/QuickActionWheel.tsx` | Zentrales, aufklappbares Schnellaktionsrad mit sieben Wähltasten. |
 | `client/src/styles/world-controls.css` | Produktionsreife Farben, Icon-, Karten- und Radstile für die Auswahlkomponenten. |
+| `client/src/pages/LivingFlow.tsx` | Sieben funktionsfähige Overlay-Zielseiten hinter den Schnellaktionen. |
+| `client/src/styles/living-flow.css` | Gemeinsames, responsives Layout für die sieben Zielseiten. |
+| `docs/design/LIVING_FLOW_HANDOFF.md` | Routen-, Farb-, Funktions- und Prüfvertrag der Bereichsseiten. |
 | `client/src/App.tsx` | Registriert die Preview unter `/design-reference`. |

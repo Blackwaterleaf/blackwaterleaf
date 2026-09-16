@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import AppLayout from "./components/AppLayout";
 import Home from "./pages/Home";
 import DesignReference from "./pages/DesignReference";
+import LivingFlow from "./pages/LivingFlow";
 import Feed from "./pages/Feed";
 import Plants from "./pages/Plants";
 import PlantCreate from "./pages/PlantCreate";
@@ -36,6 +37,9 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/design-reference" component={DesignReference} />
+      <Route path="/flow/:flow">
+        {(params) => <LivingFlow flow={String(params.flow)} />}
+      </Route>
       <Route path="/feed">
         <AppLayout><Feed /></AppLayout>
       </Route>
