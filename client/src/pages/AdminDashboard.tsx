@@ -2,8 +2,9 @@ import DashboardLayout, { type DashboardMenuItem } from "@/components/DashboardL
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, EyeOff, LayoutDashboard, Megaphone, Plus, Shield, ShieldAlert, UsersRound } from "lucide-react";
+import { Activity, BadgeCheck, EyeOff, ImagePlus, LayoutDashboard, Megaphone, Plus, Shield, ShieldAlert, UsersRound } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 
@@ -137,6 +138,7 @@ function PartnerProducts({ partnerId, partnerName }: { partnerId: number; partne
   const products = trpc.partners.products.useQuery({ partnerId });
   const create = trpc.partners.createProduct.useMutation({ onSuccess: () => void utils.partners.products.invalidate({ partnerId }) });
   const setStatus = trpc.partners.setProductStatus.useMutation({ onSuccess: () => { void utils.partners.products.invalidate({ partnerId }); void utils.partners.homepage.invalidate(); } });
+  const uploadImage = trpc.partners.uploadProductImage.useMutation({ onSuccess: () => { void utils.partners.products.invalidate({ partnerId }); void utils.partners.homepage.invalidate(); } });
   const [form, setForm] = useState({ title: "", description: "", destinationUrl: "", priceLabel: "" });
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -165,6 +167,19 @@ function PartnerProducts({ partnerId, partnerName }: { partnerId: number; partne
     }
   };
 
+  const selectImage = async (productId: number, file: File | undefined) => {
+    if (!file) return;
+    setNotice(null);
+    try {
+      const image = await readImageAsBase64(file);
+      await uploadImage.mutateAsync({ productId, ...image });
+      setNotice("Produktbild geprüft und gespeichert. Sichtbar wird es erst mit einem aktiven, freigegebenen Produkt.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      setNotice(message.includes("unsupported_image_type") ? "Nur JPG, PNG oder WebP sind zulässig." : message.includes("image_size") ? "Das Bild darf höchstens 8 MB groß sein." : "Das Produktbild konnte nicht geprüft oder gespeichert werden.");
+    }
+  };
+
   return <section className="partner-products" aria-label={`Händlerprodukte für ${partnerName}`}>
     <p className="eyebrow">[HÄNDLERPRODUKTE]</p><h3>Produkte von {partnerName}</h3><p>Produkte sind externe Empfehlungen. BlackWaterLeaf verarbeitet weder Warenkorb noch Zahlung.</p>
     <form className="form-grid partner-product-form" onSubmit={submit}>
@@ -175,7 +190,7 @@ function PartnerProducts({ partnerId, partnerName }: { partnerId: number; partne
       <button className="secondary-action" type="submit" disabled={create.isPending}><Plus size={15} />{create.isPending ? "SPEICHERT …" : "PRODUKTENTWURF ANLEGEN"}</button>
     </form>
     {notice ? <p className="form-status" role="status">{notice}</p> : null}
-    {products.isLoading ? <p>Produktentwürfe werden geladen.</p> : products.isError ? <p className="form-status">Produktdaten sind derzeit nicht verfügbar.</p> : products.data?.length ? <div className="partner-product-list">{products.data.map(product => <article key={product.id}><div><strong>{product.title}</strong>{product.priceLabel ? <span>{product.priceLabel}</span> : null}<small>{product.status.toUpperCase()} · <a href={product.destinationUrl} target="_blank" rel="sponsored nofollow noopener">Ziel prüfen</a></small></div><select aria-label={`Produktstatus ${product.title}`} value={product.status} disabled={setStatus.isPending} onChange={event => { if (window.confirm("Produktstatus wirklich ändern?")) void updateProductStatus(product.id, event.target.value as "draft" | "active" | "paused" | "removed"); }}><option value="draft">Entwurf</option><option value="active">Aktiv</option><option value="paused">Pausiert</option><option value="removed">Entfernt</option></select></article>)}</div> : <p>Für diesen Partner sind noch keine Produkte erfasst.</p>}
+    {products.isLoading ? <p>Produktentwürfe werden geladen.</p> : products.isError ? <p className="form-status">Produktdaten sind derzeit nicht verfügbar.</p> : products.data?.length ? <div className="partner-product-list">{products.data.map(product => <article key={product.id}>{product.imageUrl ? <img className="partner-product-thumb" src={product.imageUrl} alt="" /> : <span className="partner-product-thumb partner-product-thumb--empty"><ImagePlus size={17} /></span>}<div><strong>{product.title}</strong>{product.priceLabel ? <span>{product.priceLabel}</span> : null}<small>{product.status.toUpperCase()} · <a href={product.destinationUrl} target="_blank" rel="sponsored nofollow noopener">Ziel prüfen</a></small></div><div className="partner-product-controls"><label className="file-field partner-image-picker"><ImagePlus size={14} /><span>{uploadImage.isPending ? "WIRD GEPRÜFT …" : product.imageUrl ? "BILD ERSETZEN" : "BILD HINZUFÜGEN"}</span><input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadImage.isPending} onChange={event => { void selectImage(product.id, event.currentTarget.files?.[0]); event.currentTarget.value = ""; }} /></label><select aria-label={`Produktstatus ${product.title}`} value={product.status} disabled={setStatus.isPending} onChange={event => { if (window.confirm("Produktstatus wirklich ändern?")) void updateProductStatus(product.id, event.target.value as "draft" | "active" | "paused" | "removed"); }}><option value="draft">Entwurf</option><option value="active">Aktiv</option><option value="paused">Pausiert</option><option value="removed">Entfernt</option></select></div></article>)}</div> : <p>Für diesen Partner sind noch keine Produkte erfasst.</p>}
   </section>;
 }
 

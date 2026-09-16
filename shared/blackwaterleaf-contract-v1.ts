@@ -229,6 +229,9 @@ export const partnerProductInputSchema = z.object({
 export const partnerProductSchema = partnerProductInputSchema.extend({
   id: z.string().min(1),
   partnerId: z.string().min(1),
+  imageUrl: z.string().url().nullable(),
+  imageMimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).nullable(),
+  imageByteSize: z.number().int().positive().nullable(),
   status: partnerProductStatusSchema,
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

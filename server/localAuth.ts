@@ -93,6 +93,7 @@ export async function sendLocalAuthEmail(input: {
     headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       from: config.from,
+      reply_to: config.replyTo,
       to: [input.to],
       subject: `${title} · BlackWaterLeaf`,
       text: `${greeting}\n\n${copy}\n\n${url.toString()}\n\nDieser Link ist ${expiry} gültig und kann nur einmal verwendet werden. Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren.`,

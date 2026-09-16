@@ -4,17 +4,19 @@ import { getLocalAuthEmailConfig } from "./localAuthConfig";
 describe("local authentication email configuration", () => {
   it("fails closed until all mail delivery values are present", () => {
     expect(getLocalAuthEmailConfig({})).toBeNull();
-    expect(getLocalAuthEmailConfig({ RESEND_API_KEY: "re_test", AUTH_FROM_EMAIL: "BlackWaterLeaf <noreply@blackwaterleaf.com>" })).toBeNull();
+    expect(getLocalAuthEmailConfig({ RESEND_API_KEY: "re_test", AUTH_FROM_EMAIL: "BlackWaterLeaf <info@blackwaterleaf.com>" })).toBeNull();
   });
 
   it("accepts an HTTPS public origin and normalized sender values", () => {
     expect(getLocalAuthEmailConfig({
       RESEND_API_KEY: "re_test",
-      AUTH_FROM_EMAIL: " BlackWaterLeaf <noreply@blackwaterleaf.com> ",
+      AUTH_FROM_EMAIL: " BlackWaterLeaf <info@blackwaterleaf.com> ",
+      AUTH_REPLY_TO_EMAIL: "info@blackwaterleaf.com",
       AUTH_PUBLIC_ORIGIN: "https://www.blackwaterleaf.com/",
     })).toEqual({
       apiKey: "re_test",
-      from: "BlackWaterLeaf <noreply@blackwaterleaf.com>",
+      from: "BlackWaterLeaf <info@blackwaterleaf.com>",
+      replyTo: "info@blackwaterleaf.com",
       publicOrigin: "https://www.blackwaterleaf.com",
     });
   });

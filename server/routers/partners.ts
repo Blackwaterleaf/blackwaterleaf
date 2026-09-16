@@ -6,6 +6,8 @@ import { partnerAuthorizations, partnerPlacements, partnerProducts, partnerProfi
 import { partnerProductInputSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
+import { storageGetSignedUrl, storagePut } from "../storage";
+import { validateImageUpload } from "../uploadValidation";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
@@ -147,6 +149,7 @@ export const partnersRouter = router({
         description: partnerProducts.description,
         destinationUrl: partnerProducts.destinationUrl,
         priceLabel: partnerProducts.priceLabel,
+        imageStorageKey: partnerProducts.imageStorageKey,
       }).from(partnerProducts).where(eq(partnerProducts.status, "active")).orderBy(desc(partnerProducts.updatedAt)),
     ]);
     const now = Date.now();
@@ -158,9 +161,9 @@ export const partnersRouter = router({
       endsAt: row.endsAt,
       now,
     })).map(row => row.id));
-    return rows.filter(row => publiclyVisiblePartnerIds.has(row.id)).map(row => ({
+    return Promise.all(rows.filter(row => publiclyVisiblePartnerIds.has(row.id)).map(async row => ({
       ...row,
-      products: activeProducts.filter(product => product.partnerId === row.id && isPublicPartnerProduct({
+      products: await Promise.all(activeProducts.filter(product => product.partnerId === row.id && isPublicPartnerProduct({
         productStatus: "active",
         partnerStatus: "approved",
         authorizationState: latestAuthorizations.get(row.id)?.state ?? "missing",
@@ -168,8 +171,16 @@ export const partnersRouter = router({
         startsAt: row.startsAt,
         endsAt: row.endsAt,
         now,
-      })),
-    }));
+      })).map(async product => ({
+        id: product.id,
+        partnerId: product.partnerId,
+        title: product.title,
+        description: product.description,
+        destinationUrl: product.destinationUrl,
+        priceLabel: product.priceLabel,
+        imageUrl: product.imageStorageKey ? await storageGetSignedUrl(product.imageStorageKey) : null,
+      }))),
+    })));
   }),
 
   list: adminProcedure.query(async () => {
@@ -202,17 +213,24 @@ export const partnersRouter = router({
     .query(async ({ input }) => {
       const db = await requireDatabase();
       await getPartner(db, input.partnerId);
-      return db.select({
+      const products = await db.select({
         id: partnerProducts.id,
         partnerId: partnerProducts.partnerId,
         title: partnerProducts.title,
         description: partnerProducts.description,
         destinationUrl: partnerProducts.destinationUrl,
         priceLabel: partnerProducts.priceLabel,
+        imageStorageKey: partnerProducts.imageStorageKey,
+        imageMimeType: partnerProducts.imageMimeType,
+        imageByteSize: partnerProducts.imageByteSize,
         status: partnerProducts.status,
         createdAt: partnerProducts.createdAt,
         updatedAt: partnerProducts.updatedAt,
       }).from(partnerProducts).where(eq(partnerProducts.partnerId, input.partnerId)).orderBy(desc(partnerProducts.updatedAt));
+      return Promise.all(products.map(async product => ({
+        ...product,
+        imageUrl: product.imageStorageKey ? await storageGetSignedUrl(product.imageStorageKey) : null,
+      })));
     }),
 
   create: adminProcedure
@@ -247,6 +265,23 @@ export const partnersRouter = router({
       const id = Number(inserted[0].insertId);
       await appendAuditEntry({ actorId: ctx.user.id, action: "partner_product_created", targetType: "partner_product", targetId: id, payload: { partnerId: input.partnerId, status: "draft" } });
       return { id, status: "draft" as const };
+    }),
+
+  uploadProductImage: adminProcedure
+    .input(z.object({ productId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [product] = await db.select().from(partnerProducts).where(eq(partnerProducts.id, input.productId)).limit(1);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "partner_product_not_found" });
+      const image = validateImageUpload(input.base64, input.mimeType);
+      const stored = await storagePut(
+        `partners/${product.partnerId}/products/${product.id}/image.${image.extension}`,
+        image.buffer,
+        image.mimeType,
+      );
+      await db.update(partnerProducts).set({ imageStorageKey: stored.key, imageMimeType: image.mimeType, imageByteSize: image.byteSize }).where(eq(partnerProducts.id, product.id));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "partner_product_image_replaced", targetType: "partner_product", targetId: product.id, payload: { byteSize: image.byteSize, mimeType: image.mimeType, partnerId: product.partnerId, previousImage: Boolean(product.imageStorageKey) } });
+      return { id: product.id, imageMimeType: image.mimeType, imageByteSize: image.byteSize, imageUrl: await storageGetSignedUrl(stored.key) };
     }),
 
   setProductStatus: adminProcedure

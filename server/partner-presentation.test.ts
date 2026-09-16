@@ -9,9 +9,12 @@ describe("öffentliche Partnerproduktdarstellung", () => {
   });
 
   it("gibt nur die vom Server freigegebenen Produktteaser weiter", () => {
-    const presentation = partnerProductPresentation([{ id: 1, title: "Naturprodukt", destinationUrl: "https://kiemen-kumpel.de/products/naturprodukt", priceLabel: null }], "de");
+    const presentation = partnerProductPresentation([{ id: 1, title: "Naturprodukt", destinationUrl: "https://kiemen-kumpel.de/products/naturprodukt", priceLabel: null, imageUrl: "https://assets.example.invalid/product.webp" }], "de");
     expect(presentation.kind).toBe("products");
-    if (presentation.kind === "products") expect(presentation.products).toHaveLength(1);
+    if (presentation.kind === "products") {
+      expect(presentation.products).toHaveLength(1);
+      expect(presentation.products[0]?.imageUrl).toBe("https://assets.example.invalid/product.webp");
+    }
   });
 
   it("bildet die reale Kiemen-Kumpel-Karte mit Werbung, Firmenhinweis, HTTPS-Ziel und ehrlichem Produktleerzustand ab", () => {

@@ -5,6 +5,7 @@ export type PublicPartnerProduct = {
   title: string;
   destinationUrl: string;
   priceLabel: string | null;
+  imageUrl: string | null;
 };
 
 export type PublicPartnerCard = {

@@ -422,6 +422,9 @@ export const partnerProducts = mysqlTable(
     description: text("description"),
     destinationUrl: varchar("destinationUrl", { length: 500 }).notNull(),
     priceLabel: varchar("priceLabel", { length: 80 }),
+    imageStorageKey: varchar("imageStorageKey", { length: 512 }),
+    imageMimeType: mysqlEnum("imageMimeType", ["image/jpeg", "image/png", "image/webp"]),
+    imageByteSize: int("imageByteSize"),
     status: mysqlEnum("status", ["draft", "active", "paused", "removed"]).default("draft").notNull(),
     createdByUserId: int("createdByUserId")
       .notNull()

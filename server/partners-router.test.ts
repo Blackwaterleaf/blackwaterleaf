@@ -17,6 +17,7 @@ describe("partner administration authorization", () => {
     await expect(caller.create({ displayName: "Real partner", partyType: "company", authorizationConfirmed: true, disclosureLabel: "Werbung" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.products({ partnerId: 1 })).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.createProduct({ partnerId: 1, product: { title: "Product", destinationUrl: "https://example.com/product" } })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.uploadProductImage({ productId: 1, base64: "AAAA", mimeType: "image/png" })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("only permits public placement for an approved, currently authorized partner inside its validity window", () => {
@@ -37,6 +38,13 @@ describe("partner administration authorization", () => {
     expect(canActivatePartnerProduct({ ...current, authorizationState: "revoked" })).toBe(false);
     expect(isPublicPartnerProduct({ ...current, productStatus: "active" })).toBe(true);
     expect(isPublicPartnerProduct({ ...current, productStatus: "draft" })).toBe(false);
+  });
+
+  it("keeps a product image private until the product itself passes the current publication gate", () => {
+    const imageBearingProduct = { productStatus: "active" as const, partnerStatus: "approved" as const, authorizationState: "granted" as const, placementStatus: "active" as const, startsAt: null, endsAt: null, now: Date.parse("2026-09-16T12:00:00.000Z") };
+    expect(isPublicPartnerProduct(imageBearingProduct)).toBe(true);
+    expect(isPublicPartnerProduct({ ...imageBearingProduct, placementStatus: "paused" })).toBe(false);
+    expect(isPublicPartnerProduct({ ...imageBearingProduct, authorizationState: "revoked" })).toBe(false);
   });
 
   it("reproduces the public partner lifecycle from active to paused, removed and restored", () => {
