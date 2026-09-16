@@ -177,9 +177,13 @@ const en: Record<TranslationKey, string> = {
   "system.code": "SYSTEM STATUS",
 };
 
-export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
+export function resolveLocale(stored: string | null, _browserLanguage: string): AppLocale {
   if (stored === "de" || stored === "en") return stored;
-  return browserLanguage.toLowerCase().startsWith("de") ? "de" : "en";
+  return "de";
+}
+
+export function resolveAccountLocale(current: AppLocale, accountLocale: AppLocale | null | undefined): AppLocale {
+  return accountLocale ?? current;
 }
 
 export function resolveUnitSystem(stored: string | null): UnitSystem {

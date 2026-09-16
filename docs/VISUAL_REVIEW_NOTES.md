@@ -29,3 +29,7 @@ Botanik zeigt bei leerem Bestand einen klaren privaten Leerzustand unterhalb des
 Die finalen Desktopaufnahmen von Home, Entdecken, Community, KI, Profil, Wissen, Botanik und Terraristik bestätigen eine konsistente gemeinsame Marken- und Materialwelt. Die mobilen Aufnahmen bestätigen Blattkern, Bottom-Navigation, reale Kontoanzeige, vollständige Profilform, Community-Entwurf und Aquaristik-Erfassung. Als einziger visueller Restfehler wurde die vierteilige Sensorzeile auf 412 Pixeln horizontal abgeschnitten. Sie wurde anschließend für kleine Ansichten auf ein zweispaltiges Raster umgestellt; ab 760 Pixeln bleibt die vierteilige Desktopzeile bestehen.
 
 Die erste Rasterkorrektur legte zwar zwei Spalten fest, ließ den impliziten einspaltigen Eltern-Gridtrack jedoch weiter auf die maximale Inhaltsbreite wachsen. Nach der zusätzlichen Festlegung `grid-template-columns: minmax(0, 1fr)` für `home-stack` und `page-stack` zeigt die erneute 412-×-915-Aufnahme **Wasser, Luft, pH-Wert und Gerätezeit vollständig**. Hero, Textumbruch, Blattkern und Bottom-Navigation bleiben zugleich innerhalb des Viewports.
+
+## Deutsche Hauptsprache
+
+Nach der Nutzerpräzisierung wurde Deutsch als Standard für neue Sitzungen gesetzt. Nach der Anmeldung priorisiert der globale App-Shell die in MySQL gespeicherte Kontosprache gegenüber der Browser-Locale. Die erneute mobile Prüfung bestätigt deutsche Start-, Sensor-, Navigations-, Profil- und Aktionsbeschriftungen; Englisch bleibt im Profil weiterhin auswählbar und wird bei Auswahl serverseitig gespeichert.

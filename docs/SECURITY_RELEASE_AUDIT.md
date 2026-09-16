@@ -7,7 +7,7 @@
 
 | Prüffeld | Ergebnis | Nachweis |
 |---|---|---|
-| Vitest | Bestanden | 8 Testdateien, 37 Tests, 0 Fehler |
+| Vitest | Bestanden | 8 Testdateien, 38 Tests, 0 Fehler |
 | TypeScript | Bestanden | `tsc --noEmit`, 0 Fehler |
 | Produktionsbuild | Bestanden | Vite-Client und gebündelter Express-Server erzeugt |
 | Produktionsabhängigkeiten | Bestanden | `pnpm audit --prod --audit-level high`: keine bekannten Schwachstellen |

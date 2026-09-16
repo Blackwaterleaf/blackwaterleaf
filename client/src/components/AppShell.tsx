@@ -1,7 +1,9 @@
 import { Bot, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useI18n } from "@/i18n";
-import type { PropsWithChildren } from "react";
+import { resolveAccountLocale, useI18n } from "@/i18n";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { useEffect, type PropsWithChildren } from "react";
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
 
 const navigation = [
@@ -14,7 +16,15 @@ const navigation = [
 
 export function AppShell({ children }: PropsWithChildren) {
   const [location] = useLocation();
-  const { t } = useI18n();
+  const auth = useAuth();
+  const { locale, setLocale, t } = useI18n();
+  const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+
+  useEffect(() => {
+    if (!profile.data?.locale) return;
+    const accountLocale = resolveAccountLocale(locale, profile.data.locale);
+    if (accountLocale !== locale) setLocale(accountLocale);
+  }, [locale, profile.data?.locale, setLocale]);
 
   return (
     <div className="app-frame">
