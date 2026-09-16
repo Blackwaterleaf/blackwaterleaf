@@ -1,3 +1,6 @@
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
+import { ReferenceHero } from "@/components/ReferenceOverlay";
+import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Link, useLocation } from "wouter";
 import { ArrowLeft, CheckCircle2, KeyRound, Leaf, LockKeyhole, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
@@ -40,6 +43,7 @@ export default function AccountAccess() {
   const isEmailReady = Boolean(status.data?.emailDeliveryConfigured);
   const isWorking = login.isPending || register.isPending || requestReset.isPending || verifyEmail.isPending || resetPassword.isPending;
   const headline = copy[mode];
+  const AccessIcon = mode === "register" ? UserPlus : mode === "login" ? KeyRound : ShieldCheck;
 
   const presentError = (caught: unknown) => {
     const message = caught instanceof Error ? caught.message : "account_request_failed";
@@ -100,7 +104,9 @@ export default function AccountAccess() {
   const mailDisabled = (mode === "register" || mode === "forgot") && !isEmailReady;
 
   return (
-    <main className="account-access-page">
+    <main className="account-access-page reference-page reference-page--botany">
+      <LiveSensorStrip compact />
+      <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow={headline.eyebrow} title={headline.title} subtitle={headline.body} icon={AccessIcon} badge="SICHERER ZUGANG" />
       <section className="account-access-card glass-panel">
         <Link href="/" className="account-back"><ArrowLeft size={16} /> ZURÜCK ZU BLACKWATERLEAF</Link>
         <div className="account-access-mark"><Leaf size={24} /></div>

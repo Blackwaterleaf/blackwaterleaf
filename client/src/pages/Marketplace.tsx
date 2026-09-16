@@ -1,3 +1,4 @@
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { addMarketplaceProduct, readMarketplaceCart, removeMarketplaceProduct, setMarketplaceQuantity, writeMarketplaceCart } from "@/lib/marketplaceCart";
@@ -39,6 +40,7 @@ export default function Marketplace() {
 
   return (
     <div className="marketplace-page reference-page reference-page--aquarium">
+      <LiveSensorStrip compact />
       <ReferenceHero
         tone="aquarium"
         icon={ShoppingBag}
@@ -48,6 +50,12 @@ export default function Marketplace() {
         image={REFERENCE_ASSETS.aquarium}
         badge="PARTNER-ANGEBOTE"
       />
+
+      <section className="marketplace-entry glass-panel" aria-label="Marktplatz Einstieg">
+        <div className="marketplace-entry__icon"><ShoppingBag size={20} /></div>
+        <div><span className="eyebrow">[KURATIERT & TRANSPARENT]</span><h2>Finde, was zu deiner Welt passt.</h2><p>Durchsuche ausschließlich aktuell freigegebene Partnerangebote oder sichere Artikel für später in deiner lokalen Merkliste.</p></div>
+        <a className="secondary-action" href="#partnerangebote"><Search size={16} />ANGEBOTE ANSEHEN</a>
+      </section>
 
       <section className="marketplace-trust glass-panel">
         <Leaf size={20} />
@@ -59,7 +67,7 @@ export default function Marketplace() {
         <button className="marketplace-cart-trigger" type="button" onClick={() => setCartOpen(true)} aria-label={`Warenkorb öffnen, ${cartCount} Artikel`}><ShoppingBag size={18} /><span>MERKLISTE</span>{cartCount ? <b>{cartCount}</b> : null}</button>
       </section>
 
-      <section className="marketplace-catalogue" aria-label="Partnerangebote">
+      <section id="partnerangebote" className="marketplace-catalogue" aria-label="Partnerangebote">
         <div className="section-heading"><div><span className="eyebrow">[AUSGEWÄHLT & TRANSPARENT]</span><h2>Partner-Angebote</h2></div><span className="marketplace-count">{catalogue.isLoading ? "…" : `${filtered.length} PRODUKTE`}</span></div>
         {partners.length > 1 ? <div className="marketplace-filters" role="list" aria-label="Partner auswählen"><button className={partnerId === "all" ? "active" : ""} type="button" onClick={() => setPartnerId("all")}>Alle Partner</button>{partners.map(partner => <button key={partner.id} className={partner.id === partnerId ? "active" : ""} type="button" onClick={() => setPartnerId(partner.id)}>{partner.name}</button>)}</div> : null}
         {categories.length ? <div className="marketplace-filters marketplace-filters--categories" role="list" aria-label="Kategorie auswählen"><button className={category === "all" ? "active" : ""} type="button" onClick={() => setCategory("all")}>Alle Kategorien</button>{categories.map(item => <button key={item} className={item === category ? "active" : ""} type="button" onClick={() => setCategory(item)}>{marketplaceCategoryLabel(item)}</button>)}</div> : null}
