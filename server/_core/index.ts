@@ -22,6 +22,7 @@ async function startServer() {
   const server = createServer(app);
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok" }));
   app.use(securityHeaders);
   // 12 MB request limit allows an 8 MB image plus base64 overhead while
   // preventing the previous unrestricted 50 MB API payload surface.
@@ -54,9 +55,12 @@ async function startServer() {
 
   // The managed runtime routes traffic only to the declared PORT. Falling back to
   // another free port leaves the deploy healthy-looking but externally unreachable.
+  if (process.env.NODE_ENV === "production" && !process.env.PORT) {
+    throw new Error("Production runtime requires a managed PORT");
+  }
   const port = parseInt(process.env.PORT || "3000", 10);
 
-  server.listen(port, () => {
+  server.listen(port, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
 }

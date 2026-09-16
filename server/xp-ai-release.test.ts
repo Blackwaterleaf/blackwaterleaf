@@ -34,7 +34,9 @@ describe("XP and AI staged release guards", () => {
   it("binds the managed server to its declared port without fallback scanning", () => {
     const index = source("server/_core/index.ts");
     expect(index).toContain('const port = parseInt(process.env.PORT || "3000", 10);');
-    expect(index).toContain("server.listen(port");
+    expect(index).toContain('throw new Error("Production runtime requires a managed PORT")');
+    expect(index).toContain('app.get("/healthz"');
+    expect(index).toContain('server.listen(port, "0.0.0.0"');
     expect(index).not.toContain("findAvailablePort");
   });
 
