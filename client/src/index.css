@@ -468,3 +468,11 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .habitat-builder-page .habitat-calculated-value { border-color:color-mix(in srgb,var(--habitat-accent) 23%,transparent); }
 .habitat-builder-page .habitat-calculated-value strong { color:var(--habitat-accent); }
 .habitat-canvas-fallback { position:absolute; right:14px; bottom:76px; left:14px; z-index:1; padding:9px 10px; color:#d4eee0; border:1px solid rgba(188,247,147,.28); border-radius:9px; background:rgba(1,18,10,.7); font:700 .57rem/1.35 "JetBrains Mono",monospace; letter-spacing:.025em; }
+
+
+/* Admins receive the Builder as a sixth bottom-navigation target; regular accounts retain the five reference targets. */
+.bottom-navigation--admin { grid-template-columns:repeat(6, minmax(0, 1fr)); width:min(calc(100% - 18px), 690px); }
+.bottom-navigation--admin .nav-link { font-size:.47rem; }
+.bottom-navigation--admin .nav-link:last-child { color:#71e8ff; }
+.bottom-navigation--admin .nav-link:last-child.active { color:#e2d661; }
+@media (max-width:390px) { .bottom-navigation--admin { width:calc(100% - 12px); padding-inline:2px; }.bottom-navigation--admin .nav-link { font-size:.42rem; }.bottom-navigation--admin .nav-link svg { width:17px; height:17px; } }

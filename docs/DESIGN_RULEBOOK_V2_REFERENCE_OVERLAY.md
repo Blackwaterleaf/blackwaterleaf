@@ -31,7 +31,7 @@ Jede Zielseite folgt derselben vertikalen Grundfolge:
 3. Ein eigener bildgestützter Bereichs-Hero.
 4. Ein echter Zustandsblock, falls die Route Authentifizierung, Verbindung, Freigabe, Leerstand oder Fehler erklärt.
 5. Bildbasierte Funktionskarten oder Wahlbereiche in der im Screen vorgegebenen Zahl.
-6. Eine schwebende Bottom Navigation. Sie umfasst die vier Referenzziele sowie den vom Produktauftrag freigegebenen Marktplatz.
+6. Eine schwebende Bottom Navigation. Sie umfasst die vier Referenzziele sowie den vom Produktauftrag freigegebenen Marktplatz. Bei einer serverseitig als `admin` bestätigten Identität ergänzt sie den Habitat Builder als sechsten, klar gekennzeichneten Zielpunkt.
 
 Formulare, Composer, Chatbereiche, Listen und Detaildaten bleiben erhalten. Sie erscheinen jedoch **nachgeordnet** hinter einem echten Karten- oder Call-to-Action-Einstieg. Sie dürfen den Hero, die Sensorleiste oder die Wahlbereiche nicht als Hauptkomposition verdrängen.
 
@@ -114,7 +114,7 @@ Die heutigen, funktional belegten Routen sind die Wahrheit für bestehende Funkt
 | Wissen | `/knowledge` | vorhanden | Entdecken |
 | Habitat Builder | `/habitat-builder` | privater Planungsbereich | Home |
 
-Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als eigener Eintrag in der Bottom-Navigation. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
+Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. Für eine serverseitig authentifizierte Rolle `admin` ergänzt der Auftrag den **Habitat Builder** als sechsten Bottom-Tab nach Profil; Nicht-Admins erhalten weiterhin exakt die fünf regulären Ziele. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als eigener Eintrag in der Bottom-Navigation. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
 
 `/flow/botanik`, `/flow/aquaristik`, `/flow/terraristik` und `/flow/ki-assistent` werden **nicht** aus älteren Handoff-Tabellen übernommen, solange kein eigener Produktauftrag dies verlangt. Sie widersprechen der derzeitigen App-Routenwahrheit. Nur Live, Foto und Beitrag sind als neue Zielseiten explizit vorgesehen.
 
@@ -143,7 +143,7 @@ Eine Zielseite ist erst freigegeben, wenn alle folgenden Punkte gleichzeitig erf
 2. Ihre Akzentfarbe entspricht exakt der Bereichsfarbe.
 3. Jede sichtbare Funktionskarte hat das passende Bildmotiv, Icon, Titel, Chevron und einen nachgewiesenen Link- oder Nichtverfügbar-Zustand.
 4. Die Kartenzahl und Rasterform entsprechen dem Zielscreen.
-5. Markenleiste, Sensorleiste und die Bottom Navigation mit den vier Referenzzielen plus Marktplatz entsprechen der Referenzhierarchie.
+5. Markenleiste, Sensorleiste und die Bottom Navigation mit den vier Referenzzielen plus Marktplatz entsprechen der Referenzhierarchie; bei `admin` ist zusätzlich der sechste Habitat-Builder-Tab sichtbar.
 6. Jeder Sensor-, Feed-, Profil-, KI- und Wissenszustand bleibt real, privat, fehlend, verbunden oder fehlerhaft wie im echten Datenvertrag.
 7. Die mobile Ansicht bei 412 × 915 und eine Desktopansicht werden visuell geprüft; keine Touchfläche wird von der Navigation verdeckt.
 8. Keyboard-Fokus, Kontrast und `prefers-reduced-motion` bleiben funktionsfähig.

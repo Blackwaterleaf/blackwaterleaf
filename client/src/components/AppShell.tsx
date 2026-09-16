@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, Leaf, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, Leaf, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -14,10 +14,12 @@ const navigation = [
   { href: "/profile", label: "tabs.profile" as const, icon: UserRound },
 ];
 
+const adminBuilderNavigation = { href: "/habitat-builder", label: "tabs.builder" as const, icon: Ruler };
+
 function isReferenceNavigationActive(location: string, href: string) {
   if (href === "/") {
     const topLevel = location.split("/")[1] ?? "";
-    return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto") || !["explore", "marketplace", "community", "profile"].includes(topLevel);
+    return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto") || !["explore", "marketplace", "community", "profile", "habitat-builder"].includes(topLevel);
   }
   if (href === "/explore") return location.startsWith("/explore") || location.startsWith("/knowledge");
   if (href === "/marketplace") return location.startsWith("/marketplace");
@@ -35,6 +37,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const dailyCheckIn = trpc.gamification.dailyCheckIn.useMutation({
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
+  const bottomNavigation = auth.user?.role === "admin" ? [...navigation, adminBuilderNavigation] : navigation;
 
   useEffect(() => {
     if (!profile.data?.locale) return;
@@ -71,8 +74,8 @@ export function AppShell({ children }: PropsWithChildren) {
       </header>
       <ConnectionStateBanner />
       <main className="app-content">{children}</main>
-      <nav className="bottom-navigation" aria-label="Hauptnavigation">
-        {navigation.map(item => {
+      <nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`} aria-label="Hauptnavigation">
+        {bottomNavigation.map(item => {
           const Icon = item.icon;
           const active = isReferenceNavigationActive(location, item.href);
           return (

@@ -47,9 +47,17 @@ describe("BlackWaterLeaf reference layout", () => {
 
   it("keeps desktop navigation clear while retaining the mobile icon bar", () => {
     expect(shell).toContain('className="desktop-navigation"');
-    expect(shell).toContain('className="bottom-navigation"');
+    expect(shell).toContain('<nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`}');
     expect(style).toContain(".desktop-navigation { display:flex; }");
     expect(style).toContain(".bottom-navigation { display:none; }");
+  });
+
+  it("shows the Habitat Builder as an admin-only sixth bottom-navigation item", () => {
+    expect(shell).toContain('auth.user?.role === "admin"');
+    expect(shell).toContain('href: "/habitat-builder"');
+    expect(shell).toContain('label: "tabs.builder"');
+    expect(shell).toContain("bottom-navigation--admin");
+    expect(style).toContain(".bottom-navigation--admin { grid-template-columns:repeat(6, minmax(0, 1fr))");
   });
 
   it("preserves reduced-motion behavior for living overlays", () => {
