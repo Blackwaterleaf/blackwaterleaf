@@ -10,6 +10,7 @@ import {
   communityRateLimiter,
   localAuthRateLimiter,
   uploadRateLimiter,
+  weatherRateLimiter,
 } from "./security";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
@@ -126,5 +127,9 @@ describe("rate limiter boundaries", () => {
 
   it("blocks AI traffic after its configured allowance", async () => {
     await assertRateLimit(20, aiRateLimiter);
+  });
+
+  it("bounds anonymous weather requests without retaining location data", async () => {
+    await assertRateLimit(30, weatherRateLimiter);
   });
 });

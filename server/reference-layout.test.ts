@@ -4,16 +4,20 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
+const liveSensors = readFileSync(resolve(root, "client/src/components/LiveSensorStrip.tsx"), "utf8");
 const shell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
 const leafCore = readFileSync(resolve(root, "client/src/components/LeafCore.tsx"), "utf8");
 const style = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("BlackWaterLeaf reference layout", () => {
   it("keeps the reference composition of sensor strip, nature imagery, realm selection and a central leaf action", () => {
-    for (const token of ["home-status-card", "home-hero", "sensor-grid", "world-rail--home", "home-capture-zone", "<LeafCore", "Droplets", "ThermometerSun", "Gauge", "CloudRain"]) {
+    for (const token of ["LiveSensorStrip", "home-hero", "world-rail--home", "home-capture-zone", "<LeafCore"]) {
       expect(home).toContain(token);
     }
-    expect(home.indexOf("home-status-card")).toBeLessThan(home.indexOf("home-hero"));
+    for (const token of ["home-status-card", "sensor-grid", "Waves", "Droplets", "Gauge", "ThermometerSun"]) {
+      expect(liveSensors).toContain(token);
+    }
+    expect(home.indexOf("<LiveSensorStrip")).toBeLessThan(home.indexOf("home-hero"));
     expect(home.indexOf("home-hero")).toBeLessThan(home.indexOf("world-rail--home"));
   });
 

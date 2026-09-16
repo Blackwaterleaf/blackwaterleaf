@@ -1,4 +1,5 @@
 import { LeafCore } from "@/components/LeafCore";
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { StatePanel } from "@/components/StatePanel";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
@@ -6,16 +7,10 @@ import { publicPartnerCardPresentation } from "@/lib/partnerPresentation";
 import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
-import { ArrowRight, CloudRain, Droplets, Gauge, Leaf, RadioTower, ThermometerSun, type LucideIcon } from "lucide-react";
-import { useEffect } from "react";
+import type { WeatherEffect } from "@shared/current-weather";
+import { ArrowRight, Leaf, RadioTower } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "wouter";
-
-function atmosphereForHour(hour: number, labels: { morning: string; day: string; evening: string; night: string }) {
-  if (hour >= 5 && hour < 11) return labels.morning;
-  if (hour >= 11 && hour < 18) return labels.day;
-  if (hour >= 18 && hour < 22) return labels.evening;
-  return labels.night;
-}
 
 export default function Home() {
   const { t, locale } = useI18n();
@@ -23,12 +18,10 @@ export default function Home() {
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.feed.useQuery({ limit: 1 }, { retry: false });
   const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
-  const atmosphere = atmosphereForHour(new Date().getHours(), {
-    morning: t("home.atmosphere.morning"),
-    day: t("home.atmosphere.day"),
-    evening: t("home.atmosphere.evening"),
-    night: t("home.atmosphere.night"),
-  });
+  const [weatherEffect, setWeatherEffect] = useState<WeatherEffect>("none");
+  const applyWeatherEffect = useCallback((effect: WeatherEffect) => {
+    setWeatherEffect(current => current === effect ? current : effect);
+  }, []);
 
   useEffect(() => {
     document.title = pageTitle;
@@ -39,17 +32,9 @@ export default function Home() {
     : { welcome: "Your place for living worlds", overview: "Your overview", status: "Current status", values: "Values at a glance", partner: "Selected & transparent" };
 
   return (
-    <div className="home-stack">
-      <section className="home-status-card glass-panel" aria-label={copy.values}>
-        <div className="home-status-heading"><span>{copy.values}</span><span className="connection-pill"><i />{t("common.notConnected")}</span></div>
-        <div className="sensor-grid">
-          <Sensor value={t("common.offline")} label={t("home.sensors.water")} tone="mint" icon={Droplets} />
-          <Sensor value={t("common.offline")} label={t("home.sensors.air")} tone="green" icon={ThermometerSun} />
-          <Sensor value={t("common.offline")} label={t("home.sensors.ph")} tone="cyan" icon={Gauge} />
-          <Sensor value={atmosphere} label={t("home.sensors.deviceTime")} tone="gold" icon={CloudRain} />
-        </div>
-        <p className="sensor-note">{t("home.sensors.note")}</p>
-      </section>
+    <div className={`home-stack weather-effect--${weatherEffect}`}>
+      <div className="weather-atmosphere" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+      <LiveSensorStrip onWeatherEffectChange={applyWeatherEffect} />
 
       <section className="home-hero hero-scene" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}>
         <span className="hero-light" aria-hidden="true" />
@@ -112,8 +97,4 @@ export default function Home() {
       </section>
     </div>
   );
-}
-
-function Sensor({ value, label, tone, icon: Icon }: { value: string; label: string; tone: string; icon: LucideIcon }) {
-  return <div className={`sensor sensor-${tone}`}><Icon size={17} strokeWidth={1.7} /><div><strong>{value}</strong><span>{label}</span></div></div>;
 }

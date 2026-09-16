@@ -133,3 +133,12 @@ export const aiRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "ai_rate_limit_exceeded" },
 });
+
+/** Keeps the public weather pass-through bounded without recording user locations. */
+export const weatherRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1_000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "weather_rate_limit_exceeded" },
+});

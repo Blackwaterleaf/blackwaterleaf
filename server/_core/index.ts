@@ -16,6 +16,7 @@ import {
   sameOriginMutationGuard,
   securityHeaders,
   uploadRateLimiter,
+  weatherRateLimiter,
 } from "../security";
 
 async function startServer() {
@@ -45,6 +46,7 @@ async function startServer() {
   app.use("/api/trpc/community.uploadDraftImage", uploadRateLimiter);
   app.use("/api/trpc/community", communityRateLimiter);
   app.use("/api/trpc/assistant", aiRateLimiter);
+  app.use("/api/trpc/sensors.outdoor", weatherRateLimiter);
   // tRPC API
   app.use(
     "/api/trpc",
