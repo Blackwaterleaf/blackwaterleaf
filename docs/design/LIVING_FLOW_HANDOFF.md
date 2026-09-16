@@ -2,6 +2,8 @@
 
 Die Route `/flow/:flow` enthält sieben eigenständige Zielseiten: `botanik`, `aquaristik`, `terraristik`, `ki-assistent`, `live`, `foto` und `beitrag`. Die erste Prüfung bestätigte die Botanikroute, vier Auswahlkarten und vier Bottom-Navigationseinträge. Bei der Prüfung fiel auf, dass die bestehende globale Sensorleistenregel die neue Grid-Darstellung überschreibt; diese Regel wird vor Abschluss gezielt korrigiert.
 
+> **Grafische Quelle:** Die vollständigen visuellen Zielbilder der sieben Seiten stehen in [`INTERACTIVE_PAGE_SCREENS.md`](INTERACTIVE_PAGE_SCREENS.md). Beim weiteren Übertragen auf Produktionsseiten ist diese Grafikserie maßgeblich: Sie zeigt die Seite **nach** dem Tippen auf eine Auswahl, nicht die Startseite.
+
 Nach der Korrektur rendert die Sensorleiste horizontal im selben Glaskarten-Stil wie die Vorlage. Die mobile Botanikseite wurde visuell geprüft: dunkles organisches Grundlayout, leuchtende Bereichsfarbe, Bild-Hero, vier große Auswahlflächen, Bereichswechsel und fixe Bottom Navigation sind vorhanden.
 
 Die visuelle Prüfung der KI- und Foto-Routen bestätigte die Farbübergabe: KI in Neonlila, die Fotoaufnahme im botanisch-grünen Glasmotiv. Die KI-Seite besitzt vier direkte Einstiege für Chat, Bestimmung, Aquaristik und Wissen. Die Fotoseite verfügt über ein echtes Datei-/Kamera-Auswahlfeld sowie vier nachgelagerte Zielaktionen.
