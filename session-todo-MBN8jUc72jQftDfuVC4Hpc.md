@@ -32,3 +32,4 @@
 - [x] Add the Habitat Builder as a sixth, conditional bottom-navigation destination for authenticated admins while retaining the regular five destinations for other accounts.
 - [x] Add a short, reduced-motion-safe navigation transition between all bottom tabs and the conditional Habitat Builder tab.
 - [x] Replace rotation-only Habitat Builder behavior with a bounded local object-placement workspace: select a planning tool, click the enclosure floor to place an abstract marker, then inspect position, rotation, scale or delete it. No asset library, purchase flow, PBR claim, migration or external generation.
+- [x] Make the Habitat Builder placement workflow robust across desktop and mobile: pointer-down placement supports mouse and touch, while visible centered-insert and cancel controls provide a non-canvas fallback for keyboard, mouse and touch input.

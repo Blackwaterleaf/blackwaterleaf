@@ -84,7 +84,7 @@ function PlacementShape({ placement, ratio, selected, onSelect }: { placement: B
   const floor = -ratio.height * 0.37;
   const rotation = item.rotationDeg * Math.PI / 180;
   const outline = selected ? "#fff3a3" : "#75efff";
-  const select = (event: ThreeEvent<MouseEvent>) => { event.stopPropagation(); onSelect(item.id); };
+  const select = (event: ThreeEvent<PointerEvent>) => { event.stopPropagation(); onSelect(item.id); };
 
   if (item.type === "hardscape" || item.type === "structure") return <group position={[x, floor + 0.35 * item.scale, z]} rotation={[0, rotation, 0]} scale={item.scale} onClick={select}>
     <mesh castShadow><dodecahedronGeometry args={[0.46, 0]} /><meshLambertMaterial color={item.type === "hardscape" ? "#765035" : "#67492e"} /></mesh>
@@ -109,12 +109,12 @@ function PlacementShape({ placement, ratio, selected, onSelect }: { placement: B
 }
 
 function EditableFloor({ ratio, active, onPlace, onClear }: { ratio: EnclosureRatio; active: boolean; onPlace: (xPct: number, zPct: number) => void; onClear: () => void }) {
-  const handleFloorClick = (event: ThreeEvent<MouseEvent>) => {
+  const handleFloorPointerDown = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation();
     if (!active) { onClear(); return; }
     onPlace(event.point.x / (ratio.width * .42) * 100, event.point.z / (ratio.depth * .42) * 100);
   };
-  return <mesh position={[0, -ratio.height * .36, 0]} rotation={[-Math.PI / 2, 0, 0]} onClick={handleFloorClick}>
+  return <mesh position={[0, -ratio.height * .36, 0]} rotation={[-Math.PI / 2, 0, 0]} onPointerDown={handleFloorPointerDown}>
     <planeGeometry args={[ratio.width - .18, ratio.depth - .18]} />
     <meshBasicMaterial color={active ? "#6feaff" : "#0a1d13"} opacity={active ? .18 : .01} transparent depthWrite={false} />
   </mesh>;

@@ -23,12 +23,14 @@ const canvas = readFileSync(resolve(root, "client/src/components/HabitatCanvas.t
   });
 
   it("provides an actual placement workflow with inspector controls instead of rotation-only viewing", () => {
-    for (const token of ["activateTool", "placeElement", "PlacementInspector", "updateSelectedPlacement", "Marker entfernen", "PLATZIERMODUS"]) {
+    for (const token of ["activateTool", "placeElement", "PlacementInspector", "updateSelectedPlacement", "Marker entfernen", "PLATZIERMODUS", "Zentriert einfügen", "Abbrechen"]) {
       expect(builder).toContain(token);
     }
-    for (const token of ["EditableFloor", "onPlace", "enableRotate={!props.placementTool}", "PlacementShape"]) {
+    for (const token of ["EditableFloor", "onPlace", "onPointerDown", "enableRotate={!props.placementTool}", "PlacementShape"]) {
       expect(canvas).toContain(token);
     }
+    expect(builder).toContain("Tippe oder klicke auf die Bodenfläche");
+    expect(builder).toContain("Bodenfläche antippen/klicken oder zentriert einfügen.");
   });
 
   it("uses a fallback reference scene without invoking Tripo or pretending PBR assets exist", () => {
