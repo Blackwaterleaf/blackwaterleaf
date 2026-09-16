@@ -15,6 +15,7 @@ import {
   workspaces,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
+import { hashEvidence } from "./safety";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -187,13 +188,21 @@ export async function addAuditEvent(input: {
   metadata?: Record<string, unknown>;
 }) {
   const db = await requireDb();
+  const createdAt = new Date();
+  const previous = await db.select({ eventHash: auditEvents.eventHash }).from(auditEvents).where(eq(auditEvents.workspaceId, input.workspaceId)).orderBy(desc(auditEvents.id)).limit(1);
+  const previousHash = previous[0]?.eventHash ?? "GENESIS";
+  const metadata = input.metadata ? JSON.stringify(input.metadata) : undefined;
+  const eventHash = hashEvidence(JSON.stringify({ workspaceId: input.workspaceId, taskId: input.taskId ?? null, actorType: input.actorType, actorId: input.actorId ?? null, eventType: input.eventType, metadata: metadata ?? null, previousHash, createdAt: createdAt.toISOString() }));
   await db.insert(auditEvents).values({
     workspaceId: input.workspaceId,
     taskId: input.taskId,
     actorType: input.actorType,
     actorId: input.actorId,
     eventType: input.eventType,
-    metadata: input.metadata ? JSON.stringify(input.metadata) : undefined,
+    metadata,
+    previousHash,
+    eventHash,
+    createdAt,
   });
 }
 
@@ -214,6 +223,12 @@ export async function createTask(input: { workspaceId: number; createdBy: number
 export async function updateTask(taskId: number, values: Partial<typeof tasks.$inferInsert>) {
   const db = await requireDb();
   await db.update(tasks).set(values).where(eq(tasks.id, taskId));
+}
+
+export async function claimTaskForRun(taskId: number) {
+  const db = await requireDb();
+  const result = await db.update(tasks).set({ status: "running", cancelRequested: false, startedAt: new Date(), finishedAt: null }).where(and(eq(tasks.id, taskId), inArray(tasks.status, ["ready", "failed"])));
+  return Number(result[0]?.affectedRows ?? 0) === 1;
 }
 
 export async function addTaskMessage(input: { taskId: number; role: "user" | "assistant" | "system"; content: string; createdBy?: number }) {

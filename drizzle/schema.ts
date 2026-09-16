@@ -67,6 +67,7 @@ export const tasks = mysqlTable("studio_tasks", {
     "cancelled",
     "expired",
   ]).default("draft").notNull(),
+  cancelRequested: boolean("cancelRequested").default(false).notNull(),
   priority: mysqlEnum("priority", ["low", "medium", "high"]).default("medium").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -166,6 +167,8 @@ export const auditEvents = mysqlTable("studio_audit_events", {
   actorId: int("actorId"),
   eventType: varchar("eventType", { length: 160 }).notNull(),
   metadata: text("metadata"),
+  previousHash: varchar("previousHash", { length: 64 }),
+  eventHash: varchar("eventHash", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

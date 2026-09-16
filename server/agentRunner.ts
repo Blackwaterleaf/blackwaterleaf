@@ -1,4 +1,5 @@
 import { invokeLLM, listLLMModels } from "./_core/llm";
+import { assertControlledGoal, validateAgentResult } from "./safety";
 
 export type ControlledAgentResult = {
   summary: string;
@@ -18,6 +19,7 @@ function parseContent(content: unknown): string {
 }
 
 export async function runControlledAgent(input: { title: string; goal: string }) {
+  assertControlledGoal(`${input.title}\n${input.goal}`);
   const catalog = await listLLMModels();
   const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id;
 
@@ -56,8 +58,6 @@ export async function runControlledAgent(input: { title: string; goal: string })
 
   const raw = parseContent(response.choices[0]?.message?.content);
   const parsed = JSON.parse(raw) as ControlledAgentResult;
-  if (!parsed.summary || !Array.isArray(parsed.plan) || !Array.isArray(parsed.risks) || !parsed.nextAction) {
-    throw new Error("Agent returned an invalid controlled result");
-  }
-  return parsed;
+  if (!parsed.summary || !Array.isArray(parsed.plan) || !Array.isArray(parsed.risks) || !parsed.nextAction) throw new Error("Agent returned an invalid controlled result");
+  return validateAgentResult(parsed);
 }

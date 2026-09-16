@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { runControlledAgent } from "./agentRunner";
+import { assertTaskTransition, createRunGuard } from "./safety";
 import * as db from "./db";
 
 const operatorRoles = new Set(["owner", "admin", "operator"]);
@@ -99,14 +100,20 @@ export const appRouter = router({
         const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
         if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
         if (!["ready", "failed"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task is not ready for a controlled agent run." });
+        try { assertTaskTransition(task.status, "running"); } catch { throw new TRPCError({ code: "CONFLICT", message: "Task state does not allow a new run." }); }
 
-        await db.updateTask(task.id, { status: "running", startedAt: new Date(), finishedAt: null });
+        if (!await db.claimTaskForRun(task.id)) throw new TRPCError({ code: "CONFLICT", message: "Task was claimed by another run or is no longer ready." });
         await db.updateTaskStep(task.id, 1, { status: "running", startedAt: new Date() });
         await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "agent.run.requested", metadata: { network: "disabled", files: "not mounted" } });
         const sessionId = await db.createSandboxSession(task.id);
+        const guard = createRunGuard();
 
         try {
+          guard.step("planner.start");
+          guard.toolCall();
           const result = await runControlledAgent({ title: task.title, goal: task.goal });
+          guard.step("verifier.validate");
+          guard.success();
           await db.updateTaskStep(task.id, 1, { status: "succeeded", finishedAt: new Date() });
           await db.updateTaskStep(task.id, 2, { status: "succeeded", startedAt: new Date(), finishedAt: new Date() });
           await db.updateTaskStep(task.id, 3, { status: "blocked", errorCode: "ISOLATED_WORKER_NOT_CONFIGURED" });
@@ -120,9 +127,22 @@ export const appRouter = router({
           await db.updateTask(task.id, { status: "failed", finishedAt: new Date() });
           await db.updateTaskStep(task.id, 1, { status: "failed", errorCode: "AGENT_RUN_FAILED", finishedAt: new Date() });
           await db.closeSandboxSession(sessionId, "failed");
-          await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "system", eventType: "agent.run.failed", metadata: { sessionId } });
+          await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "system", eventType: "agent.run.failed", metadata: { sessionId, error: error instanceof Error ? error.message : "UNKNOWN", guard: guard.snapshot() } });
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "Controlled agent run failed." });
         }
+      }),
+
+    cancelTask: protectedProcedure
+      .input(z.object({ taskId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
+        if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
+        if (!["running", "waiting_for_approval", "queued"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task cannot be cancelled from its current state." });
+        await db.updateTask(task.id, { cancelRequested: true, status: "cancelled", finishedAt: new Date() });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "task.cancelled", metadata: { killSwitch: true } });
+        return { success: true as const };
       }),
 
     requestApproval: protectedProcedure

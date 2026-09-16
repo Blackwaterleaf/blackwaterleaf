@@ -1,0 +1,1 @@
+ALTER TABLE `studio_tasks` ADD `cancelRequested` boolean DEFAULT false NOT NULL;
