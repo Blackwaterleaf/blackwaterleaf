@@ -31,6 +31,7 @@ import ModeratorDashboard from "./pages/ModeratorDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import AiIdentificationReview from "./pages/AiIdentificationReview";
 import Marketplace from "./pages/Marketplace";
+import "./styles/production-overlay.css";
 
 function Router() {
   return (

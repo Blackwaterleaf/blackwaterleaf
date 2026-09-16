@@ -1,14 +1,13 @@
 import { useLocation, Link } from "wouter";
-import { Home, Compass, Users, User, Bot } from "lucide-react";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { Home, Compass, Users, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Bottom-Navigation (Mobile)
  * Regelwerk:
- *   - 5 Haupt-Tabs: Home, Entdecken, Community, KI, Profil
- *   - Glassmorphism-Hintergrund (backdrop-blur-xl, bg-black/60, border-t border-white/10)
- *   - Aktiver Tab: Smaragd (#2D9B6E) Icon + Label
+ *   - 4 Haupt-Tabs wie im verbindlichen Screenshot: Home, Entdecken, Community, Profil
+ *   - Schwebende Glassmorphism-Pille mit geschlossener Kontur
+ *   - Aktiver Tab: bereichsspezifisches Neon-Grün (#C7F35B) mit Unterstreichung
  *   - Inaktiv: rgba(255,255,255,0.6)
  *   - Sanfte Übergangsanimation beim Tab-Wechsel
  *   - Zentraler Schnellaktionskreis lebt innerhalb der Home-/Feed-Ansicht
@@ -18,15 +17,11 @@ const NAV_ITEMS = [
   { href: "/",         label: "Home",      icon: Home },
   { href: "/discover", label: "Entdecken", icon: Compass },
   { href: "/feed",     label: "Community", icon: Users },
-  { href: "/ai",       label: "KI",        icon: Bot },
   { href: "/profile",  label: "Profil",    icon: User },
 ];
 
 export default function BottomNav() {
   const [location] = useLocation();
-  const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) return null;
 
   // Aktiv-Check: Home nur exakt auf "/"
   const isActive = (href: string) => {
@@ -36,19 +31,24 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="fixed z-50"
       style={{
-        background: "rgba(0,0,0,0.6)",
+        left: "50%",
+        bottom: "calc(12px + env(safe-area-inset-bottom, 0px))",
+        width: "min(620px, calc(100vw - 24px))",
+        transform: "translateX(-50%)",
+        background: "rgba(2,16,10,0.84)",
         backdropFilter: "blur(24px) saturate(1.6)",
         WebkitBackdropFilter: "blur(24px) saturate(1.6)",
-        borderTop: "1px solid rgba(255,255,255,0.1)",
-        boxShadow: "0 -4px 32px rgba(0,0,0,0.4)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        border: "1px solid rgba(218,246,207,0.20)",
+        borderRadius: "25px",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10), 0 9px 30px rgba(0,0,0,0.52)",
+        padding: "2px 6px",
       }}
     >
       <div
         className="flex items-end justify-around"
-        style={{ height: 64, maxWidth: 480, margin: "0 auto", padding: "0 8px" }}
+        style={{ height: 62, margin: "0 auto", padding: "0 4px" }}
       >
         {NAV_ITEMS.map((item) => (
           <NavTab
@@ -83,24 +83,24 @@ function NavTab({
         style={{
           minWidth: 52,
           height: 52,
-          color: active ? "#2D9B6E" : "rgba(255,255,255,0.6)",
-          background: active ? "rgba(45,155,110,0.12)" : "transparent",
+          color: active ? "#C7F35B" : "rgba(255,255,255,0.60)",
+          background: active ? "rgba(199,243,91,0.07)" : "transparent",
           padding: "6px 10px",
         }}
         whileTap={{ scale: 0.92 }}
         transition={{ duration: 0.15 }}
       >
-        {/* Aktiv-Indikator oben */}
+        {/* Aktiv-Indikator unten – wie in der Referenznavigation */}
         <AnimatePresence>
           {active && (
             <motion.span
               layoutId="nav-indicator"
-              className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
               style={{
-                width: 24,
+                width: 34,
                 height: 3,
-                background: "#2D9B6E",
-                boxShadow: "0 0 8px rgba(45,155,110,0.7)",
+                background: "#C7F35B",
+                boxShadow: "0 0 10px rgba(199,243,91,0.75)",
               }}
               initial={{ opacity: 0, scaleX: 0 }}
               animate={{ opacity: 1, scaleX: 1 }}
@@ -116,7 +116,7 @@ function NavTab({
         />
         <span
           className="text-[10px] font-medium tracking-wide leading-none"
-          style={{ color: active ? "#2D9B6E" : "rgba(255,255,255,0.6)" }}
+          style={{ color: active ? "#C7F35B" : "rgba(255,255,255,0.6)" }}
         >
           {label}
         </span>

@@ -7,11 +7,12 @@ import { de } from "date-fns/locale";
 import {
   Heart, ImagePlus, MessageCircle, MoreHorizontal,
   Send, Trash2, X, Leaf, Fish, HelpCircle, Lightbulb,
-  Star, ShoppingBag, Grid3X3, Video, Users, Plus, Share2, Bookmark,
+  Star, ShoppingBag, Grid3X3, Video, Users, Plus, Share2, Bookmark, ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { startLogin } from "@/const";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -646,12 +647,23 @@ export default function Feed() {
   });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 pb-24 lg:pb-8">
+    <div className="bwl-production-page bwl-production-page-community max-w-2xl mx-auto px-4 py-5 pb-24 lg:pb-8">
       <Seo
         title="Community Feed – Aquaristik & Botanik"
         path="/feed"
         description="Der BlackwaterLeaf Community Feed: Teile Fortschritte, Showcases und Fragen rund um Aquaristik, Aquascaping, Channa und Zimmerpflanzen – und lerne von Gleichgesinnten."
       />
+
+      <LivingSensorRail />
+
+      <section className="bwl-production-hero" aria-labelledby="community-hero-title">
+        <img src="/design/community.jpg" alt="Regenwald und Wasserreflexionen für die BlackwaterLeaf Community" />
+        <div className="bwl-production-hero-copy">
+          <span>GEMEINSAM WACHSEN</span>
+          <h1 id="community-hero-title">COMMUNITY IN <strong>BEWEGUNG.</strong></h1>
+          <p>Echte Naturmomente von echten Konten.</p>
+        </div>
+      </section>
 
       {/* ── Page Header (wie Native App) ── */}
       <div
@@ -713,8 +725,6 @@ export default function Feed() {
         </div>
       </div>
 
-      <LivingSensorRail />
-
       {/* ── Filter Tabs als Pills (wie Native App) ── */}
       <div className="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
         {[{ value: "all", label: "Alle" }, ...CATEGORIES].map((cat) => {
@@ -773,21 +783,29 @@ export default function Feed() {
               </div>
             </div>
           ))
-        ) : data?.posts.length === 0 ? (
-          <div className="text-center py-20">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: "rgba(13,17,14,0.90)", border: "1px solid rgba(45,107,63,0.30)" }}
-            >
-              <MessageCircle className="w-7 h-7" style={{ color: "rgba(255,255,255,0.40)" }} />
-            </div>
-            <p className="font-semibold mb-1" style={{ color: "rgba(255,255,255,0.70)" }}>
-              Noch keine Beiträge
-            </p>
-            <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-              Sei der Erste und teile deine Sammlung!
-            </p>
-          </div>
+        ) : !data || data.posts.length === 0 ? (
+          <section className="bwl-community-empty" aria-label="Leerer Community-Feed">
+            <span className="bwl-community-empty-badge"><Leaf /> FEED / EMPTY</span>
+            <div className="bwl-community-empty-icon"><MessageCircle /></div>
+            <h2>NOCH KEINE FREIGEGEBENEN NATURMOMENTE.</h2>
+            <p>Nur echte Beiträge aktiver Konten erscheinen hier. Es werden keine Personen, Likes oder Kommentare erfunden.</p>
+            {isAuthenticated ? (
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  const editor = document.getElementById("create-post-area");
+                  editor?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  editor?.querySelector("textarea")?.focus();
+                }}
+              >
+                Deinen Moment teilen <Send className="w-4 h-4" />
+              </button>
+            ) : (
+              <button className="btn-primary" onClick={() => startLogin()}>
+                Sicher anmelden <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </section>
         ) : (
           data?.posts.map((post) => (
             <PostCard
