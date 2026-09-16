@@ -156,7 +156,7 @@ export default function AiAssistant() {
   };
 
   return (
-    <div className="flex flex-col bl-ai-shell">
+    <div className="bwl-production-page bwl-production-page-ai flex flex-col bl-ai-shell">
       <Seo
         title="KI-Assistent – Botanik & Aquaristik Beratung"
         path="/ai"
@@ -166,19 +166,22 @@ export default function AiAssistant() {
       <div
         className="px-4 pt-4 pb-3 flex-shrink-0"
         style={{
-          background: "rgba(0,0,0,0.6)",
+          background: "linear-gradient(135deg, rgba(32,12,49,0.78), rgba(0,0,0,0.70))",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 1px 0 rgba(45,155,110,0.12)",
+          borderBottom: "1px solid rgba(195,107,255,0.24)",
+          boxShadow: "0 1px 0 rgba(195,107,255,0.12)",
         }}
       >
         <div className="container max-w-3xl mx-auto">
+          <p className="text-[10px] font-bold tracking-[0.16em] mb-1" style={{ color: "#C36BFF" }}>
+            BLACKWATERLEAF KI
+          </p>
           <h1
             className="font-brand leading-none mb-0.5"
-            style={{ fontSize: "clamp(1.8rem, 6vw, 2.4rem)", color: "#FFFFFF", letterSpacing: "0.01em" }}
+            style={{ fontSize: "clamp(1.8rem, 6vw, 2.4rem)", color: "#FFFFFF", letterSpacing: "0.03em" }}
           >
-            KI-Assistent
+            KI-ASSISTENT
           </h1>
           {contextName ? (
             <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.60)" }}>
@@ -189,6 +192,9 @@ export default function AiAssistant() {
               {channaMode ? "Spezialist für Channa (Schlangenkopffische)" : "Dein Begleiter für Botanik & Aquaristik & Channa"}
             </p>
           )}
+          <p className="text-[10px] font-semibold tracking-[0.08em] mt-1.5 mb-3" style={{ color: "rgba(220,185,255,0.72)" }}>
+            ECHTE KI-HILFE. KEINE SCHEINANTWORT.
+          </p>
 
           {/* Mode-Tabs als Pills (wie in Native App) */}
           {!contextName && (
@@ -197,9 +203,9 @@ export default function AiAssistant() {
                 onClick={() => setMode("chat")}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "chat" ? "#2D9B6E" : "rgba(13,17,14,0.85)",
+                  background: mode === "chat" ? "#C36BFF" : "rgba(18,5,29,0.82)",
                   color: mode === "chat" ? "#FFFFFF" : "rgba(255,255,255,0.65)",
-                  border: mode === "chat" ? "none" : "1px solid rgba(45,107,63,0.30)",
+                  border: mode === "chat" ? "none" : "1px solid rgba(195,107,255,0.30)",
                 }}
               >
                 <MessageCircle className="w-3.5 h-3.5" />
@@ -209,9 +215,9 @@ export default function AiAssistant() {
                 onClick={() => setMode("identify")}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
                 style={{
-                  background: mode === "identify" ? "#2D9B6E" : "rgba(13,17,14,0.85)",
+                  background: mode === "identify" ? "#C36BFF" : "rgba(18,5,29,0.82)",
                   color: mode === "identify" ? "#FFFFFF" : "rgba(255,255,255,0.65)",
-                  border: mode === "identify" ? "none" : "1px solid rgba(45,107,63,0.30)",
+                  border: mode === "identify" ? "none" : "1px solid rgba(195,107,255,0.30)",
                 }}
               >
                 <ScanSearch className="w-3.5 h-3.5" />

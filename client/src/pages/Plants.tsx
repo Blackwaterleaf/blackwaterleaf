@@ -147,7 +147,7 @@ export default function Plants() {
       <LivingSensorRail />
 
       <section className="bwl-production-hero" aria-labelledby="botanik-hero-title">
-        <img src="/design/botanik.jpg" alt="Tropische Blätter im dunklen Regenwaldlicht" />
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg" alt="Tropische Blätter im dunklen Regenwaldlicht" />
         <div className="bwl-production-hero-copy">
           <span>PFLANZEN WORLD</span>
           <h1 id="botanik-hero-title">NATUR IST <strong>KUNST.</strong></h1>

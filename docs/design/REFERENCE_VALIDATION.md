@@ -41,3 +41,15 @@ Eine echte Browserprüfung bestätigte den Fallback: Ohne geladene Beiträge ers
 ## Produktions-Overlay: Botanik und Aquaristik (16. September 2026)
 
 Die Browserprüfung bestätigt die abgeschlossenen Bereichseinstiege: `/plants` hat nun ein botanisches Hero mit Neongrün, echte Anmeldeaufforderung und die neue schwebende Vier-Tab-Navigation. `/flow/aquaristik` liefert die gewünschte blaue, vollständig gestaltete Auswahlseite mit den vier weiterführenden Funktionen „Meine Aquarien“, „Aquarium hinzufügen“, „Wasserwerte“ und „KI zur Aquaristik“. Beide Seiten verwenden die neuen lokalen Bildpfade unter `/design/`.
+
+## PWA- und Native-Umsetzung (16. September 2026)
+
+Die PWA-Zielroute `/flow/ki-assistent` wurde erneut im Browser geprüft. Sie zeigt das lokale Designsystem mit lila KI-Hero, vier echten Folgerouten, Bereichswechsel und schwebender Bottom-Navigation. Der neu angelegte Expo-Client im selben Repository wurde mit `pnpm typecheck` sowie `expo config --type public` validiert; die Web-Bundleausgabe von Metro ist erfolgreich. Der erste Metro-Start benötigte einen projektlokalen Einstiegspunkt und die Expo-Webabhängigkeiten, die anschließend ergänzt wurden.
+
+## Native Expo: Sicht- und Interaktionsprüfung (16. September 2026)
+
+Die Expo-Webvorschau rendert den neuen Consumer-Client aus `mobile/` erfolgreich: Markenleiste, Offline-Sensorleiste, Pflanzen-Hero, vier farblich getrennte Weltkarten und die schwebende Vier-Tab-Navigation sind sichtbar. Ein echter Browser-Klick auf den Blattkern öffnete nachweislich alle **sieben** Schnellaktionen: Video, Foto, Beitrag, Pflanze, Fisch, Terrarium und KI fragen. Die Studio-Anwendung wurde zuvor vollständig zurückgesetzt und ist nicht Teil dieser Änderung.
+
+## PWA: Profil und Wissen (16. September 2026)
+
+Die Browserprüfung der PWA bestätigte den neuen öffentlichen Profilzugang mit botanischem Hero, sicherem Login-Einstieg sowie den sichtbaren Präferenzen „Deutsch“ und „Metrisch“. Die Wissensroute enthält die neue naturbasierte Kopfzone, Suche und Kategorien; sie wartet während eines echten Datenabrufs ausschließlich mit Skeleton-Flächen und erzeugt keine erfundenen Wissensbeiträge. Der gestaltete, quellenbasierte Leerzustand greift anschließend ein, falls keine veröffentlichten Artikel vorliegen.

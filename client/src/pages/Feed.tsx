@@ -657,7 +657,7 @@ export default function Feed() {
       <LivingSensorRail />
 
       <section className="bwl-production-hero" aria-labelledby="community-hero-title">
-        <img src="/design/community.jpg" alt="Regenwald und Wasserreflexionen für die BlackwaterLeaf Community" />
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg" alt="Regenwald und Wasserreflexionen für die BlackwaterLeaf Community" />
         <div className="bwl-production-hero-copy">
           <span>GEMEINSAM WACHSEN</span>
           <h1 id="community-hero-title">COMMUNITY IN <strong>BEWEGUNG.</strong></h1>

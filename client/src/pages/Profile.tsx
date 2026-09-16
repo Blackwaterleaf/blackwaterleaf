@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
   Camera, Droplets, Leaf, Pencil, Save, X, Award, Zap,
-  Shield, ChevronRight, Star, TrendingUp,
+  Shield, ChevronRight, Star, TrendingUp, LockKeyhole, Languages, Ruler,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SeoEnhanced } from "@/components/SeoEnhanced";
 import ReputationSystem from "@/components/ReputationSystem";
+import { startLogin } from "@/const";
 
 interface ProfileProps { userId?: number; }
 
@@ -87,7 +88,38 @@ export default function Profile({ userId: _userId }: ProfileProps) {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="bwl-production-page max-w-lg mx-auto px-4 py-5 pb-24 lg:pb-8">
+        <SeoEnhanced
+          title="Profil"
+          path="/profile"
+          description="Melde dich sicher an, um deine BlackwaterLeaf-Sammlung, dein Profil und deine persönlichen Präferenzen zu verwalten."
+          noindex={true}
+        />
+        <section className="bwl-production-hero" aria-labelledby="profile-access-title">
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg" alt="Nasse tropische Blätter im dunklen Regenwaldlicht" />
+          <div className="bwl-production-hero-copy">
+            <span>DEIN BEREICH</span>
+            <h1 id="profile-access-title">DEIN <strong>PROFIL</strong></h1>
+            <p>Sammlung, Wissen und Einstellungen an einem geschützten Ort.</p>
+          </div>
+        </section>
+        <section className="bwl-profile-access-card" aria-label="Sicherer Profilzugang">
+          <div className="bwl-profile-access-mark"><LockKeyhole /></div>
+          <h1>SICHER ZU DEINEM PROFIL.</h1>
+          <p>Melde dich an, um private Beobachtungen, deine Sammlung und persönliche Einstellungen sicher zu verwalten.</p>
+          <button className="btn-primary" onClick={() => startLogin()}>
+            Sicher anmelden <ChevronRight className="w-4 h-4" />
+          </button>
+          <div className="bwl-profile-access-list" aria-label="Profileinstellungen">
+            <div><Languages /><span>Sprache</span><small>Deutsch</small></div>
+            <div><Ruler /><span>Einheiten</span><small>Metrisch</small></div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   // Gamification-Werte
   const level = game?.level?.level ?? 0;
@@ -100,7 +132,7 @@ export default function Profile({ userId: _userId }: ProfileProps) {
   const interests = (display?.interests as string[] | undefined) ?? ["Botanik", "Aquaristik"];
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-8 pb-24 lg:pb-8">
+    <div className="bwl-production-page max-w-lg mx-auto px-4 py-6 pb-24 lg:pb-8">
       <SeoEnhanced
         title="Mein Profil"
         path="/profile"

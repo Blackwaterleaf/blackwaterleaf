@@ -26,7 +26,7 @@ export const WORLD_CHOICES: WorldChoice[] = [
     subtitle: "Entdecken",
     href: "/flow/botanik",
     icon: Leaf,
-    image: "/design/botanik.jpg",
+    image: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg",
   },
   {
     id: "aquarium",
@@ -34,7 +34,7 @@ export const WORLD_CHOICES: WorldChoice[] = [
     subtitle: "Entdecken",
     href: "/flow/aquaristik",
     icon: Waves,
-    image: "/design/aquarium.jpg",
+    image: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/WzGGUGFNZmLSWrMr.jpg",
   },
   {
     id: "terrarium",
@@ -42,7 +42,7 @@ export const WORLD_CHOICES: WorldChoice[] = [
     subtitle: "Entdecken",
     href: "/flow/terraristik",
     icon: Sprout,
-    image: "/design/terrarium.jpg",
+    image: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/QhxUwiwrRwBwYvdI.jpg",
   },
   {
     id: "ai",
@@ -50,7 +50,7 @@ export const WORLD_CHOICES: WorldChoice[] = [
     subtitle: "Fragen & Helfen",
     href: "/flow/ki-assistent",
     icon: Bot,
-    image: "/design/ki-assistent.jpg",
+    image: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/odpbOWfqtBBNMRrK.jpg",
   },
 ];
 

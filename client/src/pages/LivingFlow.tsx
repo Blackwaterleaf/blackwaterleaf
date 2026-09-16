@@ -48,10 +48,10 @@ type FlowConfig = {
 };
 
 const IMAGES = {
-  botany: "/design/botanik.jpg",
-  aquarium: "/design/aquarium.jpg",
-  terrarium: "/design/terrarium.jpg",
-  ai: "/design/ki-assistent.jpg",
+  botany: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg",
+  aquarium: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/WzGGUGFNZmLSWrMr.jpg",
+  terrarium: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/QhxUwiwrRwBwYvdI.jpg",
+  ai: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/odpbOWfqtBBNMRrK.jpg",
 };
 
 const FLOWS: Record<FlowSlug, FlowConfig> = {

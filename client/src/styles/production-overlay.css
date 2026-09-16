@@ -169,6 +169,57 @@
 .bwl-community-empty h2 { margin: 0 0 7px; color: #fff; font-family: "Bebas Neue", Impact, sans-serif; font-size: clamp(25px, 7vw, 36px); font-weight: 400; line-height: .96; letter-spacing: .035em; }
 .bwl-community-empty p { max-width: 340px; margin: 0 auto 16px; color: rgba(239,248,231,.62); font-size: 12px; line-height: 1.4; }
 
+.bwl-profile-access-card,
+.bwl-knowledge-empty {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 20px;
+  border: 1px solid rgba(199,243,91,.27);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(3, 28, 18, .78), rgba(2, 12, 8, .9));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 18px 36px rgba(0,0,0,.28), 0 0 28px rgba(199,243,91,.08);
+  text-align: center;
+}
+
+.bwl-profile-access-card::before,
+.bwl-knowledge-empty::before {
+  content: "";
+  position: absolute;
+  inset: -34% 10% auto;
+  height: 190px;
+  background: radial-gradient(ellipse, rgba(199,243,91,.16), transparent 67%);
+  pointer-events: none;
+}
+
+.bwl-profile-access-card > *,
+.bwl-knowledge-empty > * { position: relative; }
+
+.bwl-profile-access-mark,
+.bwl-knowledge-empty-mark {
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 15px;
+  border: 1px solid rgba(199,243,91,.52);
+  border-radius: 50%;
+  color: var(--bwl-neon-botany);
+  background: radial-gradient(circle at 50% 36%, rgba(122,193,93,.34), rgba(4,24,13,.85) 64%);
+  box-shadow: 0 0 0 9px rgba(199,243,91,.06), 0 0 26px rgba(199,243,91,.23);
+}
+
+.bwl-profile-access-mark svg,
+.bwl-knowledge-empty-mark svg { width: 31px; height: 31px; stroke-width: 1.35; }
+.bwl-profile-access-card h1,
+.bwl-knowledge-empty h2 { margin: 0 0 8px; color: #fff; font-family: "Bebas Neue", Impact, sans-serif; font-size: clamp(29px, 8vw, 40px); font-weight: 400; line-height: .95; letter-spacing: .04em; }
+.bwl-profile-access-card > p,
+.bwl-knowledge-empty > p { max-width: 355px; margin: 0 auto 18px; color: rgba(239,248,231,.64); font-size: 12px; line-height: 1.48; }
+.bwl-profile-access-list { max-width: 355px; margin: 17px auto 0; border-top: 1px solid rgba(218,246,207,.12); text-align: left; }
+.bwl-profile-access-list > div { display: flex; align-items: center; gap: 11px; padding: 12px 0; border-bottom: 1px solid rgba(218,246,207,.1); color: rgba(246,252,241,.84); font-size: 12px; }
+.bwl-profile-access-list svg { width: 17px; height: 17px; color: var(--bwl-neon-botany); }
+.bwl-profile-access-list span { flex: 1; }
+.bwl-profile-access-list small { color: rgba(239,248,231,.47); font-size: 10px; }
+
 .bwl-production-page .bwl-sensor-rail {
   margin-bottom: 15px;
   border-color: color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 24%, rgba(255,255,255,.12));

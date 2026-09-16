@@ -171,9 +171,10 @@ export default function Knowledge() {
       (CATEGORY_LABELS[a.category] ?? a.category).toLowerCase().includes(q)
     );
   }) ?? [];
+  const hasActiveFilter = filter !== "all" || Boolean(genusFilter) || Boolean(searchQuery.trim());
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh" }}>
+    <div className="bwl-production-page" style={{ background: C.bg, minHeight: "100vh" }}>
       <SeoEnhanced
         title="Wissensdatenbank – Aquaristik, Channa & Botanik"
         path="/knowledge"
@@ -191,7 +192,7 @@ export default function Knowledge() {
         {/* Hintergrund-Hintergrundbild */}
         <div className="absolute inset-0 pointer-events-none">
           <img
-            src="/manus-storage/wissen-pflege_9290790e.png"
+            src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/bIIgwWcVFsAuEvhE.jpg"
             alt=""
             className="w-full h-full object-cover"
             style={{ filter: "brightness(0.15) saturate(1.2)", opacity: 0.6 }}
@@ -368,18 +369,15 @@ export default function Knowledge() {
             ))}
           </div>
         ) : (
-          <div
-            className="text-center py-16 rounded-2xl"
-            style={{
-              background: C.card,
-              border: `1px solid ${C.glassBorder}`,
-              backdropFilter: "blur(12px)",
-            }}
-          >
-            <BookOpen className="w-10 h-10 mx-auto mb-3" style={{ color: C.white50 }} />
-            <p className="font-semibold" style={{ color: C.white }}>Keine Artikel gefunden</p>
-            <p className="text-sm mt-1" style={{ color: C.white50 }}>Versuche einen anderen Filter oder Suchbegriff</p>
-          </div>
+          <section className="bwl-knowledge-empty" aria-label="Wissensdatenbank ohne Artikel">
+            <div className="bwl-knowledge-empty-mark"><BookOpen /></div>
+            <h2>{hasActiveFilter ? "KEINE PASSENDEN ARTIKEL GEFUNDEN." : "NOCH KEIN QUELLENGESICHERTES WISSEN VERÖFFENTLICHT."}</h2>
+            <p>
+              {hasActiveFilter
+                ? "Passe Suche oder Filter an. Es werden ausschließlich geprüfte und veröffentlichte Wissenseinträge angezeigt."
+                : "Sobald fachlich geprüfte Inhalte veröffentlicht sind, erscheinen sie hier. Bis dahin werden keine Artikel simuliert."}
+            </p>
+          </section>
         )}
       </div>
     </div>

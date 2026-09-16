@@ -47,7 +47,7 @@ export default function Aquariums() {
       <LivingSensorRail />
 
       <section className="bwl-production-hero" aria-labelledby="aquarium-hero-title">
-        <img src="/design/aquarium.jpg" alt="Bepflanzte Unterwasserwelt eines Schwarzwasser-Aquariums" />
+        <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/WzGGUGFNZmLSWrMr.jpg" alt="Bepflanzte Unterwasserwelt eines Schwarzwasser-Aquariums" />
         <div className="bwl-production-hero-copy">
           <span>AQUARISTIK</span>
           <h1 id="aquarium-hero-title">AQUA<strong>RISTIK</strong></h1>
