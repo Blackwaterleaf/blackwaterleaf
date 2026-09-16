@@ -25,6 +25,12 @@ describe("installable web app", () => {
     }
   });
 
+  it("routes Android browsers to the verified native update instead of presenting a PWA as an APK", () => {
+    for (const token of ["isAndroidBrowser", "ANDROID_UPDATE_URL", "BlackWaterLeaf-1.0.4-signed-update_dce89576.apk", "ANDROID-UPDATE 1.0.4", "Signiertes Android-Update 1.0.4"]) {
+      expect(installControl).toContain(token);
+    }
+  });
+
   it("registers only the service worker in production and avoids caching private or API content", () => {
     expect(main).toContain('import.meta.env.PROD');
     expect(main).toContain('serviceWorker.register("/service-worker.js")');

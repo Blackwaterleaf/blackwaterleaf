@@ -163,6 +163,12 @@ Die folgenden früheren Annahmen sind nicht länger zulässig:
 - Ein Community-, Knowledge-, Profil- oder KI-Panel darf nicht als generischer Ersatz für den jeweiligen Hero, Empty-State oder Auth-Overlay gelten.
 - Die Bildserie ist keine Quelle für Testdaten, Beispielkonten, Messwerte oder fiktive Features.
 
+## 11. Installations- und Android-Updatevertrag
+
+Die Web-Schaltfläche darf eine PWA-Installation **nicht** als native Android-APK darstellen. Auf Android führt sie ausschließlich zur geprüften nativen BlackWaterLeaf-Update-APK der jeweiligen Release-Version. Für Version `1.0.4` ist das Paket `com.blackwaterleaf`, Android-Build-Code `4`, Ziel-API `36` und die bestehende BlackWaterLeaf-Release-Signatur maßgeblich. Diese Kombination ist ein Update über die bereits installierte Version `1.0.3`, keine parallele App. Auf Desktop und iOS bleibt die PWA-Installation bzw. die passende Browseranleitung verfügbar.
+
+Die Android-Aktualisierung wird in der Oberfläche klar als **„ANDROID-UPDATE 1.0.4“** bezeichnet. Es sind keine alten Test-, Debug- oder fremd signierten APKs über die Weboberfläche anzubieten. Google Play Protect kann bei einem außerhalb des Play Store geladenen Paket weiterhin einen Herkunftshinweis zeigen; die App muss dabei mindestens die aktuelle Android-Ziel-API einhalten und mit derselben Release-Signatur wie die installierte Version signiert sein.
+
 ## References
 
 [1]: ../../blackwaterleaf-design-handoff/BlackwaterLeaf-Design-Handoff/docs/INTERACTIVE_PAGE_SCREENS.md "BlackwaterLeaf Grafische Zielseiten"

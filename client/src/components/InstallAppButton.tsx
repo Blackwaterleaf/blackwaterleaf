@@ -1,4 +1,4 @@
-import { Download, Share2 } from "lucide-react";
+import { Download, Smartphone, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type BeforeInstallPromptChoice = { outcome: "accepted" | "dismissed"; platform: string };
@@ -14,6 +14,12 @@ function isStandaloneMode() {
 function isAppleMobileBrowser() {
   return /iPad|iPhone|iPod/.test(window.navigator.userAgent) && !window.matchMedia("(display-mode: standalone)").matches;
 }
+
+function isAndroidBrowser() {
+  return /Android/i.test(window.navigator.userAgent);
+}
+
+const ANDROID_UPDATE_URL = "/manus-storage/BlackWaterLeaf-1.0.4-signed-update_dce89576.apk";
 
 export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -39,10 +45,18 @@ export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
     };
   }, [locale]);
 
-  if (standalone) return null;
+  const android = isAndroidBrowser();
+  if (standalone && !android) return null;
 
   const install = async () => {
     setStatus(null);
+    if (android) {
+      window.location.assign(ANDROID_UPDATE_URL);
+      setStatus(locale === "de"
+        ? "Signiertes Android-Update 1.0.4 wird heruntergeladen. Nach dem Download die Datei öffnen, um BlackWaterLeaf zu aktualisieren."
+        : "The signed Android 1.0.4 update is downloading. Open the file after download to update BlackWaterLeaf.");
+      return;
+    }
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
@@ -63,8 +77,10 @@ export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
 
   return <div className="install-app-control">
     <button type="button" className="install-app-button" onClick={() => void install()}>
-      {isAppleMobileBrowser() && !deferredPrompt ? <Share2 size={15} /> : <Download size={15} />}
-      {locale === "de" ? "APP INSTALLIEREN" : "INSTALL APP"}
+      {android ? <Smartphone size={15} /> : isAppleMobileBrowser() && !deferredPrompt ? <Share2 size={15} /> : <Download size={15} />}
+      {android
+        ? (locale === "de" ? "ANDROID-UPDATE 1.0.4" : "ANDROID UPDATE 1.0.4")
+        : (locale === "de" ? "APP INSTALLIEREN" : "INSTALL APP")}
     </button>
     {status ? <span className="install-app-status" role="status">{status}</span> : null}
   </div>;
