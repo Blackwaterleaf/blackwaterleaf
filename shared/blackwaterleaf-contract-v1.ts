@@ -215,6 +215,25 @@ export const experienceSummarySchema = z.object({
   ),
 });
 
+export const partnerPartyTypeSchema = z.enum(["person", "company"]);
+export const partnerProfileStatusSchema = z.enum(["draft", "approved", "paused", "removed"]);
+export const partnerProductStatusSchema = z.enum(["draft", "active", "paused", "removed"]);
+
+export const partnerProductInputSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  description: z.string().trim().max(1_000).nullable().optional(),
+  destinationUrl: z.string().url().refine(value => new URL(value).protocol === "https:", "https_url_required"),
+  priceLabel: z.string().trim().min(1).max(80).nullable().optional(),
+});
+
+export const partnerProductSchema = partnerProductInputSchema.extend({
+  id: z.string().min(1),
+  partnerId: z.string().min(1),
+  status: partnerProductStatusSchema,
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
 export const privateHabitatKindSchema = z.enum(["aquarium", "plant", "terrarium"]);
 
 const nullableNumber = (min: number, max: number) => z.number().finite().min(min).max(max).nullable();
@@ -305,6 +324,8 @@ export type PlatformAvailability = z.infer<typeof platformAvailabilitySchema>;
 export type PrivateHabitat = z.infer<typeof privateHabitatSchema>;
 export type PrivateHabitatInput = z.infer<typeof privateHabitatInputSchema>;
 export type ExperienceSummary = z.infer<typeof experienceSummarySchema>;
+export type PartnerProduct = z.infer<typeof partnerProductSchema>;
+export type PartnerProductInput = z.infer<typeof partnerProductInputSchema>;
 
 export function canUseStaffControls(profile: VerifiedAccountProfile | null): boolean {
   return Boolean(

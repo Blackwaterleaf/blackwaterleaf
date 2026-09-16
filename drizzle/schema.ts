@@ -367,6 +367,31 @@ export const partnerProfiles = mysqlTable(
   table => [index("partner_profiles_status_idx").on(table.status, table.updatedAt)],
 );
 
+/** A merchant-managed product draft. It becomes public only through a currently authorized active partner placement. */
+export const partnerProducts = mysqlTable(
+  "partner_products",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    title: varchar("title", { length: 160 }).notNull(),
+    description: text("description"),
+    destinationUrl: varchar("destinationUrl", { length: 500 }).notNull(),
+    priceLabel: varchar("priceLabel", { length: 80 }),
+    status: mysqlEnum("status", ["draft", "active", "paused", "removed"]).default("draft").notNull(),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("partner_products_partner_status_updated_idx").on(table.partnerId, table.status, table.updatedAt),
+    uniqueIndex("partner_products_partner_destination_unique").on(table.partnerId, table.destinationUrl),
+  ],
+);
+
 /** A reviewable, time-bounded placement. Only an active home placement may be public. */
 export const partnerPlacements = mysqlTable(
   "partner_placements",
@@ -426,5 +451,6 @@ export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;
 export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;
 export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
+export type PartnerProductRecord = typeof partnerProducts.$inferSelect;
 export type PartnerPlacementRecord = typeof partnerPlacements.$inferSelect;
 export type PartnerAuthorizationRecord = typeof partnerAuthorizations.$inferSelect;

@@ -4,6 +4,7 @@ import {
   canUseAdminControls,
   canUseStaffControls,
   createObservationInputSchema,
+  partnerProductInputSchema,
   platformAvailabilitySchema,
   verifiedAccountProfileSchema,
 } from "../shared/blackwaterleaf-contract-v1";
@@ -80,5 +81,17 @@ describe("BlackWaterLeaf contract v1", () => {
     });
 
     expect(availability.aiAssistant).toBe("disabled_by_policy");
+  });
+
+  it("accepts only a secure, explicit product recommendation contract", () => {
+    const product = partnerProductInputSchema.parse({
+      title: "Naturprodukt",
+      description: null,
+      destinationUrl: "https://kiemen-kumpel.de/products/naturprodukt",
+      priceLabel: "19,90 €",
+    });
+    expect(product.destinationUrl.startsWith("https://")).toBe(true);
+    expect(product.priceLabel).toBe("19,90 €");
+    expect(() => partnerProductInputSchema.parse({ title: "Unsicher", destinationUrl: "http://example.com" })).toThrow();
   });
 });

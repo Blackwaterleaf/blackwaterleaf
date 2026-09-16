@@ -2,13 +2,15 @@ import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { partnerAuthorizations, partnerPlacements, partnerProfiles } from "../../drizzle/schema";
+import { partnerAuthorizations, partnerPlacements, partnerProducts, partnerProfiles } from "../../drizzle/schema";
+import { partnerProductInputSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
 const placementStatus = z.enum(["draft", "active", "paused", "expired", "removed"]);
+const productStatus = z.enum(["draft", "active", "paused", "removed"]);
 const authorizationState = z.enum(["granted", "revoked"]);
 const dateTimeInput = z.string().datetime({ offset: true }).nullish();
 const securedUrl = z
@@ -60,6 +62,25 @@ function validatePlacementWindow(startsAt: Date | null, endsAt: Date | null, sta
   }
 }
 
+async function canPublishPartnerProducts(db: Database, partnerId: number) {
+  const partner = await getPartner(db, partnerId);
+  const latestAuthorizations = await getLatestAuthorizations(db);
+  const [placement] = await db
+    .select()
+    .from(partnerPlacements)
+    .where(and(eq(partnerPlacements.partnerId, partnerId), eq(partnerPlacements.placement, "home")))
+    .limit(1);
+  if (!placement) return false;
+  return canActivatePartnerProduct({
+    partnerStatus: partner.status,
+    authorizationState: latestAuthorizations.get(partnerId)?.state ?? "missing",
+    placementStatus: placement.status,
+    startsAt: placement.startsAt,
+    endsAt: placement.endsAt,
+    now: Date.now(),
+  });
+}
+
 export function hasActivePartnerPublication(input: {
   partnerStatus: z.infer<typeof partnerStatus>;
   authorizationState: z.infer<typeof authorizationState> | "missing";
@@ -73,6 +94,29 @@ export function hasActivePartnerPublication(input: {
     && input.placementStatus === "active"
     && (!input.startsAt || input.startsAt.getTime() <= input.now)
     && (!input.endsAt || input.endsAt.getTime() >= input.now);
+}
+
+export function canActivatePartnerProduct(input: {
+  partnerStatus: z.infer<typeof partnerStatus>;
+  authorizationState: z.infer<typeof authorizationState> | "missing";
+  placementStatus: z.infer<typeof placementStatus>;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  now: number;
+}): boolean {
+  return hasActivePartnerPublication(input);
+}
+
+export function isPublicPartnerProduct(input: {
+  productStatus: z.infer<typeof productStatus>;
+  partnerStatus: z.infer<typeof partnerStatus>;
+  authorizationState: z.infer<typeof authorizationState> | "missing";
+  placementStatus: z.infer<typeof placementStatus>;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  now: number;
+}): boolean {
+  return input.productStatus === "active" && hasActivePartnerPublication(input);
 }
 
 export const partnersRouter = router({
@@ -94,15 +138,37 @@ export const partnersRouter = router({
       .innerJoin(partnerProfiles, eq(partnerPlacements.partnerId, partnerProfiles.id))
       .where(and(eq(partnerPlacements.placement, "home"), eq(partnerPlacements.status, "active"), eq(partnerProfiles.status, "approved")))
       .orderBy(desc(partnerPlacements.updatedAt));
-    const latestAuthorizations = await getLatestAuthorizations(db);
+    const [latestAuthorizations, activeProducts] = await Promise.all([
+      getLatestAuthorizations(db),
+      db.select({
+        id: partnerProducts.id,
+        partnerId: partnerProducts.partnerId,
+        title: partnerProducts.title,
+        description: partnerProducts.description,
+        destinationUrl: partnerProducts.destinationUrl,
+        priceLabel: partnerProducts.priceLabel,
+      }).from(partnerProducts).where(eq(partnerProducts.status, "active")).orderBy(desc(partnerProducts.updatedAt)),
+    ]);
     const now = Date.now();
-    return rows.filter(row => hasActivePartnerPublication({
+    const publiclyVisiblePartnerIds = new Set(rows.filter(row => hasActivePartnerPublication({
       partnerStatus: "approved",
       authorizationState: latestAuthorizations.get(row.id)?.state ?? "missing",
       placementStatus: row.placementStatus,
       startsAt: row.startsAt,
       endsAt: row.endsAt,
       now,
+    })).map(row => row.id));
+    return rows.filter(row => publiclyVisiblePartnerIds.has(row.id)).map(row => ({
+      ...row,
+      products: activeProducts.filter(product => product.partnerId === row.id && isPublicPartnerProduct({
+        productStatus: "active",
+        partnerStatus: "approved",
+        authorizationState: latestAuthorizations.get(row.id)?.state ?? "missing",
+        placementStatus: row.placementStatus,
+        startsAt: row.startsAt,
+        endsAt: row.endsAt,
+        now,
+      })),
     }));
   }),
 
@@ -131,6 +197,24 @@ export const partnersRouter = router({
     });
   }),
 
+  products: adminProcedure
+    .input(z.object({ partnerId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      await getPartner(db, input.partnerId);
+      return db.select({
+        id: partnerProducts.id,
+        partnerId: partnerProducts.partnerId,
+        title: partnerProducts.title,
+        description: partnerProducts.description,
+        destinationUrl: partnerProducts.destinationUrl,
+        priceLabel: partnerProducts.priceLabel,
+        status: partnerProducts.status,
+        createdAt: partnerProducts.createdAt,
+        updatedAt: partnerProducts.updatedAt,
+      }).from(partnerProducts).where(eq(partnerProducts.partnerId, input.partnerId)).orderBy(desc(partnerProducts.updatedAt));
+    }),
+
   create: adminProcedure
     .input(z.object({ displayName: z.string().trim().min(1).max(160), partyType: z.enum(["person", "company"]), destinationUrl: securedUrl.nullish(), authorizationConfirmed: z.literal(true), disclosureLabel: z.string().trim().min(1).max(80).default("Werbung") }))
     .mutation(async ({ ctx, input }) => {
@@ -144,6 +228,40 @@ export const partnersRouter = router({
       });
       await appendAuditEntry({ actorId: ctx.user.id, action: "partner_profile_created", targetType: "partner_profile", targetId: createdPartner.id, payload: { authorizationEventId: createdPartner.authorizationId, authorizationState: "granted", partyType: input.partyType, placementId: createdPartner.placementId, status: "draft" } });
       return createdPartner;
+    }),
+
+  createProduct: adminProcedure
+    .input(z.object({ partnerId: z.number().int().positive(), product: partnerProductInputSchema }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      await getPartner(db, input.partnerId);
+      const inserted = await db.insert(partnerProducts).values({
+        partnerId: input.partnerId,
+        title: input.product.title,
+        description: input.product.description ?? null,
+        destinationUrl: input.product.destinationUrl,
+        priceLabel: input.product.priceLabel ?? null,
+        status: "draft",
+        createdByUserId: ctx.user.id,
+      });
+      const id = Number(inserted[0].insertId);
+      await appendAuditEntry({ actorId: ctx.user.id, action: "partner_product_created", targetType: "partner_product", targetId: id, payload: { partnerId: input.partnerId, status: "draft" } });
+      return { id, status: "draft" as const };
+    }),
+
+  setProductStatus: adminProcedure
+    .input(z.object({ productId: z.number().int().positive(), status: productStatus }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [product] = await db.select().from(partnerProducts).where(eq(partnerProducts.id, input.productId)).limit(1);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "partner_product_not_found" });
+      if (input.status === "active" && !(await canPublishPartnerProducts(db, product.partnerId))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "active_authorized_partner_placement_required" });
+      }
+      if (product.status === input.status) return { id: product.id, status: input.status, changed: false } as const;
+      await db.update(partnerProducts).set({ status: input.status }).where(eq(partnerProducts.id, product.id));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "partner_product_status_changed", targetType: "partner_product", targetId: product.id, payload: { after: input.status, before: product.status, partnerId: product.partnerId } });
+      return { id: product.id, status: input.status, changed: true } as const;
     }),
 
   setAuthorization: adminProcedure

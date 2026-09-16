@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasActivePartnerPublication, partnersRouter } from "./routers/partners";
+import { canActivatePartnerProduct, hasActivePartnerPublication, isPublicPartnerProduct, partnersRouter } from "./routers/partners";
 import type { TrpcContext } from "./_core/context";
 
 function userContext(): TrpcContext {
@@ -15,6 +15,8 @@ describe("partner administration authorization", () => {
     const caller = partnersRouter.createCaller(userContext());
     await expect(caller.list()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.create({ displayName: "Real partner", partyType: "company", authorizationConfirmed: true, disclosureLabel: "Werbung" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.products({ partnerId: 1 })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.createProduct({ partnerId: 1, product: { title: "Product", destinationUrl: "https://example.com/product" } })).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
   it("only permits public placement for an approved, currently authorized partner inside its validity window", () => {
@@ -24,5 +26,14 @@ describe("partner administration authorization", () => {
     expect(hasActivePartnerPublication({ ...base, authorizationState: "revoked" })).toBe(false);
     expect(hasActivePartnerPublication({ ...base, partnerStatus: "draft" })).toBe(false);
     expect(hasActivePartnerPublication({ ...base, endsAt: new Date("2026-09-16T11:59:59.000Z") })).toBe(false);
+  });
+
+  it("allows product activation and public display only with the same current partner publication gate", () => {
+    const current = { partnerStatus: "approved" as const, authorizationState: "granted" as const, placementStatus: "active" as const, startsAt: null, endsAt: null, now: Date.parse("2026-09-16T12:00:00.000Z") };
+    expect(canActivatePartnerProduct(current)).toBe(true);
+    expect(canActivatePartnerProduct({ ...current, placementStatus: "draft" })).toBe(false);
+    expect(canActivatePartnerProduct({ ...current, authorizationState: "revoked" })).toBe(false);
+    expect(isPublicPartnerProduct({ ...current, productStatus: "active" })).toBe(true);
+    expect(isPublicPartnerProduct({ ...current, productStatus: "draft" })).toBe(false);
   });
 });
