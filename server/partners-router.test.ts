@@ -25,6 +25,8 @@ describe("partner administration authorization", () => {
     expect(hasActivePartnerPublication(base)).toBe(true);
     expect(hasActivePartnerPublication({ ...base, authorizationState: "revoked" })).toBe(false);
     expect(hasActivePartnerPublication({ ...base, partnerStatus: "draft" })).toBe(false);
+    expect(hasActivePartnerPublication({ ...base, partnerStatus: "removed" })).toBe(false);
+    expect(hasActivePartnerPublication({ ...base, placementStatus: "paused" })).toBe(false);
     expect(hasActivePartnerPublication({ ...base, endsAt: new Date("2026-09-16T11:59:59.000Z") })).toBe(false);
   });
 
@@ -35,5 +37,16 @@ describe("partner administration authorization", () => {
     expect(canActivatePartnerProduct({ ...current, authorizationState: "revoked" })).toBe(false);
     expect(isPublicPartnerProduct({ ...current, productStatus: "active" })).toBe(true);
     expect(isPublicPartnerProduct({ ...current, productStatus: "draft" })).toBe(false);
+  });
+
+  it("reproduces the public partner lifecycle from active to paused, removed and restored", () => {
+    const active = { partnerStatus: "approved" as const, authorizationState: "granted" as const, placementStatus: "active" as const, startsAt: null, endsAt: null, now: Date.parse("2026-09-16T12:00:00.000Z") };
+    const lifecycle = [
+      { name: "active", input: active, visible: true },
+      { name: "paused", input: { ...active, placementStatus: "paused" as const }, visible: false },
+      { name: "removed", input: { ...active, partnerStatus: "removed" as const, placementStatus: "paused" as const }, visible: false },
+      { name: "restored", input: active, visible: true },
+    ];
+    for (const step of lifecycle) expect(hasActivePartnerPublication(step.input)).toBe(step.visible);
   });
 });

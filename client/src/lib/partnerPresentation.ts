@@ -7,6 +7,14 @@ export type PublicPartnerProduct = {
   priceLabel: string | null;
 };
 
+export type PublicPartnerCard = {
+  displayName: string;
+  partyType: "person" | "company";
+  destinationUrl: string | null;
+  disclosureLabel: string;
+  products: PublicPartnerProduct[];
+};
+
 export function partnerProductPresentation(products: PublicPartnerProduct[], locale: AppLocale) {
   if (products.length === 0) {
     return {
@@ -15,4 +23,16 @@ export function partnerProductPresentation(products: PublicPartnerProduct[], loc
     };
   }
   return { kind: "products" as const, products };
+}
+
+export function publicPartnerCardPresentation(partner: PublicPartnerCard, locale: AppLocale) {
+  return {
+    displayName: partner.displayName,
+    disclosureLabel: partner.disclosureLabel,
+    destinationUrl: partner.destinationUrl,
+    partyLabel: partner.partyType === "company"
+      ? (locale === "de" ? "Unternehmenspartner" : "Business partner")
+      : (locale === "de" ? "Persönliche Empfehlung" : "Personal recommendation"),
+    products: partnerProductPresentation(partner.products, locale),
+  };
 }
