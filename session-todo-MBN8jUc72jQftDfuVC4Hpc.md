@@ -27,3 +27,5 @@
 - [x] Add the user-approved Marktplatz tab to the bottom navigation and replace stacked price treatment with a compact professional offer row.
 - [x] Add local marketplace favorites with a heart action per product card and a device-local favorites list.
 - [x] Restore the nonce-protected Manus login as a temporary account access path until transactional email delivery is configured. Checkpoint: `15f189ce`; GitHub update branch: `feature/reference-overlay-marketplace-20260916`, commit `dfd8974`.
+- [x] Audit the supplied Habitat Builder Pro update and verify that the configured Tripo V3 account credential currently fails closed with HTTP 401; no model generation was submitted.
+- [x] Integrate the Habitat Builder as an authenticated, private planning route with a reviewed photorealistic reference fallback, local WebGL fallback, private-record basis, browser-local variants and JSON export; no database migration or PBR activation.

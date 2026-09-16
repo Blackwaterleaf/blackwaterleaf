@@ -112,6 +112,7 @@ Die heutigen, funktional belegten Routen sind die Wahrheit für bestehende Funkt
 | Marktplatz | `/marketplace` und `/marketplace/product/:id` | vorhanden | Marktplatz |
 | Profil | `/profile` | vorhanden | Profil |
 | Wissen | `/knowledge` | vorhanden | Entdecken |
+| Habitat Builder | `/habitat-builder` | privater Planungsbereich | Home |
 
 Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als eigener Eintrag in der Bottom-Navigation. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
 
@@ -132,6 +133,7 @@ Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der P
 | `/community` | Regenwald/Bach, `GEMEINSAM WACHSEN`, `COMMUNITY IN BEWEGUNG.` | Dominanter ehrlicher Feed-Empty-State mit Login-CTA und zwei Karten Beobachten/Teilen. Composer nachgeordnet. |
 | `/profile` | Blattwelt, `DEIN KONTO`, `IDENTITÄT BLEIBT VERIFIZIERT.` | Bei signed-out: Auth-Overlay. Danach zwei echte Karten für Sprache und Einheiten. Authentifizierte Detaildaten bleiben privat. |
 | `/knowledge` | Blattwelt, `WISSEN & EVIDENZ`, `WISSEN BRAUCHT QUELLEN.` | Ehrlicher Wissens-Empty-State und zwei Karten Quellen/Naturwissen. Published-, Error- und Empty-Zustand getrennt. |
+| `/habitat-builder` | Aquarium-Cyan oder Terrarium-Gold, `HABITAT PLANEN`, private Grundlage | Auth-Overlay ohne private Daten; angemeldet eigene Anlage oder Maßentwurf, fotorealistische Referenz plus nicht-PBR-Glasansicht, vier 2×2-Wahlbereiche, expliziter Sicherheits-Gate, lokale Varianten und JSON-Export. Keine Haltungs-, Diagnose-, Kauf-, Statik- oder Elektrofreigabe. |
 
 ## 9. Abnahmeregel „Icon für Icon, Farbe für Farbe“
 

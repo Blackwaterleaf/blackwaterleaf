@@ -191,6 +191,14 @@ export default function Profile() {
           </details>
 
           <HabitatProfiles />
+          <section className="habitat-builder-entry glass-panel">
+            <div>
+              <span className="eyebrow">[HABITAT BUILDER]</span>
+              <h2>Deinen Lebensraum planen</h2>
+              <p>Wähle ein privates Aquarium oder Terrarium als Grundlage, prüfe Maße und Struktur und exportiere deinen Entwurf. Die Planung erteilt keine Haltungs- oder Sicherheitsfreigabe.</p>
+            </div>
+            <Link className="secondary-action" href="/habitat-builder"><Ruler size={16} />HABITAT PLANEN</Link>
+          </section>
           <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
 
           <section className="reference-settings-grid">

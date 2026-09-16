@@ -17,6 +17,14 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+const HabitatBuilder = lazy(() => import("./pages/HabitatBuilder"));
+
+function HabitatBuilderRoute() {
+  return <Suspense fallback={<section className="habitat-builder-loading" aria-live="polite"><Loader2 size={22} className="spin" />Planungsansicht wird geladen …</section>}><HabitatBuilder /></Suspense>;
+}
 
 function Router() {
   return (
@@ -39,6 +47,7 @@ function Router() {
         <Route path={"/knowledge"} component={Knowledge} />
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
         <Route path={"/marketplace"} component={Marketplace} />
+        <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
         <Route path={"/404"} component={NotFound} />
