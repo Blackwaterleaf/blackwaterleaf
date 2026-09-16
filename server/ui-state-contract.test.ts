@@ -19,7 +19,7 @@ describe("honest UI state contract", () => {
 
   it("declares authorization, loading and error states for Profile and each Realm", () => {
     const profile = routeSource("Profile.tsx"); const realm = routeSource("Realm.tsx");
-    for (const token of ['code="AUTH / REQUIRED"', 'code="PROFILE/LOAD"', 'code="PROFILE/ERROR"']) expect(profile).toContain(token);
+    for (const token of ['[AUTH / REQUIRED]', 'ProfileAuthOverlay', 'code="PROFILE/LOAD"', 'code="PROFILE/ERROR"']) expect(profile).toContain(token);
     for (const token of ['code="AUTH / REQUIRED"', 'code="OBS/LOAD"', 'code="OBS/ERROR"', 'OBS / ${realm.api.toUpperCase()} / EMPTY']) expect(realm).toContain(token);
   });
 

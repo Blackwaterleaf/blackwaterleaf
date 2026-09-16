@@ -1,7 +1,8 @@
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { addMarketplaceProduct, readMarketplaceCart, removeMarketplaceProduct, setMarketplaceQuantity, writeMarketplaceCart } from "@/lib/marketplaceCart";
-import { filterMarketplaceProducts, groupMarketplaceCart, marketplaceDisclosure, marketplaceProductCount, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
+import { filterMarketplaceProducts, groupMarketplaceCart, marketplaceCategoryLabel, marketplaceDisclosure, marketplaceProductCount, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
 import { trpc } from "@/lib/trpc";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { ArrowRight, ExternalLink, Leaf, Minus, PackageOpen, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
@@ -12,6 +13,7 @@ export default function Marketplace() {
   const catalogue = trpc.partners.marketplace.useQuery(undefined, { retry: false });
   const [search, setSearch] = useState("");
   const [partnerId, setPartnerId] = useState<number | "all">("all");
+  const [category, setCategory] = useState<string | "all">("all");
   const [cart, setCart] = useState<MarketplaceCartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -22,7 +24,8 @@ export default function Marketplace() {
 
   const products = catalogue.data ?? [];
   const partners = useMemo(() => Array.from(new Map(products.map(product => [product.partnerId, { id: product.partnerId, name: product.partnerName }])).values()), [products]);
-  const filtered = useMemo(() => filterMarketplaceProducts(products, search, partnerId), [products, search, partnerId]);
+  const categories = useMemo(() => Array.from(new Set(products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value)))).sort((first, second) => marketplaceCategoryLabel(first).localeCompare(marketplaceCategoryLabel(second), "de")), [products]);
+  const filtered = useMemo(() => filterMarketplaceProducts(products, search, partnerId, category), [products, search, partnerId, category]);
   const cartCount = marketplaceProductCount(cart);
 
   const updateCart = (next: MarketplaceCartLine[]) => {
@@ -37,6 +40,7 @@ export default function Marketplace() {
 
   return (
     <div className="marketplace-page reference-page reference-page--aquarium">
+      <LiveSensorStrip compact />
       <ReferenceHero
         tone="aquarium"
         icon={ShoppingBag}
@@ -46,6 +50,12 @@ export default function Marketplace() {
         image={REFERENCE_ASSETS.aquarium}
         badge="PARTNER-ANGEBOTE"
       />
+
+      <section className="marketplace-entry glass-panel" aria-label="Marktplatz Einstieg">
+        <div className="marketplace-entry__icon"><ShoppingBag size={20} /></div>
+        <div><span className="eyebrow">[KURATIERT & TRANSPARENT]</span><h2>Finde, was zu deiner Welt passt.</h2><p>Durchsuche ausschließlich aktuell freigegebene Partnerangebote oder sichere Artikel für später in deiner lokalen Merkliste.</p></div>
+        <a className="secondary-action" href="#partnerangebote"><Search size={16} />ANGEBOTE ANSEHEN</a>
+      </section>
 
       <section className="marketplace-trust glass-panel">
         <Leaf size={20} />
@@ -57,15 +67,16 @@ export default function Marketplace() {
         <button className="marketplace-cart-trigger" type="button" onClick={() => setCartOpen(true)} aria-label={`Warenkorb öffnen, ${cartCount} Artikel`}><ShoppingBag size={18} /><span>MERKLISTE</span>{cartCount ? <b>{cartCount}</b> : null}</button>
       </section>
 
-      <section className="marketplace-catalogue" aria-label="Partnerangebote">
+      <section id="partnerangebote" className="marketplace-catalogue" aria-label="Partnerangebote">
         <div className="section-heading"><div><span className="eyebrow">[AUSGEWÄHLT & TRANSPARENT]</span><h2>Partner-Angebote</h2></div><span className="marketplace-count">{catalogue.isLoading ? "…" : `${filtered.length} PRODUKTE`}</span></div>
         {partners.length > 1 ? <div className="marketplace-filters" role="list" aria-label="Partner auswählen"><button className={partnerId === "all" ? "active" : ""} type="button" onClick={() => setPartnerId("all")}>Alle Partner</button>{partners.map(partner => <button key={partner.id} className={partner.id === partnerId ? "active" : ""} type="button" onClick={() => setPartnerId(partner.id)}>{partner.name}</button>)}</div> : null}
+        {categories.length ? <div className="marketplace-filters marketplace-filters--categories" role="list" aria-label="Kategorie auswählen"><button className={category === "all" ? "active" : ""} type="button" onClick={() => setCategory("all")}>Alle Kategorien</button>{categories.map(item => <button key={item} className={item === category ? "active" : ""} type="button" onClick={() => setCategory(item)}>{marketplaceCategoryLabel(item)}</button>)}</div> : null}
 
         {catalogue.isLoading ? <MarketplaceLoading /> : null}
         {catalogue.isError ? <StatePanel code="MARKET/ERROR" state="error" title="MARKTPLATZ DERZEIT NICHT VERFÜGBAR" body="Die freigegebenen Partnerangebote konnten nicht verifiziert werden. Bitte versuche es später erneut." /> : null}
         {!catalogue.isLoading && !catalogue.isError && products.length === 0 ? <StatePanel code="MARKET/EMPTY" title="NOCH KEINE FREIGEGEBENEN ANGEBOTE" body="Sobald ein Partner freigegeben ist und Artikel aktiviert hat, erscheinen die Produkte hier. Für KiemenKumpel können die Artikel später aus deiner PDF vorbereitet und kontrolliert eingepflegt werden." /> : null}
         {!catalogue.isLoading && !catalogue.isError && products.length > 0 && filtered.length === 0 ? <StatePanel code="MARKET/FILTER" title="KEIN PASSENDES ANGEBOT" body="Ändere die Suche oder wähle einen anderen Partner." /> : null}
-        {filtered.length ? <div className="marketplace-grid">{filtered.map(product => <article key={product.id} className="marketplace-card"><Link href={`/marketplace/product/${product.id}`} className="marketplace-card__image">{product.imageUrl ? <img src={product.imageUrl} alt={product.title} /> : <span><PackageOpen size={31} />Kein Produktbild</span>}</Link><div className="marketplace-card__body"><p className="marketplace-card__disclosure">{marketplaceDisclosure(product)}</p><Link href={`/marketplace/product/${product.id}`}><h3>{product.title}</h3></Link>{product.description ? <p className="marketplace-card__description">{product.description}</p> : <p className="marketplace-card__description">Mehr Details und Bedingungen direkt beim Partner.</p>}<div className="marketplace-card__meta"><strong>{product.priceLabel ?? "Preis beim Partner"}</strong><span>{product.partnerType === "company" ? "Unternehmenspartner" : "Persönliche Empfehlung"}</span></div><div className="marketplace-card__actions"><Link href={`/marketplace/product/${product.id}`} className="marketplace-detail-link">DETAILS <ArrowRight size={15} /></Link><button type="button" className="marketplace-add" onClick={() => addToCart(product)}><Plus size={16} /> MERKEN</button></div></div></article>)}</div> : null}
+        {filtered.length ? <div className="marketplace-grid">{filtered.map(product => <article key={product.id} className="marketplace-card"><Link href={`/marketplace/product/${product.id}`} className="marketplace-card__image">{product.imageUrl ? <img src={product.imageUrl} alt={product.imageAltText ?? product.title} /> : <span><PackageOpen size={31} />Kein Produktbild</span>}</Link><div className="marketplace-card__body"><p className="marketplace-card__disclosure">{marketplaceDisclosure(product)}</p><span className="marketplace-category">{marketplaceCategoryLabel(product.marketplaceCategory)}</span><Link href={`/marketplace/product/${product.id}`}><h3>{product.title}</h3></Link>{product.description ? <p className="marketplace-card__description">{product.description}</p> : <p className="marketplace-card__description">Mehr Details und Bedingungen direkt beim Partner.</p>}<div className="marketplace-card__meta"><strong>{product.priceLabel ?? "Preis beim Partner"}</strong><span>{product.sourceVendor ?? (product.partnerType === "company" ? "Unternehmenspartner" : "Persönliche Empfehlung")}</span></div><div className="marketplace-card__actions"><Link href={`/marketplace/product/${product.id}`} className="marketplace-detail-link">DETAILS <ArrowRight size={15} /></Link><button type="button" className="marketplace-add" onClick={() => addToCart(product)}><Plus size={16} /> MERKEN</button></div></div></article>)}</div> : null}
       </section>
 
       <MarketplaceCart open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onChange={updateCart} />

@@ -1,4 +1,4 @@
-import { ChevronRight, Leaf, type LucideIcon } from "lucide-react";
+import { AlertTriangle, ChevronRight, Leaf, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
 import type { ReactNode } from "react";
 
@@ -55,26 +55,18 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }
             {action.unavailable ? <span className="reference-action__status">KÜNFTIG</span> : null}
           </>;
           if (action.href) return <Link key={action.title} href={action.href} className="reference-action">{card}</Link>;
-          return (
-            <button
-              key={action.title}
-              type="button"
-              className="reference-action"
-              onClick={() => action.onActivate?.()}
-            >
-              {card}
-            </button>
-          );
+          return <button key={action.title} type="button" className="reference-action" onClick={() => action.onActivate?.()}>{card}</button>;
         })}
       </div>
     </section>
   );
 }
 
-export function ReferenceEmptyState({ tone, code, title, body, action }: { tone: ReferenceTone; code: string; title: string; body: string; action?: ReactNode }) {
+export function ReferenceEmptyState({ tone, code, title, body, state = "empty", action }: { tone: ReferenceTone; code: string; title: string; body: string; state?: "empty" | "error"; action?: ReactNode }) {
+  const Icon = state === "error" ? AlertTriangle : Leaf;
   return (
-    <section className={`reference-empty-state reference-tone--${tone}`} role="status">
-      <span className="reference-empty-state__orbit" aria-hidden="true"><Leaf size={31} /></span>
+    <section className={`reference-empty-state reference-empty-state--${state} reference-tone--${tone}`} role={state === "error" ? "alert" : "status"}>
+      <span className="reference-empty-state__orbit" aria-hidden="true"><Icon size={31} /></span>
       <span className="reference-empty-state__code">{code}</span>
       <h2>{title}</h2>
       <p>{body}</p>

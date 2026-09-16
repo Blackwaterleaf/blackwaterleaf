@@ -566,8 +566,22 @@ export const partnerProducts = mysqlTable(
       .references(() => partnerProfiles.id),
     title: varchar("title", { length: 160 }).notNull(),
     description: text("description"),
+    sourceDescriptionHtml: text("sourceDescriptionHtml"),
     destinationUrl: varchar("destinationUrl", { length: 500 }).notNull(),
     priceLabel: varchar("priceLabel", { length: 80 }),
+    sourceHandle: varchar("sourceHandle", { length: 255 }),
+    sourceVendor: varchar("sourceVendor", { length: 160 }),
+    marketplaceCategory: varchar("marketplaceCategory", { length: 64 }),
+    sourceProductCategory: varchar("sourceProductCategory", { length: 1_000 }),
+    productType: varchar("productType", { length: 160 }),
+    sourceTags: text("sourceTags"),
+    variantSummary: varchar("variantSummary", { length: 1_000 }),
+    variantCount: int("variantCount").default(0).notNull(),
+    sourceVariants: json("sourceVariants"),
+    sourceImageUrl: varchar("sourceImageUrl", { length: 1_000 }),
+    imageAltText: varchar("imageAltText", { length: 512 }),
+    seoTitle: varchar("seoTitle", { length: 160 }),
+    seoDescription: varchar("seoDescription", { length: 320 }),
     imageStorageKey: varchar("imageStorageKey", { length: 512 }),
     imageMimeType: mysqlEnum("imageMimeType", ["image/jpeg", "image/png", "image/webp"]),
     imageByteSize: int("imageByteSize"),
@@ -580,7 +594,32 @@ export const partnerProducts = mysqlTable(
   },
   table => [
     index("partner_products_partner_status_updated_idx").on(table.partnerId, table.status, table.updatedAt),
+    index("partner_products_catalog_category_idx").on(table.partnerId, table.marketplaceCategory, table.status, table.updatedAt),
     uniqueIndex("partner_products_partner_destination_unique").on(table.partnerId, table.destinationUrl),
+    uniqueIndex("partner_products_partner_source_handle_unique").on(table.partnerId, table.sourceHandle),
+  ],
+);
+
+/** Source-traceable gallery images imported from an authorized partner catalogue. */
+export const partnerProductImages = mysqlTable(
+  "partner_product_images",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    productId: int("productId")
+      .notNull()
+      .references(() => partnerProducts.id, { onDelete: "cascade" }),
+    position: int("position").notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 1_000 }).notNull(),
+    storageKey: varchar("storageKey", { length: 512 }),
+    mimeType: mysqlEnum("mimeType", ["image/jpeg", "image/png", "image/webp"]),
+    byteSize: int("byteSize"),
+    altText: varchar("altText", { length: 512 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_product_images_product_position_unique").on(table.productId, table.position),
+    index("partner_product_images_product_position_idx").on(table.productId, table.position),
   ],
 );
 

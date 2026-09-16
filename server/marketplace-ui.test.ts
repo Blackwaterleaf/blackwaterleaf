@@ -30,6 +30,17 @@ describe("marketplace UI truth contract", () => {
     expect(router).toContain("marketplaceProduct: publicProcedure");
   });
 
+  it("renders imported categories, variants, source-labelled images, and a verified product gallery", () => {
+    expect(marketplace).toContain("marketplaceCategoryLabel");
+    expect(marketplace).toContain("marketplace-filters--categories");
+    expect(detail).toContain("item.gallery.length");
+    expect(detail).toContain("marketplace-gallery-thumbnails");
+    expect(detail).toContain("item.variantSummary");
+    expect(detail).toContain("product.data?.seoTitle");
+    expect(router).toContain("getPublicProductGallery");
+    expect(styles).toContain(".marketplace-product-gallery");
+  });
+
   it("uses a clearly labelled abstract loading phase and accessible product-card motion", () => {
     expect(marketplace).toContain("<MarketplaceLoading />");
     expect(marketplace).toContain('aria-busy="true"');
@@ -37,5 +48,12 @@ describe("marketplace UI truth contract", () => {
     expect(styles).toContain("marketplace-loading__card");
     expect(styles).toContain(".marketplace-card:focus-within");
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+
+  it("keeps the reference sensor rail, entry composition, and detail states inside the aqua overlay", () => {
+    expect(marketplace).toContain("LiveSensorStrip compact");
+    expect(marketplace).toContain("marketplace-entry");
+    for (const token of ["LiveSensorStrip compact", "MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
+    expect(styles).toContain(".marketplace-entry");
   });
 });

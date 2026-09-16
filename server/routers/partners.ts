@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { partnerAuthorizations, partnerPlacements, partnerProducts, partnerProfiles } from "../../drizzle/schema";
+import { partnerAuthorizations, partnerPlacements, partnerProductImages, partnerProducts, partnerProfiles } from "../../drizzle/schema";
 import { partnerProductInputSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
@@ -133,6 +133,18 @@ export type PublicMarketplaceProduct = {
   destinationUrl: string;
   priceLabel: string | null;
   imageUrl: string | null;
+  imageAltText: string | null;
+  sourceVendor: string | null;
+  marketplaceCategory: string | null;
+  productType: string | null;
+  variantSummary: string | null;
+  variantCount: number;
+  seoTitle: string | null;
+  seoDescription: string | null;
+};
+
+export type PublicMarketplaceProductDetail = PublicMarketplaceProduct & {
+  gallery: Array<{ id: number; position: number; imageUrl: string; altText: string | null }>;
 };
 
 /**
@@ -170,6 +182,14 @@ async function getPublicMarketplaceProducts(db: Database): Promise<PublicMarketp
         destinationUrl: partnerProducts.destinationUrl,
         priceLabel: partnerProducts.priceLabel,
         imageStorageKey: partnerProducts.imageStorageKey,
+        imageAltText: partnerProducts.imageAltText,
+        sourceVendor: partnerProducts.sourceVendor,
+        marketplaceCategory: partnerProducts.marketplaceCategory,
+        productType: partnerProducts.productType,
+        variantSummary: partnerProducts.variantSummary,
+        variantCount: partnerProducts.variantCount,
+        seoTitle: partnerProducts.seoTitle,
+        seoDescription: partnerProducts.seoDescription,
         status: partnerProducts.status,
         updatedAt: partnerProducts.updatedAt,
       })
@@ -214,10 +234,32 @@ async function getPublicMarketplaceProducts(db: Database): Promise<PublicMarketp
       destinationUrl: product.destinationUrl,
       priceLabel: product.priceLabel,
       imageStorageKey: product.imageStorageKey,
+      imageAltText: product.imageAltText,
+      sourceVendor: product.sourceVendor,
+      marketplaceCategory: product.marketplaceCategory,
+      productType: product.productType,
+      variantSummary: product.variantSummary,
+      variantCount: product.variantCount,
+      seoTitle: product.seoTitle,
+      seoDescription: product.seoDescription,
     }];
   }).map(async product => ({
     ...product,
     imageUrl: product.imageStorageKey ? await storageGetSignedUrl(product.imageStorageKey) : null,
+  })));
+}
+
+async function getPublicProductGallery(db: Database, productId: number) {
+  const images = await db
+    .select({ id: partnerProductImages.id, position: partnerProductImages.position, storageKey: partnerProductImages.storageKey, altText: partnerProductImages.altText })
+    .from(partnerProductImages)
+    .where(eq(partnerProductImages.productId, productId))
+    .orderBy(partnerProductImages.position);
+  return Promise.all(images.flatMap(image => image.storageKey ? [image] : []).map(async image => ({
+    id: image.id,
+    position: image.position,
+    imageUrl: await storageGetSignedUrl(image.storageKey!),
+    altText: image.altText,
   })));
 }
 
@@ -294,7 +336,7 @@ export const partnersRouter = router({
       const db = await requireDatabase();
       const product = (await getPublicMarketplaceProducts(db)).find(item => item.id === input.id);
       if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "marketplace_product_not_found" });
-      return product;
+      return { ...product, gallery: await getPublicProductGallery(db, product.id) } satisfies PublicMarketplaceProductDetail;
     }),
 
   list: adminProcedure.query(async () => {
@@ -334,6 +376,16 @@ export const partnersRouter = router({
         description: partnerProducts.description,
         destinationUrl: partnerProducts.destinationUrl,
         priceLabel: partnerProducts.priceLabel,
+        sourceHandle: partnerProducts.sourceHandle,
+        sourceVendor: partnerProducts.sourceVendor,
+        marketplaceCategory: partnerProducts.marketplaceCategory,
+        productType: partnerProducts.productType,
+        variantSummary: partnerProducts.variantSummary,
+        variantCount: partnerProducts.variantCount,
+        sourceImageUrl: partnerProducts.sourceImageUrl,
+        imageAltText: partnerProducts.imageAltText,
+        seoTitle: partnerProducts.seoTitle,
+        seoDescription: partnerProducts.seoDescription,
         imageStorageKey: partnerProducts.imageStorageKey,
         imageMimeType: partnerProducts.imageMimeType,
         imageByteSize: partnerProducts.imageByteSize,
@@ -373,6 +425,11 @@ export const partnersRouter = router({
         description: input.product.description ?? null,
         destinationUrl: input.product.destinationUrl,
         priceLabel: input.product.priceLabel ?? null,
+        marketplaceCategory: input.product.marketplaceCategory ?? null,
+        productType: input.product.productType ?? null,
+        variantSummary: input.product.variantSummary ?? null,
+        seoTitle: input.product.seoTitle ?? null,
+        seoDescription: input.product.seoDescription ?? null,
         status: "draft",
         createdByUserId: ctx.user.id,
       });

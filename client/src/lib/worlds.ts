@@ -6,14 +6,14 @@ export const WORLD_ASSETS = {
   terrarium: "/manus-storage/terrarium-moss_9eba1fa1.jpg",
 } as const;
 
-// The design handoff supplies these original, stable motif assets for the
-// interactive reference layouts. They are imagery only; all readings and
+// The design handoff supplies these original, project-stored motif assets for
+// the interactive reference layouts. They are imagery only; all readings and
 // application state remain sourced from the real app data paths.
 export const REFERENCE_ASSETS = {
-  botany: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/qmloFTGSjCFRoVJv.jpg",
-  aquarium: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/IdfRorWpbjjRkmWY.jpg",
-  terrarium: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/JyzIvRjtPdIvwWWD.jpg",
-  ai: "https://files.manuscdn.com/user_upload_by_module/session_file/310519663783480419/PSZueuRMSmSZbPaL.jpg",
+  botany: "/manus-storage/botany-reference_c192e480.jpg",
+  aquarium: "/manus-storage/aquarium-reference_2e42963b.jpg",
+  terrarium: "/manus-storage/terrarium-reference_c4e109d3.jpg",
+  ai: "/manus-storage/assistant-reference_4510581b.jpg",
 } as const;
 
 export const WORLD_CONFIG: Array<{

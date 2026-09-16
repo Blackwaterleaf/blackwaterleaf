@@ -10,6 +10,14 @@ export type MarketplaceProduct = {
   destinationUrl: string;
   priceLabel: string | null;
   imageUrl: string | null;
+  imageAltText: string | null;
+  sourceVendor: string | null;
+  marketplaceCategory: string | null;
+  productType: string | null;
+  variantSummary: string | null;
+  variantCount: number;
+  seoTitle: string | null;
+  seoDescription: string | null;
 };
 
 export type MarketplaceCartLine = MarketplaceProduct & { quantity: number };
@@ -18,12 +26,14 @@ export function filterMarketplaceProducts(
   products: MarketplaceProduct[],
   search: string,
   partnerId: number | "all" = "all",
+  category: string | "all" = "all",
 ) {
   const query = search.trim().toLocaleLowerCase("de-DE");
   return products.filter(product => {
     const partnerMatches = partnerId === "all" || product.partnerId === partnerId;
-    const text = `${product.title} ${product.partnerName} ${product.description ?? ""}`.toLocaleLowerCase("de-DE");
-    return partnerMatches && (!query || text.includes(query));
+    const categoryMatches = category === "all" || product.marketplaceCategory === category;
+    const text = `${product.title} ${product.partnerName} ${product.sourceVendor ?? ""} ${product.productType ?? ""} ${product.marketplaceCategory ?? ""} ${product.description ?? ""}`.toLocaleLowerCase("de-DE");
+    return partnerMatches && categoryMatches && (!query || text.includes(query));
   });
 }
 
@@ -43,4 +53,23 @@ export function marketplaceProductCount(lines: MarketplaceCartLine[]) {
 
 export function marketplaceDisclosure(product: Pick<MarketplaceProduct, "disclosureLabel" | "partnerName">) {
   return `${product.disclosureLabel} · Angebot von ${product.partnerName}`;
+}
+
+export const marketplaceCategoryLabels: Record<string, string> = {
+  futter: "Futter",
+  lebendfutter: "Lebendfutter",
+  frostfutter: "Frostfutter",
+  technik: "Technik",
+  filter: "Filter",
+  wasserpflege: "Wasserpflege",
+  dekoration: "Dekoration",
+  bodengrund: "Bodengrund",
+  pflanzenpflege: "Pflanzenpflege",
+  zubehoer: "Zubehör",
+  thermometer: "Temperatur",
+  sonstiges: "Weitere Artikel",
+};
+
+export function marketplaceCategoryLabel(category: string | null) {
+  return category ? marketplaceCategoryLabels[category] ?? "Weitere Artikel" : "Weitere Artikel";
 }

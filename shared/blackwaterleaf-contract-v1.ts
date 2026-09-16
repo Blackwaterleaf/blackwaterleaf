@@ -218,12 +218,31 @@ export const experienceSummarySchema = z.object({
 export const partnerPartyTypeSchema = z.enum(["person", "company"]);
 export const partnerProfileStatusSchema = z.enum(["draft", "approved", "paused", "removed"]);
 export const partnerProductStatusSchema = z.enum(["draft", "active", "paused", "removed"]);
+export const marketplaceCategorySchema = z.enum([
+  "futter",
+  "lebendfutter",
+  "frostfutter",
+  "technik",
+  "filter",
+  "wasserpflege",
+  "dekoration",
+  "bodengrund",
+  "pflanzenpflege",
+  "zubehoer",
+  "thermometer",
+  "sonstiges",
+]);
 
 export const partnerProductInputSchema = z.object({
   title: z.string().trim().min(1).max(160),
-  description: z.string().trim().max(1_000).nullable().optional(),
+  description: z.string().trim().max(20_000).nullable().optional(),
   destinationUrl: z.string().url().refine(value => new URL(value).protocol === "https:", "https_url_required"),
   priceLabel: z.string().trim().min(1).max(80).nullable().optional(),
+  marketplaceCategory: marketplaceCategorySchema.nullable().optional(),
+  productType: z.string().trim().max(160).nullable().optional(),
+  variantSummary: z.string().trim().max(1_000).nullable().optional(),
+  seoTitle: z.string().trim().max(160).nullable().optional(),
+  seoDescription: z.string().trim().max(320).nullable().optional(),
 });
 
 export const partnerProductSchema = partnerProductInputSchema.extend({
