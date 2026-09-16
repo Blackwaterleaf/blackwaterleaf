@@ -7,6 +7,7 @@ const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
 const detail = readFileSync(resolve(root, "client/src/pages/MarketplaceProduct.tsx"), "utf8");
 const router = readFileSync(resolve(root, "server/routers/partners.ts"), "utf8");
+const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("marketplace UI truth contract", () => {
   it("provides a catalogue and a real product route", () => {
@@ -27,5 +28,14 @@ describe("marketplace UI truth contract", () => {
     expect(router).toContain("getPublicMarketplaceProducts");
     expect(router).toContain("isPublicPartnerProduct");
     expect(router).toContain("marketplaceProduct: publicProcedure");
+  });
+
+  it("uses a clearly labelled abstract loading phase and accessible product-card motion", () => {
+    expect(marketplace).toContain("<MarketplaceLoading />");
+    expect(marketplace).toContain('aria-busy="true"');
+    expect(marketplace).toContain("Partnerangebote werden geprüft");
+    expect(styles).toContain("marketplace-loading__card");
+    expect(styles).toContain(".marketplace-card:focus-within");
+    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
 });
