@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
 import { ENV } from "./env";
 
-const MOBILE_CALLBACK_SCHEME = "blackwaterleaf-natur://oauth/callback";
+const MOBILE_CALLBACK_SCHEME = "blackwaterleaf://oauth/callback";
 const MOBILE_OAUTH_CALLBACK = "https://blackwaterleaf.com/api/oauth/callback";
 const MOBILE_CODE_AUDIENCE = "blackwaterleaf-natur";
 const MOBILE_CODE_TTL_SECONDS = 90;

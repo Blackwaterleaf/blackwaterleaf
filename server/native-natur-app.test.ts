@@ -9,11 +9,14 @@ const app = readFileSync(resolve(root, "mobile-natur/App.tsx"), "utf8");
 const api = readFileSync(resolve(root, "mobile-natur/src/api.ts"), "utf8");
 const auth = readFileSync(resolve(root, "mobile-natur/src/nativeAuth.ts"), "utf8");
 const appConfig = readFileSync(resolve(root, "mobile-natur/app.json"), "utf8");
+const habitats = readFileSync(resolve(root, "mobile-natur/src/HabitatManager.tsx"), "utf8");
+const moments = readFileSync(resolve(root, "mobile-natur/src/MomentCapture.tsx"), "utf8");
 
-describe("BlackWaterLeaf Natur native application contract", () => {
-  it("is explicitly a native BlackWaterLeaf Natur app, never the Studio client", () => {
-    expect(appConfig).toContain('"name": "BlackWaterLeaf Natur"');
-    expect(appConfig).toContain('"package": "com.blackwaterleaf.natur"');
+describe("BlackWaterLeaf native application contract", () => {
+  it("is explicitly the native BlackWaterLeaf product app, never the Studio client", () => {
+    expect(appConfig).toContain('"name": "BlackWaterLeaf"');
+    expect(appConfig).toContain('"slug": "blackwater-agent"');
+    expect(appConfig).toContain('"package": "com.blackwaterleaf"');
     expect(app).not.toContain("BlackWaterLeaf Studio");
     expect(app).not.toContain("CONTROL API");
   });
@@ -22,6 +25,22 @@ describe("BlackWaterLeaf Natur native application contract", () => {
     expect(api).toContain('API_ORIGIN = "https://blackwaterleaf.com"');
     for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine"]) expect(api).toContain(procedure);
     expect(api).toContain("Authorization: `Bearer ${token}`");
+    for (const procedure of ["habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
+  });
+
+  it("uses native controlled forms and device media for private plants, aquariums, terrariums and moments", () => {
+    expect(app).toContain("MomentCapture");
+    expect(app).toContain("HabitatManager");
+    expect(habitats).toContain("NEUE {labels[kind]} ANLEGEN");
+    expect(habitats).toContain("createHabitat(token, payload)");
+    expect(moments).toContain("launchCameraAsync");
+    expect(moments).toContain("launchImageLibraryAsync");
+    expect(moments).toContain("createObservation(token");
+    expect(moments).toContain("uploadObservationImage(token");
+    expect(moments).toContain('visibility: "private"');
+    expect(moments).toContain("mediaConsent");
+    expect(moments).toContain('setConsent(token, { purpose: "media_processing"');
+    expect(moments).not.toContain("WebView");
   });
 
   it("uses native high-entropy state verification and secure token storage for private flows", () => {
@@ -34,7 +53,7 @@ describe("BlackWaterLeaf Natur native application contract", () => {
     expect(api).toContain("SecureStore.setItemAsync");
     expect(api).toContain("WHEN_UNLOCKED_THIS_DEVICE_ONLY");
     expect(shared).toContain("mobileState?: string");
-    expect(oauth).toContain('MOBILE_CALLBACK_SCHEME = "blackwaterleaf-natur://oauth/callback"');
+    expect(oauth).toContain('MOBILE_CALLBACK_SCHEME = "blackwaterleaf://oauth/callback"');
     expect(oauth).toContain('MOBILE_OAUTH_CALLBACK = "https://blackwaterleaf.com/api/oauth/callback"');
     expect(oauth).toContain('app.get("/api/oauth/mobile/start"');
     expect(oauth).toContain('app.post("/api/oauth/mobile/exchange"');

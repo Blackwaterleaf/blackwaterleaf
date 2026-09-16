@@ -5,12 +5,12 @@ import { API_ORIGIN, writeToken } from "./api";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export async function signInWithBlackWaterLeafNatur() {
+export async function signInWithBlackWaterLeaf() {
   const mobileState = Crypto.randomUUID().replace(/-/g, "");
   const codeVerifier = `${Crypto.randomUUID().replace(/-/g, "")}${Crypto.randomUUID().replace(/-/g, "")}`;
   const codeChallenge = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, codeVerifier, { encoding: Crypto.CryptoEncoding.BASE64 }))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  const redirectUri = Linking.createURL("oauth/callback", { scheme: "blackwaterleaf-natur" });
+  const redirectUri = Linking.createURL("oauth/callback", { scheme: "blackwaterleaf" });
   const startUrl = `${API_ORIGIN}/api/oauth/mobile/start?mobileState=${encodeURIComponent(mobileState)}&codeChallenge=${encodeURIComponent(codeChallenge)}`;
   const result = await WebBrowser.openAuthSessionAsync(startUrl, redirectUri);
 

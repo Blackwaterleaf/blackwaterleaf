@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "BlackWaterLeaf Natur",
-    "slug": "blackwaterleaf-natur",
-    "version": "0.1.0",
+    "name": "BlackWaterLeaf",
+    "slug": "blackwater-agent",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "blackwaterleaf-natur",
+    "scheme": "blackwaterleaf",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.blackwaterleaf.natur"
+      "bundleIdentifier": "com.blackwaterleaf"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,16 +18,24 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.blackwaterleaf.natur"
+      "package": "com.blackwaterleaf",
+      "versionCode": 4
     },
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
-      "expo-status-bar"
+      "expo-status-bar",
+      ["expo-camera", { "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
+      ["expo-image-picker", { "photosPermission": "BlackWaterLeaf benötigt Zugriff auf ausgewählte Fotos nur, wenn du einen privaten Naturmoment hochlädst.", "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
+      "expo-sharing"
     ],
     "extra": {
       "apiOrigin": "https://blackwaterleaf.com",
-      "nativePrivateFlows": "requires_registered_mobile_oauth"
-    }
+      "nativePrivateFlows": "requires_registered_mobile_oauth",
+      "eas": {
+        "projectId": "49fead16-1e34-463b-9b18-a9bc4e601808"
+      }
+    },
+    "owner": "blackwaterleaf"
   }
 }
