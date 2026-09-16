@@ -13,12 +13,18 @@ import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
 import Realm from "./pages/Realm";
 import AdminDashboard from "./pages/AdminDashboard";
+import AccountAccess from "./pages/AccountAccess";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/admin/:section"} component={AdminDashboard} />
+      <Route path={"/login"} component={AccountAccess} />
+      <Route path={"/register"} component={AccountAccess} />
+      <Route path={"/forgot-password"} component={AccountAccess} />
+      <Route path={"/verify-email"} component={AccountAccess} />
+      <Route path={"/reset-password"} component={AccountAccess} />
       <Route>
         <AppShell>
           <Switch>

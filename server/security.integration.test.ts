@@ -8,6 +8,7 @@ import {
   aiRateLimiter,
   authRateLimiter,
   communityRateLimiter,
+  localAuthRateLimiter,
   uploadRateLimiter,
 } from "./security";
 
@@ -96,11 +97,23 @@ describe("session application binding", () => {
     });
     await expect(sdk.verifySession(foreignToken)).resolves.toBeNull();
   });
+
+  it("marks a locally issued session so it can never trigger OAuth synchronization", async () => {
+    const token = await sdk.createLocalSessionToken("local_account", { name: "Local account" });
+    await expect(sdk.verifySession(token)).resolves.toMatchObject({
+      openId: "local_account",
+      provider: "local",
+    });
+  });
 });
 
 describe("rate limiter boundaries", () => {
   it("blocks authentication traffic after its configured allowance", async () => {
     await assertRateLimit(30, authRateLimiter);
+  });
+
+  it("blocks local password and verification-token attempts after 12 requests", async () => {
+    await assertRateLimit(12, localAuthRateLimiter);
   });
 
   it("blocks upload traffic after its configured allowance", async () => {

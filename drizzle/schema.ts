@@ -76,6 +76,49 @@ export const userConsents = mysqlTable(
   ],
 );
 
+/** Local email/password identity. Passwords are stored as scrypt hashes only. */
+export const localCredentials = mysqlTable(
+  "local_credentials",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    email: varchar("email", { length: 320 }).notNull(),
+    normalizedEmail: varchar("normalizedEmail", { length: 320 }).notNull(),
+    passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+    emailVerifiedAt: timestamp("emailVerifiedAt"),
+    passwordChangedAt: timestamp("passwordChangedAt").defaultNow().notNull(),
+    lastSignedInAt: timestamp("lastSignedInAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("local_credentials_user_unique").on(table.userId),
+    uniqueIndex("local_credentials_normalized_email_unique").on(table.normalizedEmail),
+  ],
+);
+
+/** One-time, hashed and expiry-bound tokens for local account verification and recovery. */
+export const localAuthTokens = mysqlTable(
+  "local_auth_tokens",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", ["email_verification", "password_reset"]).notNull(),
+    tokenHash: varchar("tokenHash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("local_auth_tokens_hash_unique").on(table.tokenHash),
+    index("local_auth_tokens_user_purpose_expires_idx").on(table.userId, table.purpose, table.expiresAt),
+  ],
+);
+
 export const observations = mysqlTable(
   "observations",
   {

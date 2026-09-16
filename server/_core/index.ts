@@ -12,6 +12,7 @@ import {
   apiRateLimiter,
   authRateLimiter,
   communityRateLimiter,
+  localAuthRateLimiter,
   sameOriginMutationGuard,
   securityHeaders,
   uploadRateLimiter,
@@ -31,6 +32,14 @@ async function startServer() {
   registerStorageProxy(app);
   app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
+  app.use([
+    "/api/trpc/auth.register",
+    "/api/trpc/auth.login",
+    "/api/trpc/auth.requestPasswordReset",
+    "/api/trpc/auth.resetPassword",
+    "/api/trpc/auth.verifyEmail",
+    "/api/trpc/auth.resendVerification",
+  ], localAuthRateLimiter);
   app.use("/api/trpc/profile.uploadAvatar", uploadRateLimiter);
   app.use("/api/trpc/observations.uploadImage", uploadRateLimiter);
   app.use("/api/trpc/community.uploadDraftImage", uploadRateLimiter);

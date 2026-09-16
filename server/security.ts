@@ -109,6 +109,15 @@ export const authRateLimiter = rateLimit({
   message: { error: "auth_rate_limit_exceeded" },
 });
 
+/** Restricts password and email-token attempts more tightly than generic API traffic. */
+export const localAuthRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1_000,
+  limit: 12,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "local_auth_rate_limit_exceeded" },
+});
+
 export const communityRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1_000,
   limit: 120,
