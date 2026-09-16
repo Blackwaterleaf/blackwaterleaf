@@ -61,7 +61,7 @@ Die Basis ist fast schwarzes Tannengrün. Bildflächen werden mit dunklen, organ
 | Karten | Bildbasiert, dunkel überblendet, Iconkreis, Titel, kurze Handlungszeile und Chevron |
 | Typografie | Wortmarke und Displaytitel mit der etablierten kontraststarken Displaytypografie; System- und Statusangaben kompakt und technisch lesbar |
 | Kontur | Dünn, leuchtend und ausschließlich bereichsfarben oder neutral hell; keine schweren Standardrahmen |
-| Bewegung | Nur `transform` und `opacity`; jede nicht essenzielle Bewegung respektiert `prefers-reduced-motion` |
+| Bewegung | Nur `transform` und `opacity`; jeder Wechsel zwischen einem regulären Bottom-Tab und dem Admin-Builder nutzt eine kurze, unterbrechbare Ausblend-/Einblendbewegung (105 ms Ausstieg, 180 ms Einstieg); jede nicht essenzielle Bewegung respektiert `prefers-reduced-motion` |
 | Fokus | Sichtbarer, ausreichend kontrastreicher Tastaturfokus bleibt auf allen Links, Buttons und Formfeldern erhalten |
 
 Die mobile Referenz ist die primäre Komposition. Die Web-App erweitert sie behutsam auf größere Breiten: Der Zielseiteninhalt bleibt als fokussierter, bildstarker Bereich lesbar. Die vier Funktionskarten bleiben im Standard **2 × 2** und werden nicht zu einer austauschbaren vierteiligen Desktopzeile. Die Bottom Navigation bleibt in der Referenzansicht sichtbar; eine zusätzliche Desktop-Textnavigation darf diese nicht als primäre Zielnavigation ersetzen.

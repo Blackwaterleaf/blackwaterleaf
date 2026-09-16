@@ -60,6 +60,15 @@ describe("BlackWaterLeaf reference layout", () => {
     expect(style).toContain(".bottom-navigation--admin { grid-template-columns:repeat(6, minmax(0, 1fr))");
   });
 
+  it("uses a short interruptible transition for bottom-tab changes, including the Builder", () => {
+    for (const token of ["handleTabNavigation", "setIsTabSwitching(true)", "setLocation(href)", "prefers-reduced-motion: reduce", "tab-transition-surface", "is-transition-target"]) {
+      expect(shell).toContain(token);
+    }
+    for (const token of [".tab-transition-surface", ".app-frame.is-tab-switching .tab-transition-surface", ".nav-link.is-transition-target"]) {
+      expect(style).toContain(token);
+    }
+  });
+
   it("preserves reduced-motion behavior for living overlays", () => {
     expect(style).toContain("@media (prefers-reduced-motion: reduce)");
     expect(style).toContain("animation-duration:1ms!important");

@@ -476,3 +476,12 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .bottom-navigation--admin .nav-link:last-child { color:#71e8ff; }
 .bottom-navigation--admin .nav-link:last-child.active { color:#e2d661; }
 @media (max-width:390px) { .bottom-navigation--admin { width:calc(100% - 12px); padding-inline:2px; }.bottom-navigation--admin .nav-link { font-size:.42rem; }.bottom-navigation--admin .nav-link svg { width:17px; height:17px; } }
+
+
+/* Bottom-tab navigation: one brief, interruptible fade/slide between regular tabs and the admin Builder. */
+.tab-transition-surface { will-change:transform,opacity; transition:opacity 180ms cubic-bezier(.23,1,.32,1),transform 180ms cubic-bezier(.23,1,.32,1); }
+.tab-transition-surface.is-entering { opacity:0; transform:translateY(8px); }
+.tab-transition-surface.is-entered { opacity:1; transform:translateY(0); }
+.app-frame.is-tab-switching .tab-transition-surface { opacity:0; transform:translateY(-5px); transition-duration:105ms; }
+.nav-link.is-transition-target { color:#e2d661; transform:translateY(-2px); text-shadow:0 0 16px rgba(226,214,97,.48); }
+@media (prefers-reduced-motion: reduce) { .tab-transition-surface,.app-frame.is-tab-switching .tab-transition-surface,.nav-link.is-transition-target { transition:none; transform:none; } }

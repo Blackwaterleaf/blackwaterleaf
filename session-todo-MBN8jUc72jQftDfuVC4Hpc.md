@@ -30,3 +30,4 @@
 - [x] Audit the supplied Habitat Builder Pro update and verify that the configured Tripo V3 account credential currently fails closed with HTTP 401; no model generation was submitted.
 - [x] Integrate the Habitat Builder as an authenticated, private planning route with a reviewed photorealistic reference fallback, local WebGL fallback, private-record basis, browser-local variants and JSON export; no database migration or PBR activation.
 - [x] Add the Habitat Builder as a sixth, conditional bottom-navigation destination for authenticated admins while retaining the regular five destinations for other accounts.
+- [x] Add a short, reduced-motion-safe navigation transition between all bottom tabs and the conditional Habitat Builder tab.

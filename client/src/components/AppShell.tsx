@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { useEffect, type PropsWithChildren } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } from "react";
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
 
 const navigation = [
@@ -28,7 +28,7 @@ function isReferenceNavigationActive(location: string, href: string) {
 }
 
 export function AppShell({ children }: PropsWithChildren) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const auth = useAuth();
   const { locale, setLocale, t } = useI18n();
   const utils = trpc.useUtils();
@@ -38,6 +38,39 @@ export function AppShell({ children }: PropsWithChildren) {
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
   const bottomNavigation = auth.user?.role === "admin" ? [...navigation, adminBuilderNavigation] : navigation;
+  const [isTabSwitching, setIsTabSwitching] = useState(false);
+  const [contentEntered, setContentEntered] = useState(false);
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
+  const tabTransitionTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    setIsTabSwitching(false);
+    setPendingTab(null);
+    setContentEntered(false);
+    const frame = window.requestAnimationFrame(() => setContentEntered(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [location]);
+
+  useEffect(() => () => {
+    if (tabTransitionTimer.current !== null) window.clearTimeout(tabTransitionTimer.current);
+  }, []);
+
+  const handleTabNavigation = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href === location || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setLocation(href);
+      return;
+    }
+    if (tabTransitionTimer.current !== null) window.clearTimeout(tabTransitionTimer.current);
+    setPendingTab(href);
+    setContentEntered(false);
+    setIsTabSwitching(true);
+    tabTransitionTimer.current = window.setTimeout(() => {
+      setLocation(href);
+      tabTransitionTimer.current = null;
+    }, 105);
+  };
 
   useEffect(() => {
     if (!profile.data?.locale) return;
@@ -51,7 +84,7 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   return (
-    <div className="app-frame">
+    <div className={`app-frame ${isTabSwitching ? "is-tab-switching" : ""}`}>
       <div className="ambient-grid" aria-hidden="true" />
       <div className="scanlines" aria-hidden="true" />
       <header className="top-shell">
@@ -73,13 +106,13 @@ export function AppShell({ children }: PropsWithChildren) {
         </div>
       </header>
       <ConnectionStateBanner />
-      <main className="app-content">{children}</main>
+      <main className={`app-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>
       <nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`} aria-label="Hauptnavigation">
         {bottomNavigation.map(item => {
           const Icon = item.icon;
           const active = isReferenceNavigationActive(location, item.href);
           return (
-            <Link key={item.href} href={item.href} className={`nav-link ${active ? "active" : ""}`}>
+            <Link key={item.href} href={item.href} onClick={event => handleTabNavigation(event, item.href)} className={`nav-link ${active ? "active" : ""} ${pendingTab === item.href ? "is-transition-target" : ""}`}>
               <Icon size={19} strokeWidth={active ? 2.2 : 1.6} />
               <span>{t(item.label)}</span>
             </Link>
