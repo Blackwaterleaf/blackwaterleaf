@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, Leaf, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -89,7 +89,7 @@ export function AppShell({ children }: PropsWithChildren) {
       <div className="scanlines" aria-hidden="true" />
       <header className="top-shell">
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
-          <span className="brand-mark"><Leaf size={21} strokeWidth={1.8} /></span>
+          <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="" /></span>
           <span className="brand-name">BLACKWATERLEAF</span>
         </Link>
         <nav className="desktop-navigation" aria-label="Hauptnavigation">

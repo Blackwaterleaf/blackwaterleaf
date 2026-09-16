@@ -1,4 +1,4 @@
-import { Bot, Box, Camera, Fish, Leaf, MessageCircle, Plus, ScanLine, Sprout, X } from "lucide-react";
+import { Bot, Box, Camera, Fish, MessageCircle, Plus, ScanLine, Sprout, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { useI18n } from "@/i18n";
@@ -32,7 +32,7 @@ export function LeafCore() {
       </div>
       <button type="button" className="leaf-trigger" aria-label={open ? t("leaf.close") : t("leaf.open")} aria-expanded={open} onClick={() => setOpen(value => !value)}>
         <span className="leaf-trigger-glow" aria-hidden="true" />
-        {open ? <X size={27} /> : <Leaf size={31} fill="currentColor" />}
+        {open ? <X size={27} /> : <img className="leaf-trigger-brand" src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="" />}
         <span className="leaf-plus"><Plus size={11} /></span>
       </button>
     </div>

@@ -26,7 +26,7 @@ BlackWaterLeaf ist **kein Standard-Dashboard**. Jede Zielseite ist ein eigenstä
 
 Jede Zielseite folgt derselben vertikalen Grundfolge:
 
-1. Markenleiste mit Blattmarke, Wortmarke, Suche, Benachrichtigung und Profilaktion.
+1. Markenleiste mit der vom Auftraggeber gelieferten **BlackWaterLeaf-Originalmarke**, Wortmarke, Suche, Benachrichtigung und Profilaktion.
 2. Ehrliche, vierteilige Sensor- und Statusleiste.
 3. Ein eigener bildgestützter Bereichs-Hero.
 4. Ein echter Zustandsblock, falls die Route Authentifizierung, Verbindung, Freigabe, Leerstand oder Fehler erklärt.
@@ -69,6 +69,8 @@ Die Basis ist fast schwarzes Tannengrün. Bildflächen werden mit dunklen, organ
 
 Die mobile Referenz ist die primäre Komposition. Die Web-App erweitert sie behutsam auf größere Breiten: Der Zielseiteninhalt bleibt als fokussierter, bildstarker Bereich lesbar. Die vier Funktionskarten bleiben im Standard **2 × 2** und werden nicht zu einer austauschbaren vierteiligen Desktopzeile. Die Bottom Navigation bleibt in der Referenzansicht sichtbar; eine zusätzliche Desktop-Textnavigation darf diese nicht als primäre Zielnavigation ersetzen.
 
+Die zugelieferte BlackWaterLeaf-Originalmarke mit Monogramm, Blattwerk, Fisch und Wortmarke ist die alleinige Marke für Webkopf, PWA-/Launcher-Icon, native Kopfmarke und den zentralen Markenknopf. Die Marke ersetzt **nicht** fachliche Bedienicons: Blatt, Fisch, Kamera, Sensor, Bot und vergleichbare Symbole behalten ihre eindeutige Funktionssemantik. Bild- oder Hinweisflächen dürfen Hero-Titel, Text oder Hauptaktionen nicht überdecken. Dekorative Hero-Hinweise wie „Privat starten“ sind daher nicht zulässig.
+
 ## 5. Sensor- und Datenwahrheitsvertrag
 
 Die Sensorleiste darf ausschließlich Werte darstellen, die aus den realen Quellen des Projekts stammen. Aktuell sind dies private Aquariumwerte und die nach aktiver Standortfreigabe abgefragten Außenwetterdaten. Ein Wert ist nicht verfügbar, wenn die Person nicht angemeldet ist, noch kein Aquarium gepflegt hat, ein Messwert fehlt, die Standortfreigabe nicht erteilt wurde oder der Dienst fehlschlägt.
@@ -81,6 +83,8 @@ Die Sensorleiste darf ausschließlich Werte darstellen, die aus den realen Quell
 | Außentemperatur und Wettereffekt | Reale Wetterantwort nach Standortfreigabe | `—`, Standortfreigabe oder Fehlermeldung |
 
 Die in den Grafiken gezeigten Werte **24,3 °C**, **68 %**, **6,2 pH** und **„Leichter Regen“** sind gestalterische Beispielwerte. Sie dürfen in keiner Route als Fallback, Seed, Demo oder vermeintliche Echtzeitmessung hartcodiert werden.
+
+Auf schmalen Displays bis 759 px wird die vierteilige Sensorleiste als **2 × 2**-Raster mit kompakten, mindestens 58 px hohen, eigenständig lesbaren Wertkarten umgesetzt. Werte, Beschriftungen und der bewusste Außenwetter-CTA müssen ohne horizontales Zusammendrängen erreichbar bleiben. Ab 760 px bleibt die kompakte Viererleiste erhalten.
 
 Regen- und Nebel-Effekte werden nur aus dem echten Wettercode abgeleitet. Smartgeräte werden bis zu einer herstellerspezifischen, widerrufbaren Verbindung ausschließlich als **„wartet auf Herstellerfreigabe“** oder **„nicht verbunden“** geführt.
 
@@ -165,9 +169,9 @@ Die folgenden früheren Annahmen sind nicht länger zulässig:
 
 ## 11. Installations- und Android-Updatevertrag
 
-Die Web-Schaltfläche darf eine PWA-Installation **nicht** als native Android-APK darstellen. Auf Android führt sie ausschließlich zur geprüften nativen BlackWaterLeaf-Update-APK der jeweiligen Release-Version. Für Version `1.0.4` ist das Paket `com.blackwaterleaf`, Android-Build-Code `4`, Ziel-API `36` und die bestehende BlackWaterLeaf-Release-Signatur maßgeblich. Diese Kombination ist ein Update über die bereits installierte Version `1.0.3`, keine parallele App. Auf Desktop und iOS bleibt die PWA-Installation bzw. die passende Browseranleitung verfügbar.
+Die Web-Schaltfläche darf eine PWA-Installation **nicht** als native Android-APK darstellen. Auf Android führt sie ausschließlich zur **bereits geprüften** nativen BlackWaterLeaf-Update-APK der jeweiligen Release-Version. Bis eine neue Datei verifiziert ist, bleibt die geprüfte Version `1.0.4` (Paket `com.blackwaterleaf`, Android-Build-Code `4`, Ziel-API `36`, bestehende BlackWaterLeaf-Release-Signatur) der einzig zulässige Download. Die vorbereitete Version `1.0.5` / Build-Code `5` darf diese erst nach erfolgreichem EAS-Build, Paket-, Ziel-API-, eingebettetem-Bundle- und Zertifikatsvergleich ersetzen. Beide Versionen sind Updates über die installierte Version `1.0.3` beziehungsweise `1.0.4`, keine parallelen Apps. Auf Desktop und iOS bleibt die PWA-Installation bzw. die passende Browseranleitung verfügbar.
 
-Die Android-Aktualisierung wird in der Oberfläche klar als **„ANDROID-UPDATE 1.0.4“** bezeichnet. Es sind keine alten Test-, Debug- oder fremd signierten APKs über die Weboberfläche anzubieten. Google Play Protect kann bei einem außerhalb des Play Store geladenen Paket weiterhin einen Herkunftshinweis zeigen; die App muss dabei mindestens die aktuelle Android-Ziel-API einhalten und mit derselben Release-Signatur wie die installierte Version signiert sein.
+Die Android-Aktualisierung wird in der Oberfläche klar mit der **tatsächlich geprüften Versionsnummer** bezeichnet — derzeit **„ANDROID-UPDATE 1.0.4“**, später nach vollständiger Prüfung **„ANDROID-UPDATE 1.0.5“**. Es sind keine alten Test-, Debug- oder fremd signierten APKs über die Weboberfläche anzubieten. Google Play Protect kann bei einem außerhalb des Play Store geladenen Paket weiterhin einen Herkunftshinweis zeigen; die App muss dabei mindestens die aktuelle Android-Ziel-API einhalten und mit derselben Release-Signatur wie die installierte Version signiert sein.
 
 ## References
 

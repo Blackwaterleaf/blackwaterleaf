@@ -251,7 +251,6 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .home-hero { min-height: clamp(300px, 47vw, 410px); }
 .home-hero .hero-copy { padding: 20px; }
 .home-hero .glitch-title { font-size: clamp(3rem, 9vw, 5.3rem); }
-.home-hero .hero-note { top: 13px; right: 13px; }
 .home-areas .world-rail--home .world-card { min-height: 142px; }
 .home-areas .world-rail--home .world-copy { padding: 9px; }
 .home-areas .world-rail--home .world-copy strong { font-size: clamp(1rem, 3.5vw, 1.42rem); }
@@ -526,3 +525,113 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .install-app-status { max-width:260px; color:#c9d6c9; font:600 .51rem/1.35 "JetBrains Mono",monospace; }
 @media (max-width:500px) { .hero-actions .install-app-control { flex:1 1 100%; }.hero-actions .install-app-button { width:100%; min-height:42px; }.install-app-status { max-width:none; } }
 @media (prefers-reduced-motion: reduce) { .install-app-button { transition:none; } }
+
+
+/* Original BlackWaterLeaf mark: brand identity only; functional UI icons remain descriptive. */
+.brand-mark {
+  overflow: hidden;
+  border: 1px solid rgba(227, 200, 125, .7);
+  border-radius: 50%;
+  background: #060807;
+  box-shadow: 0 0 0 1px rgba(8, 19, 11, .76), 0 0 18px rgba(225, 198, 121, .14);
+}
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.leaf-trigger {
+  overflow: hidden;
+  background: #060807;
+  border-color: rgba(227, 200, 125, .75);
+  box-shadow: 0 0 0 8px rgba(142, 249, 125, .08), 0 0 42px rgba(109, 238, 112, .32), inset 0 0 19px rgba(232, 255, 224, .2);
+}
+.leaf-trigger-brand {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+}
+.leaf-core.is-open .leaf-trigger-brand { opacity: 0; }
+
+
+/* S23/mobile sensor rail: preserve the real data contract, but make the four values touch-readable. */
+@media (max-width: 759px) {
+  .reference-sensor-rail {
+    display: grid;
+    gap: 10px;
+    padding: 14px 12px 13px;
+    border-radius: 20px;
+  }
+  .reference-sensor-rail .sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+  .reference-sensor-rail .sensor {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    min-height: 79px;
+    gap: 8px;
+    padding: 11px 9px;
+    border: 1px solid rgba(188, 245, 158, .17);
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(16, 54, 31, .84), rgba(3, 21, 12, .78));
+  }
+  .reference-sensor-rail .sensor > svg { align-self: start; margin-top: 3px; }
+  .reference-sensor-rail .sensor strong {
+    display: block;
+    overflow: hidden;
+    color: #efffe9;
+    font: 800 clamp(1.05rem, 5vw, 1.35rem)/1.05 "Barlow Condensed", sans-serif;
+    letter-spacing: .015em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .reference-sensor-rail .sensor span {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 5px;
+    color: #b9d9b7;
+    font: 700 .56rem/1.28 "JetBrains Mono", monospace;
+    letter-spacing: .015em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .reference-sensor-rail .sensor-note {
+    margin: 0;
+    padding: 2px 3px 0;
+    font-size: .66rem;
+    line-height: 1.42;
+    text-align: center;
+  }
+  .reference-sensor-rail .sensor-location-control {
+    min-height: 46px;
+    margin-top: 0;
+    border-radius: 11px;
+    font-size: .67rem;
+  }
+}
+
+
+/* Keep the mobile live rail compact: recognisable 2×2 status cells, never a dominant dashboard block. */
+@media (max-width: 759px) {
+  .reference-sensor-rail { gap: 7px; padding: 10px; border-radius: 18px; }
+  .reference-sensor-rail .sensor-grid { gap: 6px; }
+  .reference-sensor-rail .sensor {
+    grid-template-columns: 17px minmax(0, 1fr);
+    min-height: 58px;
+    gap: 6px;
+    padding: 7px 6px;
+    border-radius: 10px;
+  }
+  .reference-sensor-rail .sensor > svg { width: 15px; height: 15px; margin-top: 1px; }
+  .reference-sensor-rail .sensor strong { font-size: .96rem; }
+  .reference-sensor-rail .sensor span { margin-top: 3px; font-size: .47rem; line-height: 1.2; }
+  .reference-sensor-rail .sensor-note--action { display: none; }
+  .reference-sensor-rail .sensor-note { padding: 0 2px; font-size: .57rem; line-height: 1.3; }
+  .reference-sensor-rail .sensor-location-control { min-height: 38px; border-radius: 9px; font-size: .57rem; }
+}

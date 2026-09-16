@@ -14,6 +14,8 @@ describe("BlackWaterLeaf reference layout", () => {
     for (const token of ["LiveSensorStrip", "home-hero", "world-rail--home", "home-capture-zone", "<LeafCore"]) {
       expect(home).toContain(token);
     }
+    expect(home).not.toContain("hero-note");
+    expect(home).not.toContain("Privat starten");
     for (const token of ["home-status-card", "sensor-grid", "Waves", "Droplets", "Gauge", "ThermometerSun"]) {
       expect(liveSensors).toContain(token);
     }
@@ -50,6 +52,15 @@ describe("BlackWaterLeaf reference layout", () => {
     expect(shell).toContain('<nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`}');
     expect(style).toContain(".desktop-navigation { display:flex; }");
     expect(style).toContain(".bottom-navigation { display:none; }");
+  });
+
+  it("uses the supplied original mark for global branding while retaining descriptive action icons", () => {
+    expect(shell).toContain("blackwaterleaf-original-mark-1024_28dcd697.png");
+    expect(leafCore).toContain("leaf-trigger-brand");
+    expect(style).toContain(".brand-mark img");
+    expect(style).toContain(".leaf-trigger-brand");
+    expect(leafCore).toContain("Camera");
+    expect(leafCore).toContain("Fish");
   });
 
   it("shows the Habitat Builder as an admin-only sixth bottom-navigation item", () => {

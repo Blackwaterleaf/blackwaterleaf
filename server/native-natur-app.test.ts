@@ -21,6 +21,15 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).not.toContain("CONTROL API");
   });
 
+  it("uses the supplied original BlackWaterLeaf mark for the native launcher and header", () => {
+    expect(app).toContain('require("./assets/icon.png")');
+    expect(app).toContain("BlackWaterLeaf Originalmarke");
+    expect(appConfig).toContain('"icon": "./assets/icon.png"');
+    expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
+    expect(appConfig).toContain('"version": "1.0.5"');
+    expect(appConfig).toContain('"versionCode": 5');
+  });
+
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
     expect(api).toContain('API_ORIGIN = "https://blackwaterleaf.com"');
     for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine"]) expect(api).toContain(procedure);

@@ -9,7 +9,7 @@ import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
 import type { WeatherEffect } from "@shared/current-weather";
-import { ArrowRight, Leaf, RadioTower } from "lucide-react";
+import { ArrowRight, RadioTower } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "wouter";
 
@@ -49,10 +49,6 @@ export default function Home() {
             <InstallAppButton locale={locale} />
           </div>
         </div>
-        <aside className="hero-note" aria-label={copy.status}>
-          <Leaf size={18} />
-          <span><strong>{locale === "de" ? "Privat starten" : "Start privately"}</strong><small>{locale === "de" ? "Du entscheidest, was sichtbar wird." : "You decide what becomes visible."}</small></span>
-        </aside>
       </section>
 
       <section className="home-areas">
