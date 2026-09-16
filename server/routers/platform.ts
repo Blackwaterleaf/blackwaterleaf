@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { BLACKWATERLEAF_CONTRACT_VERSION } from "../../shared/blackwaterleaf-contract-v1";
+import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { publicProcedure, router } from "../_core/trpc";
 
@@ -22,6 +23,7 @@ export const platformRouter = router({
       process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY
         ? "available"
         : "not_connected";
+    const assistant = await getAssistantReadiness();
 
     return {
       contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
@@ -31,8 +33,8 @@ export const platformRouter = router({
       mediaStorage,
       community: database === "available" ? "available" : "temporarily_unavailable",
       knowledge: database === "available" ? "available" : "temporarily_unavailable",
-      aiAssistant: "disabled_by_policy",
-      aiReason: "pending_provider_approval",
+      aiAssistant: assistant.state,
+      aiReason: assistant.reason,
     } as const;
   }),
 });

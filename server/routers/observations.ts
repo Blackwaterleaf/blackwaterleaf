@@ -12,6 +12,7 @@ import {
 } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
+import { awardXpIfReady, XP_REWARDS } from "../gamification";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { canReadObservation, isResourceOwner } from "../accessPolicy";
@@ -234,9 +235,17 @@ export const observationsRouter = router({
         storageKey: stored.key,
         visibility: observation.visibility,
       });
+      const reward = await awardXpIfReady(db, {
+        userId: ctx.user.id,
+        eventType: "observation_photo",
+        eventKey: `observation-photo:${observation.id}`,
+        amount: XP_REWARDS.observationPhoto,
+        metadata: { observationId: observation.id },
+      });
       return {
         id: String(inserted[0].insertId),
         accessUrl: await storageGetSignedUrl(stored.key),
+        xpAwarded: reward.amount,
       };
     }),
 });

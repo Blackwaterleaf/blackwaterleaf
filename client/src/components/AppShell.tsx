@@ -18,13 +18,23 @@ export function AppShell({ children }: PropsWithChildren) {
   const [location] = useLocation();
   const auth = useAuth();
   const { locale, setLocale, t } = useI18n();
+  const utils = trpc.useUtils();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const dailyCheckIn = trpc.gamification.dailyCheckIn.useMutation({
+    onSuccess: () => void utils.gamification.summary.invalidate(),
+  });
 
   useEffect(() => {
     if (!profile.data?.locale) return;
     const accountLocale = resolveAccountLocale(locale, profile.data.locale);
     if (accountLocale !== locale) setLocale(accountLocale);
   }, [locale, profile.data?.locale, setLocale]);
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || experience.data?.status !== "ready" || dailyCheckIn.isPending || dailyCheckIn.isSuccess) return;
+    dailyCheckIn.mutate();
+  }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   return (
     <div className="app-frame">
@@ -34,6 +44,7 @@ export function AppShell({ children }: PropsWithChildren) {
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
           <span className="brand-mark"><Leaf size={21} strokeWidth={1.8} /></span>
           <span className="brand-name">BLACKWATERLEAF</span>
+          {experience.data?.status === "ready" ? <span className="system-chip">LVL_{experience.data.level}</span> : null}
           <span className="system-chip">SYS_01</span>
         </Link>
         <div className="top-actions">

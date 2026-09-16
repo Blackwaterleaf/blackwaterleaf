@@ -171,6 +171,47 @@ export const mediaAssets = mysqlTable(
   ],
 );
 
+/** Immutable, server-created experience-point journal. */
+export const xpEvents = mysqlTable(
+  "xp_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    eventType: mysqlEnum("eventType", ["daily_check_in", "observation_photo", "assistant_response"]).notNull(),
+    eventKey: varchar("eventKey", { length: 160 }).notNull(),
+    amount: int("amount").notNull(),
+    metadata: json("metadata"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("xp_events_user_event_key_unique").on(table.userId, table.eventKey),
+    index("xp_events_user_type_created_idx").on(table.userId, table.eventType, table.createdAt),
+  ],
+);
+
+/** Minimal audit record for paid AI calls; prompts and responses are intentionally not retained. */
+export const assistantUsage = mysqlTable(
+  "assistant_usage",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    clientRequestId: varchar("clientRequestId", { length: 96 }).notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    model: varchar("model", { length: 96 }).notNull(),
+    promptChars: int("promptChars").notNull(),
+    completionChars: int("completionChars").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("assistant_usage_user_request_unique").on(table.userId, table.clientRequestId),
+    index("assistant_usage_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
 export const knowledgeArticles = mysqlTable(
   "knowledge_articles",
   {
@@ -256,5 +297,7 @@ export type UserConsent = typeof userConsents.$inferSelect;
 export type ObservationRecord = typeof observations.$inferSelect;
 export type InsertObservationRecord = typeof observations.$inferInsert;
 export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
+export type XpEventRecord = typeof xpEvents.$inferSelect;
+export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;

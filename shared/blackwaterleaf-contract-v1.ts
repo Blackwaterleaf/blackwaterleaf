@@ -197,8 +197,22 @@ export const platformAvailabilitySchema = z.object({
   knowledge: featureStateSchema,
   aiAssistant: featureStateSchema,
   aiReason: z
-    .enum(["pending_provider_approval", "pending_cost_approval", "available"])
+    .enum(["pending_provider_approval", "pending_cost_approval", "pending_migration", "available"])
     .nullable(),
+});
+
+export const experienceSummarySchema = z.object({
+  totalXp: z.number().int().nonnegative(),
+  level: z.number().int().positive(),
+  nextLevelXp: z.number().int().positive(),
+  recentEvents: z.array(
+    z.object({
+      id: z.string().min(1),
+      eventType: z.enum(["daily_check_in", "observation_photo", "assistant_response"]),
+      amount: z.number().int().positive(),
+      createdAt: z.string().datetime(),
+    }),
+  ),
 });
 
 export type AccountRole = z.infer<typeof accountRoleSchema>;
@@ -215,6 +229,7 @@ export type CreateObservationInput = z.infer<typeof createObservationInputSchema
 export type KnowledgeArticle = z.infer<typeof knowledgeArticleSchema>;
 export type CommunityPost = z.infer<typeof communityPostSchema>;
 export type PlatformAvailability = z.infer<typeof platformAvailabilitySchema>;
+export type ExperienceSummary = z.infer<typeof experienceSummarySchema>;
 
 export function canUseStaffControls(profile: VerifiedAccountProfile | null): boolean {
   return Boolean(

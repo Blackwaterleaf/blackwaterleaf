@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Camera, Languages, LogOut, Save, ShieldCheck, UserRound } from "lucide-react";
+import { Camera, Languages, LogOut, Save, ShieldCheck, Trophy, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 const POLICY_VERSION = "privacy-2026-09-16-v1";
@@ -41,6 +41,7 @@ export default function Profile() {
   const { locale, unitSystem, setLocale, setUnitSystem, t } = useI18n();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const update = trpc.profile.update.useMutation();
   const setConsent = trpc.profile.setConsent.useMutation();
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
@@ -69,7 +70,7 @@ export default function Profile() {
   );
 
   const updateConsent = async (
-    purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing",
+    purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing",
     granted: boolean,
   ) => {
     await setConsent.mutateAsync({ purpose, granted, policyVersion: POLICY_VERSION });
@@ -157,6 +158,15 @@ export default function Profile() {
               <div><small>{t("profile.status")}</small><strong>{profile.data.status}</strong></div>
               <div><small>{t("profile.privacy")}</small><strong>{profile.data.profileVisibility}</strong></div>
             </div>
+            {experience.data?.status === "ready" ? (
+              <div className="verified-grid" aria-label={locale === "de" ? "Erfahrungspunkte" : "Experience points"}>
+                <div><small><Trophy size={13} /> XP</small><strong>{experience.data.totalXp}</strong></div>
+                <div><small>{locale === "de" ? "Level" : "Level"}</small><strong>{experience.data.level}</strong></div>
+                <div><small>{locale === "de" ? "Nächstes Level" : "Next level"}</small><strong>{experience.data.nextLevelXp} XP</strong></div>
+              </div>
+            ) : (
+              <p className="form-status">{locale === "de" ? "XP wird nach der Staging-Migration aktiviert." : "XP activates after the staging migration."}</p>
+            )}
             <label className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild wählen" : "Choose profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
             <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
           </section>
@@ -184,6 +194,7 @@ export default function Profile() {
             <ConsentToggle label={locale === "de" ? "Beobachtungen veröffentlichen" : "Publish observations"} checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
             <ConsentToggle label={locale === "de" ? "Bilder sicher verarbeiten" : "Process images securely"} checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
             <ConsentToggle label={locale === "de" ? "Community-Beiträge veröffentlichen" : "Publish community posts"} checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
+            <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
           </section>
         </>
       )}
