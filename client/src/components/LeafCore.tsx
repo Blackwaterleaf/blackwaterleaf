@@ -7,12 +7,12 @@ export function LeafCore() {
   const [open, setOpen] = useState(false);
   const { t } = useI18n();
   const actions = [
-    { label: t("leaf.photo"), href: "/world/botany", icon: Camera },
-    { label: t("leaf.observe"), href: "/world/aquarium", icon: ScanLine },
-    { label: t("leaf.post"), href: "/community", icon: MessageCircle },
-    { label: t("leaf.plant"), href: "/profile", icon: Sprout },
-    { label: t("leaf.aquarium"), href: "/profile", icon: Fish },
-    { label: "Terrarium", href: "/profile", icon: Box },
+    { label: t("leaf.photo"), href: "/flow/foto", icon: Camera },
+    { label: t("leaf.observe"), href: "/flow/live", icon: ScanLine },
+    { label: t("leaf.post"), href: "/flow/beitrag", icon: MessageCircle },
+    { label: t("leaf.plant"), href: "/world/botany", icon: Sprout },
+    { label: t("leaf.aquarium"), href: "/world/aquarium", icon: Fish },
+    { label: "Terrarium", href: "/world/terrarium", icon: Box },
     { label: t("leaf.ask"), href: "/assistant", icon: Bot },
   ];
 

@@ -1,33 +1,25 @@
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
+import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
+import { REFERENCE_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
 import { HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
-import { WORLD_CONFIG } from "@/lib/worlds";
-import { BookOpenText } from "lucide-react";
+import { BookOpenText, Leaf } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Explore() {
   const { t, locale } = useI18n();
   return (
-    <div className="page-stack">
-      <section className="page-hero bracket-panel">
-        <p className="eyebrow">[{t("explore.eyebrow")}]</p>
-        <h1 className="glitch-title" data-text={t("explore.title")}>{t("explore.title")}</h1>
-        <p>{t("explore.body")}</p>
-      </section>
-      <section>
-        <div className="section-heading">
-          <div><span className="eyebrow">[WORLD_INDEX]</span><h2>{t("home.worlds.title")}</h2></div>
-          <span className="system-chip">04 REALMS</span>
-        </div>
+    <div className="reference-page reference-page--botany">
+      <LiveSensorStrip compact />
+      <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow="WORLD INDEX" title={t("explore.title")} subtitle={locale === "de" ? "Vier lebendige Naturwelten." : "Four living nature worlds."} icon={Leaf} />
+      <section aria-label={t("home.worlds.title")}>
+        <div className="reference-actions__heading"><span>DEINE WELTEN</span><i aria-hidden="true" /></div>
         <div className="world-grid">
           {WORLD_CONFIG.map(world => <WorldCard key={world.number} {...world} title={t(world.titleKey)} subtitle={t(world.subtitleKey)} tone={world.realm} imageAlt={HOME_WORLD_IMAGE_ALTS[locale][world.realm]} />)}
         </div>
       </section>
-      <Link href="/knowledge" className="knowledge-link glass-panel">
-        <BookOpenText size={24} />
-        <span><small>{t("knowledge.eyebrow")}</small><strong>{t("knowledge.title")}</strong></span>
-        <span aria-hidden="true">→</span>
-      </Link>
+      <Link href="/knowledge" className="reference-divider"><Leaf size={16} /><span>WISSEN &amp; EVIDENZ</span><BookOpenText size={16} /></Link>
     </div>
   );
 }

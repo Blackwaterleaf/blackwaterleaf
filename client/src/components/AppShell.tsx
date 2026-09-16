@@ -1,4 +1,4 @@
-import { Bell, Bot, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, Leaf, Search, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -10,9 +10,15 @@ const navigation = [
   { href: "/", label: "tabs.home" as const, icon: Home },
   { href: "/explore", label: "tabs.explore" as const, icon: Compass },
   { href: "/community", label: "tabs.community" as const, icon: UsersRound },
-  { href: "/assistant", label: "tabs.assistant" as const, icon: Bot },
   { href: "/profile", label: "tabs.profile" as const, icon: UserRound },
 ];
+
+function isReferenceNavigationActive(location: string, href: string) {
+  if (href === "/") return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto");
+  if (href === "/explore") return location.startsWith("/explore") || location.startsWith("/knowledge");
+  if (href === "/community") return location.startsWith("/community") || location.startsWith("/flow/beitrag");
+  return location.startsWith(href);
+}
 
 export function AppShell({ children }: PropsWithChildren) {
   const [location] = useLocation();
@@ -47,7 +53,7 @@ export function AppShell({ children }: PropsWithChildren) {
         </Link>
         <nav className="desktop-navigation" aria-label="Hauptnavigation">
           {navigation.map(item => {
-            const active = item.href === "/" ? location === "/" : location.startsWith(item.href);
+            const active = isReferenceNavigationActive(location, item.href);
             return <Link key={item.href} href={item.href} className={active ? "active" : ""}>{t(item.label)}</Link>;
           })}
         </nav>
@@ -62,7 +68,7 @@ export function AppShell({ children }: PropsWithChildren) {
       <nav className="bottom-navigation" aria-label="Hauptnavigation">
         {navigation.map(item => {
           const Icon = item.icon;
-          const active = item.href === "/" ? location === "/" : location.startsWith(item.href);
+          const active = isReferenceNavigationActive(location, item.href);
           return (
             <Link key={item.href} href={item.href} className={`nav-link ${active ? "active" : ""}`}>
               <Icon size={19} strokeWidth={active ? 2.2 : 1.6} />

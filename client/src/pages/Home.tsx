@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <div className={`home-stack weather-effect--${weatherEffect}`}>
       <div className="weather-atmosphere" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-      <LiveSensorStrip onWeatherEffectChange={applyWeatherEffect} />
+      <LiveSensorStrip compact onWeatherEffectChange={applyWeatherEffect} />
 
       <section className="home-hero hero-scene" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}>
         <span className="hero-light" aria-hidden="true" />
