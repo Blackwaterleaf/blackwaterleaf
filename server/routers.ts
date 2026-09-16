@@ -9,6 +9,8 @@ import { communityRouter } from "./routers/community";
 import { knowledgeRouter } from "./routers/knowledge";
 import { gamificationRouter } from "./routers/gamification";
 import { assistantRouter } from "./routers/assistant";
+import { adminRouter } from "./routers/admin";
+import { partnersRouter } from "./routers/partners";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -20,6 +22,8 @@ export const appRouter = router({
   community: communityRouter,
   gamification: gamificationRouter,
   assistant: assistantRouter,
+  admin: adminRouter,
+  partners: partnersRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

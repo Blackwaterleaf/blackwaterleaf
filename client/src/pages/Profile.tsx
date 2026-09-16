@@ -154,9 +154,9 @@ export default function Profile() {
               <div><h2>{profile.data.name ?? profile.data.username ?? "BlackWaterLeaf"}</h2><p>{profile.data.email ?? ""}</p></div>
             </div>
             <div className="verified-grid">
-              <div><small>{t("profile.role")}</small><strong>{profile.data.role}</strong></div>
-              <div><small>{t("profile.status")}</small><strong>{profile.data.status}</strong></div>
-              <div><small>{t("profile.privacy")}</small><strong>{profile.data.profileVisibility}</strong></div>
+              <div><small>{locale === "de" ? "Rolle" : "Role"}</small><strong>{profile.data.role}</strong></div>
+              <div><small>{locale === "de" ? "Status" : "Status"}</small><strong>{profile.data.status}</strong></div>
+              <div><small>{locale === "de" ? "Sichtbar" : "Visible"}</small><strong>{profile.data.profileVisibility}</strong></div>
             </div>
             {experience.data?.status === "ready" ? (
               <div className="verified-grid" aria-label={locale === "de" ? "Erfahrungspunkte" : "Experience points"}>
@@ -167,35 +167,42 @@ export default function Profile() {
             ) : (
               <p className="form-status">{locale === "de" ? "XP wird nach der Staging-Migration aktiviert." : "XP activates after the staging migration."}</p>
             )}
-            <label className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild wählen" : "Choose profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
-            <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
-          </section>
-
-          <form className="profile-form glass-panel" onSubmit={saveProfile}>
-            <div className="form-grid">
-              <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
-              <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
-              <Field label={locale === "de" ? "Ort" : "Location"} value={form.location} onChange={value => setForm(current => ({ ...current, location: value }))} />
-              <Field label="Website" type="url" value={form.website} onChange={value => setForm(current => ({ ...current, website: value }))} />
-              <Field label="Instagram" type="url" value={form.instagram} onChange={value => setForm(current => ({ ...current, instagram: value }))} />
-              <Field label="TikTok" type="url" value={form.tiktok} onChange={value => setForm(current => ({ ...current, tiktok: value }))} />
-              <Field label="YouTube" type="url" value={form.youtube} onChange={value => setForm(current => ({ ...current, youtube: value }))} />
-              <Field label="Facebook" type="url" value={form.facebook} onChange={value => setForm(current => ({ ...current, facebook: value }))} />
-              <label className="field"><span>{t("profile.privacy")}</span><select value={form.profileVisibility} onChange={event => setForm(current => ({ ...current, profileVisibility: event.target.value as ProfileForm["profileVisibility"] }))}><option value="private">private</option><option value="unlisted">unlisted</option><option value="public">public</option></select></label>
+            <div className="account-actions">
+              <label className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild" : "Profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
+              <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
             </div>
-            <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
-            <button type="submit" className="primary-action" disabled={update.isPending}><Save size={16} />{update.isPending ? t("common.loading") : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
-          </form>
-
-          <section className="consent-panel glass-panel">
-            <p className="eyebrow">[PRIVACY_CONTROL]</p>
-            <h2>{locale === "de" ? "DEINE FREIGABEN" : "YOUR PERMISSIONS"}</h2>
-            <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
-            <ConsentToggle label={locale === "de" ? "Beobachtungen veröffentlichen" : "Publish observations"} checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
-            <ConsentToggle label={locale === "de" ? "Bilder sicher verarbeiten" : "Process images securely"} checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
-            <ConsentToggle label={locale === "de" ? "Community-Beiträge veröffentlichen" : "Publish community posts"} checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
-            <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
+            {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
+
+          <details className="account-section glass-panel">
+            <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
+            <form className="profile-form" onSubmit={saveProfile}>
+              <div className="form-grid">
+                <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
+                <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
+                <Field label={locale === "de" ? "Ort" : "Location"} value={form.location} onChange={value => setForm(current => ({ ...current, location: value }))} />
+                <Field label="Website" type="url" value={form.website} onChange={value => setForm(current => ({ ...current, website: value }))} />
+                <Field label="Instagram" type="url" value={form.instagram} onChange={value => setForm(current => ({ ...current, instagram: value }))} />
+                <Field label="TikTok" type="url" value={form.tiktok} onChange={value => setForm(current => ({ ...current, tiktok: value }))} />
+                <Field label="YouTube" type="url" value={form.youtube} onChange={value => setForm(current => ({ ...current, youtube: value }))} />
+                <Field label="Facebook" type="url" value={form.facebook} onChange={value => setForm(current => ({ ...current, facebook: value }))} />
+                <label className="field"><span>{locale === "de" ? "Profilsichtbarkeit" : "Profile visibility"}</span><select value={form.profileVisibility} onChange={event => setForm(current => ({ ...current, profileVisibility: event.target.value as ProfileForm["profileVisibility"] }))}><option value="private">private</option><option value="unlisted">unlisted</option><option value="public">public</option></select></label>
+              </div>
+              <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
+              <button type="submit" className="primary-action" disabled={update.isPending}><Save size={16} />{update.isPending ? t("common.loading") : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
+            </form>
+          </details>
+
+          <details className="account-section glass-panel">
+            <summary><span>{locale === "de" ? "Datenschutz & Freigaben" : "Privacy & permissions"}</span><small>{locale === "de" ? "Du entscheidest über jede Freigabe" : "You control every permission"}</small></summary>
+            <section className="consent-panel">
+              <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
+              <ConsentToggle label={locale === "de" ? "Beobachtungen veröffentlichen" : "Publish observations"} checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
+              <ConsentToggle label={locale === "de" ? "Bilder sicher verarbeiten" : "Process images securely"} checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
+              <ConsentToggle label={locale === "de" ? "Community-Beiträge veröffentlichen" : "Publish community posts"} checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
+              <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
+            </section>
+          </details>
         </>
       )}
 

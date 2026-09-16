@@ -12,12 +12,16 @@ import Home from "./pages/Home";
 import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
 import Realm from "./pages/Realm";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
-    <AppShell>
-      <Switch>
+    <Switch>
+      <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/:section"} component={AdminDashboard} />
+      <Route>
+        <AppShell>
+          <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/explore"} component={Explore} />
         <Route path={"/community"} component={Community} />
@@ -27,8 +31,10 @@ function Router() {
         <Route path={"/world/:realm"} component={Realm} />
         <Route path={"/404"} component={NotFound} />
         <Route component={NotFound} />
-      </Switch>
-    </AppShell>
+          </Switch>
+        </AppShell>
+      </Route>
+    </Switch>
   );
 }
 

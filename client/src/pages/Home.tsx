@@ -15,9 +15,10 @@ function atmosphereForHour(hour: number, labels: { morning: string; day: string;
 }
 
 export default function Home() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.feed.useQuery({ limit: 1 }, { retry: false });
+  const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
   const atmosphere = atmosphereForHour(new Date().getHours(), {
     morning: t("home.atmosphere.morning"),
     day: t("home.atmosphere.day"),
@@ -47,6 +48,11 @@ export default function Home() {
           <p>{t("home.hero.body")}</p>
           <Link href="/explore" className="primary-action">{t("home.hero.action")}<ArrowRight size={16} /></Link>
         </div>
+      </section>
+
+      <section className="partner-home-section glass-panel">
+        <div className="section-heading"><div><span className="eyebrow">[PARTNERPLATZIERUNGEN]</span><h2>{locale === "de" ? "Empfohlen & gekennzeichnet" : "Recommended & disclosed"}</h2></div><span className="system-chip">{locale === "de" ? "WERBUNG" : "ADVERTISEMENT"}</span></div>
+        {partners.isLoading ? <p className="partner-empty">{locale === "de" ? "Partnerplatzierungen werden geprüft." : "Partner placements are being verified."}</p> : partners.isError ? <p className="partner-empty">{locale === "de" ? "Partnerplatzierungen sind derzeit nicht verfügbar." : "Partner placements are currently unavailable."}</p> : partners.data?.length ? <div className="partner-home-grid">{partners.data.map(partner => <article className="partner-home-card" key={partner.placementId}><span>{partner.disclosureLabel}</span><h3>{partner.displayName}</h3><p>{partner.partyType === "company" ? (locale === "de" ? "Unternehmenspartner" : "Business partner") : (locale === "de" ? "Persönliche Empfehlung" : "Personal recommendation")}</p>{partner.destinationUrl ? <a href={partner.destinationUrl} target="_blank" rel="sponsored nofollow noopener">{locale === "de" ? "Partnerseite öffnen" : "Open partner page"}<ArrowRight size={14} /></a> : null}</article>)}</div> : <p className="partner-empty">{locale === "de" ? "Noch keine aktiv freigegebene Partnerplatzierung." : "No actively approved partner placement yet."}</p>}
       </section>
 
       <section>

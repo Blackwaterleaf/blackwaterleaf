@@ -29,6 +29,27 @@
       "when": 1789535974318,
       "tag": "0003_slimy_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1789558235296,
+      "tag": "0004_skinny_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1789559080067,
+      "tag": "0005_early_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1789559516039,
+      "tag": "0006_calm_mandroid",
+      "breakpoints": true
     }
   ]
 }

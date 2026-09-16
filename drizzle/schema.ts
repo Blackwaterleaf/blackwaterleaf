@@ -295,6 +295,107 @@ export const moderationLogs = mysqlTable(
   table => [index("moderation_logs_target_idx").on(table.targetType, table.targetId, table.createdAt)],
 );
 
+/**
+ * Tamper-evident append-only application ledger. TiDB does not support
+ * triggers; entries therefore use a server-only HMAC signature and a hash chain.
+ */
+export const auditLedgerEntries = mysqlTable(
+  "audit_ledger_entries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 64 }).notNull(),
+    actorId: int("actorId")
+      .notNull()
+      .references(() => users.id),
+    action: varchar("action", { length: 64 }).notNull(),
+    targetType: varchar("targetType", { length: 32 }).notNull(),
+    targetId: int("targetId").notNull(),
+    payloadHash: varchar("payloadHash", { length: 64 }).notNull(),
+    previousHash: varchar("previousHash", { length: 64 }),
+    entryHash: varchar("entryHash", { length: 64 }).notNull(),
+    signature: varchar("signature", { length: 64 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("audit_ledger_event_id_unique").on(table.eventId),
+    uniqueIndex("audit_ledger_entry_hash_unique").on(table.entryHash),
+    index("audit_ledger_target_idx").on(table.targetType, table.targetId, table.createdAt),
+  ],
+);
+
+/** The only mutable ledger state; it makes deletion or reordering detectable. */
+export const auditLedgerHeads = mysqlTable("audit_ledger_heads", {
+  id: int("id").primaryKey(),
+  lastEntryHash: varchar("lastEntryHash", { length: 64 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** A real person or company that an active administrator has documented for partner review. */
+export const partnerProfiles = mysqlTable(
+  "partner_profiles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    displayName: varchar("displayName", { length: 160 }).notNull(),
+    partyType: mysqlEnum("partyType", ["person", "company"]).notNull(),
+    destinationUrl: varchar("destinationUrl", { length: 500 }),
+    disclosureLabel: varchar("disclosureLabel", { length: 80 }).default("Werbung").notNull(),
+    authorizationConfirmedAt: timestamp("authorizationConfirmedAt"),
+    status: mysqlEnum("status", ["draft", "approved", "paused", "removed"]).default("draft").notNull(),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("partner_profiles_status_idx").on(table.status, table.updatedAt)],
+);
+
+/** A reviewable, time-bounded placement. Only an active home placement may be public. */
+export const partnerPlacements = mysqlTable(
+  "partner_placements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    placement: mysqlEnum("placement", ["home"]).default("home").notNull(),
+    status: mysqlEnum("status", ["draft", "active", "paused", "expired", "removed"]).default("draft").notNull(),
+    startsAt: timestamp("startsAt"),
+    endsAt: timestamp("endsAt"),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_placements_partner_placement_unique").on(table.partnerId, table.placement),
+    index("partner_placements_public_idx").on(table.placement, table.status, table.startsAt, table.endsAt),
+  ],
+);
+
+/** Versioned authorization events for real partner advertising; only the most recent event determines validity. */
+export const partnerAuthorizations = mysqlTable(
+  "partner_authorizations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 64 }).notNull(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    authorizationVersion: varchar("authorizationVersion", { length: 32 }).notNull(),
+    state: mysqlEnum("state", ["granted", "revoked"]).notNull(),
+    confirmedByUserId: int("confirmedByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_authorizations_event_id_unique").on(table.eventId),
+    index("partner_authorizations_partner_created_idx").on(table.partnerId, table.createdAt),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type UserConsent = typeof userConsents.$inferSelect;
@@ -305,3 +406,7 @@ export type XpEventRecord = typeof xpEvents.$inferSelect;
 export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;
+export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;
+export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
+export type PartnerPlacementRecord = typeof partnerPlacements.$inferSelect;
+export type PartnerAuthorizationRecord = typeof partnerAuthorizations.$inferSelect;

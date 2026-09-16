@@ -31,3 +31,19 @@
 - [x] Vor der ersten Übergabe genau einen Projekt-Checkpoint erstellen und die Staging-Version bereitstellen.
 - [ ] Domainumschaltung von der aktiven Webador-Seite auf die geprüfte Web-App erst nach separater ausdrücklicher Freigabe und dokumentiertem Rückfallplan durchführen.
 - [x] Deutsch als Haupt- und Standardsprache für neue Sitzungen setzen und nach Anmeldung die serverseitige Kontosprache gegenüber der Browser-Locale priorisieren; Englisch bleibt auswählbar.
+
+- [x] Mobiles Profil- und Kontolayout komprimieren: Hero, Identität, Status, XP und primäre Kontofunktionen ohne übergroße Flächen oder verdeckte Formularfelder auf S23-Ultra-naher Ansicht darstellen.
+- [x] Die bestätigte Datenbankzuordnung von `blackwaterleaf@gmail.com` rein lesend gegen den aktuell angemeldeten Account prüfen; keine E-Mail-basierte, lokale oder implizite Rollenerteilung verwenden.
+- [x] Nach gesonderter Bestätigung die verifizierte Kontorolle von `blackwaterleaf@gmail.com` serverseitig auf `admin` setzen und die Änderung in einem revisionssicheren, manipulationsnachweisbaren Moderationsaudit protokollieren.
+- [x] Moderationsaudit technisch als app-seitig append-only und hashverkettet absichern, Manipulation per Signatur prüfen und anschließend die protokollierte Admin-Hochstufung erneut validieren; TiDB-Trigger sind nicht verfügbar und werden nicht vorgetäuscht.
+- [x] Den tatsächlich gespeicherten Admin-Hochstufungs-Ledger serverseitig gegen Kopfhash, gesamte Vorgängerkette und HMAC-Signatur prüfen; den Ende-zu-Ende-Nachweis dokumentieren.
+- [x] Gespeicherten Ende-zu-Ende-Nachweis im Auditdokument unabhängig nachlesen und vor dem nächsten Checkpoint als korrekt verifizieren.
+- [x] Ein geschütztes Moderationsdashboard für aktive `moderator`- und `admin`-Konten implementieren; normale Nutzer dürfen weder Route noch Daten einsehen oder ändern.
+- [x] Ein geschütztes Partner- und Werbedashboard für aktive `admin`-Konten implementieren, das nur reale Partnerprofile mit Kennzeichnung, Einwilligungsstatus, Gültigkeit und Freigabestatus verwaltet.
+- [x] Additive Tabellen und versionierte Migration für Partnerprofile, Platzierungen und Partnerfreigaben erstellen; keine Partner-, Firmen- oder Privatpersonendaten vorsäen.
+- [x] Nur aktiv freigegebene reale Partnerplatzierungen mit sichtbarer Werbekennzeichnung auf der Startseite anzeigen; ohne reale Freigabe einen neutralen Leerzustand zeigen.
+- [x] Gültigkeitsverwaltung für Partnerplatzierungen vervollständigen: `startsAt` und `endsAt` im Admin-Dashboard und Serverrouter editierbar machen, Reihenfolge validieren und jede Änderung auditiert protokollieren.
+- [x] Versionierte Partnerfreigabeereignisse als eigene, additive Datenstruktur für Erteilung und Widerruf ergänzen; aktive Frontseitenwerbung nur bei aktuell bestätigter Freigabe zulassen.
+- [ ] Positiven Admin-Partnerfluss erst mit einer real autorisierten Person oder Firma abnehmen: Entwurf, Genehmigung, aktive Platzierung, Pause/Entfernung sowie öffentliche Kennzeichnung prüfen. Bis dahin bleiben Leerzustand und autorisierte Negativtests der gültige Nachweis.
+- [x] Admin-, Moderator-, Partner-, Eigentums-, Sichtbarkeits- und mobile Layouttests sowie TypeScript-, Produktionsbuild- und Sicherheitsprüfungen erfolgreich ausführen.
+- [ ] Aktualisierten Stagingcheckpoint zur Abnahme bereitstellen; Domainumschaltung weiterhin nur nach separater ausdrücklicher Freigabe durchführen.
