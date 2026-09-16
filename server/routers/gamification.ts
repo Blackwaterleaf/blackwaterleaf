@@ -34,10 +34,11 @@ export const gamificationRouter = router({
     const db = await requireDatabase();
     const reward = await awardXpIfReady(db, {
       userId: ctx.user.id,
-      eventType: "daily_check_in",
-      eventKey: `daily:${dayKey()}`,
-      amount: XP_REWARDS.dailyCheckIn,
-      metadata: { source: "authenticated_daily_check_in" },
+      eventType: "daily_login",
+      eventKey: `xp:${ctx.user.id}:daily:${dayKey()}`,
+      points: XP_REWARDS.dailyCheckIn,
+      sourceType: "session",
+      sourceId: dayKey(),
     });
     return reward;
   }),

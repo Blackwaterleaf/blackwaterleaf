@@ -114,10 +114,11 @@ export const assistantRouter = router({
     await db.update(assistantUsage).set({ completionChars: answer.length }).where(eq(assistantUsage.id, usageId));
     const reward = await awardXpIfReady(db, {
       userId: ctx.user.id,
-      eventType: "assistant_response",
-      eventKey: `assistant:${usageId}`,
-      amount: XP_REWARDS.assistantResponse,
-      metadata: { model: "gpt-5-mini", realm: input.realm ?? null },
+      eventType: "ai_use",
+      eventKey: `xp:${ctx.user.id}:ai:${usageId}`,
+      points: XP_REWARDS.assistantResponse,
+      sourceType: "ai_request",
+      sourceId: String(usageId),
     });
 
     return {

@@ -54,7 +54,7 @@ async function startServer() {
   app.use("/api/trpc/observations.uploadImage", uploadRateLimiter);
   app.use("/api/trpc/community.uploadDraftImage", uploadRateLimiter);
   app.use("/api/trpc/community", communityRateLimiter);
-  app.use("/api/trpc/ai", aiRateLimiter);
+  app.use("/api/trpc/assistant", aiRateLimiter);
   // tRPC API
   app.use(
     "/api/trpc",

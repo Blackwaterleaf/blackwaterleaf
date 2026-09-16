@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "3578a066-206f-4dc3-91a1-122acf9d6a77",
+  "id": "24aa2fd6-d353-4568-b058-0105923324bd",
   "prevId": "ee60586a-e79a-49ef-bc3d-ed30012cfeb7",
   "tables": {
     "assistant_usage": {
@@ -1308,30 +1308,51 @@
         },
         "eventType": {
           "name": "eventType",
-          "type": "enum('daily_check_in','observation_photo','assistant_response')",
+          "type": "enum('daily_login','photo_upload','ai_use')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points": {
+          "name": "points",
+          "type": "int",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "eventKey": {
           "name": "eventKey",
-          "type": "varchar(160)",
+          "type": "varchar(191)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "amount": {
-          "name": "amount",
-          "type": "int",
+        "sourceType": {
+          "name": "sourceType",
+          "type": "enum('session','media_asset','ai_request')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "metadata": {
-          "name": "metadata",
-          "type": "json",
+        "sourceId": {
+          "name": "sourceId",
+          "type": "varchar(191)",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dayKey": {
+          "name": "dayKey",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "policyVersion": {
+          "name": "policyVersion",
+          "type": "varchar(32)",
+          "primaryKey": false,
+          "notNull": true,
           "autoincrement": false
         },
         "createdAt": {
@@ -1344,20 +1365,27 @@
         }
       },
       "indexes": {
-        "xp_events_user_event_key_unique": {
-          "name": "xp_events_user_event_key_unique",
+        "xp_events_event_key_unique": {
+          "name": "xp_events_event_key_unique",
           "columns": [
-            "userId",
             "eventKey"
           ],
           "isUnique": true
         },
-        "xp_events_user_type_created_idx": {
-          "name": "xp_events_user_type_created_idx",
+        "xp_events_user_created_idx": {
+          "name": "xp_events_user_created_idx",
+          "columns": [
+            "userId",
+            "createdAt"
+          ],
+          "isUnique": false
+        },
+        "xp_events_user_type_day_idx": {
+          "name": "xp_events_user_type_day_idx",
           "columns": [
             "userId",
             "eventType",
-            "createdAt"
+            "dayKey"
           ],
           "isUnique": false
         }

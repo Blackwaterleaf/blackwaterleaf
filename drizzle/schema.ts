@@ -179,15 +179,19 @@ export const xpEvents = mysqlTable(
     userId: int("userId")
       .notNull()
       .references(() => users.id),
-    eventType: mysqlEnum("eventType", ["daily_check_in", "observation_photo", "assistant_response"]).notNull(),
-    eventKey: varchar("eventKey", { length: 160 }).notNull(),
-    amount: int("amount").notNull(),
-    metadata: json("metadata"),
+    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use"]).notNull(),
+    points: int("points").notNull(),
+    eventKey: varchar("eventKey", { length: 191 }).notNull(),
+    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request"]).notNull(),
+    sourceId: varchar("sourceId", { length: 191 }).notNull(),
+    dayKey: varchar("dayKey", { length: 10 }).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
-    uniqueIndex("xp_events_user_event_key_unique").on(table.userId, table.eventKey),
-    index("xp_events_user_type_created_idx").on(table.userId, table.eventType, table.createdAt),
+    uniqueIndex("xp_events_event_key_unique").on(table.eventKey),
+    index("xp_events_user_created_idx").on(table.userId, table.createdAt),
+    index("xp_events_user_type_day_idx").on(table.userId, table.eventType, table.dayKey),
   ],
 );
 

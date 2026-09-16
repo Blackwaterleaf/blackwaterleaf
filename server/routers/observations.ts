@@ -237,10 +237,11 @@ export const observationsRouter = router({
       });
       const reward = await awardXpIfReady(db, {
         userId: ctx.user.id,
-        eventType: "observation_photo",
-        eventKey: `observation-photo:${observation.id}`,
-        amount: XP_REWARDS.observationPhoto,
-        metadata: { observationId: observation.id },
+        eventType: "photo_upload",
+        eventKey: `xp:${ctx.user.id}:observation-photo:${observation.id}`,
+        points: XP_REWARDS.observationPhoto,
+        sourceType: "media_asset",
+        sourceId: String(inserted[0].insertId),
       });
       return {
         id: String(inserted[0].insertId),

@@ -7,11 +7,11 @@
 
 | Prüffeld | Ergebnis | Nachweis |
 |---|---|---|
-| Vitest | Bestanden | 8 Testdateien, 38 Tests, 0 Fehler |
+| Vitest | Bestanden | 10 Testdateien, 45 Tests, 0 Fehler |
 | TypeScript | Bestanden | `tsc --noEmit`, 0 Fehler |
 | Produktionsbuild | Bestanden | Vite-Client und gebündelter Express-Server erzeugt |
 | Produktionsabhängigkeiten | Bestanden | `pnpm audit --prod --audit-level high`: keine bekannten Schwachstellen |
-| MySQL-Migrationen | Bestanden | Zwei additive Migrationen geprüft, ausgeführt und im Journal registriert |
+| MySQL-Migrationen | Teilweise | Bestehende Basisstruktur ist aktiv; die additive Tabelle `assistant_usage` ist geprüft, aber noch nicht in dieser Staging-Datenbank angelegt |
 | Datenwahrheit | Bestanden | Keine Seed-/Beispielnutzer, -beiträge, -likes, -beobachtungen oder KI-Antworten angelegt |
 
 ## Sicherheitskontrollen
@@ -31,3 +31,5 @@ Der erste Produktionsaudit meldete 85 Befunde, darunter einen kritischen und 23 
 ## Verbleibender technischer Hinweis
 
 Der Vite-Produktionsbuild weist auf ein JavaScript-Bundle oberhalb von 500 kB hin. Das ist kein Sicherheitsfehler und blockiert die Staging-Abnahme nicht, sollte aber vor einer späteren breit angelegten Produktionseinführung durch routenbasiertes Code-Splitting optimiert werden.
+
+Die vorhandene, leere Tabelle `xp_events` wurde vor dem aktuellen Checkout angelegt und nutzt den Journalvertrag `daily_login`, `photo_upload`, `ai_use`, `points`, Quellenreferenzen, UTC-Tag und Policy-Version. Der Quellcode ist auf diesen vorhandenen Vertrag abgeglichen. Die neue Migration legt bewusst nur `assistant_usage` an und darf nicht über einen unkontrollierten globalen Drizzle-Lauf ausgeführt werden, weil das DB-Migrationsjournal nicht die gesamte lokale Migrationshistorie widerspiegelt. Vor einer Schemaausführung ist eine gezielte, additive SQL-Anwendung mit anschließendem Schemaabgleich erforderlich.
