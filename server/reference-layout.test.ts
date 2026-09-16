@@ -30,6 +30,11 @@ describe("BlackWaterLeaf reference layout", () => {
     }
   });
 
+  it("keeps the central action wheel exactly centered without a vertical offset", () => {
+    expect(style).toContain(".home-capture-zone .leaf-core { position: relative; left: auto; bottom: auto; z-index: 4; width: 110px; height: 110px; margin: 0; transform: none; }");
+    expect(style.indexOf("margin: 0; transform: none;")).toBeGreaterThan(style.indexOf("margin-top: 22px"));
+  });
+
   it("uses the supplied green light, water and individual realm color language", () => {
     for (const token of ["#b0fb78", "#40d9ff", "#e0c75f", "#bf8fff", ".world-aquarium", ".world-terrarium", ".world-assistant"]) {
       expect(style).toContain(token);
