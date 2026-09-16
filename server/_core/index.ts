@@ -8,6 +8,15 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import {
+  aiRateLimiter,
+  apiRateLimiter,
+  authRateLimiter,
+  communityRateLimiter,
+  sameOriginMutationGuard,
+  securityHeaders,
+  uploadRateLimiter,
+} from "../security";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,14 +40,26 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.set("trust proxy", 1);
+  app.disable("x-powered-by");
+  app.use(securityHeaders);
+  // 12 MB request limit allows an 8 MB image plus base64 overhead while
+  // preventing the previous unrestricted 50 MB API payload surface.
+  app.use(express.json({ limit: "12mb" }));
+  app.use(express.urlencoded({ limit: "12mb", extended: true }));
   registerStorageProxy(app);
+  app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
+  app.use("/api/trpc/profile.uploadAvatar", uploadRateLimiter);
+  app.use("/api/trpc/observations.uploadImage", uploadRateLimiter);
+  app.use("/api/trpc/community.uploadDraftImage", uploadRateLimiter);
+  app.use("/api/trpc/community", communityRateLimiter);
+  app.use("/api/trpc/ai", aiRateLimiter);
   // tRPC API
   app.use(
     "/api/trpc",
+    apiRateLimiter,
+    sameOriginMutationGuard,
     createExpressMiddleware({
       router: appRouter,
       createContext,

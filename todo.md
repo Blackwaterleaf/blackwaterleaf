@@ -1,0 +1,32 @@
+# BlackWaterLeaf Parity Staging – Projekt-TODO
+
+- [x] Gemeinsamen Vertrag `shared/blackwaterleaf-contract-v1.ts` mit versionierten Entitäten, Rollen, Sichtbarkeit, Evidenz-, Offline- und Fehlerzuständen für Konto, Profil, Botanik, Aquaristik, Terraristik, Wissen und Community definieren.
+- [x] Vertrags- und Paritätsdokument `docs/WEB_NATIVE_PARITY_CONTRACT_V1.md` mit verbindlichen Web-/Native-Funktionsgrenzen, Datenwahrheit und KI-Sperre erstellen.
+- [x] Kanonische bestehende Webrouter, Datenbankschemata und Native-Verträge gegen den neuen V1-Vertrag inventarisieren; keine veralteten Studio-Komponenten übernehmen.
+- [x] MySQL-Schema additiv um Nutzerprofile, Rollen `user|moderator|admin`, granulare Sichtbarkeit, Einwilligungen, Beobachtungen, Naturwelten, Wissen, Community und Synchronisationsmetadaten erweitern.
+- [x] Datenbankmigration generieren, SQL vor Anwendung prüfen, additiv ausführen und anschließend Schema- und Liveness-Tests durchführen.
+- [x] Rollen ausschließlich aus authentifizierter Datenbankquelle ableiten; keine E-Mail-basierte oder lokale Admin-/Moderator-Simulation implementieren.
+- [x] Eigentumsprüfungen für alle geschützten Pflanzen-, Aquarium-, Terrarium-, Profil-, Medien- und Communitymutationen serverseitig erzwingen.
+- [x] Öffentliche Abfragen mit Sichtbarkeits-, Veröffentlichungs- und Eigentumsregeln absichern; private Datensätze dürfen nicht enumerierbar sein.
+- [x] Uploads auf erlaubte Bildtypen, tatsächliche Dateisignatur, Dateigröße und Eigentum prüfen; Bildbytes ausschließlich über S3-Speicherhelfer ablegen.
+- [x] Rate Limits für Auth-, Upload-, Community- und künftige KI-Endpunkte implementieren und durch Vitest abdecken.
+- [x] Sicherheitsheader mit restriktiver Content-Security-Policy sowie Origin-/CSRF-Schutz für Cookie-basierte Mutationen implementieren.
+- [x] Sitzungstoken auf Anwendungskontext prüfen und Auth-/Logout-/Forbidden-Pfade mit Vitest abdecken.
+- [x] Deutsch/Englisch als versionierten Web-i18n-Vertrag mit Geräteerkennung, persistenter Auswahl und metrisch/imperialem Einheitenkontext umsetzen.
+- [x] Retrofuturistisches Living-UI mit tiefschwarzem Grund, Scanlines, Cyan-/Magenta-Aberration, Monospace-Systemcodes, geometrischen Klammern und digitalem Rauschen implementieren.
+- [x] Zentrale animierte Blattinteraktion als fokussierbaren, tastaturbedienbaren Navigationskern für Botanik, Aquaristik, Terraristik und KI umsetzen.
+- [x] Responsive Hauptnavigation für Home, Entdecken, Community, KI und Profil sowie direkte Naturwelt-Einstiege implementieren.
+- [x] Bewegung auf `transform`/`opacity` beschränken, `prefers-reduced-motion` respektieren und Textkontrast/Focus-States prüfen.
+- [x] Authentifizierte Konto- und Profiloberfläche mit Avatar, Bio, Locale, Einheiten und Social-Link-Feldern an echte API-Daten anbinden.
+- [x] Botanik-, Aquaristik- und Terraristikübersichten an echte persönliche Beobachtungsabfragen anbinden; ohne Daten klaren privaten Leerzustand anzeigen.
+- [x] Wissensoberfläche nur an reale, quellenbelegte und veröffentlichte Knowledge-Einträge anbinden; keine Beispieldatensätze erzeugen.
+- [x] Communityoberfläche nur an echte sichtbare Beiträge anbinden; ohne Beiträge einen ehrlichen Leerzustand anzeigen und keine Likes, Nutzer oder Inhalte simulieren.
+- [x] Offline-, nicht verbunden-, nicht autorisiert-, leer-, Lade- und Serverfehlerzustände für alle Kernflächen explizit darstellen.
+- [x] KI-Fläche standardmäßig als gesperrt kennzeichnen, solange Anbieter, Modell, Kosten und Datenschutz nicht ausdrücklich freigegeben sind; keine Antwortsimulation implementieren.
+- [x] `blackwaterleaf@gmail.com` nicht lokal hochstufen; Admin-/Moderatorrolle erst nach echter Konto- und Datenbankverifikation separat durchführen.
+- [x] Vitest-Tests für Verträge, Sichtbarkeit, Eigentum, Uploadvalidierung, CSRF/Origin, Rate Limits, i18n und ehrliche Leerzustände implementieren.
+- [x] TypeScript-Prüfung, Produktionsbuild und vollständige Tests erfolgreich ausführen.
+- [x] Desktop- und Mobile-Screenshots aller Kernrouten erstellen und auf Living-UI, Kontrast, Überlauf, Navigation und Leerzustände prüfen.
+- [x] `docs/WEB_NATIVE_PARITY_MATRIX_FINAL.md` mit evidenzbasiertem Status je Kernfunktion erstellen; nur tatsächlich verifizierte Punkte als paritätisch markieren.
+- [x] Vor der ersten Übergabe genau einen Projekt-Checkpoint erstellen und die Staging-Version bereitstellen.
+- [ ] Domainumschaltung von der aktiven Webador-Seite auf die geprüfte Web-App erst nach separater ausdrücklicher Freigabe und dokumentiertem Rückfallplan durchführen.

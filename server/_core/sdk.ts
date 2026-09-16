@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
+import { isSessionPayloadBoundToApp } from "../security";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -211,19 +212,16 @@ class SDKServer {
       });
       const { openId, appId, name } = payload as Record<string, unknown>;
 
-      if (
-        !isNonEmptyString(openId) ||
-        !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
-      ) {
-        console.warn("[Auth] Session payload missing required fields");
+      const sessionPayload = { openId, appId, name };
+      if (!isSessionPayloadBoundToApp(sessionPayload, ENV.appId)) {
+        console.warn("[Auth] Session payload is incomplete or belongs to a different application");
         return null;
       }
 
       return {
-        openId,
-        appId,
-        name,
+        openId: sessionPayload.openId,
+        appId: sessionPayload.appId,
+        name: sessionPayload.name,
       };
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));

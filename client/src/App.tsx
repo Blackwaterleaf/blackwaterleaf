@@ -3,18 +3,32 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Assistant from "./pages/Assistant";
+import Community from "./pages/Community";
+import Explore from "./pages/Explore";
 import Home from "./pages/Home";
+import Knowledge from "./pages/Knowledge";
+import Profile from "./pages/Profile";
+import Realm from "./pages/Realm";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <AppShell>
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/explore"} component={Explore} />
+        <Route path={"/community"} component={Community} />
+        <Route path={"/assistant"} component={Assistant} />
+        <Route path={"/profile"} component={Profile} />
+        <Route path={"/knowledge"} component={Knowledge} />
+        <Route path={"/world/:realm"} component={Realm} />
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </AppShell>
   );
 }
 
@@ -27,7 +41,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
+        defaultTheme="dark"
         // switchable
       >
         <TooltipProvider>
