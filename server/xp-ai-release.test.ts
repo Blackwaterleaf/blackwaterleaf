@@ -47,6 +47,8 @@ describe("XP and AI staged release guards", () => {
 
     expect(assistant).toContain('eventType: "ai_use"');
     expect(assistant).toContain('sourceType: "ai_request"');
+    expect(assistant).toContain("plantIdentify");
+    expect(assistant).toContain("aquariumAnalyze");
     expect(observations).toContain('eventType: "photo_upload"');
     expect(observations).toContain('sourceType: "media_asset"');
     expect(daily).toContain('eventType: "daily_login"');

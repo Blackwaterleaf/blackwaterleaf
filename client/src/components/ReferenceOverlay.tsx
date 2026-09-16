@@ -1,6 +1,5 @@
 import { ChevronRight, Leaf, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
-import { toast } from "sonner";
 import type { ReactNode } from "react";
 
 export type ReferenceTone = "botany" | "aquarium" | "terrarium" | "ai";
@@ -61,7 +60,7 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }
               key={action.title}
               type="button"
               className="reference-action"
-              onClick={() => action.onActivate?.() ?? toast.info("Diese Funktion wird vorbereitet.", { description: action.note })}
+              onClick={() => action.onActivate?.()}
             >
               {card}
             </button>
