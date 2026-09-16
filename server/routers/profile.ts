@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { mediaAssets, userConsents, users } from "../../drizzle/schema";
+import { mediaAssets, users } from "../../drizzle/schema";
 import {
   BLACKWATERLEAF_CONTRACT_VERSION,
   consentPurposeSchema,
@@ -14,6 +14,8 @@ import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { canReadProfile } from "../accessPolicy";
+import { hasCurrentConsent, listCurrentConsents, recordCurrentConsent } from "../consents";
+import { assertValidMediaContext } from "../mediaIntegrity";
 
 const socialUrl = z.string().url().max(255).nullable().optional();
 async function requireDatabase() {
@@ -57,17 +59,7 @@ export const profileRouter = router({
 
   consents: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    return db
-      .select({
-        purpose: userConsents.purpose,
-        policyVersion: userConsents.policyVersion,
-        granted: userConsents.granted,
-        grantedAt: userConsents.grantedAt,
-        revokedAt: userConsents.revokedAt,
-        updatedAt: userConsents.updatedAt,
-      })
-      .from(userConsents)
-      .where(eq(userConsents.userId, ctx.user.id));
+    return listCurrentConsents(db, ctx.user.id);
   }),
 
   publicById: publicProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ input }) => {
@@ -119,21 +111,8 @@ export const profileRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      if (input.profileVisibility === "public") {
-        const consent = await db
-          .select({ id: userConsents.id })
-          .from(userConsents)
-          .where(
-            and(
-              eq(userConsents.userId, ctx.user.id),
-              eq(userConsents.purpose, "profile_publication"),
-              eq(userConsents.granted, true),
-            ),
-          )
-          .limit(1);
-        if (!consent[0]) {
-          throw new TRPCError({ code: "PRECONDITION_FAILED", message: "profile_publication_consent_required" });
-        }
+      if (input.profileVisibility === "public" && !(await hasCurrentConsent(db, ctx.user.id, "profile_publication"))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "profile_publication_consent_required" });
       }
 
       await db.update(users).set(input).where(eq(users.id, ctx.user.id));
@@ -152,25 +131,7 @@ export const profileRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const now = new Date();
-      await db
-        .insert(userConsents)
-        .values({
-          userId: ctx.user.id,
-          purpose: input.purpose,
-          policyVersion: input.policyVersion,
-          granted: input.granted,
-          grantedAt: input.granted ? now : null,
-          revokedAt: input.granted ? null : now,
-        })
-        .onDuplicateKeyUpdate({
-          set: {
-            policyVersion: input.policyVersion,
-            granted: input.granted,
-            grantedAt: input.granted ? now : null,
-            revokedAt: input.granted ? null : now,
-          },
-        });
+      await recordCurrentConsent(db, { userId: ctx.user.id, ...input });
       return { success: true } as const;
     }),
 
@@ -178,22 +139,12 @@ export const profileRouter = router({
     .input(z.object({ base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const consent = await db
-        .select({ id: userConsents.id })
-        .from(userConsents)
-        .where(
-          and(
-            eq(userConsents.userId, ctx.user.id),
-            eq(userConsents.purpose, "media_processing"),
-            eq(userConsents.granted, true),
-          ),
-        )
-        .limit(1);
-      if (!consent[0]) {
+      if (!(await hasCurrentConsent(db, ctx.user.id, "media_processing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "media_processing_consent_required" });
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
+      assertValidMediaContext({ kind: "avatar", observationId: null, postId: null });
       const stored = await storagePut(
         `users/${ctx.user.id}/avatars/avatar.${image.extension}`,
         image.buffer,

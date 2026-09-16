@@ -85,6 +85,20 @@
       "when": 1789569457976,
       "tag": "0011_silent_zarda",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1789574610829,
+      "tag": "0012_complex_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1789574717460,
+      "tag": "0013_strong_greymalkin",
+      "breakpoints": true
     }
   ]
 }

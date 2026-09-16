@@ -18,3 +18,5 @@
 - [x] Add a private smart-device selection dialog with target-aquarium ownership checks, selectable water metrics, transparent pending state, and no browser- or database-stored provider credentials.
 - [x] Audit all eleven supplied BlackWaterLeaf reference screens and replace the earlier general visual review with a binding screen-by-screen design rulebook and handoff protocol before the next UI implementation phase.
 - [x] Replace the assistant placeholder cards with functional protected chat, one-time plant image analysis, and owned-private-aquarium analysis workflows.
+- [x] Apply the approved additive database improvements: current consent state and history, private water-value timeline, verified query indexes, media context guards, and comment-parent integrity.
+- [ ] Reconcile the historical Drizzle migration baseline before any global `drizzle-kit migrate` run; the controlled additive `0012` update is applied, while `0013` is metadata reconciliation only.

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { assistantUsage, privateHabitats, userConsents } from "../../drizzle/schema";
+import { assistantUsage, privateHabitats } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
@@ -9,6 +9,7 @@ import { awardXpIfReady, hasAssistantCallsToday, XP_REWARDS } from "../gamificat
 import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
+import { hasCurrentConsent } from "../consents";
 
 const MAX_DAILY_ASSISTANT_CALLS = 10;
 const requestIdSchema = z.string().uuid();
@@ -52,8 +53,7 @@ async function requireDatabase() {
 
 async function hasAiProcessingConsent(userId: number) {
   const db = await requireDatabase();
-  const rows = await db.select({ id: userConsents.id }).from(userConsents).where(and(eq(userConsents.userId, userId), eq(userConsents.purpose, "ai_processing"), eq(userConsents.granted, true))).limit(1);
-  return Boolean(rows[0]);
+  return hasCurrentConsent(db, userId, "ai_processing");
 }
 
 async function reserveRequest(user: AssistantUser, clientRequestId: string, realm: "botany" | "aquarium" | "terrarium" | undefined, promptChars: number): Promise<RequestReservation> {

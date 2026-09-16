@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { mediaAssets, observations, userConsents, users } from "../../drizzle/schema";
+import { mediaAssets, observations, users } from "../../drizzle/schema";
 import {
   BLACKWATERLEAF_CONTRACT_VERSION,
   createObservationInputSchema,
@@ -16,6 +16,8 @@ import { awardXpIfReady, XP_REWARDS } from "../gamification";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { canReadObservation, isResourceOwner } from "../accessPolicy";
+import { hasCurrentConsent } from "../consents";
+import { assertValidMediaContext } from "../mediaIntegrity";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -25,18 +27,7 @@ async function requireDatabase() {
 
 async function hasConsent(userId: number, purpose: "observation_publishing" | "media_processing") {
   const db = await requireDatabase();
-  const rows = await db
-    .select({ id: userConsents.id })
-    .from(userConsents)
-    .where(
-      and(
-        eq(userConsents.userId, userId),
-        eq(userConsents.purpose, purpose),
-        eq(userConsents.granted, true),
-      ),
-    )
-    .limit(1);
-  return Boolean(rows[0]);
+  return hasCurrentConsent(db, userId, purpose);
 }
 
 async function serializeObservation(record: typeof observations.$inferSelect, canReadPrivate: boolean) {
@@ -220,6 +211,7 @@ export const observationsRouter = router({
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
+      assertValidMediaContext({ kind: "observation_image", observationId: observation.id, postId: null });
       const stored = await storagePut(
         `users/${ctx.user.id}/observations/${observation.id}/image.${image.extension}`,
         image.buffer,

@@ -1,34 +1,20 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, mediaAssets, postComments, postLikes, userConsents, users } from "../../drizzle/schema";
+import { communityPosts, mediaAssets, postComments, postLikes, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { canReadCommunityPost, isResourceOwner } from "../accessPolicy";
+import { hasCurrentConsent } from "../consents";
+import { assertValidMediaContext } from "../mediaIntegrity";
 
 async function requireDatabase() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
-}
-
-async function hasCommunityConsent(userId: number) {
-  const db = await requireDatabase();
-  const rows = await db
-    .select({ id: userConsents.id })
-    .from(userConsents)
-    .where(
-      and(
-        eq(userConsents.userId, userId),
-        eq(userConsents.purpose, "community_publishing"),
-        eq(userConsents.granted, true),
-      ),
-    )
-    .limit(1);
-  return Boolean(rows[0]);
 }
 
 async function publicMediaForPost(postId: number, userId: number) {
@@ -155,22 +141,12 @@ export const communityRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
       }
 
-      const mediaConsent = await db
-        .select({ id: userConsents.id })
-        .from(userConsents)
-        .where(
-          and(
-            eq(userConsents.userId, ctx.user.id),
-            eq(userConsents.purpose, "media_processing"),
-            eq(userConsents.granted, true),
-          ),
-        )
-        .limit(1);
-      if (!mediaConsent[0]) {
+      if (!(await hasCurrentConsent(db, ctx.user.id, "media_processing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "media_processing_consent_required" });
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
+      assertValidMediaContext({ kind: "post_image", observationId: null, postId: post.id });
       const stored = await storagePut(
         `users/${ctx.user.id}/posts/${post.id}/image.${image.extension}`,
         image.buffer,
@@ -191,7 +167,7 @@ export const communityRouter = router({
 
   publish: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
-    if (!(await hasCommunityConsent(ctx.user.id))) {
+    if (!(await hasCurrentConsent(db, ctx.user.id, "community_publishing"))) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "community_publishing_consent_required" });
     }
     const posts = await db
@@ -303,6 +279,15 @@ export const communityRouter = router({
         )
         .limit(1);
       if (!visible[0]) throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+
+      if (input.parentId) {
+        const parents = await db
+          .select({ id: postComments.id })
+          .from(postComments)
+          .where(and(eq(postComments.id, input.parentId), eq(postComments.postId, input.postId)))
+          .limit(1);
+        if (!parents[0]) throw new TRPCError({ code: "BAD_REQUEST", message: "parent_comment_not_in_post" });
+      }
 
       await db.transaction(async tx => {
         await tx.insert(postComments).values({

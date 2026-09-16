@@ -350,6 +350,21 @@ export const smartDeviceConnectionSchema = smartDeviceSelectionInputSchema.exten
   updatedAt: z.string().datetime(),
 });
 
+export const smartMeasurementSourceSchema = z.enum(["manual", "smart_device"]);
+export const smartMeasurementQualitySchema = z.enum(["reported", "estimated", "rejected"]);
+export const smartMeasurementSchema = z.object({
+  id: z.string().min(1),
+  habitatId: z.string().min(1),
+  deviceConnectionId: z.string().min(1).nullable(),
+  metric: smartDeviceMetricSchema,
+  value: z.number().finite(),
+  unit: z.string().min(1).max(32),
+  source: smartMeasurementSourceSchema,
+  quality: smartMeasurementQualitySchema,
+  observedAt: z.string().datetime(),
+  receivedAt: z.string().datetime(),
+});
+
 export type AccountRole = z.infer<typeof accountRoleSchema>;
 export type AccountStatus = z.infer<typeof accountStatusSchema>;
 export type AppLocale = z.infer<typeof localeSchema>;
@@ -371,6 +386,7 @@ export type PartnerProduct = z.infer<typeof partnerProductSchema>;
 export type PartnerProductInput = z.infer<typeof partnerProductInputSchema>;
 export type SmartDeviceSelectionInput = z.infer<typeof smartDeviceSelectionInputSchema>;
 export type SmartDeviceConnection = z.infer<typeof smartDeviceConnectionSchema>;
+export type SmartMeasurement = z.infer<typeof smartMeasurementSchema>;
 
 export function canUseStaffControls(profile: VerifiedAccountProfile | null): boolean {
   return Boolean(

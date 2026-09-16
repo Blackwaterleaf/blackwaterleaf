@@ -1,5 +1,8 @@
 import {
+  type AnyMySqlColumn,
   boolean,
+  decimal,
+  foreignKey,
   index,
   int,
   json,
@@ -74,6 +77,63 @@ export const userConsents = mysqlTable(
       table.policyVersion,
     ),
   ],
+);
+
+/** Current, policy-versioned consent state used by all authorization checks. */
+export const userConsentCurrent = mysqlTable(
+  "user_consent_current",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", [
+      "terms",
+      "privacy",
+      "profile_publication",
+      "observation_publishing",
+      "media_processing",
+      "community_publishing",
+      "location_processing",
+      "ai_processing",
+    ]).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    granted: boolean("granted").default(false).notNull(),
+    grantedAt: timestamp("grantedAt"),
+    revokedAt: timestamp("revokedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_consent_current_user_purpose_unique").on(table.userId, table.purpose),
+    index("user_consent_current_authorization_idx").on(table.userId, table.purpose, table.granted),
+  ],
+);
+
+/** Append-only consent history. Existing consent rows are copied as baseline events. */
+export const userConsentEvents = mysqlTable(
+  "user_consent_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", [
+      "terms",
+      "privacy",
+      "profile_publication",
+      "observation_publishing",
+      "media_processing",
+      "community_publishing",
+      "location_processing",
+      "ai_processing",
+    ]).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    granted: boolean("granted").notNull(),
+    eventType: mysqlEnum("eventType", ["baseline", "member_update"]).notNull(),
+    occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  },
+  table => [index("user_consent_events_user_purpose_occurred_idx").on(table.userId, table.purpose, table.occurredAt)],
 );
 
 /** Local email/password identity. Passwords are stored as scrypt hashes only. */
@@ -160,6 +220,7 @@ export const observations = mysqlTable(
   table => [
     uniqueIndex("observations_user_client_unique").on(table.userId, table.clientId),
     index("observations_owner_realm_updated_idx").on(table.userId, table.realm, table.updatedAt),
+    index("observations_user_updated_idx").on(table.userId, table.updatedAt),
     index("observations_visibility_updated_idx").on(table.visibility, table.updatedAt),
   ],
 );
@@ -184,7 +245,10 @@ export const communityPosts = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  table => [index("community_posts_feed_idx").on(table.status, table.visibility, table.createdAt)],
+  table => [
+    index("community_posts_feed_idx").on(table.status, table.visibility, table.createdAt),
+    index("community_posts_user_updated_idx").on(table.userId, table.updatedAt),
+  ],
 );
 
 export const mediaAssets = mysqlTable(
@@ -211,6 +275,8 @@ export const mediaAssets = mysqlTable(
   table => [
     uniqueIndex("media_assets_storage_key_unique").on(table.storageKey),
     index("media_assets_owner_idx").on(table.userId, table.createdAt),
+    index("media_assets_post_user_visibility_idx").on(table.postId, table.userId, table.visibility),
+    index("media_assets_observation_user_created_idx").on(table.observationId, table.userId, table.createdAt),
   ],
 );
 
@@ -273,7 +339,10 @@ export const privateHabitats = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  table => [index("private_habitats_user_kind_updated_idx").on(table.userId, table.kind, table.updatedAt)],
+  table => [
+    index("private_habitats_user_kind_updated_idx").on(table.userId, table.kind, table.updatedAt),
+    index("private_habitats_user_updated_idx").on(table.userId, table.updatedAt),
+  ],
 );
 
 /**
@@ -298,6 +367,55 @@ export const smartDeviceConnections = mysqlTable(
   table => [
     index("smart_device_connections_user_updated_idx").on(table.userId, table.updatedAt),
     index("smart_device_connections_habitat_idx").on(table.habitatId),
+  ],
+);
+
+/** Append-only private water-value timeline. Credentials and raw provider payloads are never stored. */
+export const smartDeviceMeasurements = mysqlTable(
+  "smart_device_measurements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    habitatId: int("habitatId")
+      .notNull()
+      .references(() => privateHabitats.id),
+    deviceConnectionId: int("deviceConnectionId"),
+    metric: mysqlEnum("metric", [
+      "temperatureC",
+      "ph",
+      "gh",
+      "kh",
+      "nitriteMgL",
+      "nitrateMgL",
+      "conductivityUs",
+    ]).notNull(),
+    valueDecimal: decimal("valueDecimal", { precision: 12, scale: 4 }).notNull(),
+    unit: varchar("unit", { length: 32 }).notNull(),
+    source: mysqlEnum("source", ["manual", "smart_device"]).notNull(),
+    quality: mysqlEnum("quality", ["reported", "estimated", "rejected"]).default("reported").notNull(),
+    observedAt: timestamp("observedAt").notNull(),
+    receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("smart_device_measurements_device_metric_observed_unique").on(
+      table.deviceConnectionId,
+      table.metric,
+      table.observedAt,
+    ),
+    foreignKey({
+      columns: [table.deviceConnectionId],
+      foreignColumns: [smartDeviceConnections.id],
+      name: "smart_meas_device_fk",
+    }).onDelete("no action").onUpdate("no action"),
+    index("smart_device_measurements_habitat_metric_observed_idx").on(
+      table.habitatId,
+      table.metric,
+      table.observedAt,
+    ),
+    index("smart_device_measurements_user_observed_idx").on(table.userId, table.observedAt),
   ],
 );
 
@@ -355,13 +473,16 @@ export const postComments = mysqlTable(
     userId: int("userId")
       .notNull()
       .references(() => users.id),
-    parentId: int("parentId"),
+    parentId: int("parentId").references((): AnyMySqlColumn => postComments.id, { onDelete: "set null" }),
     content: text("content").notNull(),
     status: mysqlEnum("status", ["visible", "hidden", "removed"]).default("visible").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
-  table => [index("post_comments_post_status_idx").on(table.postId, table.status, table.createdAt)],
+  table => [
+    index("post_comments_post_status_idx").on(table.postId, table.status, table.createdAt),
+    index("post_comments_parent_idx").on(table.postId, table.parentId, table.createdAt),
+  ],
 );
 
 export const moderationLogs = mysqlTable(
@@ -512,12 +633,15 @@ export const partnerAuthorizations = mysqlTable(
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type UserConsent = typeof userConsents.$inferSelect;
+export type UserConsentCurrent = typeof userConsentCurrent.$inferSelect;
+export type UserConsentEvent = typeof userConsentEvents.$inferSelect;
 export type ObservationRecord = typeof observations.$inferSelect;
 export type InsertObservationRecord = typeof observations.$inferInsert;
 export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
 export type XpEventRecord = typeof xpEvents.$inferSelect;
 export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
 export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
+export type SmartDeviceMeasurementRecord = typeof smartDeviceMeasurements.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;
 export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;
