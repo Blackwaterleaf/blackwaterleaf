@@ -1,11 +1,11 @@
 import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
-import { addMarketplaceProduct, readMarketplaceCart, removeMarketplaceProduct, setMarketplaceQuantity, writeMarketplaceCart } from "@/lib/marketplaceCart";
-import { filterMarketplaceProducts, groupMarketplaceCart, marketplaceCategoryLabel, marketplaceDisclosure, marketplaceProductCount, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
+import { readMarketplaceFavorites, toggleMarketplaceFavorite, writeMarketplaceFavorites } from "@/lib/marketplaceCart";
+import { filterMarketplaceProducts, marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceProduct } from "@/lib/marketplacePresentation";
 import { trpc } from "@/lib/trpc";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
-import { ArrowRight, ExternalLink, Leaf, Minus, PackageOpen, Plus, Search, ShoppingBag, Trash2, X } from "lucide-react";
+import { ArrowRight, ExternalLink, Heart, Leaf, PackageOpen, Search, ShoppingBag, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 
@@ -14,28 +14,24 @@ export default function Marketplace() {
   const [search, setSearch] = useState("");
   const [partnerId, setPartnerId] = useState<number | "all">("all");
   const [category, setCategory] = useState<string | "all">("all");
-  const [cart, setCart] = useState<MarketplaceCartLine[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [favorites, setFavorites] = useState<MarketplaceProduct[]>([]);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
 
   useEffect(() => {
     document.title = "Marktplatz · BlackWaterLeaf";
-    setCart(readMarketplaceCart());
+    setFavorites(readMarketplaceFavorites());
   }, []);
 
   const products = catalogue.data ?? [];
   const partners = useMemo(() => Array.from(new Map(products.map(product => [product.partnerId, { id: product.partnerId, name: product.partnerName }])).values()), [products]);
   const categories = useMemo(() => Array.from(new Set(products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value)))).sort((first, second) => marketplaceCategoryLabel(first).localeCompare(marketplaceCategoryLabel(second), "de")), [products]);
   const filtered = useMemo(() => filterMarketplaceProducts(products, search, partnerId, category), [products, search, partnerId, category]);
-  const cartCount = marketplaceProductCount(cart);
+  const favoriteCount = favorites.length;
 
-  const updateCart = (next: MarketplaceCartLine[]) => {
-    setCart(next);
-    writeMarketplaceCart(next);
-  };
-
-  const addToCart = (product: typeof products[number]) => {
-    updateCart(addMarketplaceProduct(cart, product));
-    setCartOpen(true);
+  const toggleFavorite = (product: MarketplaceProduct) => {
+    const next = toggleMarketplaceFavorite(favorites, product);
+    setFavorites(next);
+    writeMarketplaceFavorites(next);
   };
 
   return (
@@ -64,7 +60,7 @@ export default function Marketplace() {
 
       <section className="marketplace-toolbar" aria-label="Produkte filtern">
         <label className="marketplace-search"><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Produkte oder Partner suchen" aria-label="Produkte oder Partner suchen" /></label>
-        <button className="marketplace-cart-trigger" type="button" onClick={() => setCartOpen(true)} aria-label={`Warenkorb öffnen, ${cartCount} Artikel`}><ShoppingBag size={18} /><span>MERKLISTE</span>{cartCount ? <b>{cartCount}</b> : null}</button>
+        <button className="marketplace-cart-trigger" type="button" onClick={() => setFavoritesOpen(true)} aria-label={`Merkliste öffnen, ${favoriteCount} Favoriten`}><Heart size={18} /><span>MERKLISTE</span>{favoriteCount ? <b>{favoriteCount}</b> : null}</button>
       </section>
 
       <section id="partnerangebote" className="marketplace-catalogue" aria-label="Partnerangebote">
@@ -76,18 +72,20 @@ export default function Marketplace() {
         {catalogue.isError ? <StatePanel code="MARKET/ERROR" state="error" title="MARKTPLATZ DERZEIT NICHT VERFÜGBAR" body="Die freigegebenen Partnerangebote konnten nicht verifiziert werden. Bitte versuche es später erneut." /> : null}
         {!catalogue.isLoading && !catalogue.isError && products.length === 0 ? <StatePanel code="MARKET/EMPTY" title="NOCH KEINE FREIGEGEBENEN ANGEBOTE" body="Sobald ein Partner freigegeben ist und Artikel aktiviert hat, erscheinen die Produkte hier. Für KiemenKumpel können die Artikel später aus deiner PDF vorbereitet und kontrolliert eingepflegt werden." /> : null}
         {!catalogue.isLoading && !catalogue.isError && products.length > 0 && filtered.length === 0 ? <StatePanel code="MARKET/FILTER" title="KEIN PASSENDES ANGEBOT" body="Ändere die Suche oder wähle einen anderen Partner." /> : null}
-        {filtered.length ? <div className="marketplace-grid">{filtered.map(product => <article key={product.id} className="marketplace-card"><Link href={`/marketplace/product/${product.id}`} className="marketplace-card__image">{product.imageUrl ? <img src={product.imageUrl} alt={product.imageAltText ?? product.title} /> : <span><PackageOpen size={31} />Kein Produktbild</span>}</Link><div className="marketplace-card__body"><p className="marketplace-card__disclosure">{marketplaceDisclosure(product)}</p><span className="marketplace-category">{marketplaceCategoryLabel(product.marketplaceCategory)}</span><Link href={`/marketplace/product/${product.id}`}><h3>{product.title}</h3></Link>{product.description ? <p className="marketplace-card__description">{product.description}</p> : <p className="marketplace-card__description">Mehr Details und Bedingungen direkt beim Partner.</p>}<div className="marketplace-card__meta"><strong>{product.priceLabel ?? "Preis beim Partner"}</strong><span>{product.sourceVendor ?? (product.partnerType === "company" ? "Unternehmenspartner" : "Persönliche Empfehlung")}</span></div><div className="marketplace-card__actions"><Link href={`/marketplace/product/${product.id}`} className="marketplace-detail-link">DETAILS <ArrowRight size={15} /></Link><button type="button" className="marketplace-add" onClick={() => addToCart(product)}><Plus size={16} /> MERKEN</button></div></div></article>)}</div> : null}
+        {filtered.length ? <div className="marketplace-grid">{filtered.map(product => {
+          const isFavorite = favorites.some(favorite => favorite.id === product.id);
+          return <article key={product.id} className="marketplace-card"><button type="button" className={`marketplace-favorite-toggle ${isFavorite ? "is-favorite" : ""}`} onClick={() => toggleFavorite(product)} aria-label={`${product.title} ${isFavorite ? "aus der Merkliste entfernen" : "zur Merkliste hinzufügen"}`} aria-pressed={isFavorite}><Heart size={17} fill={isFavorite ? "currentColor" : "none"} /></button><Link href={`/marketplace/product/${product.id}`} className="marketplace-card__image">{product.imageUrl ? <img src={product.imageUrl} alt={product.imageAltText ?? product.title} /> : <span><PackageOpen size={31} />Kein Produktbild</span>}</Link><div className="marketplace-card__body"><p className="marketplace-card__disclosure">{marketplaceDisclosure(product)}</p><span className="marketplace-category">{marketplaceCategoryLabel(product.marketplaceCategory)}</span><Link href={`/marketplace/product/${product.id}`}><h3>{product.title}</h3></Link>{product.description ? <p className="marketplace-card__description">{product.description}</p> : <p className="marketplace-card__description">Mehr Details und Bedingungen direkt beim Partner.</p>}<div className="marketplace-card__offer"><div className="marketplace-card__price"><span>PREIS</span><strong>{product.priceLabel ?? "Preis beim Partner"}</strong></div><span className="marketplace-card__vendor">{product.sourceVendor ?? (product.partnerType === "company" ? "Unternehmenspartner" : "Persönliche Empfehlung")}</span></div><div className="marketplace-card__actions"><Link href={`/marketplace/product/${product.id}`} className="marketplace-detail-link">DETAILS <ArrowRight size={15} /></Link><span className={isFavorite ? "marketplace-saved-status" : "marketplace-save-hint"}>{isFavorite ? "GEMERKT" : "HERZ = MERKEN"}</span></div></div></article>;
+        })}</div> : null}
       </section>
 
-      <MarketplaceCart open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onChange={updateCart} />
+      <MarketplaceFavorites open={favoritesOpen} onClose={() => setFavoritesOpen(false)} favorites={favorites} onChange={next => { setFavorites(next); writeMarketplaceFavorites(next); }} />
     </div>
   );
 }
 
-function MarketplaceCart({ open, onClose, cart, onChange }: { open: boolean; onClose: () => void; cart: MarketplaceCartLine[]; onChange: (next: MarketplaceCartLine[]) => void }) {
+function MarketplaceFavorites({ open, onClose, favorites, onChange }: { open: boolean; onClose: () => void; favorites: MarketplaceProduct[]; onChange: (next: MarketplaceProduct[]) => void }) {
   if (!open) return null;
-  const groups = groupMarketplaceCart(cart);
-  return <div className="marketplace-cart-layer" role="dialog" aria-modal="true" aria-label="Gemerkte Partnerprodukte"><button className="marketplace-cart-backdrop" type="button" aria-label="Warenkorb schließen" onClick={onClose} /><aside className="marketplace-cart"><header><div><p className="eyebrow">[DEINE MERKLISTE]</p><h2>Partner-Auswahl</h2></div><button type="button" onClick={onClose} aria-label="Schließen"><X size={20} /></button></header>{groups.length === 0 ? <div className="marketplace-cart-empty"><ShoppingBag size={27} /><p>Deine Merkliste ist leer. Produkte bleiben nur auf diesem Gerät gespeichert.</p></div> : <div className="marketplace-cart-groups">{groups.map(group => <section key={group.partnerId}><div className="marketplace-cart-partner"><strong>{group.partnerName}</strong><span>{group.lines.reduce((sum, line) => sum + line.quantity, 0)} Artikel</span></div>{group.lines.map(line => <article key={line.id} className="marketplace-cart-line">{line.imageUrl ? <img src={line.imageUrl} alt="" /> : <span className="marketplace-cart-fallback"><PackageOpen size={16} /></span>}<div><strong>{line.title}</strong><small>{line.priceLabel ?? "Preis beim Partner"}</small><div className="marketplace-quantity"><button type="button" aria-label={`Ein ${line.title} weniger`} onClick={() => onChange(setMarketplaceQuantity(cart, line.id, line.quantity - 1))}><Minus size={13} /></button><span>{line.quantity}</span><button type="button" aria-label={`Ein ${line.title} mehr`} onClick={() => onChange(setMarketplaceQuantity(cart, line.id, line.quantity + 1))}><Plus size={13} /></button></div></div><button className="marketplace-remove" type="button" aria-label={`${line.title} entfernen`} onClick={() => onChange(removeMarketplaceProduct(cart, line.id))}><Trash2 size={16} /></button></article>)}<a className="primary-action marketplace-checkout" href={group.partnerUrl ?? group.lines[0]?.destinationUrl} target="_blank" rel="sponsored nofollow noopener">ZUM PARTNER-SHOP <ExternalLink size={15} /></a></section>)}</div>}<p className="marketplace-cart-note">Beim Klick öffnet sich der Shop des jeweiligen Partners. Preise, Verfügbarkeit, Zahlung, Versand und Rückgabe gelten dort.</p></aside></div>;
+  return <div className="marketplace-cart-layer" role="dialog" aria-modal="true" aria-label="Favoriten in der Merkliste"><button className="marketplace-cart-backdrop" type="button" aria-label="Merkliste schließen" onClick={onClose} /><aside className="marketplace-cart marketplace-favorites"><header><div><p className="eyebrow">[DEINE MERKLISTE]</p><h2>Favoriten</h2></div><button type="button" onClick={onClose} aria-label="Schließen"><X size={20} /></button></header>{favorites.length === 0 ? <div className="marketplace-cart-empty"><Heart size={27} /><p>Markiere Produkte mit dem Herz, damit sie hier für später gespeichert bleiben.</p></div> : <div className="marketplace-favorite-list">{favorites.map(product => <article key={product.id} className="marketplace-favorite-line">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="marketplace-cart-fallback"><PackageOpen size={16} /></span>}<div><strong>{product.title}</strong><small>{product.priceLabel ?? "Preis beim Partner"} · {product.partnerName}</small></div><a className="marketplace-favorite-link" href={product.destinationUrl} target="_blank" rel="sponsored nofollow noopener" aria-label={`${product.title} beim Partner öffnen`}><ExternalLink size={15} /></a><button className="marketplace-remove" type="button" aria-label={`${product.title} aus der Merkliste entfernen`} onClick={() => onChange(favorites.filter(favorite => favorite.id !== product.id))}><Heart size={16} fill="currentColor" /></button></article>)}</div>}<p className="marketplace-cart-note">Favoriten bleiben nur auf diesem Gerät. Preis, Verfügbarkeit, Zahlung, Versand und Rückgabe gelten beim jeweiligen Partner.</p></aside></div>;
 }
 
 function MarketplaceLoading() {

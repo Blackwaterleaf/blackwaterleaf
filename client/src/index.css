@@ -155,7 +155,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand-mark { width: 34px; height: 34px; }
 .brand-name { font-size: 1.22rem; }
 .profile-button { color: #c7f35b; border-color: rgba(199, 243, 91, .48); }
-.bottom-navigation { display: grid !important; grid-template-columns: repeat(4, 1fr); width: min(calc(100% - 24px), 620px); height: 62px; border-radius: 20px; background: rgba(1, 14, 8, .88); }
+.bottom-navigation { display: grid !important; grid-template-columns: repeat(5, 1fr); width: min(calc(100% - 24px), 620px); height: 62px; border-radius: 20px; background: rgba(1, 14, 8, .88); }
 .nav-link { position: relative; font-size: .52rem; }
 .nav-link.active::after { content: ""; position: absolute; bottom: 1px; width: 18px; height: 2px; border-radius: 99px; background: currentColor; box-shadow: 0 0 11px currentColor; }
 .home-stack, .page-stack, .reference-page { gap: 18px; }
@@ -353,3 +353,60 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 /* Recovery stays in the botanical semantic color family; alert iconography is not a fifth product tone. */
 .reference-not-found .reference-empty-state--error { border-color: rgba(199, 243, 91, .58); background: radial-gradient(circle at 50% 10%, rgba(199, 243, 91, .16), transparent 34%), linear-gradient(145deg, rgba(17, 64, 27, .91), rgba(3, 23, 10, .95)); }
 .reference-not-found .reference-empty-state--error .reference-empty-state__orbit { color: #c7f35b; border-color: rgba(199, 243, 91, .55); background: rgba(24, 78, 30, .28); box-shadow: 0 0 30px rgba(199, 243, 91, .16); }
+
+/* Compact commerce hierarchy: a price is a single visual anchor, never a loose vertical stack. */
+.marketplace-card__offer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; padding: 8px 9px; border: 1px solid rgba(97, 225, 237, .18); border-radius: 10px; background: linear-gradient(90deg, rgba(7, 61, 65, .66), rgba(5, 31, 24, .48)); }
+.marketplace-card__price { display: flex; align-items: baseline; min-width: 0; gap: 6px; color: #8ceefb; }
+.marketplace-card__price span { flex: 0 0 auto; color: #8ab8b3; font: 800 .42rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.marketplace-card__price strong { overflow: hidden; color: #d8fffd; font: 800 clamp(.68rem, 2.6vw, .82rem)/1 "JetBrains Mono", monospace; text-overflow: ellipsis; white-space: nowrap; }
+.marketplace-card__vendor { overflow: hidden; max-width: 44%; color: #a9c4bf; font: 700 .5rem/1.2 "Inter", sans-serif; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+.marketplace-card__actions { margin-top: 1px; }
+.nav-link:nth-child(3) { color: #7fefff; }
+.nav-link:nth-child(3).active { color: #7fefff; text-shadow: 0 0 14px rgba(90, 231, 247, .52); }
+
+@media (min-width: 760px) {
+  .marketplace-card__offer { padding: 9px 10px; }
+  .marketplace-card__price strong { font-size: .84rem; }
+}
+
+@media (max-width: 390px) {
+  .bottom-navigation { width: calc(100% - 16px); padding-inline: 5px; }
+  .nav-link { font-size: .45rem; }
+  .marketplace-card__offer { gap: 5px; padding: 7px; }
+  .marketplace-card__price { gap: 4px; }
+  .marketplace-card__price strong { font-size: .62rem; }
+  .marketplace-card__vendor { max-width: 42%; font-size: .46rem; }
+}
+
+/* Marketplace favorites: one-tap heart saving without implying checkout or quantity. */
+.marketplace-card { position: relative; }
+.marketplace-favorite-toggle { position: absolute; top: 10px; right: 10px; z-index: 2; display: grid; width: 36px; height: 36px; color: #d3f9ee; border: 1px solid rgba(199, 243, 91, .42); border-radius: 50%; background: rgba(2, 20, 13, .78); box-shadow: 0 8px 22px rgba(0, 0, 0, .28), inset 0 1px rgba(255,255,255,.08); backdrop-filter: blur(14px) saturate(150%); place-items: center; transition: color 160ms cubic-bezier(.23,1,.32,1), border-color 160ms cubic-bezier(.23,1,.32,1), background 160ms cubic-bezier(.23,1,.32,1), transform 160ms cubic-bezier(.23,1,.32,1), box-shadow 160ms cubic-bezier(.23,1,.32,1); }
+.marketplace-favorite-toggle:hover, .marketplace-favorite-toggle:focus-visible { color: #f4ff74; border-color: rgba(244, 255, 116, .7); background: rgba(23, 55, 18, .86); box-shadow: 0 0 0 5px rgba(199, 243, 91, .09), 0 12px 26px rgba(0,0,0,.34); transform: translateY(-1px); outline: none; }
+.marketplace-favorite-toggle:active { transform: scale(.96); }
+.marketplace-favorite-toggle.is-favorite { color: #f4ff74; border-color: rgba(244, 255, 116, .72); background: radial-gradient(circle at 50% 45%, rgba(244, 255, 116, .22), rgba(4, 25, 12, .88)); box-shadow: 0 0 26px rgba(222, 255, 98, .2), inset 0 1px rgba(255,255,255,.1); }
+.marketplace-saved-status, .marketplace-save-hint { display: inline-flex; align-items: center; justify-content: center; min-height: 31px; padding: 0 10px; border: 1px solid rgba(199, 243, 91, .22); border-radius: 999px; color: #b6d7bc; background: rgba(8, 34, 17, .42); font: 800 .48rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; text-align: center; white-space: nowrap; }
+.marketplace-saved-status { color: #f4ff74; border-color: rgba(244, 255, 116, .43); background: rgba(37, 58, 12, .52); }
+.marketplace-favorites .marketplace-cart-empty svg { color: #f4ff74; }
+.marketplace-favorite-list { display: grid; gap: 9px; }
+.marketplace-favorite-line { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto auto; align-items: center; gap: 9px; padding: 9px; border: 1px solid rgba(91, 220, 237, .19); border-radius: 14px; background: rgba(4, 30, 24, .58); }
+.marketplace-favorite-line img, .marketplace-favorite-line .marketplace-cart-fallback { width: 54px; height: 54px; border-radius: 10px; object-fit: cover; }
+.marketplace-favorite-line strong { display: -webkit-box; overflow: hidden; color: #efffed; font: 800 .72rem/1.25 "Inter", sans-serif; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.marketplace-favorite-line small { display: block; overflow: hidden; margin-top: 3px; color: #99c6bd; font-size: .6rem; text-overflow: ellipsis; white-space: nowrap; }
+.marketplace-favorite-link { display: grid; width: 31px; height: 31px; color: #83edf8; border: 1px solid rgba(83, 237, 248, .34); border-radius: 50%; background: rgba(5, 43, 45, .6); place-items: center; transition: transform 160ms cubic-bezier(.23,1,.32,1), border-color 160ms cubic-bezier(.23,1,.32,1); }
+.marketplace-favorite-link:hover, .marketplace-favorite-link:focus-visible { border-color: #83edf8; transform: translateY(-1px); outline: none; }
+.marketplace-favorite-link:active { transform: scale(.96); }
+.marketplace-favorites .marketplace-remove { color: #f4ff74; }
+
+@media (max-width: 390px) {
+  .marketplace-favorite-toggle { width: 32px; height: 32px; top: 8px; right: 8px; }
+  .marketplace-saved-status, .marketplace-save-hint { padding-inline: 8px; font-size: .43rem; }
+  .marketplace-favorite-line { grid-template-columns: 48px minmax(0, 1fr) auto auto; gap: 7px; }
+  .marketplace-favorite-line img, .marketplace-favorite-line .marketplace-cart-fallback { width: 48px; height: 48px; }
+}
+
+/* Temporary access bridge: local email remains fail-closed until delivery is configured. */
+.account-manus-fallback { display: grid; gap: 10px; margin: 12px 0 4px; padding: 13px; border: 1px solid rgba(131, 237, 248, .36); border-radius: 13px; background: linear-gradient(145deg, rgba(5, 59, 65, .58), rgba(3, 31, 19, .78)); }
+.account-manus-fallback p { margin: 0; color: #c7e3de; font-size: .72rem; line-height: 1.5; }
+.account-manus-fallback small { color: #8fbdb5; font: 700 .54rem/1.4 "Inter", sans-serif; }
+.account-manus-signin { justify-content: center; width: 100%; min-height: 42px; color: #c7f8fc; border-color: rgba(131, 237, 248, .48); background: rgba(6, 68, 75, .56); font-size: .56rem; }
+.account-manus-signin:hover, .account-manus-signin:focus-visible { color: #edffff; border-color: #83edf8; background: rgba(8, 93, 100, .7); outline: none; }

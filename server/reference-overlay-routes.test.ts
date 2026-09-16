@@ -17,10 +17,10 @@ describe("reference-overlay routes", () => {
     for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'Foto auswählen oder aufnehmen']) expect(flows).toContain(token);
   });
 
-  it("uses the binding four-target mobile navigation", () => {
-    expect(shell).toContain('href: "/"'); expect(shell).toContain('href: "/explore"'); expect(shell).toContain('href: "/community"'); expect(shell).toContain('href: "/profile"');
+  it("uses the binding five-target mobile navigation with the marketplace", () => {
+    expect(shell).toContain('href: "/"'); expect(shell).toContain('href: "/explore"'); expect(shell).toContain('href: "/marketplace"'); expect(shell).toContain('href: "/community"'); expect(shell).toContain('href: "/profile"');
     expect(shell).not.toContain('href: "/assistant"');
-    expect(styles).toContain('grid-template-columns: repeat(4, 1fr)');
+    expect(styles).toContain('grid-template-columns: repeat(5, 1fr)');
   });
 
   it("provides one reusable design language for the hero, choice cards and truthful empty states", () => {

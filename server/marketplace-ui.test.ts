@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
+const shell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
 const detail = readFileSync(resolve(root, "client/src/pages/MarketplaceProduct.tsx"), "utf8");
 const router = readFileSync(resolve(root, "server/routers/partners.ts"), "utf8");
@@ -55,5 +56,25 @@ describe("marketplace UI truth contract", () => {
     expect(marketplace).toContain("marketplace-entry");
     for (const token of ["LiveSensorStrip compact", "MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
     expect(styles).toContain(".marketplace-entry");
+  });
+
+  it("exposes the marketplace through bottom navigation and presents prices in one compact offer row", () => {
+    expect(shell).toContain('href: "/marketplace"');
+    expect(shell).toContain('label: "tabs.marketplace"');
+    expect(styles).toContain("grid-template-columns: repeat(5, 1fr)");
+    expect(marketplace).toContain("marketplace-card__offer");
+    expect(marketplace).toContain("marketplace-card__price");
+    expect(styles).toContain(".marketplace-card__offer");
+    expect(styles).toContain(".marketplace-card__vendor");
+  });
+
+  it("offers accessible heart toggles and a device-local favorites list", () => {
+    expect(marketplace).toContain("toggleMarketplaceFavorite");
+    expect(marketplace).toContain("marketplace-favorite-toggle");
+    expect(marketplace).toContain('aria-pressed={isFavorite}');
+    expect(marketplace).toContain("MarketplaceFavorites");
+    expect(marketplace).toContain("Favoriten bleiben nur auf diesem Gerät");
+    expect(styles).toContain(".marketplace-favorite-toggle");
+    expect(styles).toContain(".marketplace-favorite-list");
   });
 });

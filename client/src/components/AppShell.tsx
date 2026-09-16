@@ -9,6 +9,7 @@ import { ConnectionStateBanner } from "./ConnectionStateBanner";
 const navigation = [
   { href: "/", label: "tabs.home" as const, icon: Home },
   { href: "/explore", label: "tabs.explore" as const, icon: Compass },
+  { href: "/marketplace", label: "tabs.marketplace" as const, icon: ShoppingBag },
   { href: "/community", label: "tabs.community" as const, icon: UsersRound },
   { href: "/profile", label: "tabs.profile" as const, icon: UserRound },
 ];
@@ -16,9 +17,10 @@ const navigation = [
 function isReferenceNavigationActive(location: string, href: string) {
   if (href === "/") {
     const topLevel = location.split("/")[1] ?? "";
-    return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto") || !["explore", "community", "profile"].includes(topLevel);
+    return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto") || !["explore", "marketplace", "community", "profile"].includes(topLevel);
   }
   if (href === "/explore") return location.startsWith("/explore") || location.startsWith("/knowledge");
+  if (href === "/marketplace") return location.startsWith("/marketplace");
   if (href === "/community") return location.startsWith("/community") || location.startsWith("/flow/beitrag");
   return location.startsWith(href);
 }
