@@ -117,10 +117,10 @@ export default function Profile() {
 
   return (
     <div className="reference-page reference-page--botany profile-page-only">
-      <section className="profile-page-heading glass-panel" aria-labelledby="profile-page-title">
-        <span className="profile-page-heading__icon"><UserRound size={20} /></span>
-        <div><span className="eyebrow">{t("profile.eyebrow")}</span><h1 id="profile-page-title">{t("profile.title")}</h1><p>{locale === "de" ? "Privat, sicher und in deiner Hand." : "Private, secure and in your hands."}</p></div>
-      </section>
+          <section className="profile-page-heading glass-panel" aria-labelledby="profile-page-title">
+            <span className="profile-page-heading__icon"><UserRound size={20} /></span>
+            <div><span className="eyebrow">{t("profile.eyebrow")}</span><h1 id="profile-page-title">{t("profile.title")}</h1><p>{locale === "de" ? "Privat, sicher und in deiner Hand." : "Private, secure and in your hands."}</p></div>
+          </section>
 
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
         <StatePanel code="PROFILE/LOAD" state="loading" title={t("common.loading")} body={t("profile.signedOut")} />
@@ -152,14 +152,20 @@ export default function Profile() {
             {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
 
-          <section className="profile-guide glass-panel" aria-labelledby="profile-guide-title">
-            <div className="profile-guide__heading"><div><span className="eyebrow">MERKREGEL · PRIVAT ZUERST</span><h2 id="profile-guide-title">DEIN PROFIL IN 3 SCHRITTEN</h2></div><span className="profile-guide__rule">PRIVAT → ANLAGEN → PUNKTE</span></div>
-            <div className="profile-guide__steps">
-              <a href="#privacy" className="profile-guide__step"><b>01</b><span className="profile-guide__icon"><LockKeyhole size={17} /></span><strong>Privat schützen</strong><small>Freigaben und Sichtbarkeit selbst bestimmen.</small></a>
-              <a href="#habitats" className="profile-guide__step"><b>02</b><span className="profile-guide__icon"><Leaf size={17} /></span><strong>Welten anlegen</strong><small>Aquarium, Botanik und Terrarium verwalten.</small></a>
-              <a href="#progress" className="profile-guide__step"><b>03</b><span className="profile-guide__icon"><Trophy size={17} /></span><strong>Punkte sammeln</strong><small>XP, Level und nächste Ziele im Blick behalten.</small></a>
+          <details className="profile-quick-menu glass-panel" open>
+            <summary><span className="profile-quick-menu__label">PROFIL · MENÜ</span><small>Privat · Anlagen · Punkte · Einstellungen</small><b>+</b></summary>
+            <div className="profile-quick-menu__items">
+              <a href="#privacy"><b>01</b><LockKeyhole size={14} /><span>Privat</span></a>
+              <a href="#habitats"><b>02</b><Leaf size={14} /><span>Anlagen</span></a>
+              <a href="#progress"><b>03</b><Trophy size={14} /><span>Punkte</span></a>
+              <a href="#settings"><Languages size={14} /><span>Sprache</span></a>
+              <a href="#settings"><Ruler size={14} /><span>Einheiten</span></a>
             </div>
-          </section>
+            <div id="settings" className="profile-quick-menu__settings">
+              <article className="reference-setting-card"><Languages size={18} /><strong>{t("common.language")}</strong><div className="segmented-control"><button type="button" className={locale === "de" ? "active" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "active" : ""} onClick={() => void changeLocale("en")}>English</button></div></article>
+              <article className="reference-setting-card"><Ruler size={18} /><strong>{t("common.units")}</strong><div className="segmented-control"><button type="button" className={unitSystem === "metric" ? "active" : ""} onClick={() => void changeUnits("metric")}>{t("common.metric")}</button><button type="button" className={unitSystem === "imperial" ? "active" : ""} onClick={() => void changeUnits("imperial")}>{t("common.imperial")}</button></div></article>
+            </div>
+          </details>
 
           <details id="privacy" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
@@ -202,10 +208,6 @@ export default function Profile() {
           </section>
           <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
 
-          <section className="reference-settings-grid">
-            <article className="reference-setting-card"><Languages size={20} /><strong>{t("common.language")}</strong><div className="segmented-control"><button type="button" className={locale === "de" ? "active" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "active" : ""} onClick={() => void changeLocale("en")}>English</button></div></article>
-            <article className="reference-setting-card"><Ruler size={20} /><strong>{t("common.units")}</strong><div className="segmented-control"><button type="button" className={unitSystem === "metric" ? "active" : ""} onClick={() => void changeUnits("metric")}>{t("common.metric")}</button><button type="button" className={unitSystem === "imperial" ? "active" : ""} onClick={() => void changeUnits("imperial")}>{t("common.imperial")}</button></div></article>
-          </section>
           {status ? <p className="form-status" role="status">{status}</p> : null}
         </>
       )}
