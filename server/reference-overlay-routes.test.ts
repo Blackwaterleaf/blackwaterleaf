@@ -17,6 +17,10 @@ describe("reference-overlay routes", () => {
     for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'Foto auswählen oder aufnehmen']) expect(flows).toContain(token);
   });
 
+  it("routes legacy menu names to real destinations and never renders a dead-end fallback", () => {
+    for (const token of ['path={"/wissen"}', 'path={"/feed"}', 'path={"/community/feed"}', 'path={"/botanik"}', 'path={"/aquaristik"}', 'path={"/terraristik"}', 'path={"/shop"}', '<Route component={Home} />']) expect(app).toContain(token);
+  });
+
   it("uses the binding five-target mobile navigation with the marketplace", () => {
     expect(shell).toContain('href: "/"'); expect(shell).toContain('href: "/explore"'); expect(shell).toContain('href: "/marketplace"'); expect(shell).toContain('href: "/community"'); expect(shell).toContain('href: "/profile"');
     expect(shell).not.toContain('href: "/assistant"');
@@ -24,7 +28,7 @@ describe("reference-overlay routes", () => {
   });
 
   it("provides one reusable design language for the hero, choice cards and truthful empty states", () => {
-    for (const token of ['ReferenceHero', 'ReferenceActionGrid', 'ReferenceEmptyState', 'reference-tone--${tone}']) expect(overlay).toContain(token);
+    for (const token of ['ReferenceHero', 'ReferenceActionGrid', 'ReferenceEmptyState', 'reference-tone--${tone}', 'reference-future-banner', 'SEID GESPANNT']) expect(overlay).toContain(token);
     for (const token of ['.reference-hero', '.reference-action-grid', '.reference-empty-state', '--reference-botany', '--reference-aquarium', '--reference-terrarium', '--reference-ai']) expect(styles).toContain(token);
   });
 

@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AppShell } from "./components/AppShell";
@@ -45,13 +44,20 @@ function Router() {
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={Profile} />
         <Route path={"/knowledge"} component={Knowledge} />
+        <Route path={"/wissen"} component={Knowledge} />
+        <Route path={"/feed"} component={Community} />
+        <Route path={"/community/feed"} component={Community} />
+        <Route path={"/botanik"}><Realm /></Route>
+        <Route path={"/aquaristik"}><Realm /></Route>
+        <Route path={"/terraristik"}><Realm /></Route>
+        <Route path={"/shop"} component={Marketplace} />
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
         <Route path={"/marketplace"} component={Marketplace} />
         <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
-        <Route path={"/404"} component={NotFound} />
-        <Route component={NotFound} />
+        <Route path={"/404"} component={Home} />
+        <Route component={Home} />
           </Switch>
         </AppShell>
       </Route>

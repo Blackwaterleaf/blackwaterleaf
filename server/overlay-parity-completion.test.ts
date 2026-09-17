@@ -35,7 +35,8 @@ describe("remaining reference-overlay parity", () => {
   });
 
   it("keeps recovery navigation and reference error semantics accessible", () => {
-    expect(app).toContain('<Route component={NotFound} />');
+    expect(app).toContain('<Route component={Home} />');
+    expect(app).toContain('path={"/404"} component={Home}');
     expect(overlay).toContain('state?: "empty" | "error"');
     expect(overlay).toContain('reference-empty-state--${state}');
     expect(styles).toContain(".profile-auth-overlay");

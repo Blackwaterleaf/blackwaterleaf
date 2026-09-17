@@ -1,6 +1,6 @@
-import { AlertTriangle, ChevronRight, Leaf, type LucideIcon } from "lucide-react";
+import { AlertTriangle, ChevronRight, Leaf, X, type LucideIcon } from "lucide-react";
 import { Link } from "wouter";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 export type ReferenceTone = "botany" | "aquarium" | "terrarium" | "ai";
 
@@ -40,6 +40,7 @@ export function ReferenceHero({ tone, image, eyebrow, title, subtitle, icon: Ico
 }
 
 export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }: { tone: ReferenceTone; actions: ReferenceAction[]; heading?: string }) {
+  const [futureMessage, setFutureMessage] = useState<string | null>(null);
   return (
     <section className={`reference-actions reference-tone--${tone}`} aria-label={heading}>
       <div className="reference-actions__heading"><span>{heading}</span><i aria-hidden="true" /></div>
@@ -54,10 +55,14 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }
             <ChevronRight className="reference-action__chevron" size={17} aria-hidden="true" />
             {action.unavailable ? <span className="reference-action__status">KÜNFTIG</span> : null}
           </>;
-          if (action.href) return <Link key={action.title} href={action.href} className="reference-action">{card}</Link>;
-          return <button key={action.title} type="button" className="reference-action" onClick={() => action.onActivate?.()}>{card}</button>;
+          if (action.href && !action.unavailable) return <Link key={action.title} href={action.href} className="reference-action">{card}</Link>;
+          return <button key={action.title} type="button" className="reference-action" onClick={() => {
+            if (action.unavailable) setFutureMessage(`${action.title} ist vorbereitet. Wir arbeiten daran – seid gespannt, was kommt.`);
+            action.onActivate?.();
+          }}>{card}</button>;
         })}
       </div>
+      {futureMessage ? <div className="reference-future-banner" role="status"><Leaf size={18} /><span><strong>SEID GESPANNT</strong><small>{futureMessage}</small></span><button type="button" aria-label="Hinweis schließen" onClick={() => setFutureMessage(null)}><X size={16} /></button></div> : null}
     </section>
   );
 }
