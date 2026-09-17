@@ -26,6 +26,9 @@ describe("remaining reference-overlay parity", () => {
     for (const token of ["ProfileAuthOverlay", "data-state=\"server-auth-required\"", "[AUTH / REQUIRED]", "href=\"/login\"", "href=\"/register\""]) {
       expect(profile).toContain(token);
     }
+    expect(profile).toContain("profile-page-only");
+    expect(profile).not.toContain("<LiveSensorStrip");
+    expect(profile).not.toContain("<ReferenceHero");
     expect(profile).not.toContain("ReferenceEmptyState");
   });
 

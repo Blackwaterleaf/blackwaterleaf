@@ -674,3 +674,10 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .app-frame::before, .app-frame .world-image, .app-frame .reference-hero, .app-frame .home-hero { transition: none !important; animation: none !important; }
 }
+
+
+/* Profile is intentionally focused: the global brand header remains, while sensors and a second image hero stay on Home only. */
+.profile-page-heading { display: flex; align-items: center; gap: 13px; padding: 17px; border-color: color-mix(in srgb, var(--reference-botany) 48%, transparent); }
+.profile-page-heading__icon { display: grid; flex: 0 0 auto; width: 42px; height: 42px; color: var(--reference-botany); border: 1px solid color-mix(in srgb, var(--reference-botany) 72%, transparent); border-radius: 50%; background: rgba(5,24,11,.74); place-items: center; }
+.profile-page-heading h1 { margin: 3px 0 0; color: #f4fff1; font: 400 clamp(2rem, 8vw, 3.4rem)/.9 "Bebas Neue", sans-serif; letter-spacing: .04em; }
+.profile-page-heading p { margin: 5px 0 0; color: #c5d9c8; font-size: .76rem; }

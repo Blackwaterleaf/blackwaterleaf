@@ -1,12 +1,9 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { HabitatProfiles } from "@/components/HabitatProfiles";
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
-import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { SmartDeviceDialog } from "@/components/SmartDeviceDialog";
 import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
-import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -119,16 +116,11 @@ export default function Profile() {
   };
 
   return (
-    <div className="reference-page reference-page--botany">
-      <LiveSensorStrip compact />
-      <ReferenceHero
-        tone="botany"
-        image={REFERENCE_ASSETS.botany}
-        eyebrow={t("profile.eyebrow")}
-        title={t("profile.title")}
-        subtitle={locale === "de" ? "Privat, sicher und in deiner Hand." : "Private, secure and in your hands."}
-        icon={UserRound}
-      />
+    <div className="reference-page reference-page--botany profile-page-only">
+      <section className="profile-page-heading glass-panel" aria-labelledby="profile-page-title">
+        <span className="profile-page-heading__icon"><UserRound size={20} /></span>
+        <div><span className="eyebrow">{t("profile.eyebrow")}</span><h1 id="profile-page-title">{t("profile.title")}</h1><p>{locale === "de" ? "Privat, sicher und in deiner Hand." : "Private, secure and in your hands."}</p></div>
+      </section>
 
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
         <StatePanel code="PROFILE/LOAD" state="loading" title={t("common.loading")} body={t("profile.signedOut")} />

@@ -33,10 +33,14 @@ describe("reference-overlay routes", () => {
   });
 
   it("recomposes every supplied target area to reusable reference components", () => {
-    for (const file of ['Explore.tsx', 'Community.tsx', 'Profile.tsx', 'Knowledge.tsx', 'Assistant.tsx', 'Realm.tsx']) {
+    for (const file of ['Explore.tsx', 'Community.tsx', 'Knowledge.tsx', 'Assistant.tsx', 'Realm.tsx']) {
       const source = page(file);
       expect(source).toContain('ReferenceHero');
     }
+    const profile = page('Profile.tsx');
+    expect(profile).toContain('profile-page-only');
+    expect(profile).not.toContain('<LiveSensorStrip');
+    expect(profile).not.toContain('<ReferenceHero');
     for (const file of ['Community.tsx', 'Knowledge.tsx', 'Assistant.tsx', 'Realm.tsx']) expect(page(file)).toContain('ReferenceEmptyState');
   });
 });
