@@ -29,6 +29,7 @@ import {
   TextInput,
   UIManager,
   View,
+  type ImageSourcePropType,
 } from "react-native";
 import {
   SafeAreaProvider,
@@ -69,13 +70,10 @@ import { signInWithBlackWaterLeaf } from "./src/nativeAuth";
 import { getBlackWaterLeafSeason } from "./src/season";
 
 const ASSETS = {
-  botany:
-    "https://blackwaterleaf.com/manus-storage/botany-reference_c192e480.jpg",
-  aquarium:
-    "https://blackwaterleaf.com/manus-storage/aquarium-reference_2e42963b.jpg",
-  terrarium:
-    "https://blackwaterleaf.com/manus-storage/terrarium-reference_c4e109d3.jpg",
-  ai: "https://blackwaterleaf.com/manus-storage/assistant-reference_4510581b.jpg",
+  botany: require("./assets/botany-reference.jpg"),
+  aquarium: require("./assets/aquarium-reference.jpg"),
+  terrarium: require("./assets/terrarium-reference.jpg"),
+  ai: require("./assets/assistant-reference.jpg"),
 } as const;
 
 const c = {
@@ -134,7 +132,7 @@ type Tone = {
   accent: string;
   surface: string;
   panel: string;
-  image: string;
+  image: ImageSourcePropType;
   label: string;
   active: BottomTab;
 };
@@ -145,7 +143,8 @@ type Action = {
   title: string;
   note: string;
   icon: IconName;
-  image: string;
+  image: ImageSourcePropType;
+  area?: "botany" | "aquarium" | "terrarium" | "assistant";
   onPress: () => void;
   unavailable?: boolean;
 };
@@ -972,7 +971,7 @@ function HomeHero({
 }) {
   return (
     <ImageBackground
-      source={{ uri: tone.image }}
+      source={tone.image}
       style={[styles.hero, styles.homeHero, { borderColor: `${tone.accent}99` }]}
       imageStyle={styles.heroImage}
     >
@@ -1078,6 +1077,7 @@ function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
             note: "Pflanzenwelt öffnen",
             icon: "leaf-outline",
             image: ASSETS.botany,
+            area: "botany",
             onPress: () => navigate("botany"),
           },
           {
@@ -1085,6 +1085,7 @@ function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
             note: "Unterwasserwelt öffnen",
             icon: "fish-outline",
             image: ASSETS.aquarium,
+            area: "aquarium",
             onPress: () => navigate("aquarium"),
           },
           {
@@ -1092,6 +1093,7 @@ function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
             note: "Regenwald öffnen",
             icon: "leaf-outline",
             image: ASSETS.terrarium,
+            area: "terrarium",
             onPress: () => navigate("terrarium"),
           },
           {
@@ -1099,6 +1101,7 @@ function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
             note: "Transparente Hilfe",
             icon: "hardware-chip-outline",
             image: ASSETS.ai,
+            area: "assistant",
             onPress: () => navigate("assistant"),
           },
         ]}
@@ -2874,7 +2877,7 @@ function ReferenceHero({
 }) {
   return (
     <ImageBackground
-      source={{ uri: tone.image }}
+      source={tone.image}
       style={[styles.hero, { borderColor: `${tone.accent}99` }]}
       imageStyle={styles.heroImage}
     >
@@ -2955,6 +2958,7 @@ function ReferenceCard({
   compact?: boolean;
   active?: boolean;
 }) {
+  const cardTone = action.area ? TONES[action.area] : tone;
   return (
     <Pressable
       accessibilityRole="button"
@@ -2963,14 +2967,17 @@ function ReferenceCard({
       style={({ pressed }) => [
         styles.referenceCard,
         compact && styles.referenceCardCompact,
-        { borderColor: `${tone.accent}77` },
-        active && { borderColor: tone.accent },
+        { borderColor: `${cardTone.accent}77` },
+        active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
       ]}
-      onPress={action.onPress}
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        action.onPress();
+      }}
     >
       <ImageBackground
-        source={{ uri: action.image }}
+        source={action.image}
         style={[styles.referenceImage, compact && styles.referenceImageCompact]}
         imageStyle={styles.referenceImageInner}
       >
@@ -2986,12 +2993,12 @@ function ReferenceCard({
               styles.cardIcon,
               compact && styles.cardIconCompact,
               {
-                borderColor: `${tone.accent}99`,
-                backgroundColor: `${tone.accent}16`,
+                borderColor: `${cardTone.accent}99`,
+                backgroundColor: `${cardTone.accent}16`,
               },
             ]}
           >
-            <Ionicons name={action.icon} size={20} color={tone.accent} />
+            <Ionicons name={action.icon} size={20} color={cardTone.accent} />
           </View>
           <View style={styles.flex}>
             <Text
@@ -3013,12 +3020,12 @@ function ReferenceCard({
               {action.note}
             </Text>
             {action.unavailable ? (
-              <Text style={[styles.unavailableLabel, { color: tone.accent }]}>
+              <Text style={[styles.unavailableLabel, { color: cardTone.accent }]}>
                 NOCH NICHT VERFÜGBAR
               </Text>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={21} color={tone.accent} />
+          <Ionicons name="chevron-forward" size={21} color={cardTone.accent} />
         </View>
       </ImageBackground>
     </Pressable>
