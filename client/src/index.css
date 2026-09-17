@@ -1093,3 +1093,24 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-quick-menu__settings .reference-setting-card strong { font-size: .56rem; }
 .profile-quick-menu__settings .segmented-control { grid-column: 1 / -1; }
 .profile-quick-menu__settings .segmented-control button { min-height: 28px; font-size: .47rem; }
+
+/* Separate top-right profile popup: identity actions stay distinct from the profile page menu. */
+.profile-header-menu { position: relative; }
+.profile-header-menu > summary { position: relative; cursor: pointer; list-style: none; }
+.profile-header-menu > summary::-webkit-details-marker { display: none; }
+.profile-header-menu__dots { position: absolute; right: -1px; bottom: -1px; padding: 1px; color: #e8ffb8; border-radius: 50%; background: #0a2a13; }
+.profile-header-menu__panel { position: absolute; z-index: 40; top: calc(100% + 10px); right: 0; display: grid; width: min(230px, calc(100vw - 28px)); gap: 5px; padding: 10px; border: 1px solid rgba(199,243,91,.42); border-radius: 12px; background: linear-gradient(145deg, rgba(12,55,25,.98), rgba(3,22,11,.98)); box-shadow: 0 16px 36px rgba(0,0,0,.38); }
+.profile-header-menu__panel::before { position: absolute; top: -5px; right: 15px; width: 9px; height: 9px; border-top: 1px solid rgba(199,243,91,.42); border-left: 1px solid rgba(199,243,91,.42); background: #0c3719; content: ""; transform: rotate(45deg); }
+.profile-header-menu__eyebrow { padding: 3px 5px 6px; color: #c7f35b; font: 800 .48rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.profile-header-menu__panel a { display: flex; align-items: center; min-height: 34px; padding: 0 9px; color: #e5f7dd; border: 1px solid rgba(174,249,135,.18); border-radius: 8px; background: rgba(5,31,14,.7); font: 700 .59rem/1.1 "Inter", sans-serif; text-decoration: none; }
+.profile-header-menu__panel a:hover, .profile-header-menu__panel a:focus-visible { color: #f5ffe9; border-color: rgba(199,243,91,.64); background: rgba(39,86,34,.72); outline: none; }
+.profile-header-menu__panel a:active { transform: scale(.98); }
+
+/* Smart-device reference parity: selected state is a right-aligned green check circle, never a text dot. */
+.smart-provider-option { grid-template-columns: 20px minmax(0,1fr) 22px; }
+.smart-provider-option > svg:last-child { width: 20px; height: 20px; justify-self: end; opacity: 0; color: #b8ff85; }
+.smart-provider-option.is-selected > svg:last-child { opacity: 1; filter: drop-shadow(0 0 5px rgba(184,255,133,.25)); }
+.smart-metric-option { grid-template-columns: 17px minmax(0,1fr) 22px; }
+.smart-metric-option i { justify-self: end; width: 20px; height: 20px; border: 1px solid rgba(185,248,155,.28); border-radius: 50%; position: relative; }
+.smart-metric-option.is-selected i { border: 1px solid #b9fc8a; background: #b9fc8a; }
+.smart-metric-option.is-selected i::after { position: absolute; top: 4px; left: 6px; width: 5px; height: 9px; border-right: 2px solid #12331d; border-bottom: 2px solid #12331d; content: ""; transform: rotate(45deg); }

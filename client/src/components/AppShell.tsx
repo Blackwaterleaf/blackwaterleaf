@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, MoreVertical, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -106,7 +106,16 @@ export function AppShell({ children }: PropsWithChildren) {
           <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
           <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
-          <Link href="/profile" className="icon-button profile-button" aria-label={t("tabs.profile")}><UserRound size={18} /></Link>
+          <details className="profile-header-menu">
+            <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><UserRound size={18} /><MoreVertical className="profile-header-menu__dots" size={11} /></summary>
+            <div className="profile-header-menu__panel">
+              <span className="profile-header-menu__eyebrow">PROFIL · SCHNELLWAHL</span>
+              <Link href="/profile">Profil öffnen</Link>
+              <Link href="/profile#profile-edit">Name & Profil bearbeiten</Link>
+              <Link href="/profile#profile-image-edit">Profilbild bearbeiten</Link>
+              <Link href="/profile#profile-menu">01–03 & Einstellungen</Link>
+            </div>
+          </details>
         </div>
       </header>
       <ConnectionStateBanner />

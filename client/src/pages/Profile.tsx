@@ -55,6 +55,16 @@ export default function Profile() {
     });
   }, [profile.data]);
 
+  useEffect(() => {
+    const openHashTarget = () => {
+      const target = window.location.hash === "#profile-edit" ? "profile-edit" : window.location.hash === "#privacy" ? "privacy" : null;
+      if (target) (document.getElementById(target) as HTMLDetailsElement | null)?.setAttribute("open", "");
+    };
+    openHashTarget();
+    window.addEventListener("hashchange", openHashTarget);
+    return () => window.removeEventListener("hashchange", openHashTarget);
+  }, []);
+
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
   const updateConsent = async (purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing", granted: boolean) => {
@@ -130,7 +140,7 @@ export default function Profile() {
         <>
           <section className="profile-card glass-panel" id="progress">
             <div className="profile-identity">
-              <div className="profile-avatar">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
+              <div className="profile-avatar" id="profile-image">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
               <div><h2>{profile.data.name ?? profile.data.username ?? "BlackWaterLeaf"}</h2><p>{profile.data.email ?? ""}</p></div>
             </div>
             <div className="verified-grid">
@@ -146,13 +156,13 @@ export default function Profile() {
               </div>
             ) : <p className="form-status">{locale === "de" ? "XP wird nach der Staging-Migration aktiviert." : "XP activates after the staging migration."}</p>}
             <div className="account-actions">
-              <label className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild" : "Profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
+              <label id="profile-image-edit" className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild" : "Profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
               <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
             </div>
             {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
 
-          <details className="profile-quick-menu glass-panel" open>
+          <details id="profile-menu" className="profile-quick-menu glass-panel" open>
             <summary><span className="profile-quick-menu__label">PROFIL · MENÜ</span><small>Privat · Anlagen · Punkte · Einstellungen</small><b>+</b></summary>
             <div className="profile-quick-menu__items">
               <a href="#privacy"><b>01</b><LockKeyhole size={14} /><span>Privat</span></a>
@@ -167,7 +177,7 @@ export default function Profile() {
             </div>
           </details>
 
-          <details id="privacy" className="account-section glass-panel">
+          <details id="profile-edit" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <div className="form-grid">
@@ -186,7 +196,7 @@ export default function Profile() {
             </form>
           </details>
 
-          <details className="account-section glass-panel">
+          <details id="privacy" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Datenschutz & Freigaben" : "Privacy & permissions"}</span><small>{locale === "de" ? "Du entscheidest über jede Freigabe" : "You control every permission"}</small></summary>
             <section className="consent-panel">
               <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
