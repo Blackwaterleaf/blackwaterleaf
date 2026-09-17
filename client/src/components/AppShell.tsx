@@ -45,6 +45,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const [contentEntered, setContentEntered] = useState(false);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
   const tabTransitionTimer = useRef<number | null>(null);
+  const routeToneClass = location.startsWith("/marketplace") ? "route-marketplace" : location.startsWith("/world/aquarium") ? "route-aquarium" : location.startsWith("/world/terrarium") ? "route-terrarium" : location === "/assistant" ? "route-ai" : "route-botany";
 
   useEffect(() => {
     setIsTabSwitching(false);
@@ -87,7 +88,7 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   return (
-    <div className={`app-frame season-${season} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
+    <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
       <div className="ambient-grid" aria-hidden="true" />
       <div className="scanlines" aria-hidden="true" />
       <header className="top-shell">

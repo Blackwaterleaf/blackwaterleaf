@@ -745,3 +745,119 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .world-aquarium { --world-accent: var(--reference-aquarium); }
 .world-terrarium { --world-accent: var(--reference-terrarium); }
 .world-assistant { --world-accent: var(--reference-ai); }
+
+
+/* --------------------------------------------------------------------------
+   Area Surface Contract — accents must tint surfaces, not only borders.
+   The image layer remains content; the translucent area layer carries the
+   semantic world tone through cards, panels, controls and truthful states.
+   -------------------------------------------------------------------------- */
+:root {
+  --reference-botany-surface: rgba(13, 43, 24, .86);
+  --reference-botany-panel: rgba(7, 31, 17, .92);
+  --reference-aquarium-surface: rgba(4, 48, 62, .88);
+  --reference-aquarium-panel: rgba(3, 34, 49, .94);
+  --reference-terrarium-surface: rgba(62, 56, 18, .78);
+  --reference-terrarium-panel: rgba(39, 38, 16, .93);
+  --reference-ai-surface: rgba(48, 22, 72, .82);
+  --reference-ai-panel: rgba(30, 17, 52, .94);
+  --reference-marketplace-surface: rgba(67, 47, 20, .8);
+  --reference-marketplace-panel: rgba(39, 28, 15, .94);
+}
+.reference-page,
+.reference-page--botany { --reference-surface: var(--reference-botany-surface); --reference-panel: var(--reference-botany-panel); }
+.reference-page--aquarium { --reference-surface: var(--reference-aquarium-surface); --reference-panel: var(--reference-aquarium-panel); }
+.reference-page--terrarium { --reference-surface: var(--reference-terrarium-surface); --reference-panel: var(--reference-terrarium-panel); }
+.reference-page--ai { --reference-surface: var(--reference-ai-surface); --reference-panel: var(--reference-ai-panel); }
+.reference-page--marketplace { --reference-surface: var(--reference-marketplace-surface); --reference-panel: var(--reference-marketplace-panel); }
+.reference-page { padding: 4px 4px 12px; border-radius: 28px; background: linear-gradient(145deg, color-mix(in srgb, var(--reference-surface) 72%, transparent), rgba(1, 13, 8, .28)); }
+.reference-page > .reference-hero,
+.reference-page > .reference-actions,
+.reference-page > .reference-empty-state,
+.reference-page > .reference-capture,
+.reference-page > .reference-composer-preview,
+.reference-page > .reference-future-banner,
+.reference-page > .assistant-workflow,
+.reference-page > .assistant-result,
+.reference-page > .assistant-empty-link,
+.reference-page > .marketplace-entry,
+.reference-page > .marketplace-trust,
+.reference-page > .marketplace-card,
+.reference-page > .marketplace-favorites,
+.reference-page > .marketplace-loading { background-color: var(--reference-panel); }
+.reference-page .reference-action { background: linear-gradient(145deg, color-mix(in srgb, var(--reference-surface) 82%, rgba(1, 12, 7, .35)), var(--reference-panel)); }
+.reference-page .reference-action__shade { background: linear-gradient(180deg, color-mix(in srgb, var(--reference-accent) 14%, transparent), color-mix(in srgb, var(--reference-panel) 96%, transparent) 96%); }
+.reference-page .reference-empty-state { background: radial-gradient(circle at 50% 27%, color-mix(in srgb, var(--reference-accent) 22%, transparent), transparent 33%), linear-gradient(145deg, color-mix(in srgb, var(--reference-surface) 90%, transparent), var(--reference-panel)); }
+.reference-page .reference-capture,
+.reference-page .reference-composer-preview,
+.reference-page .assistant-workflow,
+.reference-page .assistant-result,
+.reference-page .assistant-empty-link { background-color: color-mix(in srgb, var(--reference-surface) 72%, var(--reference-panel)); }
+.reference-page .reference-capture__button,
+.reference-page .assistant-submit,
+.reference-page .assistant-workflow__tabs button.active,
+.reference-page .primary-action { background: linear-gradient(135deg, color-mix(in srgb, var(--reference-accent) 42%, var(--reference-panel)), var(--reference-panel)); }
+.reference-page .reference-future-banner { background: linear-gradient(110deg, color-mix(in srgb, var(--reference-surface) 95%, transparent), var(--reference-panel)); }
+.reference-page .reference-action__icon { background: color-mix(in srgb, var(--reference-accent) 18%, var(--reference-panel)); }
+.reference-page .reference-action__status { background: color-mix(in srgb, var(--reference-accent) 20%, var(--reference-panel)); }
+.reference-page--aquarium .reference-action__copy small,
+.reference-page--aquarium .reference-empty-state p,
+.reference-page--terrarium .reference-action__copy small,
+.reference-page--terrarium .reference-empty-state p,
+.reference-page--ai .reference-action__copy small,
+.reference-page--ai .reference-empty-state p { color: color-mix(in srgb, white 78%, var(--reference-accent)); }
+.marketplace-page .marketplace-entry,
+.marketplace-page .marketplace-trust,
+.marketplace-page .marketplace-card,
+.marketplace-page .marketplace-loading__card,
+.marketplace-page .marketplace-favorite-line,
+.marketplace-page .marketplace-cart,
+.marketplace-page .marketplace-favorites { background: linear-gradient(145deg, var(--reference-marketplace-surface), var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-card__image,
+.marketplace-page .marketplace-cart-fallback { background-color: color-mix(in srgb, var(--reference-marketplace) 22%, var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-favorite-toggle,
+.marketplace-page .marketplace-cart-trigger,
+.marketplace-page .marketplace-filters button.active { background: color-mix(in srgb, var(--reference-marketplace) 27%, var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-entry__icon,
+.marketplace-page .marketplace-card__price,
+.marketplace-page .marketplace-card__price strong,
+.marketplace-page .marketplace-count,
+.marketplace-page .marketplace-favorite-link,
+.marketplace-page .marketplace-cart-empty svg { color: var(--marketplace-champagne); }
+.marketplace-page .marketplace-entry,
+.marketplace-page .marketplace-trust,
+.marketplace-page .marketplace-card,
+.marketplace-page .marketplace-card__offer,
+.marketplace-page .marketplace-variants,
+.marketplace-page .marketplace-search,
+.marketplace-page .marketplace-filters button,
+.marketplace-page .marketplace-favorite-line,
+.marketplace-page .marketplace-favorite-link { border-color: color-mix(in srgb, var(--reference-marketplace) 48%, transparent); }
+.marketplace-page .marketplace-entry,
+.marketplace-page .marketplace-trust,
+.marketplace-page .marketplace-card__offer,
+.marketplace-page .marketplace-variants,
+.marketplace-page .marketplace-search,
+.marketplace-page .marketplace-filters button,
+.marketplace-page .marketplace-favorite-line { background: linear-gradient(145deg, color-mix(in srgb, var(--reference-marketplace) 24%, var(--reference-marketplace-panel)), var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-entry__icon,
+.marketplace-page .marketplace-favorite-link { background: color-mix(in srgb, var(--reference-marketplace) 22%, var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-entry .secondary-action,
+.marketplace-page .marketplace-detail-link,
+.marketplace-page .marketplace-cart-trigger,
+.marketplace-page .marketplace-filters button.active { color: var(--marketplace-champagne); border-color: color-mix(in srgb, var(--reference-marketplace) 76%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--reference-marketplace) 40%, var(--reference-marketplace-panel)), var(--reference-marketplace-panel)); }
+.marketplace-page .marketplace-card__price span,
+.marketplace-page .marketplace-card__vendor,
+.marketplace-page .marketplace-card__description,
+.marketplace-page .marketplace-entry p,
+.marketplace-page .marketplace-trust p { color: color-mix(in srgb, white 68%, var(--reference-marketplace)); }
+.marketplace-page .marketplace-favorite-toggle,
+.marketplace-page .marketplace-favorite-toggle:hover,
+.marketplace-page .marketplace-favorite-toggle:focus-visible,
+.marketplace-page .marketplace-favorite-toggle.is-favorite { color: var(--marketplace-champagne); border-color: color-mix(in srgb, var(--reference-marketplace) 78%, transparent); background: color-mix(in srgb, var(--reference-marketplace) 32%, var(--reference-marketplace-panel)); }
+.route-marketplace .nav-link:nth-child(3),
+.route-marketplace .nav-link:nth-child(3).active { color: var(--marketplace-champagne); text-shadow: 0 0 14px color-mix(in srgb, var(--reference-marketplace) 52%, transparent); }
+.marketplace-page .marketplace-trust > svg { color: var(--marketplace-champagne); }
+@media (max-width: 759px) {
+  .reference-page { padding-inline: 2px; }
+}
