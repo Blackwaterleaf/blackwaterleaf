@@ -912,3 +912,26 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .reference-page--ai .state-panel,
 .reference-page--ai .form-panel,
 .reference-page--ai .glass-panel { box-shadow: inset 0 1px color-mix(in srgb, var(--reference-ai) 20%, transparent), 0 12px 28px rgba(0,0,0,.24); }
+.reference-page .observation-form,
+.reference-page .observation-card,
+.reference-page .community-compose,
+.reference-page .profile-form,
+.reference-page .consent-panel { background: linear-gradient(145deg, color-mix(in srgb, var(--reference-surface) 82%, var(--reference-panel)), var(--reference-panel)); border-color: color-mix(in srgb, var(--reference-accent) 44%, rgba(230,248,220,.16)); }
+.reference-page .observation-form .field input,
+.reference-page .observation-form .field textarea,
+.reference-page .observation-form .field select,
+.reference-page .observation-form .file-field,
+.reference-page .observation-form .consent-toggle { background: color-mix(in srgb, var(--reference-surface) 88%, var(--reference-panel)); border-color: color-mix(in srgb, var(--reference-accent) 42%, transparent); }
+.reference-page .observation-form .primary-action,
+.reference-page .observation-form .form-status { border-color: color-mix(in srgb, var(--reference-accent) 52%, transparent); }
+
+/* Sequential plant identification: one prominent image, then small follow-up thumbnails; never a four-image grid. */
+.assistant-image-sequence { position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:10px; border:1px solid color-mix(in srgb, var(--reference-accent) 44%, transparent); border-radius:12px; background:color-mix(in srgb, var(--reference-surface) 82%, var(--reference-panel)); }
+.assistant-image-sequence img { width:82px; height:82px; object-fit:cover; border-radius:9px; border:1px solid color-mix(in srgb, var(--reference-accent) 52%, transparent); }
+.assistant-image-sequence__meta { display:grid; gap:4px; min-width:0; color:var(--reference-accent); font:700 .58rem/1.3 "JetBrains Mono",monospace; }
+.assistant-image-sequence__meta small { color:rgba(235,246,230,.7); font:500 .68rem/1.35 "Inter",sans-serif; }
+.assistant-image-sequence .icon-button { position:absolute; top:7px; right:7px; }
+.assistant-image-thumbnails { display:flex; gap:8px; padding:0 4px; overflow-x:auto; }
+.assistant-image-thumbnails img { width:54px; height:54px; flex:0 0 54px; object-fit:cover; border:1px solid color-mix(in srgb, var(--reference-accent) 45%, transparent); border-radius:7px; }
+.assistant-add-image { position:relative; justify-content:center; overflow:hidden; cursor:pointer; }
+.assistant-add-image input { position:absolute; inset:0; width:100%; height:100%; cursor:pointer; opacity:0; }

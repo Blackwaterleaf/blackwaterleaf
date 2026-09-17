@@ -17,6 +17,11 @@ describe("assistant operation interface", () => {
     expect(assistantRouter).toContain("validateImageUpload(input.imageBase64, input.mimeType)");
     expect(assistantRouter).toContain("Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert");
     expect(assistantRouter).toContain('type: "image_url"');
+    expect(assistantRouter).toContain("additionalImages");
+    expect(assistantRouter).toContain("max(2)");
+    expect(assistantRouter).toContain("requestedAdditionalImages");
+    expect(assistantRouter).toContain("gemini-3.1-pro-preview");
+    expect(assistantPage).toContain("niemals nach einem 4er-Raster");
   });
 
   it("looks up an aquarium by owned private habitat before analysis", () => {

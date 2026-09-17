@@ -55,3 +55,13 @@ The standalone 412 × 915 Marketplace capture confirms the same result on the ph
 The user reported that the same regression appeared beyond KI. A fresh 412 × 915 capture was therefore taken for Aquaristik, Terraristik, KI, Marktplatz, Community, Profile, Wissen and Foto. The global nested-surface correction now carries each route tone into the functional content below the hero: Cyan on Aquaristik panels, Gold on Terraristik panels, Violet on KI workflow and chat panels, Amber on Marketplace commerce controls, and botanical green on Community/Profile/Wissen/Foto. The original mark, functional icons, route order, Home-only sensor rule and real-data states remain unchanged.
 
 The correction is CSS-only. No database, server procedure, auth/session, upload, media, marketplace record, sensor value or user data was changed or deleted. The screenshot capture was preview-only; no publication was performed after this correction.
+
+## Observation composer follow-up
+
+The user supplied a live Samsung Browser capture showing the authenticated Aquaristik observation composer still rendered botanical green. The cause was a legacy `background` shorthand on the shared observation form, which overrode the newer area variables. A targeted CSS correction now applies the active reference surface and border to observation forms, observation cards, community composer, profile form, consent panel, inputs, file controls and publish toggle. A fresh full-page 412 × 915 Aquaristik preview confirms the composer, fields and empty observation state are cyan. Web TypeScript, all 181 tests and diff validation remain successful. No data or publication was performed for this follow-up.
+
+The corresponding full-page 412 × 915 Terraristik preview confirms the same shared composer now carries the warm Gold/Olive surface through the form fields, upload control, publish toggle, save action and empty observation state. The change remains preview-only and does not add a Terraristik identification operation.
+
+## Complete regression pass after composer correction
+
+A fresh 412 × 915 pass covered Home, Explore, Aquaristik, Terraristik, KI, Marktplatz, Community and Profile. The reference hierarchy remains readable without any four-card replacement grid: area heroes and 2 × 2 choice cards stay intact, the shared bottom navigation remains visible, Home alone shows the sensor rail, and the corrected route surfaces retain Cyan, Gold, Violet, Amber and Botanical semantics. The signed-in owner screenshot includes the private analytics consent and profile data according to the existing consent/auth state; no new data was created by the visual pass.

@@ -17,7 +17,9 @@ describe("mobile image upload contract", () => {
 
   it("does not reject valid large phone photos before the resize helper runs", () => {
     expect(assistant).not.toContain("file.size > 8 * 1024 * 1024");
-    expect(assistant).toContain("readImageAsBase64(plantFile)");
+    expect(assistant).toContain("plantFiles.map(readImageAsBase64)");
+    expect(assistant).toContain("additionalImages");
+    expect(assistant).toContain("niemals nach einem 4er-Raster");
   });
 
   it("maps raw upload errors to readable localized messages in every upload flow", () => {
