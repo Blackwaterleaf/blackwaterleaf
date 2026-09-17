@@ -13,6 +13,7 @@ import { Streamdown } from "streamdown";
 import { Link } from "wouter";
 
 type AssistantTool = "chat" | "plant" | "aquarium";
+const AI_MAINTENANCE = true;
 function requestId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 
 function PlantCorrectionForm({ originalAnswer, assistantUsageId }: { originalAnswer: string; assistantUsageId: number }) {
@@ -108,6 +109,11 @@ export default function Assistant() {
   };
   const statusCode = platform.isLoading ? "AI/CHECKING" : platform.isError ? "AI/STATUS_ERROR" : !auth.isAuthenticated ? "AUTH/REQUIRED" : platform.data?.aiReason === "pending_migration" ? "AI/STAGING_HOLD" : platform.data?.aiAssistant !== "available" ? "AI/POLICY_LOCK" : !aiConsent ? "AI/CONSENT_REQUIRED" : "AI/READY";
   const gate = !available ? <StatePanel code={statusCode} state={platform.isLoading ? "loading" : platform.isError ? "error" : "locked"} title={!auth.isAuthenticated ? t("profile.signedOut") : platform.data?.aiReason === "pending_migration" ? locale === "de" ? "KI-BEREICH GESPERRT" : "AI AREA LOCKED" : !aiConsent ? locale === "de" ? "FREIGABE ERFORDERLICH" : "CONSENT REQUIRED" : t("assistant.rule")} body={!auth.isAuthenticated ? "Melde dich an, damit Fragen, Bildanalyse und deine privaten Aquariumwerte geschützt bleiben." : platform.data?.aiReason === "pending_migration" ? "Der KI-Dienst ist technisch vorübergehend nicht erreichbar. Es werden keine Scheinantworten angezeigt." : !aiConsent ? "Aktiviere im Profil die sichere Verarbeitung von KI-Anfragen. Du kannst die Freigabe jederzeit widerrufen." : "Der KI-Dienst ist momentan nicht erreichbar. Es werden keine Scheinantworten angezeigt."} action={!auth.isAuthenticated ? <button className="primary-action" type="button" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button> : !aiConsent ? <Link href="/profile" className="primary-action"><LockKeyhole size={16} />{locale === "de" ? "ZUM PROFIL" : "OPEN PROFILE"}</Link> : undefined} /> : null;
+
+  if (AI_MAINTENANCE) return <div className="reference-page reference-page--ai assistant-page">
+    <ReferenceHero tone="ai" image={REFERENCE_ASSETS.ai} eyebrow="BLACKWATERLEAF KI" title="KI-ASSISTENT" subtitle="Der KI-Bereich wird gerade übersichtlicher und zuverlässiger eingerichtet." icon={Bot} badge="WARTUNG" />
+    <ReferenceEmptyState tone="ai" code="KI / WARTUNG" title="KURZ PAUSIERT" body="Fragen, Pflanzenbestimmung und Aquarium-Analyse sind während der Überarbeitung vorübergehend nicht verfügbar. Deine privaten Daten bleiben geschützt und werden nicht verändert." />
+  </div>;
 
   return (
     <div className="reference-page reference-page--ai assistant-page">
