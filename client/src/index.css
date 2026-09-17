@@ -974,3 +974,20 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .role-picker__options { display:flex; flex-wrap:wrap; gap:.45rem .7rem; }
 .role-picker__options label { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-muted,#b8c7bb); font-size:.72rem; letter-spacing:.04em; }
 .role-picker__options input { accent-color:#c7ff4a; }
+.marketplace-merchant-entry { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px; border-color:rgba(239,202,119,.42); background:linear-gradient(135deg,rgba(86,58,16,.58),rgba(30,18,8,.8)); }
+.marketplace-merchant-entry h2, .merchant-workspace h2, .merchant-workspace h3 { margin:.35rem 0 .55rem; color:#fff3d4; }
+.marketplace-merchant-entry p, .merchant-workspace__header p { margin:0; color:#dfd1b0; line-height:1.5; }
+.merchant-workspace { display:grid; gap:18px; }
+.merchant-workspace__header { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; padding:20px; border:1px solid rgba(239,202,119,.42); border-radius:20px; background:linear-gradient(135deg,rgba(86,58,16,.58),rgba(30,18,8,.8)); }
+.merchant-workspace__header h1 { margin:.45rem 0 .65rem; color:#fff7df; font:400 clamp(2.6rem,8vw,4.8rem)/.9 "Bebas Neue",sans-serif; }
+.merchant-workspace__grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.merchant-panel { display:grid; gap:12px; padding:20px; border-color:rgba(239,202,119,.35); background:linear-gradient(135deg,rgba(67,45,13,.48),rgba(20,13,7,.82)); }
+.merchant-profile-choice { display:grid; gap:3px; padding:12px; color:#f8efd7; border:1px solid rgba(239,202,119,.27); border-radius:12px; background:rgba(27,17,8,.6); text-align:left; }
+.merchant-profile-choice.active { border-color:#eac46d; background:rgba(130,91,25,.28); }
+.merchant-profile-choice small, .merchant-product-list small { color:#cdbf9d; }
+.merchant-product-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:end; }
+.merchant-product-form .primary-action { min-height:42px; }
+.merchant-product-list { display:grid; gap:8px; }
+.merchant-product-list article { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid rgba(239,202,119,.2); border-radius:11px; background:rgba(27,17,8,.55); }
+.merchant-product-list article > div { display:grid; gap:3px; }
+@media (max-width:720px) { .marketplace-merchant-entry,.merchant-workspace__header { align-items:stretch; flex-direction:column; } .merchant-workspace__grid,.merchant-product-form { grid-template-columns:1fr; } .merchant-product-list article { align-items:stretch; flex-direction:column; } }

@@ -8,7 +8,7 @@ import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
-import { adminProcedure, publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, merchantProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
 const placementStatus = z.enum(["draft", "active", "paused", "expired", "removed"]);
@@ -337,6 +337,60 @@ export const partnersRouter = router({
       const product = (await getPublicMarketplaceProducts(db)).find(item => item.id === input.id);
       if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "marketplace_product_not_found" });
       return { ...product, gallery: await getPublicProductGallery(db, product.id) } satisfies PublicMarketplaceProductDetail;
+    }),
+
+  /** Merchant workspace: only profiles created by the current merchant are visible. */
+  merchantProfiles: merchantProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db.select({ id: partnerProfiles.id, displayName: partnerProfiles.displayName, partyType: partnerProfiles.partyType, status: partnerProfiles.status, createdAt: partnerProfiles.createdAt, updatedAt: partnerProfiles.updatedAt })
+      .from(partnerProfiles).where(eq(partnerProfiles.createdByUserId, ctx.user.id)).orderBy(desc(partnerProfiles.updatedAt));
+  }),
+
+  merchantProducts: merchantProcedure
+    .input(z.object({ partnerId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [partner] = await db.select({ id: partnerProfiles.id }).from(partnerProfiles).where(and(eq(partnerProfiles.id, input.partnerId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
+      if (!partner) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_partner_not_found" });
+      return db.select({ id: partnerProducts.id, partnerId: partnerProducts.partnerId, title: partnerProducts.title, description: partnerProducts.description, destinationUrl: partnerProducts.destinationUrl, priceLabel: partnerProducts.priceLabel, marketplaceCategory: partnerProducts.marketplaceCategory, status: partnerProducts.status, imageStorageKey: partnerProducts.imageStorageKey, createdAt: partnerProducts.createdAt, updatedAt: partnerProducts.updatedAt })
+        .from(partnerProducts).where(eq(partnerProducts.partnerId, input.partnerId)).orderBy(desc(partnerProducts.updatedAt));
+    }),
+
+  merchantCreateProfile: merchantProcedure
+    .input(z.object({ displayName: z.string().trim().min(1).max(160), partyType: z.enum(["person", "company"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const created = await db.transaction(async tx => {
+        const inserted = await tx.insert(partnerProfiles).values({ displayName: input.displayName, partyType: input.partyType, status: "draft", createdByUserId: ctx.user.id });
+        const partnerId = Number(inserted[0].insertId);
+        await tx.insert(partnerPlacements).values({ partnerId, placement: "home", status: "draft", createdByUserId: ctx.user.id });
+        return partnerId;
+      });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_partner_draft_created", targetType: "partner_profile", targetId: created, payload: { status: "draft" } });
+      return { id: created, status: "draft" as const };
+    }),
+
+  merchantCreateProduct: merchantProcedure
+    .input(z.object({ partnerId: z.number().int().positive(), product: partnerProductInputSchema }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [partner] = await db.select({ id: partnerProfiles.id }).from(partnerProfiles).where(and(eq(partnerProfiles.id, input.partnerId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
+      if (!partner) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_partner_not_found" });
+      const inserted = await db.insert(partnerProducts).values({ partnerId: input.partnerId, title: input.product.title, description: input.product.description ?? null, destinationUrl: input.product.destinationUrl, priceLabel: input.product.priceLabel ?? null, marketplaceCategory: input.product.marketplaceCategory ?? null, productType: input.product.productType ?? null, variantSummary: input.product.variantSummary ?? null, seoTitle: input.product.seoTitle ?? null, seoDescription: input.product.seoDescription ?? null, status: "draft", createdByUserId: ctx.user.id });
+      const id = Number(inserted[0].insertId);
+      await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_product_draft_created", targetType: "partner_product", targetId: id, payload: { partnerId: input.partnerId, status: "draft" } });
+      return { id, status: "draft" as const };
+    }),
+
+  merchantSubmitProduct: merchantProcedure
+    .input(z.object({ productId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [product] = await db.select({ id: partnerProducts.id, partnerId: partnerProducts.partnerId, status: partnerProducts.status }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(eq(partnerProducts.id, input.productId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_product_not_found" });
+      if (product.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "only_draft_products_can_be_submitted" });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_product_submitted_for_review", targetType: "partner_product", targetId: product.id, payload: { partnerId: product.partnerId, status: "draft" } });
+      return { id: product.id, status: "draft" as const, submitted: true };
     }),
 
   list: adminProcedure.query(async () => {

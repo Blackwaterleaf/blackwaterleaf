@@ -10,6 +10,7 @@ import { Link } from "wouter";
 
 export default function Marketplace() {
   const catalogue = trpc.partners.marketplace.useQuery(undefined, { retry: false });
+  const merchantProfiles = trpc.partners.merchantProfiles.useQuery(undefined, { retry: false });
   const [search, setSearch] = useState("");
   const [partnerId, setPartnerId] = useState<number | "all">("all");
   const [category, setCategory] = useState<string | "all">("all");
@@ -50,6 +51,7 @@ export default function Marketplace() {
         <div><span className="eyebrow">[KURATIERT & TRANSPARENT]</span><h2>Finde, was zu deiner Welt passt.</h2><p>Durchsuche ausschließlich aktuell freigegebene Partnerangebote oder sichere Artikel für später in deiner lokalen Merkliste.</p></div>
         <a className="secondary-action" href="#partnerangebote"><Search size={16} />ANGEBOTE ANSEHEN</a>
       </section>
+      {merchantProfiles.data ? <section className="marketplace-merchant-entry glass-panel"><div><span className="eyebrow">[HÄNDLERBEREICH]</span><h2>Eigene Angebote verwalten</h2><p>Produktentwürfe anlegen und zur Admin-Prüfung einreichen. Öffentliche Freigaben bleiben geschützt.</p></div><Link className="secondary-action" href="/marketplace/manage">HÄNDLERBEREICH ÖFFNEN</Link></section> : null}
 
       <section className="marketplace-trust glass-panel">
         <Leaf size={20} />

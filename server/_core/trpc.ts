@@ -3,6 +3,9 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import { isActiveAccountWithRole } from "../security";
+import { getDb } from "../db";
+import { and, eq } from "drizzle-orm";
+import { userRoles } from "../../drizzle/schema";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -62,5 +65,21 @@ export const adminProcedure = t.procedure.use(
         user: ctx.user,
       },
     });
+  }),
+);
+
+/** Active admins or users explicitly assigned the additive merchant capability. */
+export const merchantProcedure = t.procedure.use(
+  t.middleware(async opts => {
+    const { ctx, next } = opts;
+    if (!ctx.user || !isActiveAccountWithRole(ctx.user, ["user", "moderator", "admin"])) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Active merchant role required" });
+    }
+    if (ctx.user.role !== "admin") {
+      const db = await getDb();
+      const [assignment] = db ? await db.select({ id: userRoles.id }).from(userRoles).where(and(eq(userRoles.userId, ctx.user.id), eq(userRoles.role, "merchant"))).limit(1) : [];
+      if (!assignment) throw new TRPCError({ code: "FORBIDDEN", message: "Active merchant role required" });
+    }
+    return next({ ctx: { ...ctx, user: ctx.user } });
   }),
 );

@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
+import MerchantMarketplace from "./pages/MerchantMarketplace";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -52,6 +53,7 @@ function Router() {
         <Route path={"/terraristik"}><Realm /></Route>
         <Route path={"/shop"} component={Marketplace} />
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
+        <Route path={"/marketplace/manage"} component={MerchantMarketplace} />
         <Route path={"/marketplace"} component={Marketplace} />
         <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
