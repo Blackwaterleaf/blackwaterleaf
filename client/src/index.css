@@ -991,3 +991,17 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .merchant-product-list article { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid rgba(239,202,119,.2); border-radius:11px; background:rgba(27,17,8,.55); }
 .merchant-product-list article > div { display:grid; gap:3px; }
 @media (max-width:720px) { .marketplace-merchant-entry,.merchant-workspace__header { align-items:stretch; flex-direction:column; } .merchant-workspace__grid,.merchant-product-form { grid-template-columns:1fr; } .merchant-product-list article { align-items:stretch; flex-direction:column; } }
+.habitat-image-strip { display:flex; gap:.45rem; margin-top:.55rem; overflow-x:auto; max-width:100%; }
+.habitat-image-strip img { width:3.25rem; height:3.25rem; object-fit:cover; border-radius:.55rem; border:1px solid currentColor; opacity:.9; }
+.habitat-image-picker { display:grid; gap:.35rem; padding:.7rem; border:1px dashed var(--border); border-radius:.65rem; color:var(--muted-foreground); font-size:.78rem; }
+.habitat-image-picker input { max-width:100%; color:var(--foreground); }
+.habitat-image-picker small { color:var(--muted-foreground); }
+.community-own-posts { display:grid; gap:12px; }
+.community-own-post { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:12px; border:1px solid rgba(141,245,174,.24); border-radius:12px; background:rgba(5,22,12,.52); }
+.community-own-post > div { min-width:0; display:grid; gap:4px; }
+.community-own-post strong { color:#c7ff9b; font:700 .62rem/1 "JetBrains Mono",monospace; letter-spacing:.08em; }
+.community-own-post p { margin:0; color:#e6f3e6; line-height:1.45; white-space:pre-wrap; overflow-wrap:anywhere; }
+.community-own-post small { color:#9fb9a3; font-size:.68rem; }
+.community-edit { display:grid; gap:10px; }
+.community-edit textarea { width:100%; min-height:110px; padding:12px; color:var(--foreground); border:1px solid var(--border); border-radius:12px; background:rgba(5,22,12,.72); resize:vertical; }
+@media (max-width:520px) { .community-own-post { align-items:stretch; flex-direction:column; } .community-own-post .secondary-action { width:100%; } }

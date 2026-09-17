@@ -46,6 +46,7 @@ import {
   currentAccount,
   knowledge,
   marketplace,
+  myCommunityPosts,
   outdoorWeather,
   platformAvailability,
   privateHabitats,
@@ -54,12 +55,14 @@ import {
   readToken,
   setProfileConsent,
   submitPlantCorrection,
+  updateCommunityPost,
   type Account,
   type AssistantReply,
   type CommunityPost,
   type Habitat,
   type KnowledgeArticle,
   type MarketplaceProduct,
+  type OwnCommunityPost,
   type OutdoorWeather,
   type PlatformAvailability,
   type ProfileConsent,
@@ -2145,6 +2148,13 @@ function PostScreen({
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
+  useEffect(() => {
+    if (!token) return;
+    void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
+  }, [token]);
   const save = async () => {
     if (!token || !content.trim() || saving) return;
     setSaving(true);
@@ -2164,6 +2174,7 @@ function PostScreen({
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       setContent("");
       setPublishNow(false);
+      setOwnPosts(await myCommunityPosts(token));
       setStatus(
         publishNow
           ? "Beitrag öffentlich veröffentlicht."
@@ -2175,6 +2186,29 @@ function PostScreen({
           ? cause.message
           : "Der Beitrag konnte nicht gespeichert werden."
       );
+    } finally {
+      setSaving(false);
+    }
+  };
+  const startPostEdit = (post: OwnCommunityPost) => {
+    setEditingPostId(post.id);
+    setContent(post.content);
+    setRealm(post.realm ?? "botany");
+    setEditVisibility(post.visibility);
+    setPublishNow(false);
+  };
+  const savePostEdit = async () => {
+    if (!token || editingPostId === null || !content.trim() || saving) return;
+    setSaving(true);
+    setStatus(null);
+    try {
+      await updateCommunityPost(token, { postId: editingPostId, content: content.trim(), realm, visibility: editVisibility });
+      setEditingPostId(null);
+      setContent("");
+      setOwnPosts(await myCommunityPosts(token));
+      setStatus("Beitrag aktualisiert.");
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Der Beitrag konnte nicht aktualisiert werden.");
     } finally {
       setSaving(false);
     }
@@ -2210,6 +2244,8 @@ function PostScreen({
             Es werden keine Beispielbeiträge erstellt. Dein Entwurf bleibt
             privat, bis du die Veröffentlichung ausdrücklich aktivierst.
           </Text>
+          {ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
+          {editingPostId !== null ? <Text style={[styles.chip, { color: tone.accent }]}>BEITRAG BEARBEITEN · {editVisibility === "public" ? "ÖFFENTLICH" : "PRIVAT"}</Text> : null}
           <LabeledInput
             tone={tone}
             label="DEIN ECHTER NATURMOMENT"
@@ -2251,30 +2287,24 @@ function PostScreen({
           </View>
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
             <View style={styles.flex}>
-              <Text style={styles.cardTitle}>ÖFFENTLICH VERÖFFENTLICHEN</Text>
+              <Text style={styles.cardTitle}>{editingPostId !== null ? "ÖFFENTLICH SPEICHERN" : "ÖFFENTLICH VERÖFFENTLICHEN"}</Text>
               <Text style={styles.copy}>
                 Nur mit deiner ausdrücklichen Freigabe.
               </Text>
             </View>
             <Switch
-              value={publishNow}
-              onValueChange={setPublishNow}
+              value={editingPostId !== null ? editVisibility === "public" : publishNow}
+              onValueChange={value => editingPostId !== null ? setEditVisibility(value ? "public" : "private") : setPublishNow(value)}
               trackColor={{ false: "#345440", true: tone.accent }}
               thumbColor={publishNow ? c.bg : c.muted}
             />
           </View>
           <PrimaryButton
             tone={tone}
-            label={
-              saving
-                ? "WIRD GESPEICHERT …"
-                : publishNow
-                  ? "BEITRAG VERÖFFENTLICHEN"
-                  : "PRIVATEN ENTWURF SPEICHERN"
-            }
+            label={saving ? "WIRD GESPEICHERT …" : editingPostId !== null ? "ÄNDERUNG SPEICHERN" : publishNow ? "BEITRAG VERÖFFENTLICHEN" : "PRIVATEN ENTWURF SPEICHERN"}
             icon="send-outline"
             disabled={saving || !content.trim()}
-            onPress={() => void save()}
+            onPress={() => void (editingPostId !== null ? savePostEdit() : save())}
           />
           {status ? (
             <Text style={[styles.formMessage, { color: tone.accent }]}>
@@ -4095,6 +4125,10 @@ const styles = StyleSheet.create({
   answer: { color: c.text, fontSize: 12, lineHeight: 19 },
   correction: { padding: 14, gap: 9, borderRadius: 14, borderWidth: 1 },
   formMessage: { fontSize: 11, fontWeight: "700", lineHeight: 16 },
+  ownPosts: { gap: 8, marginTop: 4 },
+  ownPost: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderWidth: 1, borderRadius: 10, backgroundColor: "rgba(0,0,0,.16)" },
+  ownPostStatus: { fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
+  ownPostText: { marginTop: 3, color: c.text, fontSize: 12, lineHeight: 17 },
   aquariumSelect: { gap: 8 },
   aquariumOption: {
     minHeight: 51,

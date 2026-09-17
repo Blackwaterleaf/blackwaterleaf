@@ -211,7 +211,7 @@ export const observationsRouter = router({
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
-      assertValidMediaContext({ kind: "observation_image", observationId: observation.id, postId: null });
+      assertValidMediaContext({ kind: "observation_image", observationId: observation.id, postId: null, habitatId: null });
       const stored = await storagePut(
         `users/${ctx.user.id}/observations/${observation.id}/image.${image.extension}`,
         image.buffer,

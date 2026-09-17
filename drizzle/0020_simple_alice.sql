@@ -1,0 +1,3 @@
+ALTER TABLE `media_assets` MODIFY COLUMN `kind` enum('avatar','observation_image','post_image','habitat_image') NOT NULL;--> statement-breakpoint
+ALTER TABLE `media_assets` ADD `habitatId` int;--> statement-breakpoint
+ALTER TABLE `media_assets` ADD CONSTRAINT `media_assets_habitatId_private_habitats_id_fk` FOREIGN KEY (`habitatId`) REFERENCES `private_habitats`(`id`) ON DELETE no action ON UPDATE no action;

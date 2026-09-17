@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
 import { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -11,6 +14,7 @@ import {
 } from "react-native";
 import {
   createHabitat,
+  uploadHabitatImage,
   type Habitat,
   type HabitatKind,
   type HabitatPayload,
@@ -77,6 +81,7 @@ export function HabitatManager({
   const [equipment, setEquipment] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [photos, setPhotos] = useState<Array<{ uri: string; base64: string; mimeType: string }>>([]);
   const items = useMemo(
     () => habitats.filter(item => item.kind === kind),
     [habitats, kind]
@@ -95,6 +100,26 @@ export function HabitatManager({
     setPh("");
     setEquipment("");
     setNotes("");
+    setPhotos([]);
+  };
+  const choosePhotos = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Medienfreigabe fehlt", "Bitte erlaube den Zugriff auf deine Bilder.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.82, allowsMultipleSelection: true, selectionLimit: 3, allowsEditing: false });
+    if (result.canceled) return;
+    try {
+      const next: Array<{ uri: string; base64: string; mimeType: string }> = [];
+      for (const asset of result.assets.slice(0, 3)) {
+        const mimeType = asset.mimeType === "image/png" || asset.mimeType === "image/webp" ? asset.mimeType : "image/jpeg";
+        next.push({ uri: asset.uri, base64: await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 }), mimeType });
+      }
+      setPhotos(next);
+    } catch {
+      Alert.alert("Bild konnte nicht vorbereitet werden", "Bitte wähle ein kleineres JPG-, PNG- oder WebP-Bild.");
+    }
   };
   const number = (value: string) =>
     value.trim() === "" ? null : Number(value.replace(",", "."));
@@ -175,7 +200,14 @@ export function HabitatManager({
             };
     setSaving(true);
     try {
-      await createHabitat(token, payload);
+      const saved = await createHabitat(token, payload);
+      for (const photo of photos) {
+        await uploadHabitatImage(token, {
+          habitatId: saved.id,
+          base64: photo.base64,
+          mimeType: photo.mimeType,
+        });
+      }
       reset();
       setOpen(false);
       await onSaved();
@@ -385,6 +417,18 @@ export function HabitatManager({
                 multiline
               />
               <Pressable
+                style={[styles.photoButton, { borderColor: `${accent}88`, backgroundColor: surface.page }]}
+                onPress={() => void choosePhotos()}
+                disabled={saving}
+              >
+                <Ionicons name="images-outline" size={19} color={accent} />
+                <View style={styles.photoButtonCopy}>
+                  <Text style={[styles.photoButtonTitle, { color: accent }]}>PRIVATE BILDER HINZUFÜGEN</Text>
+                  <Text style={styles.copy}>{photos.length ? `${photos.length} Einzelbild${photos.length === 1 ? "" : "er"} ausgewählt` : "Optional · maximal 3 Bilder"}</Text>
+                </View>
+              </Pressable>
+              {photos.length ? <View style={styles.photoStrip}>{photos.map(photo => <Image key={photo.uri} source={{ uri: photo.uri }} style={styles.photoThumb} />)}</View> : null}
+              <Pressable
                 style={[
                   styles.saveButton,
                   { backgroundColor: accent },
@@ -441,6 +485,7 @@ export function HabitatManager({
               {labels[item.kind]} · aktualisiert{" "}
               {new Date(item.updatedAt).toLocaleDateString("de-DE")}
             </Text>
+            {item.images?.length ? <View style={styles.savedPhotoStrip}>{item.images.map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} />)}</View> : null}
           </View>
         </View>
       )}
@@ -559,6 +604,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   disabled: { opacity: 0.55 },
+  photoButton: { minHeight: 58, flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderWidth: 1, borderRadius: 10 },
+  photoButtonCopy: { flex: 1, gap: 3 },
+  photoButtonTitle: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
+  photoStrip: { flexDirection: "row", gap: 8 },
+  photoThumb: { width: 64, height: 64, borderRadius: 9, borderWidth: 1, borderColor: c.border },
+  savedPhotoStrip: { flexDirection: "row", gap: 6, marginTop: 4 },
+  savedPhotoThumb: { width: 42, height: 42, borderRadius: 7, borderWidth: 1, borderColor: c.border },
   empty: {
     minHeight: 165,
     padding: 22,

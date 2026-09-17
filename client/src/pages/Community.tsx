@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
-import { Camera, Eye, Heart, MessageCircle, Send, Share2, UsersRound } from "lucide-react";
+import { Camera, Eye, Heart, MessageCircle, Pencil, Save as SaveIcon, Send, Share2, UsersRound } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
 const COMMUNITY_POLICY_VERSION = "community-2026-09-16-v1";
@@ -16,10 +16,12 @@ export default function Community() {
   const { locale, t } = useI18n();
   const utils = trpc.useUtils();
   const feed = trpc.community.feed.useQuery({ limit: 20 }, { retry: false });
+  const myPosts = trpc.community.myPosts.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const createDraft = trpc.community.createDraft.useMutation();
   const uploadDraftImage = trpc.community.uploadDraftImage.useMutation();
   const publishPost = trpc.community.publish.useMutation();
+  const updatePost = trpc.community.updateMine.useMutation();
   const likePost = trpc.community.like.useMutation();
   const setConsent = trpc.profile.setConsent.useMutation();
   const [content, setContent] = useState("");
@@ -29,6 +31,10 @@ export default function Community() {
   const [publishNow, setPublishNow] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [composeOpen, setComposeOpen] = useState(() => typeof window !== "undefined" && window.location.search.includes("compose=1"));
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
+  const [editRealm, setEditRealm] = useState<"botany" | "aquarium" | "terrarium" | "none">("none");
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
   const submitPost = async (event: FormEvent) => {
@@ -47,6 +53,17 @@ export default function Community() {
     } catch (error) { setStatus(imageErrorMessage(error, locale)); }
   };
   const like = async (postId: string) => { if (!auth.isAuthenticated) { startLogin(); return; } await likePost.mutateAsync({ postId: Number(postId) }); await utils.community.feed.invalidate(); };
+  const beginEdit = (post: { id: number; content: string; visibility: string; realm: string | null }) => { setEditingPostId(post.id); setEditContent(post.content); setEditVisibility(post.visibility === "public" ? "public" : "private"); setEditRealm(post.realm === "botany" || post.realm === "aquarium" || post.realm === "terrarium" ? post.realm : "none"); };
+  const saveEdit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!editingPostId) return;
+    try {
+      await updatePost.mutateAsync({ postId: editingPostId, content: editContent, visibility: editVisibility, realm: editRealm === "none" ? null : editRealm });
+      setEditingPostId(null);
+      setStatus(locale === "de" ? "Beitrag aktualisiert." : "Post updated.");
+      await Promise.all([utils.community.feed.invalidate(), utils.community.myPosts.invalidate()]);
+    } catch (error) { setStatus(imageErrorMessage(error, locale)); }
+  };
 
   return (
     <div className="reference-page reference-page--botany">
@@ -56,6 +73,7 @@ export default function Community() {
         { title: "Teilen", note: auth.isAuthenticated ? "Editor öffnen" : "Anmeldung erforderlich", icon: Share2, image: WORLD_ASSETS.terrarium, onActivate: auth.isAuthenticated ? () => setComposeOpen(true) : startLogin },
       ]} />
       {feed.isLoading ? <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} /> : feed.isError ? <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={locale === "de" ? "Der Feed konnte nicht geladen werden. Es werden keine Ersatzbeiträge angezeigt." : "The feed could not be loaded. No replacement posts are shown."} /> : !feed.data?.length ? <ReferenceEmptyState tone="botany" code="FEED / EMPTY" title={t("community.emptyTitle")} body={t("community.emptyBody")} action={!auth.isAuthenticated ? <button type="button" className="primary-action" onClick={startLogin}>{t("common.signIn")}</button> : <button type="button" className="primary-action" onClick={() => setComposeOpen(true)}><Send size={16} />{locale === "de" ? "BEITRAG ERSTELLEN" : "CREATE POST"}</button>} /> : <div className="community-feed">{feed.data.map(post => <article key={post.id} className="community-post glass-panel"><div className="post-author">{post.author.avatarUrl ? <img src={post.author.avatarUrl} alt="" /> : <span>{(post.author.name ?? post.author.username ?? "?").slice(0, 1).toUpperCase()}</span>}<div><strong>{post.author.name ?? post.author.username ?? (locale === "de" ? "Verifiziertes Konto" : "Verified account")}</strong><small>{new Date(post.createdAt).toLocaleString(locale)}</small></div></div><p>{post.content}</p>{post.media.map(media => <img key={media.id} className="post-media" src={media.accessUrl} alt="" />)}<div className="post-metrics"><button type="button" onClick={() => void like(post.id)} disabled={likePost.isPending}><Heart size={15} /> {post.likesCount}</button><span><MessageCircle size={15} /> {post.commentsCount}</span></div></article>)}</div>}
+      {auth.isAuthenticated && myPosts.data?.length ? <section className="community-own-posts glass-panel"><div className="form-heading"><div><span className="eyebrow">[PRIVATE / PUBLIC]</span><h2>{locale === "de" ? "MEINE BEITRÄGE" : "MY POSTS"}</h2></div></div>{myPosts.data.map(post => editingPostId === post.id ? <form key={post.id} className="community-edit" onSubmit={saveEdit}><textarea required minLength={1} maxLength={10000} rows={4} value={editContent} onChange={event => setEditContent(event.target.value)} /><div className="form-grid"><label className="field"><span>Bereich</span><select value={editRealm} onChange={event => setEditRealm(event.target.value as typeof editRealm)}><option value="none">—</option><option value="botany">Botanik</option><option value="aquarium">Aquaristik</option><option value="terrarium">Terraristik</option></select></label><label className="field"><span>Sichtbarkeit</span><select value={editVisibility} onChange={event => setEditVisibility(event.target.value as typeof editVisibility)}><option value="private">Privat</option><option value="public">Öffentlich</option></select></label></div><div className="account-actions"><button type="submit" className="primary-action" disabled={updatePost.isPending}><SaveIcon />{updatePost.isPending ? t("common.loading") : "ÄNDERUNG SPEICHERN"}</button><button type="button" className="secondary-action" onClick={() => setEditingPostId(null)}>ABBRECHEN</button></div></form> : <article className="community-own-post"><div><strong>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</strong><p>{post.content}</p><small>{new Date(post.updatedAt).toLocaleString(locale)}</small></div><button type="button" className="secondary-action" onClick={() => beginEdit(post)}><Pencil size={15} />BEARBEITEN</button></article>)}</section> : null}
       {auth.isAuthenticated && composeOpen ? <form className="community-compose glass-panel reference-after-actions" onSubmit={submitPost}><div className="form-heading"><div><span className="eyebrow">[PRIVATE_DRAFT]</span><h2>{locale === "de" ? "NATURMOMENT ERFASSEN" : "CAPTURE A NATURE MOMENT"}</h2></div><button type="button" className="secondary-action" onClick={() => setComposeOpen(false)}>SCHLIESSEN</button></div><label className="field"><span>{locale === "de" ? "Dein echter Naturmoment" : "Your real nature moment"}</span><textarea required minLength={1} maxLength={10000} rows={5} value={content} onChange={event => setContent(event.target.value)} /></label><div className="form-grid"><label className="field"><span>{locale === "de" ? "Bereich – optional" : "Realm – optional"}</span><select value={realm} onChange={event => setRealm(event.target.value as typeof realm)}><option value="none">—</option><option value="botany">Botanik</option><option value="aquarium">Aquaristik</option><option value="terrarium">Terraristik</option></select></label><label className="file-field"><Camera size={17} /><span>{image ? image.name : locale === "de" ? "Bild optional auswählen" : "Choose optional image"}</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => setImage(event.target.files?.[0] ?? null)} /></label></div>{image && !consentMap.get("media_processing") ? <label className="consent-toggle"><span>{locale === "de" ? "Ich erlaube die sichere Verarbeitung dieses Bildes." : "I allow secure processing of this image."}</span><input type="checkbox" checked={allowMedia} onChange={event => setAllowMedia(event.target.checked)} /></label> : null}<label className="consent-toggle publish-toggle"><span>{locale === "de" ? "Diesen Entwurf ausdrücklich öffentlich veröffentlichen" : "Explicitly publish this draft"}</span><input type="checkbox" checked={publishNow} onChange={event => setPublishNow(event.target.checked)} /></label><button className="primary-action" type="submit" disabled={createDraft.isPending || publishPost.isPending || uploadDraftImage.isPending}><Send size={16} />{createDraft.isPending ? t("common.loading") : locale === "de" ? "SICHER SPEICHERN" : "SAVE SECURELY"}</button>{status ? <p className="form-status" role="status">{status}</p> : null}</form> : status ? <p className="form-status" role="status">{status}</p> : null}
     </div>
   );

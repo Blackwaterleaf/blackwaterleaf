@@ -106,6 +106,14 @@ export type CommunityPost = {
   commentsCount: number;
   createdAt: string;
 };
+export type OwnCommunityPost = {
+  id: number;
+  content: string;
+  realm: "botany" | "aquarium" | "terrarium" | null;
+  visibility: "private" | "public";
+  status: string;
+  updatedAt: string;
+};
 export type KnowledgeArticle = {
   id: string;
   title: string;
@@ -127,6 +135,7 @@ export type Habitat = {
   kind: HabitatKind;
   name: string;
   details: Record<string, unknown>;
+  images?: Array<{ id: string; accessUrl: string; mimeType: string }>;
   updatedAt: string;
 };
 export type Observation = {
@@ -214,6 +223,8 @@ export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const communityFeed = () =>
   trpcGet<CommunityPost[]>("community.feed", { limit: 40 });
+export const myCommunityPosts = (token: string) =>
+  trpcGet<OwnCommunityPost[]>("community.myPosts", undefined, token);
 export const knowledge = () =>
   trpcGet<KnowledgeArticle[]>("knowledge.listPublished", {
     locale: "de",
@@ -225,6 +236,10 @@ export const privateHabitats = (token: string) =>
   trpcGet<Habitat[]>("habitats.mine", undefined, token);
 export const createHabitat = (token: string, input: HabitatPayload) =>
   trpcPost<Habitat>("habitats.create", input, token);
+export const uploadHabitatImage = (
+  token: string,
+  input: { habitatId: number; base64: string; mimeType: string }
+) => trpcPost<{ id: string; accessUrl: string }>("habitats.uploadImage", input, token);
 export const privateObservations = (token: string) =>
   trpcGet<Observation[]>("observations.mine", undefined, token);
 export const createObservation = (
@@ -322,6 +337,15 @@ export const publishCommunityDraft = (
 ) =>
   trpcPost<{ status: "published"; visibility: "public" }>(
     "community.publish",
+    input,
+    token
+  );
+export const updateCommunityPost = (
+  token: string,
+  input: { postId: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; visibility: "private" | "public" }
+) =>
+  trpcPost<{ id: string; status: string; visibility: "private" | "public" }>(
+    "community.updateMine",
     input,
     token
   );

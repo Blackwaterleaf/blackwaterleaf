@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlackWaterLeaf",
     "slug": "blackwater-agent",
-    "version": "1.0.16",
+    "version": "1.0.17",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
@@ -19,7 +19,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.blackwaterleaf",
-      "versionCode": 16,
+      "versionCode": 17,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ],

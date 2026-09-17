@@ -3,6 +3,7 @@ import { Box, Fish, Pencil, Plus, Save, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
+import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 
 type HabitatKind = PrivateHabitatInput["kind"];
 type HabitatRecord = {
@@ -11,6 +12,7 @@ type HabitatRecord = {
   kind: HabitatKind;
   name: string;
   details: Record<string, unknown>;
+  images?: Array<{ id: string; accessUrl: string; mimeType: string }>;
   createdAt: string;
   updatedAt: string;
 };
@@ -163,9 +165,12 @@ export function HabitatProfiles() {
   const habitats = trpc.habitats.mine.useQuery();
   const create = trpc.habitats.create.useMutation();
   const update = trpc.habitats.update.useMutation();
+  const uploadImage = trpc.habitats.uploadImage.useMutation();
   const [form, setForm] = useState<FormValues | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
   const records = (habitats.data ?? []) as unknown as HabitatRecord[];
   const counts = useMemo(() => ({
     aquarium: records.filter(item => item.kind === "aquarium").length,
@@ -173,8 +178,8 @@ export function HabitatProfiles() {
     terrarium: records.filter(item => item.kind === "terrarium").length,
   }), [records]);
 
-  const startNew = (kind: HabitatKind) => { setForm(blankForm(kind)); setEditingId(null); setStatus(null); };
-  const startEdit = (record: HabitatRecord) => { setForm(recordToForm(record)); setEditingId(Number(record.id)); setStatus(null); };
+  const startNew = (kind: HabitatKind) => { setForm(blankForm(kind)); setEditingId(null); setStatus(null); setImageFiles([]); setImageError(null); };
+  const startEdit = (record: HabitatRecord) => { setForm(recordToForm(record)); setEditingId(Number(record.id)); setStatus(null); setImageFiles([]); setImageError(null); };
 
   const save = async (event: FormEvent) => {
     event.preventDefault();
@@ -182,14 +187,20 @@ export function HabitatProfiles() {
     setStatus(null);
     try {
       const input = inputFromForm(form);
-      if (editingId) await update.mutateAsync({ id: editingId, ...input });
-      else await create.mutateAsync(input);
+      const saved = editingId ? await update.mutateAsync({ id: editingId, ...input }) : await create.mutateAsync(input);
+      const habitatId = Number((saved as { id: string | number }).id);
+      if (imageFiles.length && habitatId) {
+        for (const file of imageFiles.slice(0, 3)) {
+          const image = await readImageAsBase64(file);
+          await uploadImage.mutateAsync({ habitatId, ...image });
+        }
+      }
       await utils.habitats.mine.invalidate();
       setForm(null);
       setEditingId(null);
       setStatus(editingId ? copy.updated : copy.saved);
-    } catch {
-      setStatus(copy.saveFailed);
+    } catch (error) {
+      setStatus(error instanceof Error && error.message ? imageErrorMessage(error, locale) : copy.saveFailed);
     }
   };
 
@@ -208,13 +219,15 @@ export function HabitatProfiles() {
         {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
         {records.length ? <div className="habitat-list">{records.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
-          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p></div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
+          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map(image => <img key={image.id} src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" />)}</div> : null}</div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
         })}</div> : <p className="habitat-empty">{copy.empty}</p>}
 
         {form ? <form className="habitat-editor" onSubmit={save}>
           <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>
           <div className="form-grid">{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
-          <button type="submit" className="primary-action" disabled={create.isPending || update.isPending}><Save size={16} />{create.isPending || update.isPending ? copy.saving : editingId ? copy.update : copy.save}</button>
+          <label className="habitat-image-picker"><span>Private Bilder hinzufügen · maximal 3</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={event => { setImageError(null); setImageFiles(Array.from(event.target.files ?? []).slice(0, 3)); }} />{imageFiles.length ? <small>{imageFiles.length} Bild{imageFiles.length === 1 ? "" : "er"} ausgewählt</small> : <small>JPG, PNG oder WebP · bleibt privat</small>}</label>
+          {imageError ? <p className="form-status" role="alert">{imageError}</p> : null}
+          <button type="submit" className="primary-action" disabled={create.isPending || update.isPending || uploadImage.isPending}><Save size={16} />{create.isPending || update.isPending || uploadImage.isPending ? copy.saving : editingId ? copy.update : copy.save}</button>
         </form> : null}
         {status ? <p className="form-status" role="status">{status}</p> : null}
       </div>

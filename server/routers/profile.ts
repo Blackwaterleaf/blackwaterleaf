@@ -144,7 +144,7 @@ export const profileRouter = router({
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
-      assertValidMediaContext({ kind: "avatar", observationId: null, postId: null });
+      assertValidMediaContext({ kind: "avatar", observationId: null, postId: null, habitatId: null });
       const stored = await storagePut(
         `users/${ctx.user.id}/avatars/avatar.${image.extension}`,
         image.buffer,

@@ -160,7 +160,7 @@ export const communityRouter = router({
       }
 
       const image = validateImageUpload(input.base64, input.mimeType);
-      assertValidMediaContext({ kind: "post_image", observationId: null, postId: post.id });
+      assertValidMediaContext({ kind: "post_image", observationId: null, postId: post.id, habitatId: null });
       const stored = await storagePut(
         `users/${ctx.user.id}/posts/${post.id}/image.${image.extension}`,
         image.buffer,
@@ -207,6 +207,31 @@ export const communityRouter = router({
     });
     return { status: "published", visibility: "public" } as const;
   }),
+
+  updateMine: protectedProcedure
+    .input(z.object({
+      postId: z.number().int().positive(),
+      content: z.string().trim().min(1).max(10_000),
+      realm: observationRealmSchema.nullable().optional(),
+      visibility: z.enum(["private", "public"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const posts = await db.select().from(communityPosts).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id))).limit(1);
+      const post = posts[0];
+      if (!post || !isResourceOwner(ctx.user.id, post.userId)) throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
+      if (post.status === "removed" || post.status === "hidden") throw new TRPCError({ code: "FORBIDDEN", message: "moderated_post_cannot_be_restored" });
+      await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
+      if (input.visibility === "public" && !(await hasCurrentConsent(db, ctx.user.id, "community_publishing"))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "community_publishing_consent_required" });
+      }
+      const nextStatus = input.visibility === "public" ? "published" : "draft";
+      await db.transaction(async tx => {
+        await tx.update(communityPosts).set({ content: input.content, realm: input.realm ?? null, visibility: input.visibility, status: nextStatus }).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)));
+        await tx.update(mediaAssets).set({ visibility: input.visibility }).where(and(eq(mediaAssets.postId, input.postId), eq(mediaAssets.userId, ctx.user.id)));
+      });
+      return { id: String(input.postId), status: nextStatus, visibility: input.visibility } as const;
+    }),
 
   like: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
