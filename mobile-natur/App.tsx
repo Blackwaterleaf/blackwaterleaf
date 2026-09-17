@@ -953,41 +953,10 @@ function Home({
         <Text style={[styles.homeAllAreasText, { color: TONES.home.accent }]}>ALLE BEREICHE</Text>
         <Ionicons name="arrow-forward" size={15} color={TONES.home.accent} />
       </Pressable>
-      <ActionGrid
-        actions={[
-          {
-            title: "Botanik",
-            note: "Pflanzen & Wissen",
-            icon: "leaf-outline",
-            image: ASSETS.botany,
-            onPress: () => navigate("botany"),
-          },
-          {
-            title: "Aquaristik",
-            note: "Becken & Wasserwerte",
-            icon: "fish-outline",
-            image: ASSETS.aquarium,
-            onPress: () => navigate("aquarium"),
-          },
-          {
-            title: "Terraristik",
-            note: "Regenwald im Kleinen",
-            icon: "leaf-outline",
-            image: ASSETS.terrarium,
-            onPress: () => navigate("terrarium"),
-          },
-          {
-            title: "KI-Assistent",
-            note:
-              platform?.aiAssistant === "available"
-                ? "Sichere KI-Hilfe"
-                : "Status transparent prüfen",
-            icon: "hardware-chip-outline",
-            image: ASSETS.ai,
-            onPress: () => navigate("assistant"),
-          },
-        ]}
+      <LiveHomeWorlds
         tone={TONES.home}
+        aiAvailable={platform?.aiAssistant === "available"}
+        navigate={navigate}
       />
       <Truth tone={TONES.home} />
     </Page>
@@ -1021,6 +990,71 @@ function HomeHero({
         </View>
       </View>
     </ImageBackground>
+  );
+}
+
+function LiveHomeWorlds({
+  tone,
+  aiAvailable,
+  navigate,
+}: {
+  tone: Tone;
+  aiAvailable: boolean;
+  navigate: (screen: Screen) => void;
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const chooseWorld = (title: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelected(current => current === title ? null : title);
+  };
+  const worlds: Action[] = [
+    { title: "Botanik", note: "Pflanzen & Wissen", icon: "leaf-outline", image: ASSETS.botany, onPress: () => chooseWorld("Botanik") },
+    { title: "Aquaristik", note: "Becken & Wasserwerte", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => chooseWorld("Aquaristik") },
+    { title: "Terraristik", note: "Regenwald im Kleinen", icon: "leaf-outline", image: ASSETS.terrarium, onPress: () => chooseWorld("Terraristik") },
+    { title: "KI-Assistent", note: aiAvailable ? "Sichere KI-Hilfe" : "Status transparent prüfen", icon: "hardware-chip-outline", image: ASSETS.ai, onPress: () => chooseWorld("KI-Assistent") },
+  ];
+  const choices: Record<string, Action[]> = {
+    Botanik: [
+      { title: "Pflanzen öffnen", note: "Private Sammlung verwalten", icon: "leaf-outline", image: ASSETS.botany, onPress: () => navigate("botany") },
+      { title: "Pflanze bestimmen", note: "Einzelbild mit KI prüfen", icon: "scan-outline", image: ASSETS.botany, onPress: () => navigate("assistant") },
+      { title: "Pflegewissen", note: "Quellen und Wissen öffnen", icon: "book-outline", image: ASSETS.terrarium, onPress: () => navigate("knowledge") },
+    ],
+    Aquaristik: [
+      { title: "Aquarien öffnen", note: "Private Becken verwalten", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => navigate("aquarium") },
+      { title: "Wasserwerte", note: "Echte Werte und Live-Bereich", icon: "flask-outline", image: ASSETS.aquarium, onPress: () => navigate("live") },
+      { title: "KI zur Aquaristik", note: "Eigenes Becken analysieren", icon: "hardware-chip-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
+    ],
+    Terraristik: [
+      { title: "Terrarien öffnen", note: "Private Anlagen verwalten", icon: "leaf-outline", image: ASSETS.terrarium, onPress: () => navigate("terrarium") },
+      { title: "Moment erfassen", note: "Private Aufnahme anlegen", icon: "camera-outline", image: ASSETS.terrarium, onPress: () => navigate("photo") },
+      { title: "Terraristik fragen", note: "KI-Unterstützung öffnen", icon: "chatbubbles-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
+    ],
+    "KI-Assistent": [
+      { title: "Frage stellen", note: "Gespräch beginnen", icon: "send-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
+      { title: "Pflanze bestimmen", note: "Foto sicher prüfen", icon: "scan-outline", image: ASSETS.botany, onPress: () => navigate("assistant") },
+      { title: "Aquarium verstehen", note: "Eigene Werte analysieren", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => navigate("assistant") },
+    ],
+  };
+  return (
+    <View style={styles.liveWorlds}>
+      <View style={styles.grid}>
+        {worlds.map(world => (
+          <ReferenceCard key={world.title} tone={tone} action={world} active={selected === world.title} />
+        ))}
+      </View>
+      {selected ? (
+        <View style={[styles.inlineChoice, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+          <View style={styles.inlineChoiceHeader}>
+            <Text style={[styles.chip, { color: tone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
+            <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={tone.accent} /></Pressable>
+          </View>
+          <View style={[styles.grid, styles.gridCompact]}>
+            {(choices[selected] ?? []).map(choice => <ReferenceCard key={choice.title} tone={tone} action={choice} compact />)}
+          </View>
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -3712,6 +3746,9 @@ const styles = StyleSheet.create({
   },
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   homeHeroActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  liveWorlds: { gap: 10 },
+  inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9 },
+  inlineChoiceHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   analysisLoading: {
     minHeight: 66,
     padding: 12,
