@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { TrpcContext } from "./_core/context";
 import { aquariumContext, assistantRouter } from "./routers/assistant";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const assistantSource = readFileSync(resolve(import.meta.dirname, "routers/assistant.ts"), "utf8");
 
 function anonymousContext(): TrpcContext { return { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] }; }
 
@@ -19,5 +23,11 @@ describe("assistant operations", () => {
     expect(context).toContain("Temperatur: 0 °C");
     expect(context).toContain("pH: 6.4");
     expect(context).not.toContain("undefined");
+  });
+
+  it("keeps Gemini plant analysis from truncating before it can return structured JSON", () => {
+    expect(assistantSource).toContain('model: "gemini-3.1-pro-preview", maxTokens: 16384');
+    expect(assistantSource).toContain('"assistant_response_truncated"');
+    expect(assistantSource).toContain('"assistant_empty_response"');
   });
 });

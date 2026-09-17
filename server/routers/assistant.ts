@@ -143,11 +143,19 @@ export const assistantRouter = router({
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0));
     const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "high" as const } }));
-    const response = await invokeLLM({ model: "gemini-3.1-pro-preview", maxTokens: 1800, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
+    const response = await invokeLLM({ model: "gemini-3.1-pro-preview", maxTokens: 16384, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
       { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage dann gezielt nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
       { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${input.note ? ` Zusatzinformation: ${input.note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
     ] });
     const raw = responseText(response.choices[0]?.message.content ?? "");
+    if (!raw) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: response.choices[0]?.finish_reason === "length"
+          ? "assistant_response_truncated"
+          : "assistant_empty_response",
+      });
+    }
     let result: PlantIdentificationResult;
     try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
     const answer = formatPlantIdentification(result);

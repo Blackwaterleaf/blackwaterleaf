@@ -1309,10 +1309,13 @@ function AssistantScreen({
       setNeedsMorePhotos(response.needsMoreImages);
       setRequestedPhotos(response.requestedAdditionalImages);
     } catch (cause) {
+      const errorMessage = cause instanceof Error ? cause.message : "";
       setMessage(
-        cause instanceof Error
-          ? cause.message
-          : "Die Pflanzenbestimmung konnte nicht durchgeführt werden."
+        errorMessage === "assistant_response_truncated"
+          ? "Die KI-Antwort wurde wegen des internen Denkbudgets abgeschnitten. Bitte erneut versuchen."
+          : errorMessage === "assistant_empty_response"
+            ? "Die KI hat keine auswertbare Antwort geliefert. Bitte ein schärferes Foto oder ein weiteres Einzelbild verwenden."
+            : errorMessage || "Die Pflanzenbestimmung konnte nicht durchgeführt werden."
       );
     } finally {
       setBusy(false);
