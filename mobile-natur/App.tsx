@@ -1,131 +1,3953 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Crypto from "expo-crypto";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, ImageBackground, Linking, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
-import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { clearToken, communityFeed, currentAccount, knowledge, marketplace, outdoorWeather, platformAvailability, privateHabitats, readToken, type Account, type CommunityPost, type Habitat, type KnowledgeArticle, type MarketplaceProduct, type OutdoorWeather, type PlatformAvailability } from "./src/api";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Alert,
+  FlatList,
+  Image,
+  ImageBackground,
+  Linking,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import {
+  assistantAquariumAnalyze,
+  assistantChat,
+  assistantPlantIdentify,
+  clearToken,
+  communityFeed,
+  createCommunityDraft,
+  currentAccount,
+  knowledge,
+  marketplace,
+  outdoorWeather,
+  platformAvailability,
+  privateHabitats,
+  profileConsents,
+  publishCommunityDraft,
+  readToken,
+  setProfileConsent,
+  submitPlantCorrection,
+  type Account,
+  type AssistantReply,
+  type CommunityPost,
+  type Habitat,
+  type KnowledgeArticle,
+  type MarketplaceProduct,
+  type OutdoorWeather,
+  type PlatformAvailability,
+  type ProfileConsent,
+} from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
 import { signInWithBlackWaterLeaf } from "./src/nativeAuth";
 import { getBlackWaterLeafSeason } from "./src/season";
 
-const heroImage = "https://blackwaterleaf.com/manus-storage/botany-reference_c192e480.jpg";
-const c = { bg: "#031108", surface: "#07180d", raised: "#0b2415", border: "rgba(199,243,91,.28)", botany: "#C7F35B", mint: "#C7F35B", lime: "#C7F35B", aqua: "#28D8FF", terrarium: "#E1D661", gold: "#E1D661", ai: "#C36BFF", market: "#D9AD69", champagne: "#F3D59C", text: "#F3FFF5", muted: "#9BB39F", danger: "#FF9EA8", aquariumSurface: "#04303e", terrariumSurface: "#3e3812", aiSurface: "#301648", marketSurface: "#432f14" };
-type Tab = "home" | "discover" | "moment" | "market" | "community" | "profile" | "builder";
-type ScreenState = "loading" | "ready" | "error";
-type AreaTone = { accent: string; surface: string; panel: string };
-const tones: Record<Tab, AreaTone> = {
-  home: { accent: c.botany, surface: c.bg, panel: c.surface },
-  discover: { accent: c.aqua, surface: c.aquariumSurface, panel: "#032231" },
-  moment: { accent: c.ai, surface: c.aiSurface, panel: "#1e1134" },
-  market: { accent: c.market, surface: c.marketSurface, panel: "#271c0f" },
-  community: { accent: c.botany, surface: c.bg, panel: c.surface },
-  profile: { accent: c.terrarium, surface: c.terrariumSurface, panel: "#272610" },
-  builder: { accent: c.botany, surface: c.bg, panel: c.surface },
+const ASSETS = {
+  botany:
+    "https://blackwaterleaf.com/manus-storage/botany-reference_c192e480.jpg",
+  aquarium:
+    "https://blackwaterleaf.com/manus-storage/aquarium-reference_2e42963b.jpg",
+  terrarium:
+    "https://blackwaterleaf.com/manus-storage/terrarium-reference_c4e109d3.jpg",
+  ai: "https://blackwaterleaf.com/manus-storage/assistant-reference_4510581b.jpg",
+} as const;
+
+const c = {
+  bg: "#031108",
+  surface: "#07180d",
+  raised: "#0b2415",
+  botany: "#C7F35B",
+  aqua: "#28D8FF",
+  gold: "#E1D661",
+  ai: "#C36BFF",
+  market: "#D9AD69",
+  champagne: "#F3D59C",
+  text: "#F3FFF5",
+  muted: "#9BB39F",
+  danger: "#FF9EA8",
+  botanySurface: "#061b0d",
+  aquariumSurface: "#04303e",
+  terrariumSurface: "#3e3812",
+  aiSurface: "#301648",
+  marketSurface: "#432f14",
 };
 
-export default function App() { return <SafeAreaProvider><NaturApp /></SafeAreaProvider>; }
+type Screen =
+  | "home"
+  | "explore"
+  | "marketplace"
+  | "community"
+  | "profile"
+  | "botany"
+  | "aquarium"
+  | "terrarium"
+  | "assistant"
+  | "knowledge"
+  | "live"
+  | "photo"
+  | "post"
+  | "collection"
+  | "builder"
+  | "search";
+type BottomTab =
+  | "home"
+  | "explore"
+  | "marketplace"
+  | "community"
+  | "profile"
+  | "builder";
+type State = "loading" | "ready" | "error";
+type Tone = {
+  accent: string;
+  surface: string;
+  panel: string;
+  image: string;
+  label: string;
+  active: BottomTab;
+};
+type IconName = keyof typeof Ionicons.glyphMap;
+type Realm = "botany" | "aquarium" | "terrarium";
+
+type Action = {
+  title: string;
+  note: string;
+  icon: IconName;
+  image: string;
+  onPress: () => void;
+  unavailable?: boolean;
+};
+
+type PlantPhoto = {
+  uri: string;
+  base64: string;
+  mimeType: "image/jpeg" | "image/png" | "image/webp";
+};
+
+const TONES: Record<Screen, Tone> = {
+  home: {
+    accent: c.botany,
+    surface: c.bg,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "NATUR APP",
+    active: "home",
+  },
+  explore: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: "#0b2415",
+    image: ASSETS.terrarium,
+    label: "WORLD INDEX",
+    active: "explore",
+  },
+  marketplace: {
+    accent: c.market,
+    surface: c.marketSurface,
+    panel: "#271c0f",
+    image: ASSETS.aquarium,
+    label: "MARKTPLATZ",
+    active: "marketplace",
+  },
+  community: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "COMMUNITY",
+    active: "community",
+  },
+  profile: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "PRIVATER BEREICH",
+    active: "profile",
+  },
+  botany: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: "#0b2415",
+    image: ASSETS.botany,
+    label: "PFLANZEN WORLD",
+    active: "home",
+  },
+  aquarium: {
+    accent: c.aqua,
+    surface: c.aquariumSurface,
+    panel: "#032231",
+    image: ASSETS.aquarium,
+    label: "AQUARISTIK",
+    active: "home",
+  },
+  terrarium: {
+    accent: c.gold,
+    surface: c.terrariumSurface,
+    panel: "#302c0f",
+    image: ASSETS.terrarium,
+    label: "TERRARISTIK",
+    active: "home",
+  },
+  assistant: {
+    accent: c.ai,
+    surface: c.aiSurface,
+    panel: "#1e1134",
+    image: ASSETS.ai,
+    label: "BLACKWATERLEAF KI",
+    active: "home",
+  },
+  knowledge: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "WISSEN & EVIDENZ",
+    active: "explore",
+  },
+  live: {
+    accent: c.aqua,
+    surface: c.aquariumSurface,
+    panel: "#032231",
+    image: ASSETS.aquarium,
+    label: "LIVE-BEREICH",
+    active: "home",
+  },
+  photo: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "MOMENT FESTHALTEN",
+    active: "home",
+  },
+  post: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "BEITRAG",
+    active: "community",
+  },
+  collection: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "MEINE ANLAGEN",
+    active: "profile",
+  },
+  builder: {
+    accent: c.aqua,
+    surface: c.aquariumSurface,
+    panel: "#032231",
+    image: ASSETS.aquarium,
+    label: "HABITAT BUILDER",
+    active: "builder",
+  },
+  search: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "SUCHE",
+    active: "explore",
+  },
+};
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <NaturApp />
+    </SafeAreaProvider>
+  );
+}
 
 function NaturApp() {
   const insets = useSafeAreaInsets();
   const season = getBlackWaterLeafSeason();
-  const [tab, setTab] = useState<Tab>("home");
+  const [screen, setScreen] = useState<Screen>("home");
   const [token, setToken] = useState<string | null>(null);
-  const [state, setState] = useState<ScreenState>("loading");
-  const [error, setError] = useState<string | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [habitats, setHabitats] = useState<Habitat[]>([]);
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
-  const [account, setAccount] = useState<Account | null>(null);
-  const [habitats, setHabitats] = useState<Habitat[]>([]);
+  const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [weather, setWeather] = useState<OutdoorWeather | null>(null);
   const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [state, setState] = useState<State>("loading");
+  const [error, setError] = useState<string | null>(null);
+  const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
 
-  const load = useCallback(async () => {
-    setState("loading"); setError(null);
+  const tone =
+    screen === "collection"
+      ? collectionRealm === "aquarium"
+        ? TONES.aquarium
+        : collectionRealm === "terrarium"
+          ? TONES.terrarium
+          : TONES.botany
+      : TONES[screen];
+  const navigate = useCallback((next: Screen) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setError(null);
+    setScreen(next);
+  }, []);
+
+  const refreshPrivate = useCallback(
+    async (sessionToken = token) => {
+      if (!sessionToken) {
+        setAccount(null);
+        setHabitats([]);
+        setConsents([]);
+        return;
+      }
+      try {
+        const [me, mine, permissions] = await Promise.all([
+          currentAccount(sessionToken),
+          privateHabitats(sessionToken),
+          profileConsents(sessionToken),
+        ]);
+        setAccount(me);
+        setHabitats(mine);
+        setConsents(permissions);
+      } catch (cause) {
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : "Private Daten konnten nicht geladen werden."
+        );
+      }
+    },
+    [token]
+  );
+
+  const loadScreen = useCallback(async () => {
+    setState("loading");
+    setError(null);
     try {
-      if (tab === "home") {
+      if (screen === "home" || screen === "assistant")
         setPlatform(await platformAvailability());
-        if (token) setHabitats(await privateHabitats(token));
-      }
-      if (tab === "discover") setArticles(await knowledge());
-      if (tab === "market") setProducts(await marketplace());
-      if (tab === "community") setPosts(await communityFeed());
-      if ((tab === "profile" || tab === "moment") && token) {
-        const [me, mine] = await Promise.all([currentAccount(token), privateHabitats(token)]);
-        setAccount(me); setHabitats(mine);
-      }
+      if (screen === "marketplace" || screen === "search")
+        setProducts(await marketplace());
+      if (screen === "community") setPosts(await communityFeed());
+      if (screen === "knowledge" || screen === "search")
+        setArticles(await knowledge());
       setState("ready");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Daten konnten nicht geladen werden."); setState("error"); }
-  }, [tab, token]);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Daten konnten nicht geladen werden."
+      );
+      setState("error");
+    }
+  }, [screen]);
 
-  useEffect(() => { void readToken().then(setToken); }, []);
-  useEffect(() => { void load(); }, [load]);
-  const select = (next: Tab) => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setTab(next); };
-  const signIn = async () => { try { const result = await signInWithBlackWaterLeaf(); if (result.status === "authenticated") { setToken(await readToken()); setTab("profile"); } } catch (cause) { setError(cause instanceof Error ? cause.message : "Anmeldung fehlgeschlagen."); setState("error"); } };
-  const signOut = async () => { await clearToken(); setToken(null); setAccount(null); setHabitats([]); };
+  useEffect(() => {
+    void readToken().then(value => {
+      setToken(value);
+      void refreshPrivate(value);
+    });
+  }, [refreshPrivate]);
+  useEffect(() => {
+    void loadScreen();
+  }, [loadScreen]);
 
-  const areaSurface = tab === "discover" ? c.aquariumSurface : tab === "market" ? c.marketSurface : tab === "moment" ? c.aiSurface : tab === "profile" ? c.terrariumSurface : (season === "winter" ? "#06131a" : season === "autumn" ? "#151108" : season === "spring" ? "#07160d" : c.bg);
-  const areaTone = tones[tab];
-  const areaAccent = areaTone.accent;
-  return <SafeAreaView style={[styles.safe, { backgroundColor: areaSurface }]} edges={["top", "left", "right"]}>
-    <StatusBar style="light" />
-    <Header tab={tab} account={account} accent={areaAccent} />
-    <View style={[styles.body, { backgroundColor: areaSurface }]}>
-      {tab === "home" && <Home platform={platform} habitats={habitats} weather={weather} weatherError={weatherError} setWeather={setWeather} setWeatherError={setWeatherError} state={state} error={error} refresh={load} navigate={select} />}
-      {tab === "discover" && <Discover articles={articles} state={state} error={error} refresh={load} tone={areaTone} />}
-      {tab === "moment" && (token ? <MomentCapture token={token} onComplete={load} /> : <PrivateFeature onSignIn={signIn} title="Moment privat erfassen." text="Für private Beobachtungen, Fotos und eigene Anlagen ist eine sichere Anmeldung erforderlich." />)}
-      {tab === "market" && <Market products={products} state={state} error={error} refresh={load} tone={areaTone} />}
-      {tab === "community" && <Community posts={posts} state={state} error={error} refresh={load} tone={areaTone} />}
-      {tab === "profile" && <Profile token={token} account={account} habitats={habitats} state={state} error={error} refresh={load} onSignIn={signIn} onSignOut={signOut} tone={areaTone} />}
-      {tab === "builder" && (token && account?.role === "admin" ? <Builder token={token} habitats={habitats} refresh={load} /> : <PrivateFeature onSignIn={signIn} title="Habitat Builder geschützt." text="Der Builder ist ausschließlich für das serverseitig bestätigte Administratorkonto verfügbar." />)}
-    </View>
-    <Tabs active={tab} select={select} inset={insets.bottom} showBuilder={account?.role === "admin"} />
-  </SafeAreaView>;
+  const signIn = useCallback(async () => {
+    try {
+      const result = await signInWithBlackWaterLeaf();
+      if (result.status === "authenticated") {
+        const nextToken = await readToken();
+        setToken(nextToken);
+        await refreshPrivate(nextToken);
+        navigate("profile");
+      }
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Die Anmeldung ist fehlgeschlagen."
+      );
+    }
+  }, [navigate, refreshPrivate]);
+
+  const signOut = useCallback(async () => {
+    await clearToken();
+    setToken(null);
+    setAccount(null);
+    setHabitats([]);
+    setConsents([]);
+    navigate("home");
+  }, [navigate]);
+
+  const openCollection = useCallback(
+    (realm: Realm) => {
+      setCollectionRealm(realm);
+      navigate("collection");
+    },
+    [navigate]
+  );
+
+  const guarded = useCallback(
+    (action: () => void, description: string) => {
+      if (token) {
+        action();
+        return;
+      }
+      Alert.alert("Sichere Anmeldung erforderlich", description, [
+        { text: "Abbrechen", style: "cancel" },
+        { text: "Anmelden", onPress: () => void signIn() },
+      ]);
+    },
+    [signIn, token]
+  );
+
+  const requestWeather = useCallback(async () => {
+    setWeatherError(null);
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (permission.status !== "granted") {
+      setWeatherError(
+        "Standortfreigabe nicht erteilt. Es werden keine Wetterwerte gezeigt."
+      );
+      return;
+    }
+    try {
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setWeather(
+        await outdoorWeather(
+          position.coords.latitude,
+          position.coords.longitude
+        )
+      );
+    } catch {
+      setWeatherError("Außenwetter derzeit nicht verfügbar.");
+    }
+  }, []);
+
+  const notificationInfo = useCallback(() => {
+    Alert.alert(
+      "Benachrichtigungen",
+      "Benachrichtigungen werden erst nach einer echten Geräteverbindung und deiner ausdrücklichen Freigabe aktiviert."
+    );
+  }, []);
+
+  const seasonSurface =
+    screen === "home"
+      ? season === "winter"
+        ? "#06131a"
+        : season === "autumn"
+          ? "#151108"
+          : season === "spring"
+            ? "#07160d"
+            : c.bg
+      : tone.surface;
+
+  return (
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: seasonSurface }]}
+      edges={["top", "left", "right"]}
+    >
+      <StatusBar style="light" />
+      <Header
+        tone={tone}
+        account={account}
+        onSearch={() => navigate("search")}
+        onNotifications={notificationInfo}
+        onProfile={() => navigate("profile")}
+      />
+      <View style={[styles.body, { backgroundColor: seasonSurface }]}>
+        {screen === "home" && (
+          <Home
+            platform={platform}
+            habitats={habitats}
+            weather={weather}
+            weatherError={weatherError}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            requestWeather={requestWeather}
+            navigate={navigate}
+          />
+        )}
+        {screen === "explore" && <Explore navigate={navigate} />}
+        {screen === "botany" && (
+          <WorldScreen
+            tone={TONES.botany}
+            eyebrow="BOTANIK"
+            title="PFLANZEN WORLD"
+            subtitle="Deine Pflanzensammlung."
+            actions={[
+              {
+                title: "Meine Pflanzen",
+                note: "Private Sammlung öffnen",
+                icon: "leaf-outline",
+                image: ASSETS.botany,
+                onPress: () =>
+                  guarded(
+                    () => openCollection("botany"),
+                    "Deine Pflanzensammlung ist nur nach sicherer Anmeldung sichtbar."
+                  ),
+              },
+              {
+                title: "Pflanze hinzufügen",
+                note: "Neue Pflanze anlegen",
+                icon: "add-circle-outline",
+                image: ASSETS.botany,
+                onPress: () =>
+                  guarded(
+                    () => openCollection("botany"),
+                    "Pflanzen werden nur in deinem geschützten Konto angelegt."
+                  ),
+              },
+              {
+                title: "Pflanze bestimmen",
+                note: "Eigenes Foto sicher prüfen",
+                icon: "scan-outline",
+                image: ASSETS.botany,
+                onPress: () => navigate("assistant"),
+              },
+              {
+                title: "Pflegewissen",
+                note: "Quellenwissen öffnen",
+                icon: "book-outline",
+                image: ASSETS.terrarium,
+                onPress: () => navigate("knowledge"),
+              },
+            ]}
+          />
+        )}
+        {screen === "aquarium" && (
+          <WorldScreen
+            tone={TONES.aquarium}
+            eyebrow="AQUARISTIK"
+            title="AQUARISTIK"
+            subtitle="Becken, Wasserwerte, Unterwasserwelt."
+            actions={[
+              {
+                title: "Meine Aquarien",
+                note: "Becken privat verwalten",
+                icon: "fish-outline",
+                image: ASSETS.aquarium,
+                onPress: () =>
+                  guarded(
+                    () => openCollection("aquarium"),
+                    "Deine Aquarien sind nur nach sicherer Anmeldung sichtbar."
+                  ),
+              },
+              {
+                title: "Aquarium hinzufügen",
+                note: "Neues Becken anlegen",
+                icon: "add-circle-outline",
+                image: ASSETS.aquarium,
+                onPress: () =>
+                  guarded(
+                    () => openCollection("aquarium"),
+                    "Ein Aquarium wird nur in deinem geschützten Konto angelegt."
+                  ),
+              },
+              {
+                title: "Wasserwerte",
+                note: "Live-Bereich und Messwerte öffnen",
+                icon: "flask-outline",
+                image: ASSETS.aquarium,
+                onPress: () => navigate("live"),
+              },
+              {
+                title: "KI zur Aquaristik",
+                note: "Dein Becken gezielt analysieren",
+                icon: "hardware-chip-outline",
+                image: ASSETS.ai,
+                onPress: () => navigate("assistant"),
+              },
+            ]}
+          />
+        )}
+        {screen === "terrarium" && (
+          <WorldScreen
+            tone={TONES.terrarium}
+            eyebrow="TERRARISTIK"
+            title="TERRARISTIK"
+            subtitle="Regenwald im Kleinen."
+            actions={[
+              {
+                title: "Terrarium fotografieren",
+                note: "Privaten Moment erfassen",
+                icon: "camera-outline",
+                image: ASSETS.terrarium,
+                onPress: () =>
+                  guarded(
+                    () => navigate("photo"),
+                    "Fotos werden erst nach Anmeldung und sichtbarer Medienfreigabe privat verarbeitet."
+                  ),
+              },
+              {
+                title: "Terrarium entdecken",
+                note: "Anlage privat verwalten",
+                icon: "leaf-outline",
+                image: ASSETS.terrarium,
+                onPress: () =>
+                  guarded(
+                    () => openCollection("terrarium"),
+                    "Dein Terrarium ist nur nach sicherer Anmeldung sichtbar."
+                  ),
+              },
+              {
+                title: "Wissen",
+                note: "Quellenwissen öffnen",
+                icon: "book-outline",
+                image: ASSETS.botany,
+                onPress: () => navigate("knowledge"),
+              },
+              {
+                title: "KI fragen",
+                note: "Allgemeine Frage stellen",
+                icon: "chatbubbles-outline",
+                image: ASSETS.ai,
+                onPress: () => navigate("assistant"),
+              },
+            ]}
+          />
+        )}
+        {screen === "assistant" && (
+          <AssistantScreen
+            token={token}
+            habitats={habitats}
+            platform={platform}
+            consents={consents}
+            onRefreshPrivate={refreshPrivate}
+            onSignIn={signIn}
+            tone={TONES.assistant}
+            navigate={navigate}
+          />
+        )}
+        {screen === "live" && (
+          <LiveScreen
+            tone={TONES.live}
+            habitats={habitats}
+            token={token}
+            onPrivate={() =>
+              guarded(
+                () => openCollection("aquarium"),
+                "Wasserwerte werden ausschließlich aus deinem privaten Aquarium geladen."
+              )
+            }
+            navigate={navigate}
+          />
+        )}
+        {screen === "photo" && (
+          <PhotoScreen
+            token={token}
+            tone={TONES.photo}
+            onSignIn={signIn}
+            onComplete={refreshPrivate}
+            navigate={navigate}
+          />
+        )}
+        {screen === "post" && (
+          <PostScreen
+            token={token}
+            tone={TONES.post}
+            onSignIn={signIn}
+            navigate={navigate}
+          />
+        )}
+        {screen === "knowledge" && (
+          <KnowledgeScreen
+            tone={TONES.knowledge}
+            articles={articles}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+          />
+        )}
+        {screen === "marketplace" && (
+          <MarketplaceScreen
+            tone={TONES.marketplace}
+            products={products}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+          />
+        )}
+        {screen === "community" && (
+          <CommunityScreen
+            tone={TONES.community}
+            posts={posts}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            token={token}
+            onSignIn={signIn}
+            navigate={navigate}
+          />
+        )}
+        {screen === "profile" && (
+          <ProfileScreen
+            tone={TONES.profile}
+            token={token}
+            account={account}
+            habitats={habitats}
+            state={state}
+            error={error}
+            onSignIn={signIn}
+            onSignOut={signOut}
+            onCollection={openCollection}
+            navigate={navigate}
+          />
+        )}
+        {screen === "collection" && (
+          <CollectionScreen
+            tone={tone}
+            token={token}
+            habitats={habitats}
+            initialRealm={collectionRealm}
+            onSignIn={signIn}
+            onSaved={refreshPrivate}
+          />
+        )}
+        {screen === "builder" && (
+          <BuilderScreen
+            tone={TONES.builder}
+            token={token}
+            account={account}
+            habitats={habitats}
+            onSignIn={signIn}
+            onSaved={refreshPrivate}
+          />
+        )}
+        {screen === "search" && (
+          <SearchScreen
+            tone={TONES.search}
+            products={products}
+            articles={articles}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            navigate={navigate}
+          />
+        )}
+      </View>
+      <BottomNavigation
+        active={tone.active}
+        inset={insets.bottom}
+        showBuilder={account?.role === "admin"}
+        onSelect={next => navigate(next)}
+      />
+    </SafeAreaView>
+  );
 }
 
-function Header({ tab, account, accent }: { tab: Tab; account: Account | null; accent: string }) { const labels: Record<Tab, string> = { home: "NATUR APP", discover: "WISSEN & WELTEN", moment: "MOMENT ERFASSEN", market: "MARKTPLATZ", community: "COMMUNITY", profile: "PRIVATER BEREICH", builder: "HABITAT BUILDER" }; return <View style={[styles.header, { borderBottomColor: `${accent}66` }]}><View style={styles.brandRow}><View style={styles.brandMark}><Image source={require("./assets/icon.png")} style={styles.brandImage} accessibilityLabel="BlackWaterLeaf Originalmarke" /></View><View><Text style={styles.brand}>BLACKWATERLEAF</Text><Text style={styles.technical}>{labels[tab]}</Text></View></View><View style={[styles.accountIndicator, { borderColor: `${accent}66` }]}><Ionicons name={account ? "person" : "person-outline"} size={17} color={account ? accent : c.muted} /></View></View>; }
+function Header({
+  tone,
+  account,
+  onSearch,
+  onNotifications,
+  onProfile,
+}: {
+  tone: Tone;
+  account: Account | null;
+  onSearch: () => void;
+  onNotifications: () => void;
+  onProfile: () => void;
+}) {
+  return (
+    <View style={[styles.header, { borderBottomColor: `${tone.accent}55` }]}>
+      <View style={styles.brandRow}>
+        <View style={[styles.brandMark, { borderColor: `${tone.accent}66` }]}>
+          <Image
+            source={require("./assets/icon.png")}
+            style={styles.brandImage}
+            accessibilityLabel="BlackWaterLeaf Originalmarke"
+          />
+        </View>
+        <View>
+          <Text style={styles.brand}>BLACKWATERLEAF</Text>
+          <Text style={[styles.technical, { color: tone.accent }]}>
+            {tone.label}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.headerActions}>
+        <HeaderAction
+          icon="search-outline"
+          color={tone.accent}
+          label="Suche"
+          onPress={onSearch}
+        />
+        <HeaderAction
+          icon="notifications-outline"
+          color={tone.accent}
+          label="Benachrichtigungen"
+          onPress={onNotifications}
+        />
+        <HeaderAction
+          icon={account ? "person" : "person-outline"}
+          color={account ? tone.accent : c.muted}
+          label="Profil"
+          onPress={onProfile}
+        />
+      </View>
+    </View>
+  );
+}
 
-function Home({ platform, habitats, weather, weatherError, setWeather, setWeatherError, state, error, refresh, navigate }: { platform: PlatformAvailability | null; habitats: Habitat[]; weather: OutdoorWeather | null; weatherError: string | null; setWeather: (value: OutdoorWeather | null) => void; setWeatherError: (value: string | null) => void; state: ScreenState; error: string | null; refresh: () => void; navigate: (tab: Tab) => void }) { const aquarium = habitats.find(item => item.kind === "aquarium"); const requestWeather = async () => { setWeatherError(null); const permission = await Location.requestForegroundPermissionsAsync(); if (permission.status !== "granted") { setWeatherError("Standortfreigabe nicht erteilt."); return; } try { const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }); setWeather(await outdoorWeather(position.coords.latitude, position.coords.longitude)); } catch { setWeatherError("Außenwetter derzeit nicht verfügbar."); } }; const waterTemp = typeof aquarium?.details.temperatureC === "number" ? `${aquarium.details.temperatureC} °C` : "—"; const ph = typeof aquarium?.details.ph === "number" ? String(aquarium.details.ph) : "—"; return <FlatList data={["home"]} keyExtractor={(item) => item} contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={state === "loading"} onRefresh={refresh} tintColor={c.mint} />} renderItem={() => <>
-  <ImageBackground source={{ uri: heroImage }} style={styles.hero} imageStyle={styles.heroImage}><View style={styles.shade} /><View style={styles.heroCopy}><Text style={styles.eyebrow}>DEIN RAUM FÜR LEBENDIGE WELTEN</Text><Text style={styles.heroTitle}>NATUR IST KUNST.</Text><Text style={styles.heroText}>Beobachte, verbinde und gestalte deine BlackWaterLeaf-Welt in deinem Tempo.</Text><Button primary label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("discover")} /></View></ImageBackground>
-  <Heading overline="AKTUELLER STAND" title="Echte Systemlage" />
-  <View style={styles.sensorRail}><Sensor label="Wasser" value={waterTemp} icon="water-outline" color={c.aqua} note={aquarium ? "privat" : "Aquarium eintragen"} /><Sensor label="pH-Wert" value={ph} icon="speedometer-outline" color={c.aqua} note={aquarium ? "privat" : "pH privat eintragen"} /><Sensor label="Außenluft" value={weather ? `${weather.humidityPercent} %` : "—"} icon="water-outline" color={c.botany} note={weather ? "Wetter" : "Standort nötig"} /><Sensor label="Außentemperatur" value={weather ? `${weather.temperatureC} °C` : "—"} icon="thermometer-outline" color={c.botany} note={weather?.condition ?? "Wetter nicht geladen"} /></View><Pressable style={styles.weatherButton} onPress={() => void requestWeather}><Ionicons name="location-outline" size={17} color={c.botany} /><Text style={styles.weatherButtonText}>{weather ? `${weather.condition} · Wetter aktualisieren` : "Außenwetter für diesen Moment aktivieren"}</Text></Pressable>{weatherError ? <Text style={styles.sensorError}>{weatherError}</Text> : null}
-  <Heading overline="AKTUELLER STAND" title="Echte Systemlage" />
-  {state === "loading" ? <Loading /> : error ? <ErrorNotice text={error} /> : <View style={styles.statusCard}><Status label="API" value={platform?.api ?? "—"} ready={platform?.api === "available"} /><Status label="DATENBANK" value={platform?.database ?? "—"} ready={platform?.database === "available"} /><Status label="COMMUNITY" value={platform?.community ?? "—"} ready={platform?.community === "available"} /><Status label="KI-HILFE" value={platform?.aiAssistant ?? "—"} ready={platform?.aiAssistant === "available"} /></View>}
-  <Heading overline="DEIN ÜBERBLICK" title="Bereiche" />
-  <View style={styles.grid}><Tile icon="leaf" color={c.mint} title="Botanik" text="Pflanzen & Wissen" onPress={() => navigate("discover")} /><Tile icon="water" color={c.aqua} title="Aquaristik" text="Private Anlagen" onPress={() => navigate("profile")} /><Tile icon="bug" color={c.gold} title="Terraristik" text="Private Anlagen" onPress={() => navigate("profile")} /><Tile icon="storefront" color={c.market} title="Marktplatz" text="Partnerangebote" onPress={() => navigate("market")} /></View>
-  <Truth />
-</>} />; }
+function HeaderAction({
+  icon,
+  color,
+  label,
+  onPress,
+}: {
+  icon: IconName;
+  color: string;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}
+    >
+      <Ionicons name={icon} size={19} color={color} />
+    </Pressable>
+  );
+}
 
-function Discover({ articles, state, error, refresh, tone }: { articles: KnowledgeArticle[]; state: ScreenState; error: string | null; refresh: () => void; tone: AreaTone }) { return <FlatList data={articles} keyExtractor={(item) => item.id} contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={state === "loading"} onRefresh={refresh} tintColor={tone.accent} />} ListHeaderComponent={<><Heading overline="WISSEN & EVIDENZ" title="Wissen braucht Quellen." /><Text style={styles.intro}>Nur serverseitig veröffentlichte, quellenbelegte Inhalte erscheinen hier.</Text>{state === "loading" && <Loading />}{error && <ErrorNotice text={error} />}</>} ListEmptyComponent={state === "ready" ? <Empty icon="library-outline" title="NOCH KEINE VERÖFFENTLICHTEN EINTRÄGE" text="Sobald Quellenbeiträge veröffentlicht werden, erscheinen sie automatisch in der App." /> : null} renderItem={({ item }) => <View style={[styles.card, { backgroundColor: tone.panel, borderColor: `${tone.accent}55` }]}><Text style={[styles.chip, { color: tone.accent }]}>{item.evidenceState}</Text><Text style={styles.cardTitle}>{item.title}</Text><Text style={styles.copy}>{item.excerpt}</Text>{item.sources.map((source) => <Pressable key={source.url} style={styles.source} onPress={() => void Linking.openURL(source.url)}><Text style={[styles.sourceText, { color: tone.accent }]}>{source.label}</Text><Ionicons name="open-outline" size={14} color={tone.accent} /></Pressable>)}</View>} />; }
+function Home({
+  platform,
+  habitats,
+  weather,
+  weatherError,
+  state,
+  error,
+  refresh,
+  requestWeather,
+  navigate,
+}: {
+  platform: PlatformAvailability | null;
+  habitats: Habitat[];
+  weather: OutdoorWeather | null;
+  weatherError: string | null;
+  state: State;
+  error: string | null;
+  refresh: () => Promise<void>;
+  requestWeather: () => Promise<void>;
+  navigate: (screen: Screen) => void;
+}) {
+  const aquarium = habitats.find(item => item.kind === "aquarium");
+  const waterTemp = numberValue(aquarium?.details.temperatureC, "°C");
+  const ph = numberValue(aquarium?.details.ph, "");
+  return (
+    <Page refresh={refresh} refreshing={state === "loading"}>
+      <View style={styles.sensorRail}>
+        <Sensor
+          color={c.aqua}
+          icon="thermometer-outline"
+          label="Wassertemperatur"
+          value={waterTemp}
+          note={
+            aquarium
+              ? waterTemp === "—"
+                ? "nicht eingetragen"
+                : "privates Aquarium"
+              : "Aquarium eintragen"
+          }
+        />
+        <Sensor
+          color={c.aqua}
+          icon="flask-outline"
+          label="pH-Wert"
+          value={ph}
+          note={
+            aquarium
+              ? ph === "—"
+                ? "nicht eingetragen"
+                : "privates Aquarium"
+              : "pH privat eintragen"
+          }
+        />
+        <Sensor
+          color={c.botany}
+          icon="water-outline"
+          label="Außenluftfeuchte"
+          value={weather ? `${weather.humidityPercent} %` : "—"}
+          note={weather ? "Open-Meteo" : "Standort nötig"}
+        />
+        <Sensor
+          color={c.botany}
+          icon="partly-sunny-outline"
+          label="Außentemperatur"
+          value={weather ? `${weather.temperatureC} °C` : "—"}
+          note={weather?.condition ?? "Wetter nicht geladen"}
+        />
+      </View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.weatherButton,
+          pressed && styles.pressed,
+        ]}
+        onPress={() => void requestWeather}
+      >
+        <Ionicons name="location-outline" size={17} color={c.botany} />
+        <Text style={styles.weatherButtonText}>
+          {weather
+            ? `${weather.condition} · Wetter aktualisieren`
+            : "AUSSENWETTER AKTIVIEREN"}
+        </Text>
+      </Pressable>
+      {weatherError ? (
+        <Text style={styles.sensorError}>{weatherError}</Text>
+      ) : null}
+      <ReferenceHero
+        tone={TONES.home}
+        eyebrow="DEIN RAUM FÜR LEBENDIGE WELTEN"
+        title="NATUR IST KUNST."
+        subtitle="Beobachte, verbinde und gestalte deine BlackWaterLeaf-Welt in deinem Tempo."
+        icon="leaf-outline"
+      />
+      {state === "error" ? (
+        <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
+      ) : null}
+      <SectionLabel
+        tone={TONES.home}
+        overline="DEINE AUSWAHL"
+        title="DEINE WELTEN"
+      />
+      <ActionGrid
+        actions={[
+          {
+            title: "Botanik",
+            note: "Pflanzen & Wissen",
+            icon: "leaf-outline",
+            image: ASSETS.botany,
+            onPress: () => navigate("botany"),
+          },
+          {
+            title: "Aquaristik",
+            note: "Becken & Wasserwerte",
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => navigate("aquarium"),
+          },
+          {
+            title: "Terraristik",
+            note: "Regenwald im Kleinen",
+            icon: "leaf-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("terrarium"),
+          },
+          {
+            title: "KI-Assistent",
+            note:
+              platform?.aiAssistant === "available"
+                ? "Sichere KI-Hilfe"
+                : "Status transparent prüfen",
+            icon: "hardware-chip-outline",
+            image: ASSETS.ai,
+            onPress: () => navigate("assistant"),
+          },
+        ]}
+        tone={TONES.home}
+      />
+      <Truth tone={TONES.home} />
+    </Page>
+  );
+}
 
-function Market({ products, state, error, refresh, tone }: { products: MarketplaceProduct[]; state: ScreenState; error: string | null; refresh: () => void; tone: AreaTone }) { return <FlatList data={products} keyExtractor={(item) => String(item.id)} contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={state === "loading"} onRefresh={refresh} tintColor={tone.accent} />} ListHeaderComponent={<><Heading overline="BLACKWATERLEAF MARKTPLATZ" title="GUTES FINDET SEINEN ORT." /><Text style={styles.intro}>Entdecke sorgfältig freigegebene Angebote unserer Partner für Aquaristik, Botanik und Terraristik.</Text><View style={[parityStyles.marketTrust, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="leaf-outline" size={20} color={tone.accent} /><Text style={styles.copy}>BlackWaterLeaf verkauft nicht selbst. Zahlung, Versand und Rückgabe liegen beim jeweiligen Partner.</Text></View>{state === "loading" && <Loading />}{error && <ErrorNotice text={error} />}</>} ListEmptyComponent={state === "ready" ? <Empty icon="storefront-outline" title="KEINE AKTIVEN ANGEBOTE" text="Aktuell ist kein freigegebenes Partnerangebot verfügbar." /> : null} renderItem={({ item }) => <Pressable style={({ pressed }) => [styles.product, { backgroundColor: tone.panel, borderColor: `${tone.accent}66` }, pressed && styles.pressed]} onPress={() => void Linking.openURL(item.destinationUrl)}>{item.imageUrl ? <Image source={{ uri: item.imageUrl }} style={[styles.productImage, { backgroundColor: tone.surface }]} /> : <View style={[styles.placeholder, { backgroundColor: tone.surface }]}><Ionicons name="cube-outline" size={24} color={tone.accent} /></View>}<View style={styles.productBody}><Text style={[styles.chip, { color: tone.accent }]}>{item.disclosureLabel} · {item.partnerName}</Text><Text style={styles.productTitle} numberOfLines={2}>{item.title}</Text><View style={styles.productBottom}><Text style={[styles.price, { color: c.champagne }]}>{item.priceLabel ?? "Preis beim Partner"}</Text><Ionicons name="open-outline" size={17} color={tone.accent} /></View></View></Pressable>} />; }
+function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
+  const tone = TONES.explore;
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="WORLD INDEX"
+        title="ENTDECKE DAS LEBEN."
+        subtitle="Wähle eine Welt und dokumentiere, was du wirklich beobachtest."
+        icon="compass-outline"
+      />
+      <SectionLabel tone={tone} overline="BEREICHE" title="DEINE AUSWAHL" />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Botanik",
+            note: "Pflanzenwelt öffnen",
+            icon: "leaf-outline",
+            image: ASSETS.botany,
+            onPress: () => navigate("botany"),
+          },
+          {
+            title: "Aquaristik",
+            note: "Unterwasserwelt öffnen",
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => navigate("aquarium"),
+          },
+          {
+            title: "Terraristik",
+            note: "Regenwald öffnen",
+            icon: "leaf-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("terrarium"),
+          },
+          {
+            title: "KI-Assistent",
+            note: "Transparente Hilfe",
+            icon: "hardware-chip-outline",
+            image: ASSETS.ai,
+            onPress: () => navigate("assistant"),
+          },
+        ]}
+      />
+      <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}>
+        <Text style={[styles.dividerText, { color: tone.accent }]}>
+          WISSEN & EVIDENZ
+        </Text>
+      </View>
+      <ReferenceCard
+        tone={tone}
+        action={{
+          title: "Wissen & Quellen",
+          note: "Veröffentlichte Quellen prüfen",
+          icon: "book-outline",
+          image: ASSETS.botany,
+          onPress: () => navigate("knowledge"),
+        }}
+      />
+    </Page>
+  );
+}
 
-function Community({ posts, state, error, refresh, tone }: { posts: CommunityPost[]; state: ScreenState; error: string | null; refresh: () => void; tone: AreaTone }) { return <FlatList data={posts} keyExtractor={(item) => item.id} contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={state === "loading"} onRefresh={refresh} tintColor={tone.accent} />} ListHeaderComponent={<><Heading overline="GEMEINSAM WACHSEN" title="Community in Bewegung." /><Text style={styles.intro}>Es werden nur veröffentlichte Beiträge realer, aktiver Konten angezeigt.</Text>{state === "loading" && <Loading />}{error && <ErrorNotice text={error} />}</>} ListEmptyComponent={state === "ready" ? <Empty icon="people-outline" title="NOCH KEINE ÖFFENTLICHEN BEITRÄGE" text="Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen hier automatisch." /> : null} renderItem={({ item }) => <View style={[styles.card, { backgroundColor: tone.panel, borderColor: `${tone.accent}55` }]}><View style={styles.postHead}><Text style={styles.cardTitle}>{item.author.name ?? item.author.username ?? "BlackWaterLeaf Mitglied"}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View><Text style={styles.copy}>{item.content}</Text>{item.media[0] ? <Image source={{ uri: item.media[0].accessUrl }} style={styles.postImage} /> : null}<Text style={styles.date}>{item.likesCount} Likes · {item.commentsCount} Kommentare</Text></View>} />; }
+function WorldScreen({
+  tone,
+  eyebrow,
+  title,
+  subtitle,
+  actions,
+}: {
+  tone: Tone;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  actions: Action[];
+}) {
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow={eyebrow}
+        title={title}
+        subtitle={subtitle}
+        icon={
+          tone === TONES.aquarium
+            ? "fish-outline"
+            : tone === TONES.terrarium
+              ? "leaf-outline"
+              : "leaf-outline"
+        }
+      />
+      <SectionLabel
+        tone={tone}
+        overline="DEINE AUSWAHL"
+        title="WÄHLE EINEN BEREICH"
+      />
+      <ActionGrid tone={tone} actions={actions} />
+    </Page>
+  );
+}
 
-function Profile({ token, account, habitats, state, error, refresh, onSignIn, onSignOut, tone }: { token: string | null; account: Account | null; habitats: Habitat[]; state: ScreenState; error: string | null; refresh: () => Promise<void>; onSignIn: () => void; onSignOut: () => void; tone: AreaTone }) { if (!token) return <PrivateFeature onSignIn={onSignIn} title="Dein Bereich bleibt privat." text="Nach der sicheren Anmeldung kannst du Pflanzen, Aquarien und Terrarien direkt in der nativen App anlegen und verwalten." />; return <View style={[styles.profilePage, { backgroundColor: tone.surface }]}><View style={[styles.profileHeader, { borderBottomColor: `${tone.accent}66` }]}><View><Text style={[styles.chip, { color: tone.accent }]}>SERVER-VERIFIZIERTE ROLLE</Text><Text style={styles.profileName}>{account?.name ?? account?.username ?? "Dein Konto"}</Text><Text style={styles.copy}>{account?.email ?? "E-Mail nicht verfügbar"} · {account?.role ?? "—"}</Text></View><Pressable style={[styles.signOut, { borderColor: `${tone.accent}66` }]} onPress={onSignOut}><Ionicons name="log-out-outline" size={18} color={c.text} /></Pressable></View>{state === "loading" ? <Loading /> : error ? <ErrorNotice text={error} /> : <HabitatManager token={token} habitats={habitats} onSaved={refresh} />}</View>; }
-function Builder({ token, habitats, refresh }: { token: string; habitats: Habitat[]; refresh: () => Promise<void> }) { return <View style={parityStyles.builderPage}><View style={parityStyles.builderIntro}><Text style={[styles.eyebrow, { color: c.aqua }]}>[ADMIN / HABITAT BUILDER]</Text><Text style={styles.headingTitle}>DEINE HABITATE PLANEN</Text><Text style={styles.copy}>Der native Builder nutzt dieselben privaten Anlagen und Serverdaten wie die Web-App. Es werden keine Demo-Objekte angelegt.</Text></View><HabitatManager token={token} habitats={habitats} onSaved={refresh} /></View>; }
+function AssistantScreen({
+  token,
+  habitats,
+  platform,
+  consents,
+  onRefreshPrivate,
+  onSignIn,
+  tone,
+  navigate,
+}: {
+  token: string | null;
+  habitats: Habitat[];
+  platform: PlatformAvailability | null;
+  consents: ProfileConsent[];
+  onRefreshPrivate: () => Promise<void>;
+  onSignIn: () => Promise<void>;
+  tone: Tone;
+  navigate: (screen: Screen) => void;
+}) {
+  const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("chat");
+  const [messages, setMessages] = useState<
+    Array<{ role: "user" | "assistant"; content: string }>
+  >([]);
+  const [question, setQuestion] = useState("");
+  const [photos, setPhotos] = useState<PlantPhoto[]>([]);
+  const [plantNote, setPlantNote] = useState("");
+  const [plantAnswer, setPlantAnswer] = useState<string | null>(null);
+  const [plantUsageId, setPlantUsageId] = useState<number | null>(null);
+  const [needsMorePhotos, setNeedsMorePhotos] = useState(false);
+  const [requestedPhotos, setRequestedPhotos] = useState(0);
+  const [correctionName, setCorrectionName] = useState("");
+  const [correctionNote, setCorrectionNote] = useState("");
+  const [selectedAquarium, setSelectedAquarium] = useState<number | null>(null);
+  const [aquariumQuestion, setAquariumQuestion] = useState("");
+  const [aquariumAnswer, setAquariumAnswer] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const aiConsent = consents.some(
+    item => item.purpose === "ai_processing" && item.granted
+  );
+  const aiReady = platform?.aiAssistant === "available";
+  const aquariums = habitats.filter(item => item.kind === "aquarium");
 
-function PrivateFeature({ onSignIn, title, text }: { onSignIn: () => void; title: string; text: string }) { return <View style={styles.privateFeature}><Ionicons name="shield-checkmark-outline" size={30} color={c.mint} /><Text style={styles.headingTitle}>{title}</Text><Text style={styles.copy}>{text}</Text><Button primary label="SICHER ANMELDEN" icon="log-in-outline" onPress={onSignIn} /><Truth /></View>; }
+  useEffect(() => {
+    if (!selectedAquarium && aquariums[0]) setSelectedAquarium(aquariums[0].id);
+  }, [aquariums, selectedAquarium]);
 
-function Tabs({ active, select, inset, showBuilder }: { active: Tab; select: (tab: Tab) => void; inset: number; showBuilder: boolean }) { const items: Array<{ id: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }> = [{ id: "home", label: "Home", icon: "home-outline" }, { id: "discover", label: "Entdecken", icon: "compass-outline" }, { id: "market", label: "Marktplatz", icon: "storefront-outline" }, { id: "community", label: "Community", icon: "people-outline" }, { id: "profile", label: "Profil", icon: "person-outline" }, ...(showBuilder ? [{ id: "builder" as const, label: "Builder", icon: "construct-outline" as const }] : [])]; return <View style={[styles.tabs, { paddingBottom: Math.max(inset, 9) }]}>{items.map((item) => { const activeColor = item.id === "market" ? c.market : item.id === "builder" ? c.aqua : c.lime; return <Pressable key={item.id} style={styles.tab} onPress={() => select(item.id)}><Ionicons name={item.icon} size={20} color={active === item.id ? activeColor : c.muted} /><Text style={[styles.tabText, active === item.id && { color: activeColor }]}>{item.label}</Text></Pressable>; })}</View>; }
-function Heading({ overline, title }: { overline: string; title: string }) { return <View style={styles.heading}><Text style={styles.eyebrow}>{overline}</Text><Text style={styles.headingTitle}>{title}</Text></View>; }
-function Status({ label, value, ready }: { label: string; value: string; ready: boolean }) { return <View style={styles.status}><View style={[styles.dot, { backgroundColor: ready ? c.lime : c.gold }]} /><Text style={styles.statusLabel}>{label}</Text><Text style={styles.statusValue}>{value}</Text></View>; }
-function Sensor({ label, value, note, icon, color }: { label: string; value: string; note: string; icon: keyof typeof Ionicons.glyphMap; color: string }) { return <View style={[styles.sensor, { borderColor: `${color}55` }]}><Ionicons name={icon} size={17} color={color} /><Text style={styles.sensorValue}>{value}</Text><Text style={styles.sensorLabel}>{label}</Text><Text style={[styles.sensorNote, { color }]}>{note}</Text></View>; }
-function Tile({ icon, color, title, text, onPress }: { icon: keyof typeof Ionicons.glyphMap; color: string; title: string; text: string; onPress: () => void }) { return <Pressable style={({ pressed }) => [styles.tile, pressed && styles.pressed]} onPress={onPress}><Ionicons name={icon} size={22} color={color} /><Text style={styles.tileTitle}>{title}</Text><Text style={styles.tileText}>{text}</Text><Ionicons name="arrow-forward" size={15} color={color} /></Pressable>; }
-function Button({ label, icon, primary = false, onPress }: { label: string; icon: keyof typeof Ionicons.glyphMap; primary?: boolean; onPress: () => void }) { return <Pressable style={({ pressed }) => [primary ? styles.primary : styles.secondary, pressed && styles.pressed]} onPress={onPress}><Text style={primary ? styles.primaryText : styles.secondaryText}>{label}</Text><Ionicons name={icon} size={16} color={primary ? c.bg : c.text} /></Pressable>; }
-function Loading() { return <View style={styles.loading}><ActivityIndicator color={c.mint} /><Text style={styles.copy}>Echte Daten werden geladen …</Text></View>; }
-function ErrorNotice({ text }: { text: string }) { return <View style={styles.error}><Ionicons name="alert-circle-outline" size={20} color={c.danger} /><Text style={styles.copy}>{text}</Text></View>; }
-function Empty({ icon, title, text }: { icon: keyof typeof Ionicons.glyphMap; title: string; text: string }) { return <View style={styles.empty}><Ionicons name={icon} size={28} color={c.mint} /><Text style={styles.emptyTitle}>{title}</Text><Text style={styles.emptyText}>{text}</Text></View>; }
-function Truth() { return <View style={styles.truth}><Ionicons name="shield-checkmark-outline" size={20} color={c.mint} /><View style={styles.flex}><Text style={styles.cardTitle}>ECHTE DATEN. KEINE SCHEINSTATUS.</Text><Text style={styles.copy}>Private Anlagen, Messwerte und Freigaben werden erst nach authentifizierter Serverantwort angezeigt.</Text></View></View>; }
+  const ensureReady = async () => {
+    if (!token) {
+      await onSignIn();
+      return false;
+    }
+    if (!aiReady) {
+      setMessage(
+        platform?.aiReason ??
+          "Der KI-Dienst ist derzeit nicht verfügbar. Es werden keine Scheinantworten angezeigt."
+      );
+      return false;
+    }
+    if (!aiConsent) {
+      setMessage(
+        "Bitte bestätige zuerst die KI-Verarbeitung. Du kannst diese Freigabe später im Profil widerrufen."
+      );
+      return false;
+    }
+    return true;
+  };
 
-const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: c.bg }, body: { flex: 1 }, header: { height: 64, paddingHorizontal: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: c.border, backgroundColor: "#020A05" }, brandRow: { flexDirection: "row", alignItems: "center", gap: 9 }, brandMark: { width: 34, height: 34, borderRadius: 17, overflow: "hidden", borderWidth: 1, borderColor: `${c.botany}88`, backgroundColor: "#050807" }, brandImage: { width: "100%", height: "100%" }, brand: { color: c.text, fontSize: 13, fontWeight: "900", letterSpacing: 1 }, technical: { color: c.muted, fontSize: 8, fontWeight: "700", letterSpacing: 1.1, marginTop: 2 }, accountIndicator: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: c.border }, scroll: { padding: 16, paddingBottom: 107, gap: 12 }, hero: { height: 296, borderRadius: 20, overflow: "hidden", justifyContent: "flex-end", borderWidth: 1, borderColor: `${c.botany}99` }, heroImage: { borderRadius: 19 }, shade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,10,5,.62)" }, heroCopy: { padding: 20, gap: 9 }, eyebrow: { color: c.botany, fontSize: 9, letterSpacing: 1.35, fontWeight: "800" }, heroTitle: { color: c.text, fontSize: 39, lineHeight: 43, fontWeight: "900", letterSpacing: -.8 }, heroText: { color: c.text, fontSize: 14, lineHeight: 20, maxWidth: 310 }, primary: { minHeight: 43, paddingHorizontal: 14, borderRadius: 10, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: c.botany, marginTop: 5 }, primaryText: { color: c.bg, fontSize: 11, fontWeight: "900", letterSpacing: .7 }, secondary: { minHeight: 39, paddingHorizontal: 12, borderRadius: 9, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 7, borderWidth: 1, borderColor: `${c.botany}55`, justifyContent: "center" }, secondaryText: { color: c.text, fontSize: 10, fontWeight: "800", letterSpacing: .6 }, pressed: { opacity: .83, transform: [{ scale: .98 }] }, heading: { marginTop: 9, gap: 5 }, headingTitle: { color: c.text, fontSize: 27, lineHeight: 32, fontWeight: "800", letterSpacing: -.5 }, intro: { color: c.muted, fontSize: 13, lineHeight: 19, marginTop: -2 }, sensorRail: { flexDirection: "row", flexWrap: "wrap", gap: 9, padding: 10, borderRadius: 17, borderWidth: 1, borderColor: `${c.botany}55`, backgroundColor: "rgba(3,18,9,.82)" }, sensor: { width: "48%", minHeight: 76, padding: 10, borderRadius: 13, borderWidth: 1, backgroundColor: "rgba(5,29,13,.78)" }, sensorValue: { marginTop: 5, color: c.text, fontSize: 19, fontWeight: "900" }, sensorLabel: { color: c.muted, fontSize: 10, fontWeight: "700", marginTop: 2 }, sensorNote: { fontSize: 8, fontWeight: "700", marginTop: 4 }, weatherButton: { minHeight: 47, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 13, borderWidth: 1, borderColor: `${c.botany}66`, backgroundColor: "rgba(35,59,20,.72)" }, weatherButtonText: { color: c.text, fontSize: 12, fontWeight: "800" }, sensorError: { color: c.danger, fontSize: 11, textAlign: "center" }, statusCard: { paddingHorizontal: 15, borderRadius: 15, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface }, status: { minHeight: 47, flexDirection: "row", alignItems: "center", gap: 10, borderBottomWidth: 1, borderBottomColor: "rgba(199,243,91,.09)" }, dot: { width: 8, height: 8, borderRadius: 4 }, statusLabel: { color: c.text, fontSize: 11, fontWeight: "700", flex: 1, letterSpacing: .6 }, statusValue: { color: c.muted, fontSize: 11 }, grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, tile: { width: "48.5%", minHeight: 137, padding: 14, borderRadius: 15, borderWidth: 1, borderColor: c.border, backgroundColor: c.raised, gap: 8 }, tileTitle: { color: c.text, fontSize: 16, fontWeight: "800" }, tileText: { color: c.muted, fontSize: 11, lineHeight: 15, flex: 1 }, truth: { flexDirection: "row", gap: 11, padding: 15, borderRadius: 15, borderWidth: 1, borderColor: `${c.botany}66`, backgroundColor: "rgba(57,106,40,.18)" }, flex: { flex: 1 }, card: { padding: 15, borderRadius: 15, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, gap: 8 }, chip: { color: c.mint, fontSize: 8, fontWeight: "800", letterSpacing: 1 }, cardTitle: { color: c.text, fontSize: 13, lineHeight: 18, fontWeight: "800" }, copy: { color: c.muted, fontSize: 12, lineHeight: 18 }, source: { paddingTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, sourceText: { color: c.mint, fontSize: 11, fontWeight: "700", flex: 1 }, loading: { minHeight: 93, borderRadius: 15, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, alignItems: "center", justifyContent: "center", gap: 10 }, error: { padding:15, minHeight: 88, flexDirection: "row", gap: 11, borderRadius: 15, borderWidth: 1, borderColor: "rgba(255,158,168,.45)", backgroundColor: "rgba(88,21,29,.32)" }, empty: { minHeight:190, padding:24, alignItems:"center", justifyContent:"center", gap:12, borderRadius:15, borderWidth:1, borderColor:c.border, backgroundColor:c.surface }, emptyTitle:{color:c.text,fontSize:13,fontWeight:"900",textAlign:"center",letterSpacing:.55}, emptyText:{color:c.muted,fontSize:12,lineHeight:18,textAlign:"center"}, product:{minHeight:122,flexDirection:"row",overflow:"hidden",borderRadius:15,borderWidth:1,borderColor:`${c.market}66`,backgroundColor:c.surface}, productImage:{width:110,height:"100%",backgroundColor:c.raised}, placeholder:{width:110,alignItems:"center",justifyContent:"center",backgroundColor:c.raised}, productBody:{flex:1,padding:13,justifyContent:"space-between",gap:5}, productTitle:{color:c.text,fontSize:14,lineHeight:18,fontWeight:"800"}, productBottom:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8}, price:{color:c.champagne,fontSize:12,fontWeight:"800",flex:1}, postHead:{flexDirection:"row",justifyContent:"space-between",gap:10}, date:{color:c.muted,fontSize:10}, postImage:{height:200,width:"100%",borderRadius:10,backgroundColor:c.raised}, auth:{padding:21,alignItems:"flex-start",gap:13,borderRadius:17,borderWidth:1,borderColor:c.border,backgroundColor:c.raised}, profile:{padding:16,gap:9,borderRadius:15,borderWidth:1,borderColor:c.border,backgroundColor:c.surface}, profilePage:{flex:1}, profileHeader:{padding:16,flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:12,borderBottomWidth:1,borderBottomColor:c.border}, profileName:{color:c.text,fontSize:22,lineHeight:27,fontWeight:"800",marginTop:4}, signOut:{width:40,height:40,alignItems:"center",justifyContent:"center",borderRadius:20,borderWidth:1,borderColor:c.border}, privateFeature:{flex:1,padding:24,justifyContent:"center",gap:14}, tabs:{flexDirection:"row",paddingTop:10,paddingHorizontal:4,borderTopWidth:1,borderTopColor:c.border,backgroundColor:"#020A05"}, tab:{flex:1,alignItems:"center",gap:4,minWidth:0}, momentTab:{marginTop:-4}, tabText:{color:c.muted,fontSize:7,fontWeight:"700"}, tabActive:{color:c.lime} });
+  const grantAiConsent = async () => {
+    if (!token) {
+      await onSignIn();
+      return;
+    }
+    setBusy(true);
+    try {
+      await setProfileConsent(token, {
+        purpose: "ai_processing",
+        policyVersion: "native-1.0.8",
+        granted: true,
+      });
+      await onRefreshPrivate();
+      setMessage("KI-Verarbeitung wurde für dein Konto freigegeben.");
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Freigabe konnte nicht gespeichert werden."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
-const parityStyles = StyleSheet.create({
-  builderPage: { flex: 1, backgroundColor: c.bg },
-  builderIntro: { paddingHorizontal: 16, paddingTop: 16, gap: 7 },
-  marketTrust: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 14, borderRadius: 15, borderWidth: 1, marginTop: 4 },
+  const choosePlantPhoto = async (camera: boolean) => {
+    const permission = camera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setMessage(
+        camera
+          ? "Kamerafreigabe wurde nicht erteilt."
+          : "Medienfreigabe wurde nicht erteilt."
+      );
+      return;
+    }
+    const result = camera
+      ? await ImagePicker.launchCameraAsync({
+          mediaTypes: ["images"],
+          quality: 0.7,
+          allowsEditing: false,
+        })
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          quality: 0.7,
+          allowsEditing: false,
+        });
+    if (result.canceled || !result.assets[0]) return;
+    if (photos.length >= 3) {
+      setMessage("Es sind maximal drei Einzelbilder möglich.");
+      return;
+    }
+    try {
+      const asset = result.assets[0];
+      const mime =
+        asset.mimeType === "image/png" || asset.mimeType === "image/webp"
+          ? asset.mimeType
+          : "image/jpeg";
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      setPhotos(current => [
+        ...current,
+        { uri: asset.uri, base64, mimeType: mime },
+      ]);
+      setPlantAnswer(null);
+      setPlantUsageId(null);
+      setNeedsMorePhotos(false);
+      setRequestedPhotos(0);
+      setMessage(null);
+    } catch {
+      setMessage(
+        "Das Pflanzenfoto konnte nicht vorbereitet werden. Bitte wähle ein kleineres JPG, PNG oder WebP."
+      );
+    }
+  };
+
+  const sendChat = async () => {
+    if (!question.trim() || busy || !(await ensureReady()) || !token) return;
+    const text = question.trim();
+    setBusy(true);
+    setMessage(null);
+    setQuestion("");
+    try {
+      const response = await assistantChat(token, {
+        clientRequestId: Crypto.randomUUID(),
+        message: text,
+        history: messages.slice(-6),
+      });
+      setMessages(current => [
+        ...current,
+        { role: "user", content: text },
+        {
+          role: "assistant",
+          content: `${response.answer}\n\n${response.disclaimer}`,
+        },
+      ]);
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Die KI-Antwort konnte nicht geladen werden."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const identifyPlant = async () => {
+    if (!photos[0] || busy || !(await ensureReady()) || !token) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const [first, ...additional] = photos;
+      const response = await assistantPlantIdentify(token, {
+        clientRequestId: Crypto.randomUUID(),
+        imageBase64: first.base64,
+        mimeType: first.mimeType,
+        additionalImages: additional.map(image => ({
+          imageBase64: image.base64,
+          mimeType: image.mimeType,
+        })),
+        note: plantNote.trim() || undefined,
+      });
+      setPlantAnswer(`${response.answer}\n\n${response.disclaimer}`);
+      setPlantUsageId(response.assistantUsageId);
+      setNeedsMorePhotos(response.needsMoreImages);
+      setRequestedPhotos(response.requestedAdditionalImages);
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Die Pflanzenbestimmung konnte nicht durchgeführt werden."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const analyzeAquarium = async () => {
+    if (!selectedAquarium || busy || !(await ensureReady()) || !token) return;
+    setBusy(true);
+    setMessage(null);
+    try {
+      const response = await assistantAquariumAnalyze(token, {
+        clientRequestId: Crypto.randomUUID(),
+        habitatId: selectedAquarium,
+        question: aquariumQuestion.trim() || undefined,
+      });
+      setAquariumAnswer(`${response.answer}\n\n${response.disclaimer}`);
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Die Aquarienanalyse konnte nicht durchgeführt werden."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendCorrection = async () => {
+    if (!token || !plantAnswer || !correctionName.trim() || busy) return;
+    setBusy(true);
+    try {
+      await submitPlantCorrection(token, {
+        assistantUsageId: plantUsageId ?? undefined,
+        originalAnswer: plantAnswer,
+        correctedName: correctionName.trim(),
+        correctionNote: correctionNote.trim() || undefined,
+      });
+      setCorrectionName("");
+      setCorrectionNote("");
+      setMessage(
+        "Korrektur gespeichert und zur Prüfung an Admins und Moderatoren übergeben. Sie verändert die KI nicht automatisch."
+      );
+    } catch (cause) {
+      setMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Die Korrektur konnte nicht gespeichert werden."
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="BLACKWATERLEAF KI"
+        title="KI-ASSISTENT"
+        subtitle="Echte KI-Hilfe. Keine Scheinantwort. Unsicherheit bleibt sichtbar."
+        icon="hardware-chip-outline"
+      />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Frage stellen",
+            note: "Gespräch beginnen",
+            icon: "send-outline",
+            image: ASSETS.ai,
+            onPress: () => setTool("chat"),
+          },
+          {
+            title: "Pflanze bestimmen",
+            note: "Foto sicher prüfen",
+            icon: "scan-outline",
+            image: ASSETS.botany,
+            onPress: () => setTool("plant"),
+          },
+          {
+            title: "Aquarium verstehen",
+            note: "Eigenes Becken analysieren",
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => setTool("aquarium"),
+          },
+          {
+            title: "Wissen & Quellen",
+            note: "Quellenwissen öffnen",
+            icon: "book-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("knowledge"),
+          },
+        ]}
+      />
+      {!token ? (
+        <PrivateFeature
+          tone={tone}
+          title="KI BLEIBT GESCHÜTZT."
+          text="Melde dich an, damit Fragen, Pflanzenbilder und private Aquariumdaten deinem Konto zugeordnet bleiben."
+          onSignIn={onSignIn}
+        />
+      ) : !aiReady ? (
+        <StatusPanel
+          tone={tone}
+          icon="shield-checkmark-outline"
+          code="KI / TRANSPARENT"
+          title="KEINE SCHEINANTWORT"
+          text={
+            platform?.aiReason ??
+            "Der KI-Dienst ist aktuell nicht verfügbar. Es werden keine Antworten erfunden."
+          }
+        />
+      ) : !aiConsent ? (
+        <StatusPanel
+          tone={tone}
+          icon="lock-closed-outline"
+          code="KI / FREIGABE"
+          title="FREIGABE ERFORDERLICH"
+          text="KI-Anfragen und Bilder werden erst nach deiner ausdrücklichen Freigabe verarbeitet."
+          actionLabel={busy ? "WIRD GESPEICHERT …" : "KI-VERARBEITUNG ERLAUBEN"}
+          onAction={() => void grantAiConsent()}
+        />
+      ) : (
+        <View
+          style={[
+            styles.workflow,
+            { backgroundColor: tone.panel, borderColor: `${tone.accent}66` },
+          ]}
+        >
+          <View style={styles.toolTabs}>
+            <ToolTab
+              active={tool === "chat"}
+              tone={tone}
+              icon="send-outline"
+              label="Frage"
+              onPress={() => setTool("chat")}
+            />
+            <ToolTab
+              active={tool === "plant"}
+              tone={tone}
+              icon="leaf-outline"
+              label="Pflanze"
+              onPress={() => setTool("plant")}
+            />
+            <ToolTab
+              active={tool === "aquarium"}
+              tone={tone}
+              icon="fish-outline"
+              label="Aquarium"
+              onPress={() => setTool("aquarium")}
+            />
+          </View>
+          {tool === "chat" ? (
+            <>
+              <SectionLabel
+                tone={tone}
+                overline="KI / BEREIT"
+                title="FRAGE DEINE WELT"
+                compact
+              />
+              {messages.length ? (
+                <View style={styles.messageList}>
+                  {messages.map((item, index) => (
+                    <View
+                      key={`${item.role}-${index}`}
+                      style={[
+                        styles.message,
+                        {
+                          backgroundColor:
+                            item.role === "user"
+                              ? `${tone.accent}25`
+                              : "rgba(0,0,0,.22)",
+                          borderColor: `${tone.accent}44`,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.messageRole}>
+                        {item.role === "user" ? "DU" : "BLACKWATERLEAF KI"}
+                      </Text>
+                      <Text style={styles.copy}>{item.content}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <StatusPanel
+                  tone={tone}
+                  icon="sparkles-outline"
+                  code="KI / BEREIT"
+                  title="FRAGE DEINE WELT"
+                  text="Beschreibe eine Beobachtung oder stelle eine konkrete Frage."
+                />
+              )}
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    borderColor: `${tone.accent}66`,
+                    backgroundColor: "rgba(0,0,0,.22)",
+                  },
+                ]}
+                value={question}
+                onChangeText={setQuestion}
+                placeholder="Naturbezogene Frage schreiben …"
+                placeholderTextColor={c.muted}
+                multiline
+                maxLength={1200}
+              />
+              <PrimaryButton
+                tone={tone}
+                label={busy ? "ANTWORT WIRD ERSTELLT …" : "FRAGE SICHER SENDEN"}
+                icon="send-outline"
+                onPress={() => void sendChat()}
+                disabled={busy || !question.trim()}
+              />
+            </>
+          ) : tool === "plant" ? (
+            <>
+              <SectionLabel
+                tone={tone}
+                overline="BILDPRÜFUNG / 1–3 EINZELBILDER"
+                title="PFLANZE BESTIMMEN"
+                compact
+              />
+              <Text style={styles.intro}>
+                Beginne mit einem Foto. Wenn entscheidende Merkmale fehlen,
+                fragt die KI gezielt nach einem oder zwei weiteren Einzelbildern
+                — niemals nach einem 4er-Raster.
+              </Text>
+              {photos[0] ? (
+                <View
+                  style={[
+                    styles.plantPrimary,
+                    { borderColor: `${tone.accent}66` },
+                  ]}
+                >
+                  <Image
+                    source={{ uri: photos[0].uri }}
+                    style={styles.plantPrimaryImage}
+                  />
+                  <View style={styles.plantMeta}>
+                    <Text style={[styles.chip, { color: tone.accent }]}>
+                      FOTO 1 · GESAMTANSICHT
+                    </Text>
+                    <Text style={styles.copy}>
+                      {photos.length} von maximal 3 Einzelbildern
+                    </Text>
+                  </View>
+                  <Pressable
+                    style={styles.closePhoto}
+                    onPress={() => {
+                      setPhotos([]);
+                      setPlantAnswer(null);
+                      setPlantUsageId(null);
+                      setNeedsMorePhotos(false);
+                    }}
+                  >
+                    <Ionicons name="close" color={c.text} size={18} />
+                  </Pressable>
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.photoPrompt,
+                    {
+                      borderColor: `${tone.accent}66`,
+                      backgroundColor: "rgba(0,0,0,.18)",
+                    },
+                  ]}
+                >
+                  <Ionicons name="leaf-outline" color={tone.accent} size={31} />
+                  <Text style={styles.cardTitle}>FOTO 1 AUSWÄHLEN</Text>
+                  <Text style={styles.copy}>
+                    Zeige möglichst Blatt, Stängel und die gesamte Pflanze.
+                  </Text>
+                  <View style={styles.inlineButtons}>
+                    <SecondaryButton
+                      tone={tone}
+                      label="KAMERA"
+                      icon="camera-outline"
+                      onPress={() => void choosePlantPhoto(true)}
+                    />
+                    <SecondaryButton
+                      tone={tone}
+                      label="FOTO WÄHLEN"
+                      icon="images-outline"
+                      onPress={() => void choosePlantPhoto(false)}
+                    />
+                  </View>
+                </View>
+              )}
+              {photos.length > 1 ? (
+                <View style={styles.photoSequence}>
+                  {photos.slice(1).map((photo, index) => (
+                    <Image
+                      key={photo.uri}
+                      source={{ uri: photo.uri }}
+                      style={styles.photoThumbnail}
+                      accessibilityLabel={`Zusatzfoto ${index + 2}`}
+                    />
+                  ))}
+                </View>
+              ) : null}
+              {photos.length > 0 && needsMorePhotos && photos.length < 3 ? (
+                <View style={styles.inlineButtons}>
+                  <SecondaryButton
+                    tone={tone}
+                    label={
+                      requestedPhotos === 2
+                        ? "ZWEI FOTOS ERGÄNZEN"
+                        : "EIN FOTO ERGÄNZEN"
+                    }
+                    icon="camera-outline"
+                    onPress={() => void choosePlantPhoto(false)}
+                  />
+                </View>
+              ) : null}
+              <LabeledInput
+                tone={tone}
+                label="OPTIONALE BEOBACHTUNG"
+                value={plantNote}
+                onChange={setPlantNote}
+                placeholder="Standort, Blattunterseite oder Wuchsform …"
+                multiline
+              />
+              <PrimaryButton
+                tone={tone}
+                label={
+                  busy
+                    ? "BILD WIRD GEPRÜFT …"
+                    : photos.length > 1
+                      ? "PFLANZE MIT BILDERN PRÜFEN"
+                      : "PFLANZE MIT KI ANALYSIEREN"
+                }
+                icon="scan-outline"
+                disabled={busy || !photos.length}
+                onPress={() => void identifyPlant()}
+              />
+              {plantAnswer ? (
+                <>
+                  <Result
+                    tone={tone}
+                    title="VORLÄUFIGE EINORDNUNG"
+                    answer={plantAnswer}
+                  />
+                  <View
+                    style={[
+                      styles.correction,
+                      {
+                        borderColor: `${tone.accent}66`,
+                        backgroundColor: "rgba(0,0,0,.18)",
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.chip, { color: tone.accent }]}>
+                      KI-KORREKTUR / PRÜFUNG
+                    </Text>
+                    <Text style={styles.cardTitle}>
+                      LIEGT DIE KI HIER FALSCH?
+                    </Text>
+                    <Text style={styles.copy}>
+                      Deine Korrektur bleibt nachvollziehbar und wird an Admins
+                      sowie Moderatoren zur Prüfung übergeben.
+                    </Text>
+                    <LabeledInput
+                      tone={tone}
+                      label="RICHTIGE BEZEICHNUNG"
+                      value={correctionName}
+                      onChange={setCorrectionName}
+                      placeholder="Zum Beispiel: Monstera deliciosa"
+                    />
+                    <LabeledInput
+                      tone={tone}
+                      label="KURZE BEGRÜNDUNG · OPTIONAL"
+                      value={correctionNote}
+                      onChange={setCorrectionNote}
+                      placeholder="Woran hast du die Pflanze erkannt?"
+                      multiline
+                    />
+                    <SecondaryButton
+                      tone={tone}
+                      label={
+                        busy
+                          ? "WIRD GESPEICHERT …"
+                          : "KORREKTUR ZUR PRÜFUNG SPEICHERN"
+                      }
+                      icon="shield-checkmark-outline"
+                      disabled={busy || !correctionName.trim()}
+                      onPress={() => void sendCorrection()}
+                    />
+                  </View>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <SectionLabel
+                tone={tone}
+                overline="PRIVAT / EIGENE WERTE"
+                title="AQUARIUM VERSTEHEN"
+                compact
+              />
+              <Text style={styles.intro}>
+                Die Analyse verwendet ausschließlich das von dir ausgewählte
+                private Aquarium. Fehlende Werte bleiben sichtbar und werden
+                nicht ergänzt.
+              </Text>
+              {!aquariums.length ? (
+                <StatusPanel
+                  tone={tone}
+                  icon="fish-outline"
+                  code="AQUARIUM / FEHLT"
+                  title="NOCH KEIN AQUARIUM ANGELEGT"
+                  text="Lege zuerst im Aquaristik-Bereich ein privates Aquarium und seine Daten an."
+                  actionLabel="AQUARISTIK ÖFFNEN"
+                  onAction={() => navigate("aquarium")}
+                />
+              ) : (
+                <>
+                  <View style={styles.aquariumSelect}>
+                    {aquariums.map(aquarium => (
+                      <Pressable
+                        key={aquarium.id}
+                        onPress={() => setSelectedAquarium(aquarium.id)}
+                        style={({ pressed }) => [
+                          styles.aquariumOption,
+                          {
+                            borderColor:
+                              selectedAquarium === aquarium.id
+                                ? tone.accent
+                                : `${tone.accent}44`,
+                            backgroundColor:
+                              selectedAquarium === aquarium.id
+                                ? `${tone.accent}24`
+                                : "rgba(0,0,0,.18)",
+                          },
+                          pressed && styles.pressed,
+                        ]}
+                      >
+                        <Ionicons
+                          name="fish-outline"
+                          size={18}
+                          color={tone.accent}
+                        />
+                        <Text style={styles.cardTitle}>{aquarium.name}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <LabeledInput
+                    tone={tone}
+                    label="DEINE FRAGE · OPTIONAL"
+                    value={aquariumQuestion}
+                    onChange={setAquariumQuestion}
+                    placeholder="Welche Angaben sollte ich als Nächstes prüfen?"
+                    multiline
+                  />
+                  <PrimaryButton
+                    tone={tone}
+                    label={
+                      busy
+                        ? "AQUARIUM WIRD ANALYSIERT …"
+                        : "AQUARIUM MIT KI ANALYSIEREN"
+                    }
+                    icon="fish-outline"
+                    disabled={busy || !selectedAquarium}
+                    onPress={() => void analyzeAquarium()}
+                  />
+                  {aquariumAnswer ? (
+                    <Result
+                      tone={tone}
+                      title="EINORDNUNG DEINES AQUARIUMS"
+                      answer={aquariumAnswer}
+                    />
+                  ) : null}
+                </>
+              )}
+            </>
+          )}
+          {message ? (
+            <Text style={[styles.formMessage, { color: tone.accent }]}>
+              {message}
+            </Text>
+          ) : null}
+        </View>
+      )}
+    </Page>
+  );
+}
+
+function LiveScreen({
+  tone,
+  habitats,
+  token,
+  onPrivate,
+  navigate,
+}: {
+  tone: Tone;
+  habitats: Habitat[];
+  token: string | null;
+  onPrivate: () => void;
+  navigate: (screen: Screen) => void;
+}) {
+  const aquarium = habitats.find(item => item.kind === "aquarium");
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="LIVE-BEREICH"
+        title="DEINE WELT LIVE"
+        subtitle="Verbindung, Wasserwerte und Hinweise bleiben nur dort sichtbar, wo echte Daten vorliegen."
+        icon="videocam-outline"
+      />
+      <StatusPanel
+        tone={tone}
+        icon="link-outline"
+        code="LIVE-VERBINDUNG"
+        title="NOCH NICHT VERBUNDEN"
+        text="Es ist kein Smartgerät oder keine Kamera verbunden. BlackWaterLeaf zeigt keinen simulierten Live-Status."
+      />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Kamera",
+            note: "Herstellerverbindung abwarten",
+            icon: "videocam-outline",
+            image: ASSETS.aquarium,
+            unavailable: true,
+            onPress: () =>
+              Alert.alert(
+                "Noch nicht verbunden",
+                "Eine Live-Kamera wird erst nach einer echten Geräteverbindung verfügbar."
+              ),
+          },
+          {
+            title: "Wasserwerte",
+            note: aquarium ? "Privates Aquarium öffnen" : "Aquarium eintragen",
+            icon: "flask-outline",
+            image: ASSETS.aquarium,
+            onPress: onPrivate,
+          },
+          {
+            title: "Benachrichtigungen",
+            note: "Gerätefreigabe erforderlich",
+            icon: "notifications-outline",
+            image: ASSETS.aquarium,
+            unavailable: true,
+            onPress: () =>
+              Alert.alert(
+                "Noch nicht verfügbar",
+                "Benachrichtigungen werden erst nach einer echten Geräteverbindung aktiviert."
+              ),
+          },
+          {
+            title: "Entdecken",
+            note: "Weitere Welten öffnen",
+            icon: "compass-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("explore"),
+          },
+        ]}
+      />
+      {!token ? (
+        <StatusPanel
+          tone={tone}
+          icon="lock-closed-outline"
+          code="PRIVAT / GESCHÜTZT"
+          title="ANMELDUNG ERFORDERLICH"
+          text="Private Wasserwerte werden erst nach sicherer Anmeldung geladen."
+        />
+      ) : null}
+    </Page>
+  );
+}
+
+function PhotoScreen({
+  token,
+  tone,
+  onSignIn,
+  onComplete,
+  navigate,
+}: {
+  token: string | null;
+  tone: Tone;
+  onSignIn: () => Promise<void>;
+  onComplete: () => Promise<void>;
+  navigate: (screen: Screen) => void;
+}) {
+  const [capture, setCapture] = useState<Realm | null>(null);
+  if (capture && token)
+    return (
+      <MomentCapture
+        token={token}
+        initialRealm={capture}
+        onComplete={onComplete}
+      />
+    );
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="MOMENT FESTHALTEN"
+        title="FOTO"
+        subtitle="Wähle zuerst bewusst einen privaten Moment. Bildverarbeitung benötigt später deine sichtbare Freigabe."
+        icon="camera-outline"
+      />
+      {!token ? (
+        <PrivateFeature
+          tone={tone}
+          title="FOTO BLEIBT PRIVAT."
+          text="Melde dich an, bevor du ein Foto aufnimmst oder aus deiner Mediathek auswählst."
+          onSignIn={onSignIn}
+        />
+      ) : (
+        <StatusPanel
+          tone={tone}
+          icon="camera-outline"
+          code="FOTO / BEREIT"
+          title="PRIVATEN MOMENT STARTEN"
+          text="Kamera oder Mediathek werden erst im nächsten Schritt und nur nach deiner Auswahl geöffnet."
+        />
+      )}
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Pflanzenfoto",
+            note: "Privaten Moment erfassen",
+            icon: "leaf-outline",
+            image: ASSETS.botany,
+            onPress: () => (token ? setCapture("botany") : void onSignIn()),
+          },
+          {
+            title: "Aquariumfoto",
+            note: "Privaten Moment erfassen",
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => (token ? setCapture("aquarium") : void onSignIn()),
+          },
+          {
+            title: "KI bestimmen",
+            note: "Foto später gezielt prüfen",
+            icon: "scan-outline",
+            image: ASSETS.ai,
+            onPress: () => navigate("assistant"),
+          },
+          {
+            title: "Feed",
+            note: "Community ansehen",
+            icon: "people-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("community"),
+          },
+        ]}
+      />
+    </Page>
+  );
+}
+
+function PostScreen({
+  token,
+  tone,
+  onSignIn,
+  navigate,
+}: {
+  token: string | null;
+  tone: Tone;
+  onSignIn: () => Promise<void>;
+  navigate: (screen: Screen) => void;
+}) {
+  const [content, setContent] = useState("");
+  const [realm, setRealm] = useState<Realm>("botany");
+  const [publishNow, setPublishNow] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const save = async () => {
+    if (!token || !content.trim() || saving) return;
+    setSaving(true);
+    setStatus(null);
+    try {
+      if (publishNow)
+        await setProfileConsent(token, {
+          purpose: "community_publishing",
+          policyVersion: "native-1.0.8",
+          granted: true,
+        });
+      const draft = await createCommunityDraft(token, {
+        content: content.trim(),
+        realm,
+      });
+      if (publishNow)
+        await publishCommunityDraft(token, { postId: Number(draft.id) });
+      setContent("");
+      setPublishNow(false);
+      setStatus(
+        publishNow
+          ? "Beitrag öffentlich veröffentlicht."
+          : "Privater Entwurf gespeichert."
+      );
+    } catch (cause) {
+      setStatus(
+        cause instanceof Error
+          ? cause.message
+          : "Der Beitrag konnte nicht gespeichert werden."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="COMMUNITY / BEITRAG"
+        title="TEILE DEINEN MOMENT."
+        subtitle="Du entscheidest ausdrücklich, ob ein Entwurf privat bleibt oder veröffentlicht wird."
+        icon="create-outline"
+      />
+      {!token ? (
+        <PrivateFeature
+          tone={tone}
+          title="BEITRAG GESCHÜTZT ERSTELLEN."
+          text="Melde dich an, um einen privaten Entwurf oder einen ausdrücklich öffentlichen Beitrag zu erstellen."
+          onSignIn={onSignIn}
+        />
+      ) : (
+        <View
+          style={[
+            styles.workflow,
+            { backgroundColor: tone.panel, borderColor: `${tone.accent}66` },
+          ]}
+        >
+          <Text style={[styles.chip, { color: tone.accent }]}>
+            PRIVATE_DRAFT
+          </Text>
+          <Text style={styles.cardTitle}>NATURMOMENT ERFASSEN</Text>
+          <Text style={styles.copy}>
+            Es werden keine Beispielbeiträge erstellt. Dein Entwurf bleibt
+            privat, bis du die Veröffentlichung ausdrücklich aktivierst.
+          </Text>
+          <LabeledInput
+            tone={tone}
+            label="DEIN ECHTER NATURMOMENT"
+            value={content}
+            onChange={setContent}
+            placeholder="Was hast du beobachtet?"
+            multiline
+          />
+          <View style={styles.realmPicker}>
+            {(["botany", "aquarium", "terrarium"] as Realm[]).map(item => (
+              <Pressable
+                key={item}
+                onPress={() => setRealm(item)}
+                style={({ pressed }) => [
+                  styles.realmButton,
+                  {
+                    borderColor:
+                      realm === item ? tone.accent : `${tone.accent}44`,
+                    backgroundColor:
+                      realm === item ? `${tone.accent}24` : "rgba(0,0,0,.18)",
+                  },
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.realmText,
+                    { color: realm === item ? c.text : c.muted },
+                  ]}
+                >
+                  {item === "botany"
+                    ? "BOTANIK"
+                    : item === "aquarium"
+                      ? "AQUARISTIK"
+                      : "TERRARISTIK"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
+            <View style={styles.flex}>
+              <Text style={styles.cardTitle}>ÖFFENTLICH VERÖFFENTLICHEN</Text>
+              <Text style={styles.copy}>
+                Nur mit deiner ausdrücklichen Freigabe.
+              </Text>
+            </View>
+            <Switch
+              value={publishNow}
+              onValueChange={setPublishNow}
+              trackColor={{ false: "#345440", true: tone.accent }}
+              thumbColor={publishNow ? c.bg : c.muted}
+            />
+          </View>
+          <PrimaryButton
+            tone={tone}
+            label={
+              saving
+                ? "WIRD GESPEICHERT …"
+                : publishNow
+                  ? "BEITRAG VERÖFFENTLICHEN"
+                  : "PRIVATEN ENTWURF SPEICHERN"
+            }
+            icon="send-outline"
+            disabled={saving || !content.trim()}
+            onPress={() => void save()}
+          />
+          {status ? (
+            <Text style={[styles.formMessage, { color: tone.accent }]}>
+              {status}
+            </Text>
+          ) : null}
+        </View>
+      )}
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Beitrag",
+            note: "Editor verwenden",
+            icon: "create-outline",
+            image: ASSETS.botany,
+            onPress: () =>
+              token
+                ? Alert.alert(
+                    "Editor ist geöffnet",
+                    "Nutze die Eingabefläche oben, um deinen privaten Entwurf oder öffentlichen Beitrag zu speichern."
+                  )
+                : void onSignIn(),
+          },
+          {
+            title: "Foto",
+            note: "Privaten Moment erfassen",
+            icon: "camera-outline",
+            image: ASSETS.botany,
+            onPress: () => navigate("photo"),
+          },
+          {
+            title: "Video",
+            note: "Demnächst verfügbar",
+            icon: "videocam-outline",
+            image: ASSETS.terrarium,
+            unavailable: true,
+            onPress: () =>
+              Alert.alert(
+                "Demnächst verfügbar",
+                "Video ist noch nicht als sicherer Community-Flow implementiert."
+              ),
+          },
+          {
+            title: "Community",
+            note: "Feed ansehen",
+            icon: "people-outline",
+            image: ASSETS.terrarium,
+            onPress: () => navigate("community"),
+          },
+        ]}
+      />
+    </Page>
+  );
+}
+
+function KnowledgeScreen({
+  tone,
+  articles,
+  state,
+  error,
+  refresh,
+}: {
+  tone: Tone;
+  articles: KnowledgeArticle[];
+  state: State;
+  error: string | null;
+  refresh: () => Promise<void>;
+}) {
+  return (
+    <Page refresh={refresh} refreshing={state === "loading"}>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="WISSEN & EVIDENZ"
+        title="WISSEN BRAUCHT QUELLEN."
+        subtitle="Es erscheinen ausschließlich serverseitig veröffentlichte Inhalte mit Quellen."
+        icon="book-outline"
+      />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Quellen",
+            note: "Quellenbelegte Inhalte",
+            icon: "link-outline",
+            image: ASSETS.botany,
+            unavailable: true,
+            onPress: () =>
+              Alert.alert(
+                "Quellen werden geladen",
+                "Die veröffentlichten Quellen werden direkt unter den Referenzkarten angezeigt."
+              ),
+          },
+          {
+            title: "Naturwissen",
+            note: "Veröffentlichte Artikel",
+            icon: "book-outline",
+            image: ASSETS.terrarium,
+            unavailable: true,
+            onPress: () =>
+              Alert.alert(
+                "Naturwissen wird geladen",
+                "Die veröffentlichten Wissenseinträge werden direkt unter den Referenzkarten angezeigt."
+              ),
+          },
+        ]}
+      />
+      {state === "loading" ? (
+        <Loading tone={tone} />
+      ) : state === "error" ? (
+        <ErrorNotice text={error ?? "Wissen konnte nicht geladen werden."} />
+      ) : !articles.length ? (
+        <StatusPanel
+          tone={tone}
+          icon="book-outline"
+          code="WISSEN / LEER"
+          title="NOCH KEINE VERÖFFENTLICHTEN EINTRÄGE"
+          text="Sobald Quellenbeiträge veröffentlicht werden, erscheinen sie automatisch hier."
+        />
+      ) : (
+        <View style={styles.stack}>
+          {articles.map(article => (
+            <KnowledgeCard key={article.id} tone={tone} article={article} />
+          ))}
+        </View>
+      )}
+    </Page>
+  );
+}
+
+function MarketplaceScreen({
+  tone,
+  products,
+  state,
+  error,
+  refresh,
+}: {
+  tone: Tone;
+  products: MarketplaceProduct[];
+  state: State;
+  error: string | null;
+  refresh: () => Promise<void>;
+}) {
+  return (
+    <Page refresh={refresh} refreshing={state === "loading"}>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="MARKTPLATZ"
+        title="PARTNERANGEBOTE"
+        subtitle="Externe Angebote autorisierter Partner. BlackWaterLeaf verarbeitet keine Zahlung, Bestellung oder Lieferung."
+        icon="storefront-outline"
+      />
+      <View
+        style={[
+          styles.partnerNotice,
+          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+        ]}
+      >
+        <Ionicons
+          name="shield-checkmark-outline"
+          size={20}
+          color={tone.accent}
+        />
+        <Text style={styles.copy}>
+          Du wechselst bei einem Angebot direkt zur Seite des Partners. Preise
+          und Verfügbarkeit stammen aus dessen veröffentlichtem Angebot.
+        </Text>
+      </View>
+      {state === "loading" ? (
+        <Loading tone={tone} />
+      ) : state === "error" ? (
+        <ErrorNotice
+          text={error ?? "Marktplatz konnte nicht geladen werden."}
+        />
+      ) : !products.length ? (
+        <StatusPanel
+          tone={tone}
+          icon="storefront-outline"
+          code="MARKT / LEER"
+          title="KEINE AKTIVEN ANGEBOTE"
+          text="Aktuell ist kein freigegebenes Partnerangebot verfügbar."
+        />
+      ) : (
+        <View style={styles.stack}>
+          {products.map(product => (
+            <ProductCard key={product.id} tone={tone} product={product} />
+          ))}
+        </View>
+      )}
+    </Page>
+  );
+}
+
+function CommunityScreen({
+  tone,
+  posts,
+  state,
+  error,
+  refresh,
+  token,
+  onSignIn,
+  navigate,
+}: {
+  tone: Tone;
+  posts: CommunityPost[];
+  state: State;
+  error: string | null;
+  refresh: () => Promise<void>;
+  token: string | null;
+  onSignIn: () => Promise<void>;
+  navigate: (screen: Screen) => void;
+}) {
+  return (
+    <Page refresh={refresh} refreshing={state === "loading"}>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="GEMEINSAM WACHSEN"
+        title="COMMUNITY IN BEWEGUNG."
+        subtitle="Echte Naturmomente von echten, aktiven Konten."
+        icon="people-outline"
+      />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Beobachten",
+            note: "Moment sicher festhalten",
+            icon: "eye-outline",
+            image: ASSETS.botany,
+            onPress: () => navigate("photo"),
+          },
+          {
+            title: "Teilen",
+            note: token ? "Editor öffnen" : "Anmeldung erforderlich",
+            icon: "share-social-outline",
+            image: ASSETS.terrarium,
+            onPress: () => (token ? navigate("post") : void onSignIn()),
+          },
+        ]}
+      />
+      {state === "loading" ? (
+        <Loading tone={tone} />
+      ) : state === "error" ? (
+        <ErrorNotice text={error ?? "Feed konnte nicht geladen werden."} />
+      ) : !posts.length ? (
+        <StatusPanel
+          tone={tone}
+          icon="people-outline"
+          code="FEED / LEER"
+          title="NOCH KEINE ÖFFENTLICHEN BEITRÄGE"
+          text="Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen automatisch."
+          actionLabel={token ? "BEITRAG ERSTELLEN" : "SICHER ANMELDEN"}
+          onAction={() => (token ? navigate("post") : void onSignIn())}
+        />
+      ) : (
+        <View style={styles.stack}>
+          {posts.map(post => (
+            <PostCard key={post.id} tone={tone} post={post} />
+          ))}
+        </View>
+      )}
+    </Page>
+  );
+}
+
+function ProfileScreen({
+  tone,
+  token,
+  account,
+  habitats,
+  state,
+  error,
+  onSignIn,
+  onSignOut,
+  onCollection,
+  navigate,
+}: {
+  tone: Tone;
+  token: string | null;
+  account: Account | null;
+  habitats: Habitat[];
+  state: State;
+  error: string | null;
+  onSignIn: () => Promise<void>;
+  onSignOut: () => Promise<void>;
+  onCollection: (realm: Realm) => void;
+  navigate: (screen: Screen) => void;
+}) {
+  if (!token)
+    return (
+      <Page>
+        <PrivateFeature
+          tone={tone}
+          title="DEIN BEREICH BLEIBT PRIVAT."
+          text="Nach der sicheren Anmeldung kannst du dein Profil, deine Anlagen und deine Freigaben in der nativen App verwalten."
+          onSignIn={onSignIn}
+        />
+      </Page>
+    );
+  return (
+    <Page>
+      <View
+        style={[
+          styles.profileFocus,
+          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+        ]}
+      >
+        <Text style={[styles.chip, { color: tone.accent }]}>DEIN KONTO</Text>
+        <Text style={styles.heroTitle}>IDENTITÄT BLEIBT VERIFIZIERT.</Text>
+        <Text style={styles.copy}>
+          {account?.name ?? account?.username ?? "Konto wird geladen"}
+        </Text>
+        <Text style={styles.copy}>
+          {account?.email ?? "E-Mail nicht verfügbar"} ·{" "}
+          {account?.role ?? "Rolle wird geprüft"}
+        </Text>
+        <SecondaryButton
+          tone={tone}
+          label="ABMELDEN"
+          icon="log-out-outline"
+          onPress={() => void onSignOut()}
+        />
+      </View>
+      {state === "error" ? (
+        <ErrorNotice
+          text={error ?? "Private Daten konnten nicht geladen werden."}
+        />
+      ) : null}
+      <SectionLabel
+        tone={tone}
+        overline="PRIVAT / DEIN KONTO"
+        title="DEINE ANLAGEN"
+      />
+      <ActionGrid
+        tone={tone}
+        actions={[
+          {
+            title: "Pflanzen",
+            note: `${habitats.filter(item => item.kind === "plant").length} private Anlagen`,
+            icon: "leaf-outline",
+            image: ASSETS.botany,
+            onPress: () => onCollection("botany"),
+          },
+          {
+            title: "Aquarien",
+            note: `${habitats.filter(item => item.kind === "aquarium").length} private Anlagen`,
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => onCollection("aquarium"),
+          },
+          {
+            title: "Terrarien",
+            note: `${habitats.filter(item => item.kind === "terrarium").length} private Anlagen`,
+            icon: "leaf-outline",
+            image: ASSETS.terrarium,
+            onPress: () => onCollection("terrarium"),
+          },
+          {
+            title: "Freigaben",
+            note: "KI und Medien kontrollieren",
+            icon: "shield-checkmark-outline",
+            image: ASSETS.ai,
+            onPress: () => navigate("assistant"),
+          },
+        ]}
+      />
+    </Page>
+  );
+}
+
+function CollectionScreen({
+  tone,
+  token,
+  habitats,
+  initialRealm,
+  onSignIn,
+  onSaved,
+}: {
+  tone: Tone;
+  token: string | null;
+  habitats: Habitat[];
+  initialRealm: Realm;
+  onSignIn: () => Promise<void>;
+  onSaved: () => Promise<void>;
+}) {
+  if (!token)
+    return (
+      <Page>
+        <PrivateFeature
+          tone={tone}
+          title="ANLAGEN BLEIBEN PRIVAT."
+          text="Melde dich an, um deine Pflanzen, Aquarien oder Terrarien zu verwalten."
+          onSignIn={onSignIn}
+        />
+      </Page>
+    );
+  return (
+    <View style={[styles.collectionShell, { backgroundColor: tone.surface }]}>
+      <View style={styles.collectionIntro}>
+        <Text style={[styles.chip, { color: realmAccent(initialRealm) }]}>
+          PRIVATE ANLAGEN
+        </Text>
+        <Text style={styles.headingTitle}>
+          {initialRealm === "botany"
+            ? "PFLANZEN"
+            : initialRealm === "aquarium"
+              ? "AQUARIEN"
+              : "TERRARIEN"}{" "}
+          VERWALTEN
+        </Text>
+        <Text style={styles.copy}>
+          Die Inhalte werden aus deinem geschützten BlackWaterLeaf-Konto
+          geladen. Es gibt keine Beispielanlagen.
+        </Text>
+      </View>
+      <HabitatManager
+        token={token}
+        habitats={habitats}
+        initialKind={initialRealm === "botany" ? "plant" : initialRealm}
+        onSaved={onSaved}
+      />
+    </View>
+  );
+}
+
+function BuilderScreen({
+  tone,
+  token,
+  account,
+  habitats,
+  onSignIn,
+  onSaved,
+}: {
+  tone: Tone;
+  token: string | null;
+  account: Account | null;
+  habitats: Habitat[];
+  onSignIn: () => Promise<void>;
+  onSaved: () => Promise<void>;
+}) {
+  if (!token)
+    return (
+      <Page>
+        <PrivateFeature
+          tone={tone}
+          title="HABITAT BUILDER GESCHÜTZT."
+          text="Der Builder ist ausschließlich für das serverseitig bestätigte Administratorkonto zugänglich."
+          onSignIn={onSignIn}
+        />
+      </Page>
+    );
+  if (account?.role !== "admin")
+    return (
+      <Page>
+        <StatusPanel
+          tone={tone}
+          icon="lock-closed-outline"
+          code="BUILDER / GESCHÜTZT"
+          title="KEINE ADMIN-FREIGABE"
+          text="Dieser Bereich ist nur für die serverseitig bestätigte Rolle Admin verfügbar."
+        />
+      </Page>
+    );
+  return (
+    <Page>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="ADMIN / HABITAT BUILDER"
+        title="HABITAT PLANEN"
+        subtitle="Abstrakte lokale Planungsmarker — keine Arten-, Produkt-, Statik- oder Elektrofreigabe."
+        icon="construct-outline"
+      />
+      <NativePlanner tone={tone} />
+      <View
+        style={[
+          styles.builderData,
+          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+        ]}
+      >
+        <Text style={[styles.chip, { color: tone.accent }]}>
+          PRIVATE GRUNDLAGE
+        </Text>
+        <Text style={styles.cardTitle}>EIGENE ANLAGEN VERWALTEN</Text>
+        <Text style={styles.copy}>
+          Der Builder verwendet dieselben geschützten Anlagen wie die Web-App.
+          Änderungen am Datenbestand erfolgen nur über die unten stehende
+          private Anlagenverwaltung.
+        </Text>
+      </View>
+      <HabitatManager token={token} habitats={habitats} onSaved={onSaved} />
+    </Page>
+  );
+}
+
+function SearchScreen({
+  tone,
+  products,
+  articles,
+  state,
+  error,
+  refresh,
+  navigate,
+}: {
+  tone: Tone;
+  products: MarketplaceProduct[];
+  articles: KnowledgeArticle[];
+  state: State;
+  error: string | null;
+  refresh: () => Promise<void>;
+  navigate: (screen: Screen) => void;
+}) {
+  const [term, setTerm] = useState("");
+  const normalized = term.trim().toLowerCase();
+  const matchingProducts = normalized
+    ? products
+        .filter(item =>
+          `${item.title} ${item.description ?? ""} ${item.marketplaceCategory ?? ""}`
+            .toLowerCase()
+            .includes(normalized)
+        )
+        .slice(0, 8)
+    : [];
+  const matchingArticles = normalized
+    ? articles
+        .filter(item =>
+          `${item.title} ${item.excerpt}`.toLowerCase().includes(normalized)
+        )
+        .slice(0, 8)
+    : [];
+  return (
+    <Page refresh={refresh} refreshing={state === "loading"}>
+      <ReferenceHero
+        tone={tone}
+        eyebrow="BLACKWATERLEAF"
+        title="SUCHE"
+        subtitle="Durchsuche veröffentlichte Wissensinhalte und aktuelle Partnerangebote."
+        icon="search-outline"
+      />
+      <TextInput
+        style={[styles.searchInput, { borderColor: `${tone.accent}66` }]}
+        value={term}
+        onChangeText={setTerm}
+        placeholder="Suche nach Pflanzen, Produkten oder Wissen …"
+        placeholderTextColor={c.muted}
+        autoCapitalize="none"
+      />
+      {state === "loading" ? (
+        <Loading tone={tone} />
+      ) : state === "error" ? (
+        <ErrorNotice text={error ?? "Suche konnte nicht geladen werden."} />
+      ) : !normalized ? (
+        <StatusPanel
+          tone={tone}
+          icon="search-outline"
+          code="SUCHE / BEREIT"
+          title="WONACH SUCHST DU?"
+          text="Gib mindestens ein Wort ein. Es werden nur echte veröffentlichte Inhalte und Partnerangebote durchsucht."
+        />
+      ) : !matchingProducts.length && !matchingArticles.length ? (
+        <StatusPanel
+          tone={tone}
+          icon="search-outline"
+          code="SUCHE / LEER"
+          title="KEINE PASSENDEN TREFFER"
+          text="Für diesen Begriff wurden keine veröffentlichten Inhalte oder Angebote gefunden."
+        />
+      ) : (
+        <View style={styles.stack}>
+          {matchingProducts.map(product => (
+            <ProductCard
+              key={`p-${product.id}`}
+              tone={TONES.marketplace}
+              product={product}
+            />
+          ))}
+          {matchingArticles.map(article => (
+            <KnowledgeCard
+              key={`a-${article.id}`}
+              tone={tone}
+              article={article}
+            />
+          ))}
+          <SecondaryButton
+            tone={tone}
+            label="WELTEN ENTDECKEN"
+            icon="compass-outline"
+            onPress={() => navigate("explore")}
+          />
+        </View>
+      )}
+    </Page>
+  );
+}
+
+function ReferenceHero({
+  tone,
+  eyebrow,
+  title,
+  subtitle,
+  icon,
+}: {
+  tone: Tone;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  icon: IconName;
+}) {
+  return (
+    <ImageBackground
+      source={{ uri: tone.image }}
+      style={[styles.hero, { borderColor: `${tone.accent}99` }]}
+      imageStyle={styles.heroImage}
+    >
+      <View style={styles.heroShade} />
+      <View style={styles.heroCopy}>
+        <View
+          style={[
+            styles.heroIcon,
+            {
+              borderColor: `${tone.accent}99`,
+              backgroundColor: `${tone.accent}18`,
+            },
+          ]}
+        >
+          <Ionicons name={icon} size={24} color={tone.accent} />
+        </View>
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>{eyebrow}</Text>
+        <Text style={styles.heroTitle}>{title}</Text>
+        <Text style={styles.heroText}>{subtitle}</Text>
+      </View>
+    </ImageBackground>
+  );
+}
+
+function SectionLabel({
+  tone,
+  overline,
+  title,
+  compact = false,
+}: {
+  tone: Tone;
+  overline: string;
+  title: string;
+  compact?: boolean;
+}) {
+  return (
+    <View style={[styles.sectionLabel, compact && styles.sectionLabelCompact]}>
+      <Text style={[styles.eyebrow, { color: tone.accent }]}>{overline}</Text>
+      <Text style={styles.headingTitle}>{title}</Text>
+    </View>
+  );
+}
+
+function ActionGrid({ tone, actions }: { tone: Tone; actions: Action[] }) {
+  return (
+    <View style={styles.grid}>
+      {actions.map(action => (
+        <ReferenceCard key={action.title} tone={tone} action={action} />
+      ))}
+    </View>
+  );
+}
+
+function ReferenceCard({ tone, action }: { tone: Tone; action: Action }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${action.title}: ${action.note}`}
+      style={({ pressed }) => [
+        styles.referenceCard,
+        { borderColor: `${tone.accent}77` },
+        pressed && styles.pressed,
+      ]}
+      onPress={action.onPress}
+    >
+      <ImageBackground
+        source={{ uri: action.image }}
+        style={styles.referenceImage}
+        imageStyle={styles.referenceImageInner}
+      >
+        <View style={styles.cardShade} />
+        <View style={styles.referenceContent}>
+          <View
+            style={[
+              styles.cardIcon,
+              {
+                borderColor: `${tone.accent}99`,
+                backgroundColor: `${tone.accent}16`,
+              },
+            ]}
+          >
+            <Ionicons name={action.icon} size={20} color={tone.accent} />
+          </View>
+          <View style={styles.flex}>
+            <Text style={styles.referenceTitle} numberOfLines={2}>
+              {action.title}
+            </Text>
+            <Text style={styles.referenceNote} numberOfLines={2}>
+              {action.note}
+            </Text>
+            {action.unavailable ? (
+              <Text style={[styles.unavailableLabel, { color: tone.accent }]}>
+                NOCH NICHT VERFÜGBAR
+              </Text>
+            ) : null}
+          </View>
+          <Ionicons name="chevron-forward" size={21} color={tone.accent} />
+        </View>
+      </ImageBackground>
+    </Pressable>
+  );
+}
+
+function KnowledgeCard({
+  tone,
+  article,
+}: {
+  tone: Tone;
+  article: KnowledgeArticle;
+}) {
+  return (
+    <View
+      style={[
+        styles.infoCard,
+        { borderColor: `${tone.accent}55`, backgroundColor: tone.panel },
+      ]}
+    >
+      <Text style={[styles.chip, { color: tone.accent }]}>
+        {article.evidenceState}
+      </Text>
+      <Text style={styles.cardTitle}>{article.title}</Text>
+      <Text style={styles.copy}>{article.excerpt}</Text>
+      {article.sources.map(source => (
+        <Pressable
+          key={source.url}
+          style={styles.source}
+          onPress={() => void Linking.openURL(source.url)}
+        >
+          <Text style={[styles.sourceText, { color: tone.accent }]}>
+            {source.label}
+          </Text>
+          <Ionicons name="open-outline" size={15} color={tone.accent} />
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function ProductCard({
+  tone,
+  product,
+}: {
+  tone: Tone;
+  product: MarketplaceProduct;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.productCard,
+        { borderColor: `${tone.accent}77`, backgroundColor: tone.panel },
+        pressed && styles.pressed,
+      ]}
+      onPress={() => void Linking.openURL(product.destinationUrl)}
+    >
+      <View style={styles.productImageFrame}>
+        {product.imageUrl ? (
+          <Image
+            source={{ uri: product.imageUrl }}
+            style={styles.productImage}
+          />
+        ) : (
+          <Ionicons name="cube-outline" color={tone.accent} size={26} />
+        )}
+      </View>
+      <View style={styles.productBody}>
+        <Text style={[styles.chip, { color: tone.accent }]}>
+          {product.disclosureLabel} · {product.partnerName}
+        </Text>
+        <Text style={styles.productTitle} numberOfLines={2}>
+          {product.title}
+        </Text>
+        <View style={styles.productBottom}>
+          <Text style={[styles.price, { color: c.champagne }]}>
+            {product.priceLabel ?? "Preis beim Partner"}
+          </Text>
+          <Ionicons name="open-outline" color={tone.accent} size={18} />
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function PostCard({ tone, post }: { tone: Tone; post: CommunityPost }) {
+  return (
+    <View
+      style={[
+        styles.infoCard,
+        { borderColor: `${tone.accent}55`, backgroundColor: tone.panel },
+      ]}
+    >
+      <View style={styles.postHead}>
+        <Text style={styles.cardTitle}>
+          {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
+        </Text>
+        <Text style={styles.date}>
+          {new Date(post.createdAt).toLocaleDateString("de-DE")}
+        </Text>
+      </View>
+      <Text style={styles.copy}>{post.content}</Text>
+      {post.media[0] ? (
+        <Image
+          source={{ uri: post.media[0].accessUrl }}
+          style={styles.postImage}
+        />
+      ) : null}
+      <Text style={styles.date}>
+        {post.likesCount} Likes · {post.commentsCount} Kommentare
+      </Text>
+    </View>
+  );
+}
+
+function StatusPanel({
+  tone,
+  icon,
+  code,
+  title,
+  text,
+  actionLabel,
+  onAction,
+}: {
+  tone: Tone;
+  icon: IconName;
+  code: string;
+  title: string;
+  text: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <View
+      style={[
+        styles.statusPanel,
+        { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+      ]}
+    >
+      <Ionicons name={icon} size={28} color={tone.accent} />
+      <Text style={[styles.chip, { color: tone.accent }]}>{code}</Text>
+      <Text style={styles.emptyTitle}>{title}</Text>
+      <Text style={styles.emptyText}>{text}</Text>
+      {actionLabel && onAction ? (
+        <PrimaryButton
+          tone={tone}
+          label={actionLabel}
+          icon="arrow-forward"
+          onPress={onAction}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+function PrivateFeature({
+  tone,
+  title,
+  text,
+  onSignIn,
+}: {
+  tone: Tone;
+  title: string;
+  text: string;
+  onSignIn: () => Promise<void>;
+}) {
+  return (
+    <View
+      style={[
+        styles.privateFeature,
+        { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+      ]}
+    >
+      <Ionicons name="shield-checkmark-outline" size={32} color={tone.accent} />
+      <Text style={styles.headingTitle}>{title}</Text>
+      <Text style={styles.copy}>{text}</Text>
+      <PrimaryButton
+        tone={tone}
+        label="SICHER ANMELDEN"
+        icon="log-in-outline"
+        onPress={() => void onSignIn()}
+      />
+      <Truth tone={tone} />
+    </View>
+  );
+}
+
+function Truth({ tone }: { tone: Tone }) {
+  return (
+    <View
+      style={[
+        styles.truth,
+        {
+          borderColor: `${tone.accent}66`,
+          backgroundColor: `${tone.accent}13`,
+        },
+      ]}
+    >
+      <Ionicons name="shield-checkmark-outline" size={21} color={tone.accent} />
+      <View style={styles.flex}>
+        <Text style={styles.cardTitle}>ECHTE DATEN. KEINE SCHEINSTATUS.</Text>
+        <Text style={styles.copy}>
+          Private Anlagen, Messwerte und Freigaben werden erst nach
+          authentifizierter Serverantwort gezeigt.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function NativePlanner({ tone }: { tone: Tone }) {
+  const tools: Array<{ id: string; title: string; icon: IconName }> = [
+    { id: "plant", title: "Pflanze", icon: "leaf-outline" },
+    { id: "stone", title: "Struktur", icon: "layers-outline" },
+    { id: "water", title: "Wasser", icon: "water-outline" },
+    { id: "light", title: "Licht", icon: "bulb-outline" },
+  ];
+  const [selected, setSelected] = useState(tools[0].id);
+  const [markers, setMarkers] = useState<Array<{ id: string; tool: string }>>(
+    []
+  );
+  const insert = () =>
+    setMarkers(current => [
+      ...current,
+      { id: Crypto.randomUUID(), tool: selected },
+    ]);
+  return (
+    <View
+      style={[
+        styles.planner,
+        { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+      ]}
+    >
+      <Text style={[styles.chip, { color: tone.accent }]}>LOKALE PLANUNG</Text>
+      <Text style={styles.cardTitle}>OBJEKTWERKZEUG WÄHLEN</Text>
+      <View style={styles.plannerTools}>
+        {tools.map(tool => (
+          <Pressable
+            key={tool.id}
+            onPress={() => setSelected(tool.id)}
+            style={({ pressed }) => [
+              styles.plannerTool,
+              {
+                borderColor:
+                  selected === tool.id ? tone.accent : `${tone.accent}44`,
+                backgroundColor:
+                  selected === tool.id ? `${tone.accent}23` : "rgba(0,0,0,.18)",
+              },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons name={tool.icon} size={18} color={tone.accent} />
+            <Text style={styles.realmText}>{tool.title}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <View style={[styles.planCanvas, { borderColor: `${tone.accent}66` }]}>
+        <Text style={[styles.planCaption, { color: tone.accent }]}>
+          BODENFLÄCHE · LOKALE PLANUNG
+        </Text>
+        <View style={styles.markerLine}>
+          {markers.length ? (
+            markers.map(marker => (
+              <Pressable
+                key={marker.id}
+                onPress={() =>
+                  setMarkers(current =>
+                    current.filter(item => item.id !== marker.id)
+                  )
+                }
+                style={[styles.marker, { borderColor: tone.accent }]}
+              >
+                <Ionicons name="close" size={14} color={tone.accent} />
+              </Pressable>
+            ))
+          ) : (
+            <Text style={styles.copy}>Noch keine Marker platziert.</Text>
+          )}
+        </View>
+      </View>
+      <View style={styles.inlineButtons}>
+        <PrimaryButton
+          tone={tone}
+          label="ZENTRIERT EINFÜGEN"
+          icon="add-outline"
+          onPress={insert}
+        />
+        <SecondaryButton
+          tone={tone}
+          label="ALLES LÖSCHEN"
+          icon="trash-outline"
+          onPress={() => setMarkers([])}
+        />
+      </View>
+      <Text style={styles.miniCopy}>
+        Marker werden nur lokal für diesen Plan verwaltet. Antippen löscht einen
+        Marker. Es handelt sich nicht um Arten-, Kauf- oder Bauvorgaben.
+      </Text>
+    </View>
+  );
+}
+
+function Page({
+  children,
+  refresh,
+  refreshing = false,
+}: {
+  children: ReactNode;
+  refresh?: () => Promise<void>;
+  refreshing?: boolean;
+}) {
+  return (
+    <FlatList
+      data={["content"]}
+      keyExtractor={item => item}
+      contentContainerStyle={styles.page}
+      keyboardShouldPersistTaps="handled"
+      refreshControl={
+        refresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={c.botany}
+          />
+        ) : undefined
+      }
+      renderItem={() => <View style={styles.stack}>{children}</View>}
+    />
+  );
+}
+
+function BottomNavigation({
+  active,
+  inset,
+  showBuilder,
+  onSelect,
+}: {
+  active: BottomTab;
+  inset: number;
+  showBuilder: boolean;
+  onSelect: (screen: Screen) => void;
+}) {
+  const tabs: Array<{
+    id: BottomTab;
+    screen: Screen;
+    label: string;
+    icon: IconName;
+    color: string;
+  }> = [
+    {
+      id: "home",
+      screen: "home",
+      label: "Home",
+      icon: "home-outline",
+      color: c.botany,
+    },
+    {
+      id: "explore",
+      screen: "explore",
+      label: "Entdecken",
+      icon: "compass-outline",
+      color: c.botany,
+    },
+    {
+      id: "marketplace",
+      screen: "marketplace",
+      label: "Marktplatz",
+      icon: "storefront-outline",
+      color: c.market,
+    },
+    {
+      id: "community",
+      screen: "community",
+      label: "Community",
+      icon: "people-outline",
+      color: c.botany,
+    },
+    {
+      id: "profile",
+      screen: "profile",
+      label: "Profil",
+      icon: "person-outline",
+      color: c.botany,
+    },
+    ...(showBuilder
+      ? [
+          {
+            id: "builder" as const,
+            screen: "builder" as Screen,
+            label: "Builder",
+            icon: "construct-outline" as IconName,
+            color: c.aqua,
+          },
+        ]
+      : []),
+  ];
+  return (
+    <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
+      {tabs.map(tab => (
+        <Pressable
+          key={tab.id}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: active === tab.id }}
+          style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
+          onPress={() => onSelect(tab.screen)}
+        >
+          <Ionicons
+            name={tab.icon}
+            size={21}
+            color={active === tab.id ? tab.color : c.muted}
+          />
+          <Text
+            style={[styles.tabText, active === tab.id && { color: tab.color }]}
+          >
+            {tab.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function Sensor({
+  color,
+  icon,
+  label,
+  value,
+  note,
+}: {
+  color: string;
+  icon: IconName;
+  label: string;
+  value: string;
+  note: string;
+}) {
+  return (
+    <View style={[styles.sensor, { borderColor: `${color}55` }]}>
+      <Ionicons name={icon} size={17} color={color} />
+      <Text style={styles.sensorValue}>{value}</Text>
+      <Text style={styles.sensorLabel}>{label}</Text>
+      <Text style={[styles.sensorNote, { color }]}>{note}</Text>
+    </View>
+  );
+}
+
+function ToolTab({
+  active,
+  tone,
+  icon,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  tone: Tone;
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.toolTab,
+        {
+          borderColor: active ? tone.accent : `${tone.accent}44`,
+          backgroundColor: active ? `${tone.accent}25` : "rgba(0,0,0,.16)",
+        },
+        pressed && styles.pressed,
+      ]}
+    >
+      <Ionicons name={icon} size={16} color={active ? tone.accent : c.muted} />
+      <Text style={[styles.toolTabText, active && { color: tone.accent }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function PrimaryButton({
+  tone,
+  label,
+  icon,
+  onPress,
+  disabled = false,
+}: {
+  tone: Tone;
+  label: string;
+  icon: IconName;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.primaryButton,
+        { backgroundColor: tone.accent },
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+      ]}
+      onPress={onPress}
+    >
+      <Text style={styles.primaryButtonText}>{label}</Text>
+      <Ionicons name={icon} size={16} color={c.bg} />
+    </Pressable>
+  );
+}
+
+function SecondaryButton({
+  tone,
+  label,
+  icon,
+  onPress,
+  disabled = false,
+}: {
+  tone: Tone;
+  label: string;
+  icon: IconName;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.secondaryButton,
+        { borderColor: `${tone.accent}77` },
+        disabled && styles.disabled,
+        pressed && !disabled && styles.pressed,
+      ]}
+      onPress={onPress}
+    >
+      <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>
+        {label}
+      </Text>
+      <Ionicons name={icon} size={15} color={tone.accent} />
+    </Pressable>
+  );
+}
+
+function LabeledInput({
+  tone,
+  label,
+  value,
+  onChange,
+  placeholder,
+  multiline = false,
+}: {
+  tone: Tone;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  multiline?: boolean;
+}) {
+  return (
+    <View style={styles.field}>
+      <Text style={[styles.fieldLabel, { color: tone.accent }]}>{label}</Text>
+      <TextInput
+        style={[
+          styles.input,
+          multiline && styles.textarea,
+          {
+            borderColor: `${tone.accent}66`,
+            backgroundColor: "rgba(0,0,0,.22)",
+          },
+        ]}
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={c.muted}
+        multiline={multiline}
+        maxLength={multiline ? 1200 : 255}
+      />
+    </View>
+  );
+}
+
+function Result({
+  tone,
+  title,
+  answer,
+}: {
+  tone: Tone;
+  title: string;
+  answer: string;
+}) {
+  return (
+    <View
+      style={[
+        styles.result,
+        { borderColor: `${tone.accent}66`, backgroundColor: "rgba(0,0,0,.2)" },
+      ]}
+    >
+      <Text style={[styles.chip, { color: tone.accent }]}>KI / VORLÄUFIG</Text>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.answer}>{answer}</Text>
+    </View>
+  );
+}
+
+function Loading({ tone }: { tone: Tone }) {
+  return (
+    <View
+      style={[
+        styles.loading,
+        { borderColor: `${tone.accent}55`, backgroundColor: tone.panel },
+      ]}
+    >
+      <Text style={[styles.chip, { color: tone.accent }]}>VERBINDUNG</Text>
+      <Text style={styles.copy}>Echte Daten werden geladen …</Text>
+    </View>
+  );
+}
+
+function ErrorNotice({ text }: { text: string }) {
+  return (
+    <View style={styles.error}>
+      <Ionicons name="alert-circle-outline" size={21} color={c.danger} />
+      <Text style={styles.copy}>{text}</Text>
+    </View>
+  );
+}
+
+function numberValue(value: unknown, unit: string) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? `${value}${unit ? ` ${unit}` : ""}`
+    : "—";
+}
+
+function realmAccent(realm: Realm) {
+  return realm === "aquarium"
+    ? c.aqua
+    : realm === "terrarium"
+      ? c.gold
+      : c.botany;
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1 },
+  body: { flex: 1, position: "relative" },
+  header: {
+    minHeight: 70,
+    paddingHorizontal: 17,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    backgroundColor: "#020A05",
+  },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 9, flex: 1 },
+  brandMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    overflow: "hidden",
+    borderWidth: 1,
+    backgroundColor: "#050807",
+  },
+  brandImage: { width: "100%", height: "100%" },
+  brand: { color: c.text, fontSize: 14, fontWeight: "900", letterSpacing: 1.2 },
+  technical: {
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 1.35,
+    marginTop: 2,
+  },
+  headerActions: { flexDirection: "row", gap: 7 },
+  headerAction: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "rgba(199,243,91,.25)",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,.18)",
+  },
+  page: { padding: 16, paddingBottom: 118 },
+  stack: { gap: 13 },
+  flex: { flex: 1 },
+  hero: {
+    minHeight: 282,
+    borderWidth: 1,
+    borderRadius: 22,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+  },
+  heroImage: { borderRadius: 21 },
+  heroShade: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0, 10, 5, .52)",
+  },
+  heroCopy: { padding: 19, gap: 7 },
+  heroIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  eyebrow: { fontSize: 9, letterSpacing: 1.45, fontWeight: "900" },
+  heroTitle: {
+    color: c.text,
+    fontSize: 34,
+    lineHeight: 39,
+    fontWeight: "900",
+    letterSpacing: -0.8,
+  },
+  heroText: { color: c.text, fontSize: 14, lineHeight: 20, maxWidth: 330 },
+  sectionLabel: { marginTop: 7, gap: 5 },
+  sectionLabelCompact: { marginTop: 0 },
+  headingTitle: {
+    color: c.text,
+    fontSize: 23,
+    lineHeight: 28,
+    fontWeight: "900",
+    letterSpacing: -0.45,
+  },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  referenceCard: {
+    width: "48.5%",
+    minHeight: 176,
+    borderRadius: 18,
+    borderWidth: 1,
+    overflow: "hidden",
+    backgroundColor: c.surface,
+  },
+  referenceImage: { flex: 1, minHeight: 174, justifyContent: "flex-end" },
+  referenceImageInner: { borderRadius: 17 },
+  cardShade: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0, 10, 7, .58)",
+  },
+  referenceContent: {
+    minHeight: 174,
+    padding: 13,
+    justifyContent: "flex-end",
+    gap: 7,
+  },
+  cardIcon: {
+    width: 39,
+    height: 39,
+    borderRadius: 20,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 3,
+  },
+  referenceTitle: {
+    color: c.text,
+    fontSize: 15,
+    lineHeight: 18,
+    fontWeight: "900",
+    paddingRight: 8,
+  },
+  referenceNote: {
+    color: "#D4E1D6",
+    fontSize: 10,
+    lineHeight: 14,
+    paddingRight: 4,
+  },
+  unavailableLabel: {
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 0.65,
+    marginTop: 2,
+  },
+  sensorRail: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+    padding: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "rgba(199,243,91,.42)",
+    backgroundColor: "rgba(3,18,9,.82)",
+  },
+  sensor: {
+    width: "48%",
+    minHeight: 78,
+    padding: 10,
+    borderRadius: 13,
+    borderWidth: 1,
+    backgroundColor: "rgba(5,29,13,.74)",
+  },
+  sensorValue: {
+    color: c.text,
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+  sensorLabel: { color: c.muted, fontSize: 9, fontWeight: "700", marginTop: 2 },
+  sensorNote: { fontSize: 7, fontWeight: "800", marginTop: 4 },
+  weatherButton: {
+    minHeight: 45,
+    borderRadius: 13,
+    paddingHorizontal: 13,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "rgba(199,243,91,.55)",
+    backgroundColor: "rgba(35,59,20,.62)",
+  },
+  weatherButtonText: {
+    color: c.text,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.45,
+  },
+  sensorError: {
+    color: c.danger,
+    fontSize: 10,
+    textAlign: "center",
+    marginTop: -5,
+  },
+  truth: {
+    flexDirection: "row",
+    gap: 11,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  cardTitle: { color: c.text, fontSize: 14, lineHeight: 19, fontWeight: "900" },
+  copy: { color: c.muted, fontSize: 12, lineHeight: 18 },
+  intro: { color: c.muted, fontSize: 12, lineHeight: 18 },
+  divider: { borderTopWidth: 1, marginTop: 4, paddingTop: 13 },
+  dividerText: { fontSize: 9, fontWeight: "900", letterSpacing: 1.2 },
+  statusPanel: {
+    minHeight: 184,
+    padding: 20,
+    gap: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    borderWidth: 1,
+    textAlign: "center",
+  },
+  emptyTitle: {
+    color: c.text,
+    fontSize: 14,
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: 0.25,
+  },
+  emptyText: {
+    color: c.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    maxWidth: 310,
+  },
+  chip: { fontSize: 8, fontWeight: "900", letterSpacing: 1.05 },
+  privateFeature: { padding: 20, borderRadius: 18, borderWidth: 1, gap: 11 },
+  primaryButton: {
+    minHeight: 45,
+    paddingHorizontal: 14,
+    borderRadius: 11,
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: c.bg,
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+  },
+  secondaryButton: {
+    minHeight: 39,
+    paddingHorizontal: 11,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 7,
+  },
+  secondaryButtonText: { fontSize: 9, fontWeight: "900", letterSpacing: 0.4 },
+  inlineButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1 },
+  toolTabs: { flexDirection: "row", gap: 7 },
+  toolTab: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+  },
+  toolTabText: { color: c.muted, fontSize: 8, fontWeight: "900" },
+  messageList: { gap: 8 },
+  message: { padding: 11, borderRadius: 12, borderWidth: 1, gap: 4 },
+  messageRole: {
+    color: c.text,
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+  },
+  input: {
+    minHeight: 46,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    color: c.text,
+    fontSize: 13,
+    textAlignVertical: "top",
+  },
+  textarea: { minHeight: 88 },
+  photoPrompt: {
+    minHeight: 190,
+    padding: 18,
+    borderWidth: 1,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  plantPrimary: {
+    height: 258,
+    borderWidth: 1,
+    borderRadius: 15,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,.2)",
+  },
+  plantPrimaryImage: { width: "100%", height: "100%" },
+  plantMeta: {
+    position: "absolute",
+    left: 10,
+    right: 48,
+    bottom: 10,
+    padding: 9,
+    gap: 3,
+    borderRadius: 9,
+    backgroundColor: "rgba(0,8,4,.76)",
+  },
+  closePhoto: {
+    position: "absolute",
+    top: 9,
+    right: 9,
+    width: 33,
+    height: 33,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,8,4,.78)",
+  },
+  photoSequence: { flexDirection: "row", gap: 9 },
+  photoThumbnail: {
+    width: 78,
+    height: 78,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(195,107,255,.5)",
+  },
+  field: { gap: 5 },
+  fieldLabel: { fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
+  result: { padding: 14, gap: 8, borderRadius: 14, borderWidth: 1 },
+  answer: { color: c.text, fontSize: 12, lineHeight: 19 },
+  correction: { padding: 14, gap: 9, borderRadius: 14, borderWidth: 1 },
+  formMessage: { fontSize: 11, fontWeight: "700", lineHeight: 16 },
+  aquariumSelect: { gap: 8 },
+  aquariumOption: {
+    minHeight: 51,
+    paddingHorizontal: 12,
+    borderRadius: 11,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+  partnerNotice: {
+    padding: 14,
+    flexDirection: "row",
+    gap: 10,
+    borderRadius: 15,
+    borderWidth: 1,
+  },
+  infoCard: { padding: 14, gap: 8, borderRadius: 15, borderWidth: 1 },
+  source: {
+    paddingTop: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  sourceText: { fontSize: 11, fontWeight: "800", flex: 1 },
+  loading: {
+    minHeight: 100,
+    padding: 20,
+    gap: 8,
+    borderRadius: 15,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  error: {
+    minHeight: 72,
+    padding: 13,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "rgba(255,158,168,.48)",
+    backgroundColor: "rgba(88,21,29,.36)",
+  },
+  productCard: {
+    minHeight: 128,
+    flexDirection: "row",
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  productImageFrame: {
+    width: 118,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,.94)",
+  },
+  productImage: { width: "100%", height: "100%", resizeMode: "cover" },
+  productBody: {
+    flex: 1,
+    padding: 13,
+    justifyContent: "space-between",
+    gap: 5,
+  },
+  productTitle: {
+    color: c.text,
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: "900",
+  },
+  productBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  price: { fontSize: 13, fontWeight: "900", flex: 1 },
+  postHead: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  date: { color: c.muted, fontSize: 9 },
+  postImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    backgroundColor: c.raised,
+  },
+  profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
+  realmPicker: { flexDirection: "row", gap: 7 },
+  realmButton: {
+    flex: 1,
+    minHeight: 42,
+    borderWidth: 1,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  realmText: { fontSize: 8, fontWeight: "900", textAlign: "center" },
+  switchRow: {
+    padding: 12,
+    borderRadius: 11,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+    backgroundColor: "rgba(0,0,0,.18)",
+  },
+  collectionShell: { flex: 1 },
+  collectionIntro: { paddingHorizontal: 16, paddingTop: 16, gap: 6 },
+  builderData: { padding: 14, gap: 7, borderRadius: 15, borderWidth: 1 },
+  planner: { padding: 14, gap: 10, borderRadius: 16, borderWidth: 1 },
+  plannerTools: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  plannerTool: {
+    width: "48.5%",
+    minHeight: 56,
+    padding: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+  },
+  planCanvas: {
+    minHeight: 160,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: "space-between",
+    backgroundColor: "rgba(0,0,0,.2)",
+  },
+  planCaption: { fontSize: 8, fontWeight: "900", letterSpacing: 0.75 },
+  markerLine: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+  },
+  marker: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,.32)",
+  },
+  miniCopy: { color: c.muted, fontSize: 10, lineHeight: 15 },
+  searchInput: {
+    minHeight: 50,
+    paddingHorizontal: 14,
+    borderRadius: 13,
+    borderWidth: 1,
+    color: c.text,
+    backgroundColor: "rgba(0,0,0,.2)",
+    fontSize: 13,
+  },
+  tabs: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    minHeight: 70,
+    paddingVertical: 9,
+    paddingHorizontal: 4,
+    flexDirection: "row",
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: "rgba(199,243,91,.24)",
+    backgroundColor: "rgba(2,12,6,.96)",
+  },
+  tab: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+  tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  disabled: { opacity: 0.48 },
+  pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });

@@ -26,8 +26,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.6"');
-    expect(appConfig).toContain('"versionCode": 6');
+    expect(appConfig).toContain('"version": "1.0.8"');
+    expect(appConfig).toContain('"versionCode": 8');
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
@@ -48,7 +48,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(moments).toContain("uploadObservationImage(token");
     expect(moments).toContain('visibility: "private"');
     expect(moments).toContain("mediaConsent");
-    expect(moments).toContain('setConsent(token, { purpose: "media_processing"');
+    expect(moments).toContain("setConsent(token");
+    expect(moments).toContain('purpose: "media_processing"');
     expect(moments).not.toContain("WebView");
   });
 
@@ -83,5 +84,31 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain('market: "#D9AD69"');
     expect(app).toContain("getBlackWaterLeafSeason");
     expect(existsSync(resolve(root, "mobile-natur/src/season.ts"))).toBe(true);
+  });
+
+  it("implements every approved reference screen as native UI without a WebView shell", () => {
+    for (const screen of ["botany", "aquarium", "terrarium", "assistant", "live", "photo", "post", "knowledge", "explore", "community", "profile", "builder"]) {
+      expect(app).toContain(`screen === "${screen}"`);
+    }
+    expect(app).toContain('title="PFLANZEN WORLD"');
+    expect(app).toContain('title="AQUARISTIK"');
+    expect(app).toContain('title="TERRARISTIK"');
+    expect(app).toContain('title="KI-ASSISTENT"');
+    expect(app).not.toContain("react-native-webview");
+    expect(app).not.toContain("<WebView");
+  });
+
+  it("keeps the exact five regular navigation destinations and a server-role-gated Builder", () => {
+    for (const label of ["Home", "Entdecken", "Marktplatz", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    expect(app).toContain('showBuilder={account?.role === "admin"}');
+    expect(app).toContain('account?.role !== "admin"');
+  });
+
+  it("connects native KI and community actions only through existing protected server contracts", () => {
+    for (const procedure of ["assistant.chat", "assistant.plantIdentify", "assistant.aquariumAnalyze", "assistant.submitPlantCorrection", "community.createDraft", "community.publish", "profile.consents"]) expect(api).toContain(procedure);
+    expect(app).toContain("ai_processing");
+    expect(app).toContain("community_publishing");
+    expect(app).toContain("maximal 3 Einzelbilder");
+    expect(app).toContain("Admins und Moderatoren");
   });
 });

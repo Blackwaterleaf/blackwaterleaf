@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlackWaterLeaf",
     "slug": "blackwater-agent",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
@@ -19,15 +19,31 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.blackwaterleaf",
-      "versionCode": 6
+      "versionCode": 8,
     },
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
       "expo-status-bar",
-      ["expo-camera", { "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
-      ["expo-image-picker", { "photosPermission": "BlackWaterLeaf benötigt Zugriff auf ausgewählte Fotos nur, wenn du einen privaten Naturmoment hochlädst.", "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
-      ["expo-location", { "locationWhenInUsePermission": "BlackWaterLeaf verwendet deinen Standort nur für das aktuelle Außenwetter und speichert keine Koordinaten." }],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BlackWaterLeaf benötigt Zugriff auf ausgewählte Fotos nur, wenn du einen privaten Naturmoment hochlädst.",
+          "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "BlackWaterLeaf verwendet deinen Standort nur für das aktuelle Außenwetter und speichert keine Koordinaten."
+        }
+      ],
       "expo-sharing"
     ],
     "extra": {
