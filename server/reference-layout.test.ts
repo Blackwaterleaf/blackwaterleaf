@@ -38,7 +38,7 @@ describe("BlackWaterLeaf reference layout", () => {
   });
 
   it("uses the supplied green light, water and individual realm color language", () => {
-    for (const token of ["#b0fb78", "#40d9ff", "#e0c75f", "#bf8fff", ".world-aquarium", ".world-terrarium", ".world-assistant"]) {
+    for (const token of ["#c7f35b", "#28d8ff", "#e1d661", "#c36bff", ".world-aquarium", ".world-terrarium", ".world-assistant"]) {
       expect(style).toContain(token);
     }
   });
@@ -83,5 +83,20 @@ describe("BlackWaterLeaf reference layout", () => {
   it("preserves reduced-motion behavior for living overlays", () => {
     expect(style).toContain("@media (prefers-reduced-motion: reduce)");
     expect(style).toContain("animation-duration:1ms!important");
+  });
+
+  it("propagates aquarium, terrarium, AI and marketplace tones to the complete page surface", () => {
+    for (const token of [
+      ".reference-actions.reference-tone--aquarium",
+      ".reference-actions.reference-tone--terrarium",
+      ".reference-actions.reference-tone--ai",
+      ".reference-empty-state.reference-tone--ai",
+      ".reference-page--ai .assistant-workflow",
+      ".reference-page--aquarium .reference-action",
+      ".reference-page--terrarium .reference-action",
+      ".reference-page--marketplace .primary-action",
+    ]) {
+      expect(style).toContain(token);
+    }
   });
 });

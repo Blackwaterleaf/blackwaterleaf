@@ -1,4 +1,3 @@
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { startLogin } from "@/const";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
@@ -107,7 +106,6 @@ export default function AccountAccess() {
 
   return (
     <main className="account-access-page reference-page reference-page--botany">
-      <LiveSensorStrip compact />
       <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow={headline.eyebrow} title={headline.title} subtitle={headline.body} icon={AccessIcon} badge="SICHERER ZUGANG" />
       <section className="account-access-card glass-panel">
         <Link href="/" className="account-back"><ArrowLeft size={16} /> ZURÜCK ZU BLACKWATERLEAF</Link>

@@ -1,6 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { AIChatBox, type Message } from "@/components/AIChatBox";
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
@@ -83,7 +82,6 @@ export default function Assistant() {
 
   return (
     <div className="reference-page reference-page--ai assistant-page">
-      <LiveSensorStrip compact />
       <ReferenceHero tone="ai" image={REFERENCE_ASSETS.ai} eyebrow="BLACKWATERLEAF KI" title="KI-ASSISTENT" subtitle={locale === "de" ? "Echte KI-Hilfe. Keine Scheinantwort. Antworten machen Unsicherheit transparent." : "Real AI help. No pretend answers. Uncertainty stays transparent."} icon={Bot} badge="PRIVAT / OPTIONAL" />
       <ReferenceActionGrid tone="ai" actions={[
         { title: "Frage stellen", note: "Gespräch beginnen", icon: Send, image: REFERENCE_ASSETS.ai, onActivate: () => activate("chat") },

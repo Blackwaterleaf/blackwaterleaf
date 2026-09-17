@@ -80,7 +80,7 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("keeps the native marketplace accent and shared seasonal helper", () => {
-    expect(app).toContain('market: "#f3d59c"');
+    expect(app).toContain('market: "#D9AD69"');
     expect(app).toContain("getBlackWaterLeafSeason");
     expect(existsSync(resolve(root, "mobile-natur/src/season.ts"))).toBe(true);
   });

@@ -51,10 +51,11 @@ describe("marketplace UI truth contract", () => {
     expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
   });
 
-  it("keeps the reference sensor rail, entry composition, and detail states inside the aqua overlay", () => {
-    expect(marketplace).toContain("LiveSensorStrip compact");
+  it("keeps the reference entry composition and detail states inside the marketplace overlay", () => {
+    expect(marketplace).not.toContain("LiveSensorStrip");
     expect(marketplace).toContain("marketplace-entry");
-    for (const token of ["LiveSensorStrip compact", "MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
+    for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
+    expect(detail).not.toContain("LiveSensorStrip");
     expect(styles).toContain(".marketplace-entry");
   });
 

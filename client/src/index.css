@@ -681,3 +681,67 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .profile-page-heading__icon { display: grid; flex: 0 0 auto; width: 42px; height: 42px; color: var(--reference-botany); border: 1px solid color-mix(in srgb, var(--reference-botany) 72%, transparent); border-radius: 50%; background: rgba(5,24,11,.74); place-items: center; }
 .profile-page-heading h1 { margin: 3px 0 0; color: #f4fff1; font: 400 clamp(2rem, 8vw, 3.4rem)/.9 "Bebas Neue", sans-serif; letter-spacing: .04em; }
 .profile-page-heading p { margin: 5px 0 0; color: #c5d9c8; font-size: .76rem; }
+
+
+/* Global tone propagation: every screen component follows its page/route tone, not the botanical default. */
+.reference-actions.reference-tone--botany,
+.reference-empty-state.reference-tone--botany { --reference-accent: var(--reference-botany); }
+.reference-actions.reference-tone--aquarium,
+.reference-empty-state.reference-tone--aquarium { --reference-accent: var(--reference-aquarium); }
+.reference-actions.reference-tone--terrarium,
+.reference-empty-state.reference-tone--terrarium { --reference-accent: var(--reference-terrarium); }
+.reference-actions.reference-tone--ai,
+.reference-empty-state.reference-tone--ai { --reference-accent: var(--reference-ai); }
+.reference-actions.reference-tone--marketplace,
+.reference-empty-state.reference-tone--marketplace { --reference-accent: var(--reference-marketplace, #d9ad69); }
+.reference-page--botany .reference-divider,
+.reference-page--aquarium .reference-divider,
+.reference-page--terrarium .reference-divider,
+.reference-page--ai .reference-divider,
+.reference-page--marketplace .reference-divider { color: var(--reference-accent); }
+.reference-page--botany .reference-divider::before,
+.reference-page--botany .reference-divider::after,
+.reference-page--aquarium .reference-divider::before,
+.reference-page--aquarium .reference-divider::after,
+.reference-page--terrarium .reference-divider::before,
+.reference-page--terrarium .reference-divider::after,
+.reference-page--ai .reference-divider::before,
+.reference-page--ai .reference-divider::after,
+.reference-page--marketplace .reference-divider::before,
+.reference-page--marketplace .reference-divider::after { background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--reference-accent) 52%, transparent)); }
+.reference-page--ai .assistant-workflow,
+.reference-page--ai .assistant-workflow__tabs button,
+.reference-page--ai .assistant-result,
+.reference-page--ai .assistant-empty-link { border-color: color-mix(in srgb, var(--reference-ai) 48%, transparent); }
+.reference-page--ai .assistant-workflow__tabs button.active { border-color: color-mix(in srgb, var(--reference-ai) 82%, transparent); }
+.reference-page--ai .assistant-workflow__tabs button.active,
+.reference-page--ai .assistant-submit { background: linear-gradient(135deg, color-mix(in srgb, var(--reference-ai) 38%, transparent), rgba(13,37,25,.76)); }
+.reference-page--ai .assistant-workflow__tabs button,
+.reference-page--ai .assistant-result h1,
+.reference-page--ai .assistant-result h2,
+.reference-page--ai .assistant-result h3,
+.reference-page--ai .assistant-empty-link,
+.reference-page--ai .assistant-image-picker label { color: color-mix(in srgb, var(--reference-ai) 82%, white); }
+.reference-page--aquarium .reference-action,
+.reference-page--aquarium .reference-empty-state,
+.reference-page--terrarium .reference-action,
+.reference-page--terrarium .reference-empty-state,
+.reference-page--ai .reference-action,
+.reference-page--ai .reference-empty-state { border-color: color-mix(in srgb, var(--reference-accent) 52%, rgba(230,248,220,.16)); }
+@media (max-width: 759px) {
+  .reference-sensor-rail .sensor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Preserve compact density while making each route's accent visible in every interactive layer. */
+.reference-page--botany .primary-action { border-color: color-mix(in srgb, var(--reference-botany) 62%, transparent); }
+.reference-page--aquarium .primary-action { border-color: color-mix(in srgb, var(--reference-aquarium) 62%, transparent); }
+.reference-page--terrarium .primary-action { border-color: color-mix(in srgb, var(--reference-terrarium) 62%, transparent); }
+.reference-page--ai .primary-action { border-color: color-mix(in srgb, var(--reference-ai) 62%, transparent); }
+.reference-page--marketplace .primary-action { border-color: color-mix(in srgb, var(--reference-marketplace, #d9ad69) 62%, transparent); }
+
+
+/* Legacy Home world cards inherit the same binding palette as their destination pages. */
+.world-card { --world-accent: var(--reference-botany); }
+.world-aquarium { --world-accent: var(--reference-aquarium); }
+.world-terrarium { --world-accent: var(--reference-terrarium); }
+.world-assistant { --world-accent: var(--reference-ai); }

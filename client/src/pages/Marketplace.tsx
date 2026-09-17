@@ -1,4 +1,3 @@
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { readMarketplaceFavorites, toggleMarketplaceFavorite, writeMarketplaceFavorites } from "@/lib/marketplaceCart";
@@ -36,7 +35,6 @@ export default function Marketplace() {
 
   return (
     <div className="marketplace-page reference-page reference-page--marketplace">
-      <LiveSensorStrip compact />
       <ReferenceHero
         tone="marketplace"
         icon={ShoppingBag}

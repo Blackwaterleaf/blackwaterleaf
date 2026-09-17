@@ -28,7 +28,7 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
   it("uses the dedicated marketplace tone on web and native", () => {
     expect(marketplace).toContain('reference-page--marketplace');
     expect(marketplace).toContain('tone="marketplace"');
-    expect(native).toContain('market: "#f3d59c"');
+    expect(native).toContain('market: "#D9AD69"');
     expect(native).toContain('color={c.market} title="Marktplatz"');
   });
 

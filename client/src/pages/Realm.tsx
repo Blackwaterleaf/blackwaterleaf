@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
@@ -83,7 +82,6 @@ export default function Realm() {
 
   return (
     <div className={`reference-page reference-page--${realm.tone}`}>
-      <LiveSensorStrip compact />
       <ReferenceHero tone={realm.tone} image={realm.image} eyebrow={realm.eyebrow} title={realm.title} subtitle={realm.subtitle} icon={realm.icon} />
       <ReferenceActionGrid tone={realm.tone} actions={actionsFor(realmKey)} />
       {!auth.isAuthenticated ? <ReferenceEmptyState tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : (

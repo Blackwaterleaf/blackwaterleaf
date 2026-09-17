@@ -1,4 +1,3 @@
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceEmptyState, ReferenceHero } from "@/components/ReferenceOverlay";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Home, Leaf, Search } from "lucide-react";
@@ -7,7 +6,6 @@ import { Link } from "wouter";
 export default function NotFound() {
   return (
     <div className="reference-page reference-page--botany reference-not-found">
-      <LiveSensorStrip compact />
       <ReferenceHero
         tone="botany"
         image={REFERENCE_ASSETS.botany}

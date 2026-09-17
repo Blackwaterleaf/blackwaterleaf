@@ -150,7 +150,7 @@ Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der P
 
 Die Original-BWL-Marke aus dem Nutzerreferenzscreen steht in Web-App und nativer Expo-App **oben links im globalen Header**. Sie wird nicht durch ein generisches Blatt-Icon ersetzt. Deskriptive Funktionsicons bleiben davon getrennt und dürfen weiterhin Lucide- bzw. Ionicons sein.
 
-Die Unterseiten übernehmen die Originalhierarchie: Original-Header, kompakte echte Sensorleiste, bildbasierter Bereichs-Hero, genau vier priorisierte Auswahlkarten, nachgeordnete kompakte Zusatzbereiche und die Bottom-Navigation. Aquaristik bleibt Cyan, Botanik Blattgrün, Terraristik warmes Gold und KI Lila. Der Marktplatz erhält als eigenständige Bereichsfarbe **Amber/Champagner** (`#d9ad69` / `#f3d59c`): warm, ruhig und klar von Cyan, Grün, Gold und Lila unterscheidbar. Die Farbe kennzeichnet Navigation, Filter, Preise und aktive Produktzustände, nicht eine Zahlung oder einen Checkout.
+Home übernimmt die kompakte echte Sensorleiste; die Unterseiten übernehmen ansonsten die Originalhierarchie: Original-Header, bildbasierter Bereichs-Hero, genau vier priorisierte Auswahlkarten, nachgeordnete kompakte Zusatzbereiche und die Bottom-Navigation. Auf Unterseiten werden Wetter-, Luftfeuchte-, Temperatur- und Wasserwertfelder nicht wiederholt. Aquaristik bleibt Cyan, Botanik Blattgrün, Terraristik warmes Gold und KI Lila. Der Marktplatz erhält als eigenständige Bereichsfarbe **Amber/Champagner** (`#d9ad69` / `#f3d59c`): warm, ruhig und klar von Cyan, Grün, Gold und Lila unterscheidbar. Die Farbe kennzeichnet Navigation, Filter, Preise und aktive Produktzustände, nicht eine Zahlung oder einen Checkout.
 
 Web-App und Expo-App verwenden dieselbe saisonale Waldlogik. Frühling, Sommer, Herbst und Winter verändern ausschließlich die atmosphärische Waldstimmung (Farbtemperatur, Sättigung und Licht); sie erzeugen keine erfundenen Wetter-, Sensor- oder Standortdaten. Reale Wetterdaten bleiben ausschließlich dem echten Wetter-/Sensorvertrag vorbehalten. Die saisonale Atmosphäre darf auf allen Seiten wachsen, ohne Header, Iconpositionen, Bereichsfarben, Kartenhierarchie oder Bottom-Navigation zu verschieben. Animationen bleiben subtil und respektieren `prefers-reduced-motion` beziehungsweise native reduzierte Bewegung.
 
@@ -160,7 +160,7 @@ Eine Zielseite ist erst freigegeben, wenn alle folgenden Punkte gleichzeitig erf
 2. Ihre Akzentfarbe entspricht exakt der Bereichsfarbe.
 3. Jede sichtbare Funktionskarte hat das passende Bildmotiv, Icon, Titel, Chevron und einen nachgewiesenen Link- oder Nichtverfügbar-Zustand.
 4. Die Kartenzahl und Rasterform entsprechen dem Zielscreen.
-5. Markenleiste, Sensorleiste und die Bottom Navigation mit den vier Referenzzielen plus Marktplatz entsprechen der Referenzhierarchie; bei `admin` ist zusätzlich der sechste Habitat-Builder-Tab sichtbar.
+5. Markenleiste und Bottom Navigation mit den vier Referenzzielen plus Marktplatz entsprechen der Referenzhierarchie; die echte Sensorleiste erscheint ausschließlich auf Home. Bei `admin` ist zusätzlich der sechste Habitat-Builder-Tab sichtbar.
 6. Jeder Sensor-, Feed-, Profil-, KI- und Wissenszustand bleibt real, privat, fehlend, verbunden oder fehlerhaft wie im echten Datenvertrag.
 7. Die mobile Ansicht bei 412 × 915 und eine Desktopansicht werden visuell geprüft; keine Touchfläche wird von der Navigation verdeckt.
 8. Keyboard-Fokus, Kontrast und `prefers-reduced-motion` bleiben funktionsfähig.

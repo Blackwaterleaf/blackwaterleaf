@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { createHabitat, type Habitat, type HabitatKind, type HabitatPayload } from "./api";
 
-const c = { bg: "#031108", surface: "#092117", raised: "#0c2a1c", border: "rgba(140,238,171,.25)", mint: "#9cebc6", lime: "#b9fb83", aqua: "#69def2", gold: "#e5c679", text: "#ecf8ee", muted: "#a0b8a6", danger: "#ff9ea8" };
+const c = { bg: "#031108", surface: "#07180d", raised: "#0b2415", border: "rgba(199,243,91,.28)", mint: "#C7F35B", lime: "#C7F35B", aqua: "#28D8FF", gold: "#E1D661", text: "#F3FFF5", muted: "#9BB39F", danger: "#FF9EA8" };
 
 const labels: Record<HabitatKind, string> = { plant: "PFLANZE", aquarium: "AQUARIUM", terrarium: "TERRARIUM" };
 const icons: Record<HabitatKind, keyof typeof Ionicons.glyphMap> = { plant: "leaf", aquarium: "water", terrarium: "bug" };

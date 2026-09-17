@@ -1,4 +1,3 @@
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
@@ -11,7 +10,6 @@ export default function Explore() {
   const { t, locale } = useI18n();
   return (
     <div className="reference-page reference-page--botany">
-      <LiveSensorStrip compact />
       <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow="WORLD INDEX" title={t("explore.title")} subtitle={locale === "de" ? "Vier lebendige Naturwelten." : "Four living nature worlds."} icon={Leaf} />
       <section aria-label={t("home.worlds.title")}>
         <div className="reference-actions__heading"><span>DEINE WELTEN</span><i aria-hidden="true" /></div>

@@ -1,4 +1,3 @@
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { Bell, Bot, Camera, Droplets, FileText, Fish, Leaf, Map, Radio, Send, Upload, UsersRound, Video } from "lucide-react";
@@ -60,7 +59,6 @@ export default function FlowDestination() {
   const spec = FLOW_SPECS[flow];
   return (
     <div className={`reference-page reference-page--${spec.tone}`}>
-      <LiveSensorStrip compact />
       <ReferenceHero {...spec} />
       {flow === "live" ? <ReferenceEmptyState tone="aquarium" code="LIVE-VERBINDUNG" title="NOCH NICHT VERBUNDEN" body="Smartgeräte, Kamera und automatische Benachrichtigungen werden erst nach einer echten, widerrufbaren Verbindung aktiviert." /> : null}
       {flow === "foto" ? <PhotoCapture /> : null}

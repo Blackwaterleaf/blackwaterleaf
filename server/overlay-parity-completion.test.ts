@@ -16,9 +16,10 @@ const worlds = source("client/src/lib/worlds.ts");
 
 describe("remaining reference-overlay parity", () => {
   it("replaces the generic 404 page with a dark botanical recovery route", () => {
-    for (const token of ["LiveSensorStrip", "ReferenceHero", "ReferenceEmptyState", "ROUTE / 404", "SEITE NICHT GEFUNDEN", "ZUR STARTSEITE", "reference-page--botany"]) {
+    for (const token of ["ReferenceHero", "ReferenceEmptyState", "ROUTE / 404", "SEITE NICHT GEFUNDEN", "ZUR STARTSEITE", "reference-page--botany"]) {
       expect(notFound).toContain(token);
     }
+    expect(notFound).not.toContain("LiveSensorStrip");
     for (const prohibited of ["bg-gradient-to-br", "text-red-500", "Page Not Found", "Go Home", "animate-pulse"]) expect(notFound).not.toContain(prohibited);
   });
 
@@ -32,9 +33,11 @@ describe("remaining reference-overlay parity", () => {
     expect(profile).not.toContain("ReferenceEmptyState");
   });
 
-  it("uses an honest sensor rail and aqua hero for catalogue and every product state", () => {
-    for (const token of ["LiveSensorStrip compact", "marketplace-entry", "MARKET/ERROR", "MARKET/EMPTY"]) expect(marketplace).toContain(token);
-    for (const token of ["LiveSensorStrip compact", "MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero", "StatePanel"]) expect(detail).toContain(token);
+  it("keeps catalogue and every product state truthful without duplicating Home-only sensors", () => {
+    for (const token of ["marketplace-entry", "MARKET/ERROR", "MARKET/EMPTY"]) expect(marketplace).toContain(token);
+    for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero", "StatePanel"]) expect(detail).toContain(token);
+    expect(marketplace).not.toContain("LiveSensorStrip");
+    expect(detail).not.toContain("LiveSensorStrip");
   });
 
   it("keeps recovery navigation and reference error semantics accessible", () => {
