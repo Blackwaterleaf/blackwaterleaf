@@ -19,7 +19,7 @@ function isAndroidBrowser() {
   return /Android/i.test(window.navigator.userAgent);
 }
 
-const ANDROID_UPDATE_URL = "/manus-storage/BlackWaterLeaf-1.0.5-expo-preview_37c088fa.apk";
+const ANDROID_UPDATE_URL = "/manus-storage/blackwaterleaf-1.0.5_9b797c0a.apk";
 
 export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
