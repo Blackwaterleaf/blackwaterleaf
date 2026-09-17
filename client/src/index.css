@@ -1034,3 +1034,7 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 }
 @media (min-width: 1120px) { .reference-hero { min-height: 282px; } .reference-action { min-height: 132px; } }
 @media (max-width: 390px) { .reference-hero { min-height: 178px; } .reference-action { min-height: 96px; } }
+
+/* One selector per area: AI action cards remain the only tool switcher. */
+.assistant-workflow__tabs { display: none; }
+.reference-after-actions { scroll-margin-top: 92px; }

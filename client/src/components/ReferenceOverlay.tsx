@@ -10,6 +10,7 @@ export type ReferenceAction = {
   icon: LucideIcon;
   image: string;
   href?: string;
+  targetId?: string;
   onActivate?: () => void;
   unavailable?: boolean;
 };
@@ -59,6 +60,7 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL", 
           return <button key={action.title} type="button" className={`reference-action ${activeTitle === action.title ? "is-active" : ""}`} aria-expanded={activeTitle === action.title} onClick={() => {
             if (action.unavailable) setFutureMessage(`${action.title} ist vorbereitet. Wir arbeiten daran – seid gespannt, was kommt.`);
             action.onActivate?.();
+            if (action.targetId) requestAnimationFrame(() => document.getElementById(action.targetId!)?.scrollIntoView({ behavior: "smooth", block: "start" }));
           }}>{card}</button>;
         })}
       </div>
