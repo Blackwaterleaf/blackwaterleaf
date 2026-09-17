@@ -951,3 +951,9 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .assistant-correction p:not(.eyebrow):not(.form-status) { margin: 0 0 12px; color: color-mix(in srgb, white 76%, var(--reference-ai)); font-size: .76rem; line-height: 1.5; }
 .assistant-correction .field { margin-top: 10px; }
 .assistant-correction .secondary-action { width: 100%; justify-content: center; margin-top: 12px; }
+
+/* Owner analytics numbers mode: deliberately text-and-number only, without graphic panels. */
+.admin-analytics--numbers .admin-metric { grid-template-columns: 1fr; text-align: center; }
+.admin-analytics--numbers .admin-metric > span { display: none; }
+.analytics-period--toggle > span:last-child { display: inline-flex; align-items: center; gap: 7px; }
+.analytics-period--toggle input { accent-color: var(--reference-botany); }

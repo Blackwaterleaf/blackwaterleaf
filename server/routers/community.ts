@@ -9,12 +9,25 @@ import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { canReadCommunityPost, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
+import { appendAuditEntry } from "../auditLedger";
 import { assertValidMediaContext } from "../mediaIntegrity";
 
 async function requireDatabase() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
+}
+
+const sexualContentPattern = /\b(?:sex|porno|pornografie|porn|xxx|onlyfans|ficken|vergewaltig|nackt|nacktbilder|intimfoto|sexuell)\w*\b/i;
+
+async function suspendForSexualContent(db: Awaited<ReturnType<typeof requireDatabase>>, userId: number, content: string): Promise<never> {
+  await db.update(users).set({ status: "suspended" }).where(eq(users.id, userId));
+  await appendAuditEntry({ actorId: userId, action: "community_sexual_content_blocked", targetType: "user", targetId: userId, payload: { contentBlocked: true, contentLength: content.length, automatic: true, accountStatus: "suspended" } });
+  throw new TRPCError({ code: "FORBIDDEN", message: "community_content_policy_violation_account_suspended" });
+}
+
+async function enforceCommunityContentPolicy(db: Awaited<ReturnType<typeof requireDatabase>>, userId: number, content: string) {
+  if (sexualContentPattern.test(content.normalize("NFKC"))) await suspendForSexualContent(db, userId, content);
 }
 
 async function publicMediaForPost(postId: number, userId: number) {
@@ -117,6 +130,7 @@ export const communityRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
+      await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
       const inserted = await db.insert(communityPosts).values({
         userId: ctx.user.id,
         content: input.content,
@@ -178,6 +192,8 @@ export const communityRouter = router({
     if (!posts[0] || !isResourceOwner(ctx.user.id, posts[0].userId)) {
       throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
     }
+
+    await enforceCommunityContentPolicy(db, ctx.user.id, posts[0].content);
 
     await db.transaction(async tx => {
       await tx
@@ -267,6 +283,7 @@ export const communityRouter = router({
     .input(z.object({ postId: z.number().int().positive(), parentId: z.number().int().positive().nullable().optional(), content: z.string().trim().min(1).max(2_000) }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
+      await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
       const visible = await db
         .select({ id: communityPosts.id })
         .from(communityPosts)

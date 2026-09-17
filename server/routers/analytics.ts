@@ -18,5 +18,10 @@ export const analyticsRouter = router({
 
   overview: adminProcedure
     .input(z.object({ days: z.union([z.literal(1), z.literal(7), z.literal(30)]).default(7) }).optional())
-    .query(async ({ input }) => getAnalyticsOverview(input?.days ?? 7)),
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.email?.trim().toLowerCase() !== "blackwaterleaf@gmail.com") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "owner_analytics_only" });
+      }
+      return getAnalyticsOverview(input?.days ?? 7);
+    }),
 });

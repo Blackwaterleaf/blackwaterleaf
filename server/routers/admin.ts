@@ -76,6 +76,17 @@ export const adminRouter = router({
       return { id: input.id, status: input.status } as const;
     }),
 
+  deletePublicPost: adminProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [post] = await db.select({ id: communityPosts.id, status: communityPosts.status, visibility: communityPosts.visibility }).from(communityPosts).where(eq(communityPosts.id, input.id)).limit(1);
+      if (!post || post.status !== "published" || post.visibility !== "public") throw new TRPCError({ code: "NOT_FOUND", message: "public_post_not_found" });
+      await db.update(communityPosts).set({ status: "removed", visibility: "private" }).where(eq(communityPosts.id, input.id));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_post_deleted_by_admin", targetType: "community_post", targetId: input.id, payload: { before: "published/public", after: "removed/private" } });
+      return { id: input.id, status: "removed" } as const;
+    }),
+
   plantCorrections: staffProcedure.query(async () => {
     const db = await requireDatabase();
     return db
