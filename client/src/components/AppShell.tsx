@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } from "react";
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
 import { AnalyticsTracker } from "./AnalyticsTracker";
+import { getBlackWaterLeafSeason } from "@/lib/season";
 
 const navigation = [
   { href: "/", label: "tabs.home" as const, icon: Home },
@@ -30,6 +31,7 @@ function isReferenceNavigationActive(location: string, href: string) {
 
 export function AppShell({ children }: PropsWithChildren) {
   const [location, setLocation] = useLocation();
+  const season = getBlackWaterLeafSeason();
   const auth = useAuth();
   const { locale, setLocale, t } = useI18n();
   const utils = trpc.useUtils();
@@ -85,7 +87,7 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   return (
-    <div className={`app-frame ${isTabSwitching ? "is-tab-switching" : ""}`}>
+    <div className={`app-frame season-${season} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
       <div className="ambient-grid" aria-hidden="true" />
       <div className="scanlines" aria-hidden="true" />
       <header className="top-shell">

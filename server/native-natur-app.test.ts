@@ -78,4 +78,10 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(existsSync(resolve(root, "mobile-natur/eas.json"))).toBe(true);
     expect(readFileSync(resolve(root, "mobile-natur/eas.json"), "utf8")).toContain('"buildType": "apk"');
   });
+
+  it("keeps the native marketplace accent and shared seasonal helper", () => {
+    expect(app).toContain('market: "#f3d59c"');
+    expect(app).toContain("getBlackWaterLeafSeason");
+    expect(existsSync(resolve(root, "mobile-natur/src/season.ts"))).toBe(true);
+  });
 });

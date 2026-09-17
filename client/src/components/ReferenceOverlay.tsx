@@ -2,7 +2,7 @@ import { AlertTriangle, ChevronRight, Leaf, X, type LucideIcon } from "lucide-re
 import { Link } from "wouter";
 import { useState, type ReactNode } from "react";
 
-export type ReferenceTone = "botany" | "aquarium" | "terrarium" | "ai";
+export type ReferenceTone = "botany" | "aquarium" | "terrarium" | "ai" | "marketplace";
 
 export type ReferenceAction = {
   title: string;

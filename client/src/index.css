@@ -648,3 +648,29 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .reference-future-banner small { color:#c9dfca; font-size:.72rem; line-height:1.35; }
 .reference-future-banner button { display:grid; flex:0 0 auto; margin-left:auto; padding:5px; color:#d8ecd7; border:0; background:transparent; place-items:center; }
 .reference-future-banner button:focus-visible { outline:2px solid var(--reference-accent); outline-offset:2px; }
+
+
+/* Shared brand parity: seasonal forest atmosphere changes the background mood only; real weather remains data-driven. */
+.app-frame { --season-filter: none; --season-glow: rgba(112,255,164,.045); }
+.app-frame.season-spring { --season-filter: saturate(1.08) hue-rotate(-4deg); --season-glow: rgba(157,255,142,.075); }
+.app-frame.season-summer { --season-filter: saturate(1.16); --season-glow: rgba(41,209,135,.08); }
+.app-frame.season-autumn { --season-filter: saturate(.9) sepia(.14) hue-rotate(-8deg); --season-glow: rgba(238,177,78,.07); }
+.app-frame.season-winter { --season-filter: saturate(.72) hue-rotate(10deg) brightness(.94); --season-glow: rgba(154,211,231,.06); }
+.app-frame::before { content: ""; position: fixed; inset: 0; z-index: -4; pointer-events: none; background: radial-gradient(circle at 50% -10%, var(--season-glow), transparent 48%), linear-gradient(180deg, transparent, rgba(2,8,5,.16)); }
+.app-frame.season-spring .world-image, .app-frame.season-spring .reference-hero, .app-frame.season-spring .home-hero,
+.app-frame.season-summer .world-image, .app-frame.season-summer .reference-hero, .app-frame.season-summer .home-hero,
+.app-frame.season-autumn .world-image, .app-frame.season-autumn .reference-hero, .app-frame.season-autumn .home-hero,
+.app-frame.season-winter .world-image, .app-frame.season-winter .reference-hero, .app-frame.season-winter .home-hero { filter: var(--season-filter); }
+
+/* The marketplace receives its own warm amber/champagne product accent instead of borrowing Aquaristik cyan. */
+:root { --reference-marketplace: #d9ad69; --marketplace-champagne: #f3d59c; }
+.reference-page--marketplace { --reference-accent: var(--reference-marketplace); }
+.reference-tone--marketplace { --reference-accent: var(--reference-marketplace); }
+.marketplace-page .marketplace-entry__icon, .marketplace-page .marketplace-card__price strong, .marketplace-page .marketplace-count { color: var(--marketplace-champagne); }
+.marketplace-page .marketplace-entry, .marketplace-page .marketplace-trust { border-color: color-mix(in srgb, var(--reference-marketplace) 42%, transparent); }
+.marketplace-page .marketplace-filters button.active, .marketplace-page .marketplace-cart-trigger { color: var(--marketplace-champagne); border-color: color-mix(in srgb, var(--reference-marketplace) 70%, transparent); background: color-mix(in srgb, var(--reference-marketplace) 13%, rgba(3,18,9,.78)); }
+.marketplace-page .marketplace-favorite-toggle.is-favorite { color: var(--marketplace-champagne); border-color: color-mix(in srgb, var(--reference-marketplace) 76%, transparent); }
+.marketplace-page .marketplace-card { border-color: color-mix(in srgb, var(--reference-marketplace) 35%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .app-frame::before, .app-frame .world-image, .app-frame .reference-hero, .app-frame .home-hero { transition: none !important; animation: none !important; }
+}

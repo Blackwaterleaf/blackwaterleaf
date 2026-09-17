@@ -35,10 +35,10 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="marketplace-page reference-page reference-page--aquarium">
+    <div className="marketplace-page reference-page reference-page--marketplace">
       <LiveSensorStrip compact />
       <ReferenceHero
-        tone="aquarium"
+        tone="marketplace"
         icon={ShoppingBag}
         eyebrow="BLACKWATERLEAF MARKTPLATZ"
         title="GUTES FINDET SEINEN ORT."

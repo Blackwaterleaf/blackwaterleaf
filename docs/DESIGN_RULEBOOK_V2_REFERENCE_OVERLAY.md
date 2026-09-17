@@ -144,6 +144,14 @@ Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der P
 
 ## 9. Abnahmeregel „Icon für Icon, Farbe für Farbe“
 
+### 9.1 Bestätigte Erweiterung: Originalmarke, Marktplatz und Jahreszeiten
+
+Die Original-BWL-Marke aus dem Nutzerreferenzscreen steht in Web-App und nativer Expo-App **oben links im globalen Header**. Sie wird nicht durch ein generisches Blatt-Icon ersetzt. Deskriptive Funktionsicons bleiben davon getrennt und dürfen weiterhin Lucide- bzw. Ionicons sein.
+
+Die Unterseiten übernehmen die Originalhierarchie: Original-Header, kompakte echte Sensorleiste, bildbasierter Bereichs-Hero, genau vier priorisierte Auswahlkarten, nachgeordnete kompakte Zusatzbereiche und die Bottom-Navigation. Aquaristik bleibt Cyan, Botanik Blattgrün, Terraristik warmes Gold und KI Lila. Der Marktplatz erhält als eigenständige Bereichsfarbe **Amber/Champagner** (`#d9ad69` / `#f3d59c`): warm, ruhig und klar von Cyan, Grün, Gold und Lila unterscheidbar. Die Farbe kennzeichnet Navigation, Filter, Preise und aktive Produktzustände, nicht eine Zahlung oder einen Checkout.
+
+Web-App und Expo-App verwenden dieselbe saisonale Waldlogik. Frühling, Sommer, Herbst und Winter verändern ausschließlich die atmosphärische Waldstimmung (Farbtemperatur, Sättigung und Licht); sie erzeugen keine erfundenen Wetter-, Sensor- oder Standortdaten. Reale Wetterdaten bleiben ausschließlich dem echten Wetter-/Sensorvertrag vorbehalten. Die saisonale Atmosphäre darf auf allen Seiten wachsen, ohne Header, Iconpositionen, Bereichsfarben, Kartenhierarchie oder Bottom-Navigation zu verschieben. Animationen bleiben subtil und respektieren `prefers-reduced-motion` beziehungsweise native reduzierte Bewegung.
+
 Eine Zielseite ist erst freigegeben, wenn alle folgenden Punkte gleichzeitig erfüllt sind:
 
 1. Sie besitzt den im Screen gezeigten eigenen Hero, nicht einen wiederverwendeten Home-Hero.
