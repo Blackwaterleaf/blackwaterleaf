@@ -5,7 +5,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { Camera, Languages, Leaf, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -128,7 +128,7 @@ export default function Profile() {
         <StatePanel code="PROFILE/ERROR" state="error" title={t("common.error")} body={t("profile.signedOut")} />
       ) : (
         <>
-          <section className="profile-card glass-panel">
+          <section className="profile-card glass-panel" id="progress">
             <div className="profile-identity">
               <div className="profile-avatar">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
               <div><h2>{profile.data.name ?? profile.data.username ?? "BlackWaterLeaf"}</h2><p>{profile.data.email ?? ""}</p></div>
@@ -152,7 +152,16 @@ export default function Profile() {
             {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
 
-          <details className="account-section glass-panel">
+          <section className="profile-guide glass-panel" aria-labelledby="profile-guide-title">
+            <div className="profile-guide__heading"><div><span className="eyebrow">MERKREGEL · PRIVAT ZUERST</span><h2 id="profile-guide-title">DEIN PROFIL IN 3 SCHRITTEN</h2></div><span className="profile-guide__rule">PRIVAT → ANLAGEN → PUNKTE</span></div>
+            <div className="profile-guide__steps">
+              <a href="#privacy" className="profile-guide__step"><b>01</b><span className="profile-guide__icon"><LockKeyhole size={17} /></span><strong>Privat schützen</strong><small>Freigaben und Sichtbarkeit selbst bestimmen.</small></a>
+              <a href="#habitats" className="profile-guide__step"><b>02</b><span className="profile-guide__icon"><Leaf size={17} /></span><strong>Welten anlegen</strong><small>Aquarium, Botanik und Terrarium verwalten.</small></a>
+              <a href="#progress" className="profile-guide__step"><b>03</b><span className="profile-guide__icon"><Trophy size={17} /></span><strong>Punkte sammeln</strong><small>XP, Level und nächste Ziele im Blick behalten.</small></a>
+            </div>
+          </section>
+
+          <details id="privacy" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <div className="form-grid">
@@ -182,7 +191,7 @@ export default function Profile() {
             </section>
           </details>
 
-          <HabitatProfiles />
+          <section id="habitats" className="profile-habitats-section"><HabitatProfiles /></section>
           <section className="habitat-builder-entry glass-panel">
             <div>
               <span className="eyebrow">[HABITAT BUILDER]</span>
