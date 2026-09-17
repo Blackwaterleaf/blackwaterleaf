@@ -861,3 +861,54 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 @media (max-width: 759px) {
   .reference-page { padding-inline: 2px; }
 }
+
+/* Final nested-surface pass: the active area tone reaches functional children,
+   not only the first-level reference cards. */
+.reference-page .glass-panel,
+.reference-page .state-panel,
+.reference-page .form-panel,
+.reference-page .form-status,
+.reference-page .field input,
+.reference-page .field select,
+.reference-page .field textarea,
+.reference-page .reference-recovery-grid a,
+.reference-page .reference-setting-card,
+.reference-page .assistant-workflow__tabs button,
+.reference-page .assistant-image-picker,
+.reference-page .assistant-result,
+.reference-page .assistant-empty-link { background-color: color-mix(in srgb, var(--reference-surface) 78%, var(--reference-panel)); }
+.reference-page .glass-panel,
+.reference-page .state-panel,
+.reference-page .form-panel,
+.reference-page .form-status,
+.reference-page .field input,
+.reference-page .field select,
+.reference-page .field textarea,
+.reference-page .reference-recovery-grid a,
+.reference-page .reference-setting-card,
+.reference-page .assistant-workflow__tabs button,
+.reference-page .assistant-image-picker,
+.reference-page .assistant-result,
+.reference-page .assistant-empty-link { border-color: color-mix(in srgb, var(--reference-accent) 40%, rgba(230,248,220,.16)); }
+.reference-page .assistant-workflow,
+.reference-page .assistant-workflow__body,
+.reference-page .assistant-workflow [class*="bg-muted"],
+.reference-page .assistant-workflow [class*="bg-card"],
+.reference-page .assistant-workflow [class*="bg-background"],
+.reference-page .assistant-workflow form { background-color: color-mix(in srgb, var(--reference-surface) 84%, var(--reference-panel)); }
+.reference-page .assistant-workflow [class*="text-primary"],
+.reference-page .assistant-workflow [class*="text-muted-foreground"],
+.reference-page .assistant-workflow [class*="border-border"] { color: color-mix(in srgb, white 72%, var(--reference-accent)); border-color: color-mix(in srgb, var(--reference-accent) 36%, transparent); }
+.reference-page .assistant-workflow [class*="bg-primary"] { background-color: color-mix(in srgb, var(--reference-accent) 42%, var(--reference-panel)); }
+.reference-page .assistant-workflow [class*="bg-secondary"] { background-color: color-mix(in srgb, var(--reference-accent) 22%, var(--reference-panel)); }
+.reference-page--ai .assistant-workflow__tabs button.active,
+.reference-page--ai .assistant-submit { background: linear-gradient(135deg, color-mix(in srgb, var(--reference-ai) 48%, var(--reference-ai-panel)), var(--reference-ai-panel)); }
+.reference-page--aquarium .state-panel,
+.reference-page--aquarium .form-panel,
+.reference-page--aquarium .glass-panel { box-shadow: inset 0 1px color-mix(in srgb, var(--reference-aquarium) 18%, transparent), 0 12px 28px rgba(0,0,0,.24); }
+.reference-page--terrarium .state-panel,
+.reference-page--terrarium .form-panel,
+.reference-page--terrarium .glass-panel { box-shadow: inset 0 1px color-mix(in srgb, var(--reference-terrarium) 18%, transparent), 0 12px 28px rgba(0,0,0,.24); }
+.reference-page--ai .state-panel,
+.reference-page--ai .form-panel,
+.reference-page--ai .glass-panel { box-shadow: inset 0 1px color-mix(in srgb, var(--reference-ai) 20%, transparent), 0 12px 28px rgba(0,0,0,.24); }

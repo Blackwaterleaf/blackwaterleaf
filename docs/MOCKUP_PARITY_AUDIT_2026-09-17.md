@@ -49,3 +49,9 @@ Two final Marketplace details are visible in the desktop capture: the trust icon
 The corrected desktop capture confirms both details now use the warm Marketplace tone: the trust icon is champagne and the active Marktplatz tab is amber. The parallel mobile capture request was rejected by argument parsing only; no application change was involved and the earlier mobile route capture already verified the same CSS surface behavior.
 
 The standalone 412 × 915 Marketplace capture confirms the same result on the phone breakpoint: Amber/Champagne is applied to the CTA, trust icon, page panels and active Marktplatz tab; the remaining cyan elements are limited to the global informational search icon treatment and do not represent Marketplace state.
+
+## Global nested-surface verification
+
+The user reported that the same regression appeared beyond KI. A fresh 412 × 915 capture was therefore taken for Aquaristik, Terraristik, KI, Marktplatz, Community, Profile, Wissen and Foto. The global nested-surface correction now carries each route tone into the functional content below the hero: Cyan on Aquaristik panels, Gold on Terraristik panels, Violet on KI workflow and chat panels, Amber on Marketplace commerce controls, and botanical green on Community/Profile/Wissen/Foto. The original mark, functional icons, route order, Home-only sensor rule and real-data states remain unchanged.
+
+The correction is CSS-only. No database, server procedure, auth/session, upload, media, marketplace record, sensor value or user data was changed or deleted. The screenshot capture was preview-only; no publication was performed after this correction.
