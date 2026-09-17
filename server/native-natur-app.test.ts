@@ -26,8 +26,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.5"');
-    expect(appConfig).toContain('"versionCode": 5');
+    expect(appConfig).toContain('"version": "1.0.6"');
+    expect(appConfig).toContain('"versionCode": 6');
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {

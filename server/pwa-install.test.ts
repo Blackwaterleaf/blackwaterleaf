@@ -26,7 +26,7 @@ describe("installable web app", () => {
   });
 
   it("routes Android browsers to the verified native update instead of presenting a PWA as an APK", () => {
-    for (const token of ["isAndroidBrowser", "ANDROID_UPDATE_URL", "blackwaterleaf-1.0.5_9b797c0a.apk", "ANDROID-UPDATE 1.0.5", "Signiertes Android-Update 1.0.5"]) {
+    for (const token of ["isAndroidBrowser", "ANDROID_UPDATE_URL", "blackwaterleaf-1.0.6_7053af49.apk", "ANDROID-UPDATE 1.0.6", "Signiertes Android-Update 1.0.6"]) {
       expect(installControl).toContain(token);
     }
   });

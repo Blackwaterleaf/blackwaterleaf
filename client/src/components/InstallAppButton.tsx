@@ -19,7 +19,7 @@ function isAndroidBrowser() {
   return /Android/i.test(window.navigator.userAgent);
 }
 
-const ANDROID_UPDATE_URL = "/manus-storage/blackwaterleaf-1.0.5_9b797c0a.apk";
+const ANDROID_UPDATE_URL = "/manus-storage/blackwaterleaf-1.0.6_7053af49.apk";
 
 export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -53,8 +53,8 @@ export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
     if (android) {
       window.location.assign(ANDROID_UPDATE_URL);
       setStatus(locale === "de"
-        ? "Signiertes Android-Update 1.0.5 wird heruntergeladen. Nach dem Download die Datei öffnen, um BlackWaterLeaf zu aktualisieren."
-        : "The signed Android 1.0.5 update is downloading. Open the file after download to update BlackWaterLeaf.");
+        ? "Signiertes Android-Update 1.0.6 wird heruntergeladen. Nach dem Download die Datei öffnen, um BlackWaterLeaf zu aktualisieren."
+        : "The signed Android 1.0.6 update is downloading. Open the file after download to update BlackWaterLeaf.");
       return;
     }
     if (deferredPrompt) {
@@ -79,7 +79,7 @@ export function InstallAppButton({ locale }: { locale: "de" | "en" }) {
     <button type="button" className="install-app-button" onClick={() => void install()}>
       {android ? <Smartphone size={15} /> : isAppleMobileBrowser() && !deferredPrompt ? <Share2 size={15} /> : <Download size={15} />}
       {android
-        ? (locale === "de" ? "ANDROID-UPDATE 1.0.5" : "ANDROID UPDATE 1.0.5")
+        ? (locale === "de" ? "ANDROID-UPDATE 1.0.6" : "ANDROID UPDATE 1.0.6")
         : (locale === "de" ? "APP INSTALLIEREN" : "INSTALL APP")}
     </button>
     {status ? <span className="install-app-status" role="status">{status}</span> : null}
