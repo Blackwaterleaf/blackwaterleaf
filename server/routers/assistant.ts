@@ -40,7 +40,7 @@ const plantCorrectionInput = z.object({
 });
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
-type AssistantUser = { id: number; status: "active" | "suspended" | "banned" };
+type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned" };
 
 type RequestReservation = { db: Database; usageId: number };
 
@@ -70,7 +70,9 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
   if (readiness.state !== "available") throw new TRPCError({ code: "PRECONDITION_FAILED", message: `assistant_${readiness.reason}` });
   if (!(await hasAiProcessingConsent(user.id))) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "ai_processing_consent_required" });
   const db = await requireDatabase();
-  if (await hasAssistantCallsToday(db, user.id, MAX_DAILY_ASSISTANT_CALLS)) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "assistant_daily_limit_reached" });
+  if (user.role !== "admin" && await hasAssistantCallsToday(db, user.id, MAX_DAILY_ASSISTANT_CALLS)) {
+    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "assistant_daily_limit_reached" });
+  }
 
   try {
     const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model: "gpt-5-mini", promptChars, completionChars: 0 });

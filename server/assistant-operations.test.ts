@@ -30,4 +30,9 @@ describe("assistant operations", () => {
     expect(assistantSource).toContain('"assistant_response_truncated"');
     expect(assistantSource).toContain('"assistant_empty_response"');
   });
+
+  it("bypasses the daily assistant limit only for administrators", () => {
+    expect(assistantSource).toContain('user.role !== "admin" && await hasAssistantCallsToday');
+    expect(assistantSource).toContain('role: "user" | "moderator" | "admin"');
+  });
 });

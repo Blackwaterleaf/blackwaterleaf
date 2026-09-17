@@ -922,7 +922,7 @@ function Home({
           styles.weatherButton,
           pressed && styles.pressed,
         ]}
-        onPress={() => void requestWeather}
+        onPress={() => void requestWeather()}
       >
         <Ionicons name="location-outline" size={17} color={c.botany} />
         <Text style={styles.weatherButtonText}>
@@ -934,21 +934,24 @@ function Home({
       {weatherError ? (
         <Text style={styles.sensorError}>{weatherError}</Text>
       ) : null}
-      <ReferenceHero
-        tone={TONES.home}
-        eyebrow="DEIN RAUM FÜR LEBENDIGE WELTEN"
-        title="NATUR IST KUNST."
-        subtitle="Beobachte, verbinde und gestalte deine BlackWaterLeaf-Welt in deinem Tempo."
-        icon="leaf-outline"
-      />
+      <HomeHero tone={TONES.home} navigate={navigate} />
       {state === "error" ? (
         <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
       ) : null}
       <SectionLabel
         tone={TONES.home}
-        overline="DEINE AUSWAHL"
-        title="DEINE WELTEN"
+        overline="DEIN ÜBERBLICK"
+        title="DEINE BEREICHE"
       />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Alle Bereiche öffnen"
+        onPress={() => navigate("explore")}
+        style={({ pressed }) => [styles.homeAllAreas, pressed && styles.pressed]}
+      >
+        <Text style={[styles.homeAllAreasText, { color: TONES.home.accent }]}>ALLE BEREICHE</Text>
+        <Ionicons name="arrow-forward" size={15} color={TONES.home.accent} />
+      </Pressable>
       <ActionGrid
         actions={[
           {
@@ -987,6 +990,36 @@ function Home({
       />
       <Truth tone={TONES.home} />
     </Page>
+  );
+}
+
+function HomeHero({
+  tone,
+  navigate,
+}: {
+  tone: Tone;
+  navigate: (screen: Screen) => void;
+}) {
+  return (
+    <ImageBackground
+      source={{ uri: tone.image }}
+      style={[styles.hero, styles.homeHero, { borderColor: `${tone.accent}99` }]}
+      imageStyle={styles.heroImage}
+    >
+      <View style={styles.heroShade} />
+      <View style={styles.heroCopy}>
+        <View style={[styles.heroIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
+          <Ionicons name="leaf-outline" size={24} color={tone.accent} />
+        </View>
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN RAUM FÜR LEBENDIGE WELTEN</Text>
+        <Text style={styles.heroTitle}>NATUR IST KUNST.</Text>
+        <Text style={styles.heroText}>Beobachte, verbinde und gestalte deine BlackWaterLeaf-Welt in deinem Tempo.</Text>
+        <View style={styles.homeHeroActions}>
+          <PrimaryButton tone={tone} label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
+          <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
+        </View>
+      </View>
+    </ImageBackground>
   );
 }
 
@@ -3626,6 +3659,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     justifyContent: "flex-end",
   },
+  homeHero: { minHeight: 300 },
   heroImage: { borderRadius: 21 },
   heroShade: {
     ...StyleSheet.absoluteFill,
@@ -3652,6 +3686,18 @@ const styles = StyleSheet.create({
   heroText: { color: c.text, fontSize: 14, lineHeight: 20, maxWidth: 330 },
   sectionLabel: { marginTop: 7, gap: 5 },
   sectionLabelCompact: { marginTop: 0 },
+  homeAllAreas: {
+    alignSelf: "flex-end",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: -28,
+    marginBottom: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
+  },
+  homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
+  homeHeroActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
   headingTitle: {
     color: c.text,
     fontSize: 23,
