@@ -1008,33 +1008,40 @@ function LiveHomeWorlds({
     setSelected(current => current === title ? null : title);
   };
   const worlds: Action[] = [
-    { title: "Botanik", note: "Pflanzen & Wissen", icon: "leaf-outline", image: ASSETS.botany, onPress: () => chooseWorld("Botanik") },
-    { title: "Aquaristik", note: "Becken & Wasserwerte", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => chooseWorld("Aquaristik") },
-    { title: "Terraristik", note: "Regenwald im Kleinen", icon: "leaf-outline", image: ASSETS.terrarium, onPress: () => chooseWorld("Terraristik") },
-    { title: "KI-Assistent", note: aiAvailable ? "Sichere KI-Hilfe" : "Status transparent prüfen", icon: "hardware-chip-outline", image: ASSETS.ai, onPress: () => chooseWorld("KI-Assistent") },
+    { title: "Botanik", note: "Pflanzen & Wissen", icon: "leaf-outline", image: ASSETS.botany, area: "botany", onPress: () => chooseWorld("Botanik") },
+    { title: "Aquaristik", note: "Becken & Wasserwerte", icon: "fish-outline", image: ASSETS.aquarium, area: "aquarium", onPress: () => chooseWorld("Aquaristik") },
+    { title: "Terraristik", note: "Regenwald im Kleinen", icon: "leaf-outline", image: ASSETS.terrarium, area: "terrarium", onPress: () => chooseWorld("Terraristik") },
+    { title: "KI-Assistent", note: aiAvailable ? "Sichere KI-Hilfe" : "Status transparent prüfen", icon: "hardware-chip-outline", image: ASSETS.ai, area: "assistant", onPress: () => chooseWorld("KI-Assistent") },
   ];
   const choices: Record<string, Action[]> = {
     Botanik: [
-      { title: "Pflanzen öffnen", note: "Private Sammlung verwalten", icon: "leaf-outline", image: ASSETS.botany, onPress: () => navigate("botany") },
-      { title: "Pflanze bestimmen", note: "Einzelbild mit KI prüfen", icon: "scan-outline", image: ASSETS.botany, onPress: () => navigate("assistant") },
-      { title: "Pflegewissen", note: "Quellen und Wissen öffnen", icon: "book-outline", image: ASSETS.terrarium, onPress: () => navigate("knowledge") },
+      { title: "Pflanzen öffnen", note: "Private Sammlung verwalten", icon: "leaf-outline", image: ASSETS.botany, area: "botany", onPress: () => navigate("botany") },
+      { title: "Pflanze bestimmen", note: "Einzelbild mit KI prüfen", icon: "scan-outline", image: ASSETS.botany, area: "assistant", onPress: () => navigate("assistant") },
+      { title: "Pflegewissen", note: "Quellen und Wissen öffnen", icon: "book-outline", image: ASSETS.terrarium, area: "botany", onPress: () => navigate("knowledge") },
     ],
     Aquaristik: [
-      { title: "Aquarien öffnen", note: "Private Becken verwalten", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => navigate("aquarium") },
-      { title: "Wasserwerte", note: "Echte Werte und Live-Bereich", icon: "flask-outline", image: ASSETS.aquarium, onPress: () => navigate("live") },
-      { title: "KI zur Aquaristik", note: "Eigenes Becken analysieren", icon: "hardware-chip-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
+      { title: "Aquarien öffnen", note: "Private Becken verwalten", icon: "fish-outline", image: ASSETS.aquarium, area: "aquarium", onPress: () => navigate("aquarium") },
+      { title: "Wasserwerte", note: "Echte Werte und Live-Bereich", icon: "flask-outline", image: ASSETS.aquarium, area: "aquarium", onPress: () => navigate("live") },
+      { title: "KI zur Aquaristik", note: "Eigenes Becken analysieren", icon: "hardware-chip-outline", image: ASSETS.ai, area: "assistant", onPress: () => navigate("assistant") },
     ],
     Terraristik: [
-      { title: "Terrarien öffnen", note: "Private Anlagen verwalten", icon: "leaf-outline", image: ASSETS.terrarium, onPress: () => navigate("terrarium") },
-      { title: "Moment erfassen", note: "Private Aufnahme anlegen", icon: "camera-outline", image: ASSETS.terrarium, onPress: () => navigate("photo") },
-      { title: "Terraristik fragen", note: "KI-Unterstützung öffnen", icon: "chatbubbles-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
+      { title: "Terrarien öffnen", note: "Private Anlagen verwalten", icon: "leaf-outline", image: ASSETS.terrarium, area: "terrarium", onPress: () => navigate("terrarium") },
+      { title: "Moment erfassen", note: "Private Aufnahme anlegen", icon: "camera-outline", image: ASSETS.terrarium, area: "terrarium", onPress: () => navigate("photo") },
+      { title: "Terraristik fragen", note: "KI-Unterstützung öffnen", icon: "chatbubbles-outline", image: ASSETS.ai, area: "assistant", onPress: () => navigate("assistant") },
     ],
     "KI-Assistent": [
-      { title: "Frage stellen", note: "Gespräch beginnen", icon: "send-outline", image: ASSETS.ai, onPress: () => navigate("assistant") },
-      { title: "Pflanze bestimmen", note: "Foto sicher prüfen", icon: "scan-outline", image: ASSETS.botany, onPress: () => navigate("assistant") },
-      { title: "Aquarium verstehen", note: "Eigene Werte analysieren", icon: "fish-outline", image: ASSETS.aquarium, onPress: () => navigate("assistant") },
+      { title: "Frage stellen", note: "Gespräch beginnen", icon: "send-outline", image: ASSETS.ai, area: "assistant", onPress: () => navigate("assistant") },
+      { title: "Pflanze bestimmen", note: "Foto sicher prüfen", icon: "scan-outline", image: ASSETS.botany, area: "assistant", onPress: () => navigate("assistant") },
+      { title: "Aquarium verstehen", note: "Eigene Werte analysieren", icon: "fish-outline", image: ASSETS.aquarium, area: "assistant", onPress: () => navigate("assistant") },
     ],
   };
+  const selectedTone = selected === "Aquaristik"
+    ? TONES.aquarium
+    : selected === "Terraristik"
+      ? TONES.terrarium
+      : selected === "KI-Assistent"
+        ? TONES.assistant
+        : TONES.botany;
   return (
     <View style={styles.liveWorlds}>
       <View style={styles.grid}>
@@ -1043,13 +1050,13 @@ function LiveHomeWorlds({
         ))}
       </View>
       {selected ? (
-        <View style={[styles.inlineChoice, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: selectedTone.panel }]}>
           <View style={styles.inlineChoiceHeader}>
-            <Text style={[styles.chip, { color: tone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
-            <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={tone.accent} /></Pressable>
+            <Text style={[styles.chip, { color: selectedTone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
+            <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
           </View>
           <View style={[styles.grid, styles.gridCompact]}>
-            {(choices[selected] ?? []).map(choice => <ReferenceCard key={choice.title} tone={tone} action={choice} compact />)}
+            {(choices[selected] ?? []).map(choice => <ReferenceCard key={choice.title} tone={selectedTone} action={choice} compact />)}
           </View>
         </View>
       ) : null}
@@ -2967,7 +2974,7 @@ function ReferenceCard({
       style={({ pressed }) => [
         styles.referenceCard,
         compact && styles.referenceCardCompact,
-        { borderColor: `${cardTone.accent}77` },
+        { borderColor: `${cardTone.accent}77`, backgroundColor: cardTone.panel },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
       ]}
@@ -3792,7 +3799,7 @@ const styles = StyleSheet.create({
   referenceImageInner: { borderRadius: 17 },
   cardShade: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 10, 7, .58)",
+    backgroundColor: "rgba(0, 0, 0, .48)",
   },
   referenceContent: {
     minHeight: 174,
