@@ -5,7 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
 import { Activity, BadgeCheck, EyeOff, ImagePlus, LayoutDashboard, Megaphone, Plus, Shield, ShieldAlert, UsersRound } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
 
@@ -17,8 +17,19 @@ const menuItems: DashboardMenuItem[] = [
   { icon: Activity, label: "Analytics", path: "/admin/analytics" },
 ];
 
-function roleLabel(role: "user" | "moderator" | "admin") {
-  return role === "admin" ? "ADMIN" : role === "moderator" ? "MODERATOR" : "NUTZER";
+function roleLabel(role: "user" | "moderator" | "admin" | "merchant") {
+  return role === "admin" ? "ADMIN" : role === "moderator" ? "MODERATOR" : role === "merchant" ? "HÄNDLER" : "NUTZER";
+}
+
+type SelectableRole = "admin" | "moderator" | "merchant";
+
+function RolePicker({ account, currentUserId, pending, onSave, disabled }: { account: { id: number; roles: SelectableRole[]; role: "user" | "moderator" | "admin" }; currentUserId?: number; pending: boolean; onSave: (roles: SelectableRole[]) => void; disabled: boolean }) {
+  const [roles, setRoles] = useState<SelectableRole[]>(account.roles);
+  useEffect(() => setRoles(account.roles), [account.roles]);
+  return <div className="role-picker" aria-label={`Rollen für Konto ${account.id}`}>
+    <div className="role-picker__options">{(["admin", "moderator", "merchant"] as const).map(role => <label key={role}><input type="checkbox" checked={roles.includes(role)} disabled={disabled || pending || account.id === currentUserId} onChange={event => setRoles(current => event.target.checked ? [...current, role] : current.filter(item => item !== role))} />{roleLabel(role)}</label>)}</div>
+    <button type="button" className="secondary-action" disabled={disabled || pending || account.id === currentUserId} onClick={() => { if (window.confirm("Die ausgewählten Kontorollen wirklich speichern?")) onSave(roles); }}>ROLLEN SPEICHERN</button>
+  </div>;
 }
 
 export default function AdminDashboard() {
@@ -87,10 +98,11 @@ function AccountsPanel() {
   const accounts = trpc.admin.accounts.useQuery(undefined, { enabled: auth.user?.role === "admin" });
   const setStatus = trpc.admin.setAccountStatus.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   const setRole = trpc.admin.setAccountRole.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
+  const setRoles = trpc.admin.setAccountRoles.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   if (auth.user?.role !== "admin") return <StatePanel code="ACCOUNTS/ADMIN_ONLY" state="locked" title="ADMINROLLE ERFORDERLICH" body="Moderatoren erhalten keinen Zugriff auf Rollen, E-Mail-Adressen oder Kontostatus anderer Personen." />;
   if (accounts.isLoading) return <StatePanel code="ACCOUNTS/LOAD" state="loading" title="KONTEN WERDEN GELADEN" body="Die serverseitig freigegebene Kontoliste wird geladen." />;
   if (accounts.isError || !accounts.data) return <StatePanel code="ACCOUNTS/ERROR" state="error" title="KONTEN NICHT VERFÜGBAR" body="Die geschützte Kontenabfrage ist fehlgeschlagen." />;
-  return <section className="admin-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><select aria-label={`Rolle für Konto ${account.id}`} value={account.role} disabled={account.id === auth.user?.id || setRole.isPending} onChange={event => { if (window.confirm("Die Kontorolle wirklich ändern?")) void setRole.mutateAsync({ id: account.id, role: event.target.value as "user" | "moderator" | "admin" }); }}><option value="user">Nutzer</option><option value="moderator">Moderator</option><option value="admin">Admin</option></select><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
+  return <section className="admin-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><RolePicker account={account} currentUserId={auth.user?.id} pending={setRoles.isPending} disabled={setRoles.isPending} onSave={roles => void setRoles.mutateAsync({ id: account.id, roles })} /><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
 }
 
 function PartnersPanel() {

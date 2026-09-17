@@ -46,6 +46,19 @@ export const users = mysqlTable(
   table => [uniqueIndex("users_username_unique").on(table.username), index("users_status_idx").on(table.status)],
 );
 
+/** Additional capabilities; the legacy users.role remains the primary backward-compatible role. */
+export const userRoles = mysqlTable(
+  "user_roles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    role: mysqlEnum("role", ["admin", "moderator", "merchant"]).notNull(),
+    assignedBy: int("assignedBy").references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("user_roles_user_role_unique").on(table.userId, table.role), index("user_roles_user_idx").on(table.userId)],
+);
+
 export const userConsents = mysqlTable(
   "user_consents",
   {

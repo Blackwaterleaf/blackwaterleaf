@@ -1,12 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, communityPosts, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, communityPosts, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
 
 const accountRole = z.enum(["user", "moderator", "admin"]);
+const selectableRole = z.enum(["admin", "moderator", "merchant"]);
 const accountStatus = z.enum(["active", "suspended", "banned"]);
 
 async function requireDatabase() {
@@ -124,7 +125,7 @@ export const adminRouter = router({
 
   accounts: adminProcedure.query(async () => {
     const db = await requireDatabase();
-    return db
+    const accounts = await db
       .select({
         id: users.id,
         name: users.name,
@@ -137,6 +138,20 @@ export const adminRouter = router({
       .from(users)
       .orderBy(desc(users.lastSignedIn))
       .limit(100);
+    const assignments = await db.select({ userId: userRoles.userId, role: userRoles.role }).from(userRoles);
+    const rolesByUser = new Map<number, Array<"admin" | "moderator" | "merchant">>();
+    for (const assignment of assignments) {
+      const roles = rolesByUser.get(assignment.userId) ?? [];
+      roles.push(assignment.role);
+      rolesByUser.set(assignment.userId, roles);
+    }
+    return accounts.map(account => ({
+      ...account,
+      roles: Array.from(new Set([
+        ...(rolesByUser.get(account.id) ?? []),
+        ...(account.role === "admin" || account.role === "moderator" ? [account.role] : []),
+      ])),
+    }));
   }),
 
   setAccountStatus: adminProcedure
@@ -189,6 +204,22 @@ export const adminRouter = router({
         payload: { after: input.role, before: target.role, targetStatus: target.status },
       });
       return { id: input.id, role: input.role, changed: true } as const;
+    }),
+
+  setAccountRoles: adminProcedure
+    .input(z.object({ id: z.number().int().positive(), roles: z.array(selectableRole).max(3) }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.id === ctx.user.id) throw new TRPCError({ code: "BAD_REQUEST", message: "cannot_change_current_admin_roles" });
+      const db = await requireDatabase();
+      const [target] = await db.select({ id: users.id, role: users.role, status: users.status }).from(users).where(eq(users.id, input.id)).limit(1);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "account_not_found" });
+      const roles = Array.from(new Set(input.roles));
+      const primaryRole = roles.includes("admin") ? "admin" : roles.includes("moderator") ? "moderator" : "user";
+      await db.delete(userRoles).where(eq(userRoles.userId, input.id));
+      if (roles.length) await db.insert(userRoles).values(roles.map(role => ({ userId: input.id, role, assignedBy: ctx.user.id })));
+      if (target.role !== primaryRole) await db.update(users).set({ role: primaryRole }).where(eq(users.id, input.id));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "account_roles_changed", targetType: "user", targetId: input.id, payload: { before: target.role, after: primaryRole, roles } });
+      return { id: input.id, roles, primaryRole, changed: true } as const;
     }),
 
   auditTrail: staffProcedure.query(async () => {

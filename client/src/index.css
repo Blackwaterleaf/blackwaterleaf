@@ -963,3 +963,14 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .assistant-analysis-loading > div { display:grid; gap:.2rem; }
 .assistant-analysis-loading strong { color:#c36bff; font-size:.72rem; letter-spacing:.08em; }
 .assistant-analysis-loading span { color:#cbd8ce; font-size:.78rem; }
+.reference-action.is-active { outline:2px solid color-mix(in srgb, var(--reference-accent,#bf8fff) 70%, transparent); outline-offset:3px; }
+.reference-inline-panel { margin-top:12px; padding:10px; border:1px solid color-mix(in srgb, var(--reference-accent,#bf8fff) 40%, transparent); border-radius:16px; background:color-mix(in srgb, var(--reference-panel,#130521) 88%, transparent); }
+.reference-inline-choice { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.reference-inline-choice button { display:flex; min-height:42px; align-items:center; justify-content:center; gap:6px; padding:8px 10px; color:#dac8e8; border:1px solid color-mix(in srgb, var(--reference-accent,#bf8fff) 32%, transparent); border-radius:10px; background:rgba(23,7,37,.72); font:700 .62rem/1.1 "JetBrains Mono",monospace; text-align:center; }
+.reference-inline-choice button.active { color:#fff; border-color:var(--reference-accent,#bf8fff); background:color-mix(in srgb, var(--reference-accent,#bf8fff) 24%, transparent); }
+@media (max-width:520px) { .reference-inline-choice { grid-template-columns:1fr; } }
+/* Account roles: explicit multi-select for Admin, Moderator and Händler. */
+.role-picker { display:grid; gap:.55rem; min-width:15rem; }
+.role-picker__options { display:flex; flex-wrap:wrap; gap:.45rem .7rem; }
+.role-picker__options label { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-muted,#b8c7bb); font-size:.72rem; letter-spacing:.04em; }
+.role-picker__options input { accent-color:#c7ff4a; }

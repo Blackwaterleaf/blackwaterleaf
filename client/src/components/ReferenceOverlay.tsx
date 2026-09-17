@@ -39,7 +39,7 @@ export function ReferenceHero({ tone, image, eyebrow, title, subtitle, icon: Ico
   );
 }
 
-export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }: { tone: ReferenceTone; actions: ReferenceAction[]; heading?: string }) {
+export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL", activeTitle, inlinePanel }: { tone: ReferenceTone; actions: ReferenceAction[]; heading?: string; activeTitle?: string; inlinePanel?: ReactNode }) {
   const [futureMessage, setFutureMessage] = useState<string | null>(null);
   return (
     <section className={`reference-actions reference-tone--${tone}`} aria-label={heading}>
@@ -56,12 +56,13 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }
             {action.unavailable ? <span className="reference-action__status">KÜNFTIG</span> : null}
           </>;
           if (action.href && !action.unavailable) return <Link key={action.title} href={action.href} className="reference-action">{card}</Link>;
-          return <button key={action.title} type="button" className="reference-action" onClick={() => {
+          return <button key={action.title} type="button" className={`reference-action ${activeTitle === action.title ? "is-active" : ""}`} aria-expanded={activeTitle === action.title} onClick={() => {
             if (action.unavailable) setFutureMessage(`${action.title} ist vorbereitet. Wir arbeiten daran – seid gespannt, was kommt.`);
             action.onActivate?.();
           }}>{card}</button>;
         })}
       </div>
+      {activeTitle && inlinePanel ? <div className="reference-inline-panel" role="region" aria-label={`${activeTitle} Auswahl`}>{inlinePanel}</div> : null}
       {futureMessage ? <div className="reference-future-banner" role="status"><Leaf size={18} /><span><strong>SEID GESPANNT</strong><small>{futureMessage}</small></span><button type="button" aria-label="Hinweis schließen" onClick={() => setFutureMessage(null)}><X size={16} /></button></div> : null}
     </section>
   );
