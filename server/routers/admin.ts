@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, communityPosts, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
@@ -76,6 +76,41 @@ export const adminRouter = router({
       return { id: input.id, status: input.status } as const;
     }),
 
+  plantCorrections: staffProcedure.query(async () => {
+    const db = await requireDatabase();
+    return db
+      .select({
+        id: aiIdentificationCorrections.id,
+        userId: aiIdentificationCorrections.userId,
+        userName: users.name,
+        userEmail: users.email,
+        assistantUsageId: aiIdentificationCorrections.assistantUsageId,
+        originalAnswer: aiIdentificationCorrections.originalAnswer,
+        correctedName: aiIdentificationCorrections.correctedName,
+        correctionNote: aiIdentificationCorrections.correctionNote,
+        status: aiIdentificationCorrections.status,
+        reviewedAt: aiIdentificationCorrections.reviewedAt,
+        createdAt: aiIdentificationCorrections.createdAt,
+      })
+      .from(aiIdentificationCorrections)
+      .leftJoin(users, eq(aiIdentificationCorrections.userId, users.id))
+      .where(eq(aiIdentificationCorrections.status, "pending"))
+      .orderBy(desc(aiIdentificationCorrections.createdAt))
+      .limit(100);
+  }),
+
+  reviewPlantCorrection: staffProcedure
+    .input(z.object({ id: z.number().int().positive(), status: z.enum(["approved", "rejected"]), note: z.string().trim().max(1_000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [correction] = await db.select({ id: aiIdentificationCorrections.id, status: aiIdentificationCorrections.status, correctedName: aiIdentificationCorrections.correctedName }).from(aiIdentificationCorrections).where(eq(aiIdentificationCorrections.id, input.id)).limit(1);
+      if (!correction) throw new TRPCError({ code: "NOT_FOUND", message: "plant_correction_not_found" });
+      if (correction.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "plant_correction_already_reviewed" });
+      await db.update(aiIdentificationCorrections).set({ status: input.status, reviewedByUserId: ctx.user.id, reviewedAt: new Date() }).where(eq(aiIdentificationCorrections.id, input.id));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "ai_identification_correction_reviewed", targetType: "ai_identification_correction", targetId: input.id, payload: { after: input.status, correctedName: correction.correctedName, noteProvided: Boolean(input.note?.trim()) } });
+      return { id: input.id, status: input.status } as const;
+    }),
+
   accounts: adminProcedure.query(async () => {
     const db = await requireDatabase();
     return db
@@ -145,7 +180,7 @@ export const adminRouter = router({
       return { id: input.id, role: input.role, changed: true } as const;
     }),
 
-  auditTrail: adminProcedure.query(async () => {
+  auditTrail: staffProcedure.query(async () => {
     const entries = await getRecentAuditEntries(50);
     return entries.map(entry => ({
       id: entry.id,

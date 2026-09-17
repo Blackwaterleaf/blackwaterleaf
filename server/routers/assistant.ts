@@ -1,8 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { assistantUsage, privateHabitats } from "../../drizzle/schema";
+import { aiIdentificationCorrections, assistantUsage, privateHabitats } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
+import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { awardXpIfReady, hasAssistantCallsToday, XP_REWARDS } from "../gamification";
@@ -30,6 +31,12 @@ const aquariumAnalyzeInput = z.object({
   clientRequestId: requestIdSchema,
   habitatId: z.number().int().positive(),
   question: z.string().trim().max(1_200).optional(),
+});
+const plantCorrectionInput = z.object({
+  assistantUsageId: z.number().int().positive().optional(),
+  originalAnswer: z.string().trim().min(1).max(20_000),
+  correctedName: z.string().trim().min(2).max(255),
+  correctionNote: z.string().trim().max(1_000).optional(),
 });
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
@@ -145,7 +152,31 @@ export const assistantRouter = router({
     try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
     const answer = formatPlantIdentification(result);
     const xpAwarded = await completeRequest(reservation, ctx.user.id, answer);
-    return { answer, model: "gemini-3.1-pro-preview", xpAwarded, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+  }),
+
+  submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    if (input.assistantUsageId) {
+      const [usage] = await db.select({ id: assistantUsage.id }).from(assistantUsage).where(and(eq(assistantUsage.id, input.assistantUsageId), eq(assistantUsage.userId, ctx.user.id))).limit(1);
+      if (!usage) throw new TRPCError({ code: "NOT_FOUND", message: "assistant_usage_not_found" });
+    }
+    const inserted = await db.insert(aiIdentificationCorrections).values({
+      userId: ctx.user.id,
+      assistantUsageId: input.assistantUsageId ?? null,
+      originalAnswer: input.originalAnswer,
+      correctedName: input.correctedName,
+      correctionNote: input.correctionNote?.trim() || null,
+    });
+    const correctionId = Number(inserted[0].insertId);
+    await appendAuditEntry({
+      actorId: ctx.user.id,
+      action: "ai_identification_correction_submitted",
+      targetType: "ai_identification_correction",
+      targetId: correctionId,
+      payload: { assistantUsageId: input.assistantUsageId ?? null, correctedName: input.correctedName.trim(), status: "pending" },
+    });
+    return { id: correctionId, status: "pending" as const };
   }),
 
   aquariumAnalyze: protectedProcedure.input(aquariumAnalyzeInput).mutation(async ({ ctx, input }) => {

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { adminRouter } from "./routers/admin";
 import type { TrpcContext } from "./_core/context";
+
+const root = resolve(import.meta.dirname, "..");
+const adminPage = readFileSync(resolve(root, "client/src/pages/AdminDashboard.tsx"), "utf8");
 
 function contextFor(role: "user" | "moderator" | "admin"): TrpcContext {
   return {
@@ -44,5 +49,13 @@ describe("admin dashboard authorization", () => {
     const caller = adminRouter.createCaller(contextFor("moderator"));
     await expect(caller.accounts()).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.setAccountRole({ id: 1, role: "user" })).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("exposes correction review only through staff procedures and the moderation panel", () => {
+    expect(adminRouter._def.procedures.plantCorrections).toBeDefined();
+    expect(adminRouter._def.procedures.reviewPlantCorrection).toBeDefined();
+    expect(adminPage).toContain("Pflanzenkorrekturen prüfen");
+    expect(adminPage).toContain("BESTÄTIGEN");
+    expect(adminPage).toContain("ABLEHNEN");
   });
 });

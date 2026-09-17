@@ -29,4 +29,13 @@ describe("assistant operation interface", () => {
     expect(assistantRouter).toContain("eq(privateHabitats.userId, ctx.user.id)");
     expect(assistantRouter).toContain("aquariumContext(habitat.name, habitat.details)");
   });
+
+  it("offers a correction path that preserves the AI answer and routes review to staff", () => {
+    expect(assistantPage).toContain("Liegt die KI hier falsch?");
+    expect(assistantPage).toContain("KORREKTUR ZUR PRÜFUNG SPEICHERN");
+    expect(assistantRouter).toContain("submitPlantCorrection");
+    expect(assistantRouter).toContain("originalAnswer");
+    expect(assistantRouter).toContain("ai_identification_correction_submitted");
+    expect(assistantRouter).toContain("status: \"pending\"");
+  });
 });

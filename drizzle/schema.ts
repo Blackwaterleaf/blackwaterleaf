@@ -325,6 +325,29 @@ export const assistantUsage = mysqlTable(
   ],
 );
 
+/** User-submitted correction of an AI plant result; the original result remains immutable for review. */
+export const aiIdentificationCorrections = mysqlTable(
+  "ai_identification_corrections",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id").notNull().references(() => users.id),
+    assistantUsageId: int("assistant_usage_id").references(() => assistantUsage.id),
+    originalAnswer: text("original_answer").notNull(),
+    correctedName: varchar("corrected_name", { length: 255 }).notNull(),
+    correctionNote: text("correction_note"),
+    status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+    reviewedByUserId: int("reviewed_by_user_id").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("ai_corrections_user_created_idx").on(table.userId, table.createdAt),
+    index("ai_corrections_status_created_idx").on(table.status, table.createdAt),
+    index("ai_corrections_usage_idx").on(table.assistantUsageId),
+  ],
+);
+
 /** Consent-gated, aggregate-friendly product analytics. No IP, user-agent, name, or content is stored. */
 export const analyticsEvents = mysqlTable(
   "analytics_events",

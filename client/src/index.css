@@ -944,3 +944,10 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .reference-action > img { filter: brightness(.82) saturate(1.02) contrast(1.02); }
 .reference-page .reference-action__shade { background: linear-gradient(180deg, rgba(0,0,0,.03), rgba(0,0,0,.82) 96%); }
 .reference-page .reference-action:hover > img { filter: brightness(.94) saturate(1.05) contrast(1.03); }
+
+/* User correction workflow: visible, compact and clearly separate from the immutable AI result. */
+.assistant-correction { margin-top: 14px; padding: 16px; border: 1px solid color-mix(in srgb, var(--reference-ai) 48%, transparent); border-radius: 16px; background: linear-gradient(145deg, color-mix(in srgb, var(--reference-ai-surface) 72%, transparent), var(--reference-ai-panel)); }
+.assistant-correction h3 { margin: 4px 0 6px; color: #f8efff; font: 400 1.35rem/1 "Bebas Neue", sans-serif; letter-spacing: .04em; }
+.assistant-correction p:not(.eyebrow):not(.form-status) { margin: 0 0 12px; color: color-mix(in srgb, white 76%, var(--reference-ai)); font-size: .76rem; line-height: 1.5; }
+.assistant-correction .field { margin-top: 10px; }
+.assistant-correction .secondary-action { width: 100%; justify-content: center; margin-top: 12px; }
