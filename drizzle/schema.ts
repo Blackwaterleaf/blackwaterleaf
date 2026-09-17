@@ -325,6 +325,26 @@ export const assistantUsage = mysqlTable(
   ],
 );
 
+/** Consent-gated, aggregate-friendly product analytics. No IP, user-agent, name, or content is stored. */
+export const analyticsEvents = mysqlTable(
+  "analytics_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    sessionKey: varchar("sessionKey", { length: 128 }).notNull(),
+    eventType: mysqlEnum("eventType", ["page_view", "page_view_end", "session_start", "login_success"]).notNull(),
+    path: varchar("path", { length: 255 }),
+    countryCode: varchar("countryCode", { length: 2 }),
+    durationSeconds: int("durationSeconds").default(0).notNull(),
+    occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  },
+  table => [
+    index("analytics_events_occurred_idx").on(table.occurredAt),
+    index("analytics_events_type_occurred_idx").on(table.eventType, table.occurredAt),
+    index("analytics_events_country_occurred_idx").on(table.countryCode, table.occurredAt),
+    index("analytics_events_session_occurred_idx").on(table.sessionKey, table.occurredAt),
+  ],
+);
+
 /** Private, structured setup records for a member's living worlds. */
 export const privateHabitats = mysqlTable(
   "private_habitats",
@@ -679,6 +699,7 @@ export type InsertObservationRecord = typeof observations.$inferInsert;
 export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
 export type XpEventRecord = typeof xpEvents.$inferSelect;
 export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
+export type AnalyticsEventRecord = typeof analyticsEvents.$inferSelect;
 export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
 export type SmartDeviceMeasurementRecord = typeof smartDeviceMeasurements.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;

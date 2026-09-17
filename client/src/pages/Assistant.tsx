@@ -5,7 +5,7 @@ import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero } from "@/compo
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
-import { readImageAsBase64 } from "@/lib/files";
+import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { Bot, BookOpen, Camera, Fish, Leaf, Loader2, LockKeyhole, ScanSearch, Send, ShieldCheck, Sprout, X } from "lucide-react";
@@ -65,14 +65,14 @@ export default function Assistant() {
   };
   const choosePlantImage = (file: File | undefined) => {
     if (!file) return;
-    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type) || file.size <= 0 || file.size > 8 * 1024 * 1024) { setError("Bitte wähle ein JPG-, PNG- oder WebP-Bild bis 8 MB aus."); return; }
+    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type) || file.size <= 0) { setError("Bitte wähle ein gültiges JPG-, PNG- oder WebP-Bild aus."); return; }
     setError(null); setPlantAnswer(null); setPlantFile(file);
     setPlantPreview(current => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(file); });
   };
   const identifyPlant = async () => {
     if (!available || !plantFile || plantIdentify.isPending) return;
     try { setError(null); const image = await readImageAsBase64(plantFile); plantIdentify.mutate({ clientRequestId: requestId(), imageBase64: image.base64, mimeType: image.mimeType as "image/jpeg" | "image/png" | "image/webp", note: plantNote.trim() || undefined }); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : "Das Bild konnte nicht gelesen werden."); }
+    catch (reason) { setError(imageErrorMessage(reason, locale)); }
   };
   const analyzeAquarium = () => {
     if (!available || !selectedAquariumId || aquariumAnalyze.isPending) return;

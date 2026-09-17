@@ -5,7 +5,7 @@ import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { SmartDeviceDialog } from "@/components/SmartDeviceDialog";
 import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
-import { readImageAsBase64 } from "@/lib/files";
+import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
@@ -114,7 +114,7 @@ export default function Profile() {
       await utils.profile.me.invalidate();
       setStatus(locale === "de" ? "Profilbild sicher gespeichert." : "Profile image saved securely.");
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "avatar_upload_failed");
+      setStatus(imageErrorMessage(error, locale));
     }
   };
 

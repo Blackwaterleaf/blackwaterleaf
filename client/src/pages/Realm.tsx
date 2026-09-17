@@ -4,7 +4,7 @@ import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type Reference
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
-import { readImageAsBase64 } from "@/lib/files";
+import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { BookOpen, Bot, Camera, Fish, Leaf, LibraryBig, Plus, Save, ShieldCheck, Sprout } from "lucide-react";
@@ -78,7 +78,7 @@ export default function Realm() {
       setSubject(""); setScientificName(""); setNote(""); setMetricKey(""); setMetricValue(""); setMetricUnit(""); setPublish(false); setImage(null);
       await utils.observations.mine.invalidate({ realm: realm.api });
       setStatus(locale === "de" ? "Beobachtung sicher gespeichert." : "Observation saved securely.");
-    } catch (error) { setStatus(error instanceof Error ? error.message : "observation_save_failed"); }
+    } catch (error) { setStatus(imageErrorMessage(error, locale)); }
   };
 
   return (

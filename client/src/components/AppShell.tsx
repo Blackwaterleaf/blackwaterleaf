@@ -5,6 +5,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } from "react";
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
+import { AnalyticsTracker } from "./AnalyticsTracker";
 
 const navigation = [
   { href: "/", label: "tabs.home" as const, icon: Home },
@@ -106,6 +107,7 @@ export function AppShell({ children }: PropsWithChildren) {
         </div>
       </header>
       <ConnectionStateBanner />
+      <AnalyticsTracker />
       <main className={`app-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>
       <nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`} aria-label="Hauptnavigation">
         {bottomNavigation.map(item => {

@@ -4,7 +4,7 @@ import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero } from "@/compo
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
-import { readImageAsBase64 } from "@/lib/files";
+import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { Camera, Eye, Heart, MessageCircle, Send, Share2, UsersRound } from "lucide-react";
@@ -45,7 +45,7 @@ export default function Community() {
       setContent(""); setRealm("none"); setImage(null); setAllowMedia(false); setPublishNow(false); setComposeOpen(false);
       await Promise.all([utils.community.feed.invalidate(), utils.community.myPosts.invalidate(), utils.profile.consents.invalidate()]);
       setStatus(publishNow ? locale === "de" ? "Beitrag öffentlich veröffentlicht." : "Post published publicly." : locale === "de" ? "Privater Entwurf gespeichert." : "Private draft saved.");
-    } catch (error) { setStatus(error instanceof Error ? error.message : "community_save_failed"); }
+    } catch (error) { setStatus(imageErrorMessage(error, locale)); }
   };
   const like = async (postId: string) => { if (!auth.isAuthenticated) { startLogin(); return; } await likePost.mutateAsync({ postId: Number(postId) }); await utils.community.feed.invalidate(); };
 

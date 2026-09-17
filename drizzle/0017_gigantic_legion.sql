@@ -1,0 +1,1 @@
+ALTER TABLE `analytics_events` MODIFY COLUMN `eventType` enum('page_view','page_view_end','session_start','login_success') NOT NULL;

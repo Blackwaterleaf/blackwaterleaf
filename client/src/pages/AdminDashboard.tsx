@@ -7,12 +7,14 @@ import { trpc } from "@/lib/trpc";
 import { Activity, BadgeCheck, EyeOff, ImagePlus, LayoutDashboard, Megaphone, Plus, Shield, ShieldAlert, UsersRound } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
+import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
 
 const menuItems: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Übersicht", path: "/admin" },
   { icon: ShieldAlert, label: "Moderation", path: "/admin/moderation" },
   { icon: UsersRound, label: "Konten", path: "/admin/accounts" },
   { icon: Megaphone, label: "Partner", path: "/admin/partners" },
+  { icon: Activity, label: "Analytics", path: "/admin/analytics" },
 ];
 
 function roleLabel(role: "user" | "moderator" | "admin") {
@@ -36,7 +38,7 @@ export default function AdminDashboard() {
           <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1><p>Nur echte, serverseitig freigegebene Inhalte und Konten werden angezeigt.</p></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <PartnersPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/partners")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/partners")} />}
       </div>
     </DashboardLayout>
   );
