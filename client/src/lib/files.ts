@@ -1,5 +1,6 @@
 const CLIENT_IMAGE_LIMIT_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 2400;
+const ANALYSIS_IMAGE_DIMENSION = 1800;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function fileToDataUrl(file: Blob): Promise<string> {
@@ -11,10 +12,10 @@ function fileToDataUrl(file: Blob): Promise<string> {
   });
 }
 
-async function resizeImage(file: File): Promise<{ blob: Blob; mimeType: string }> {
+async function resizeImage(file: File, maxDimension: number, quality: number): Promise<{ blob: Blob; mimeType: string }> {
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return { blob: file, mimeType: file.type };
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(bitmap.width * scale));
   canvas.height = Math.max(1, Math.round(bitmap.height * scale));
@@ -22,15 +23,18 @@ async function resizeImage(file: File): Promise<{ blob: Blob; mimeType: string }
   if (!context) return { blob: file, mimeType: file.type };
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
-  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", 0.86));
+  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
   if (!blob) return { blob: file, mimeType: file.type };
   return { blob, mimeType: "image/jpeg" };
 }
 
-export async function readImageAsBase64(file: File): Promise<{ base64: string; mimeType: string }> {
+export async function readImageAsBase64(file: File, options: { forAnalysis?: boolean } = {}): Promise<{ base64: string; mimeType: string }> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) throw new Error("unsupported_image_type");
   if (file.size <= 0) throw new Error("image_size_invalid");
-  const prepared = file.size > CLIENT_IMAGE_LIMIT_BYTES ? await resizeImage(file) : { blob: file, mimeType: file.type };
+  const forAnalysis = options.forAnalysis === true;
+  const prepared = forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES
+    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, forAnalysis ? 0.82 : 0.86)
+    : { blob: file, mimeType: file.type };
   if (prepared.blob.size > CLIENT_IMAGE_LIMIT_BYTES) throw new Error("image_too_large_after_resize");
   const dataUrl = await fileToDataUrl(prepared.blob);
   const base64 = dataUrl.split(",", 2)[1];

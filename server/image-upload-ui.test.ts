@@ -11,13 +11,14 @@ const realm = readFileSync(resolve(root, "client/src/pages/Realm.tsx"), "utf8");
 describe("mobile image upload contract", () => {
   it("resizes oversized phone photos before enforcing the server upload limit", () => {
     expect(files).toContain("MAX_IMAGE_DIMENSION = 2400");
-    expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", 0.86)');
+    expect(files).toContain("ANALYSIS_IMAGE_DIMENSION = 1800");
+    expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", quality)');
     expect(files).toContain("image_too_large_after_resize");
   });
 
   it("does not reject valid large phone photos before the resize helper runs", () => {
     expect(assistant).not.toContain("file.size > 8 * 1024 * 1024");
-    expect(assistant).toContain("plantFiles.map(readImageAsBase64)");
+    expect(assistant).toContain("plantFiles.map(file => readImageAsBase64(file, { forAnalysis: true }))");
     expect(assistant).toContain("additionalImages");
     expect(assistant).toContain("niemals nach einem 4er-Raster");
   });

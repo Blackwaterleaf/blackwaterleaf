@@ -291,6 +291,7 @@ export const mediaAssets = mysqlTable(
     index("media_assets_owner_idx").on(table.userId, table.createdAt),
     index("media_assets_post_user_visibility_idx").on(table.postId, table.userId, table.visibility),
     index("media_assets_observation_user_created_idx").on(table.observationId, table.userId, table.createdAt),
+    index("media_assets_habitat_user_created_idx").on(table.habitatId, table.userId, table.createdAt),
   ],
 );
 

@@ -99,7 +99,7 @@ export default function Assistant() {
   const resetPlantImages = () => { plantPreviews.forEach(URL.revokeObjectURL); setPlantFiles([]); setPlantPreviews([]); setPlantAnswer(null); setPlantOriginalAnswer(null); setPlantAssistantUsageId(null); setPlantNeedsMoreImages(false); setPlantRequestedImages(0); };
   const identifyPlant = async () => {
     if (!available || !plantFiles[0] || plantIdentify.isPending) return;
-    try { setError(null); const images = await Promise.all(plantFiles.map(readImageAsBase64)); const [first, ...additionalImages] = images; plantIdentify.mutate({ clientRequestId: requestId(), imageBase64: first.base64, mimeType: first.mimeType as "image/jpeg" | "image/png" | "image/webp", additionalImages: additionalImages.map(image => ({ imageBase64: image.base64, mimeType: image.mimeType as "image/jpeg" | "image/png" | "image/webp" })), note: plantNote.trim() || undefined }); }
+    try { setError(null); const images = await Promise.all(plantFiles.map(file => readImageAsBase64(file, { forAnalysis: true }))); const [first, ...additionalImages] = images; plantIdentify.mutate({ clientRequestId: requestId(), imageBase64: first.base64, mimeType: first.mimeType as "image/jpeg" | "image/png" | "image/webp", additionalImages: additionalImages.map(image => ({ imageBase64: image.base64, mimeType: image.mimeType as "image/jpeg" | "image/png" | "image/webp" })), note: plantNote.trim() || undefined }); }
     catch (reason) { setError(imageErrorMessage(reason, locale)); }
   };
   const analyzeAquarium = () => {

@@ -1,0 +1,1 @@
+CREATE INDEX `media_assets_habitat_user_created_idx` ON `media_assets` (`habitatId`,`userId`,`createdAt`);
