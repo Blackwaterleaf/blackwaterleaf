@@ -17,13 +17,16 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  LayoutAnimation,
   Linking,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
   Switch,
   Text,
   TextInput,
+  UIManager,
   View,
 } from "react-native";
 import {
@@ -93,6 +96,13 @@ const c = {
   aiSurface: "#301648",
   marketSurface: "#432f14",
 };
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type Screen =
   | "home"
@@ -1102,6 +1112,7 @@ function AssistantScreen({
   navigate: (screen: Screen) => void;
 }) {
   const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("chat");
+  const [selectionCollapsed, setSelectionCollapsed] = useState(false);
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
@@ -1124,6 +1135,24 @@ function AssistantScreen({
   );
   const aiReady = platform?.aiAssistant === "available";
   const aquariums = habitats.filter(item => item.kind === "aquarium");
+  const activeToolLabel =
+    tool === "plant"
+      ? "PFLANZE BESTIMMEN"
+      : tool === "aquarium"
+        ? "AQUARIUM VERSTEHEN"
+        : "FRAGE STELLEN";
+
+  const chooseTool = (nextTool: "chat" | "plant" | "aquarium") => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setTool(nextTool);
+    setSelectionCollapsed(true);
+  };
+
+  const showAllTools = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectionCollapsed(false);
+  };
 
   useEffect(() => {
     if (!selectedAquarium && aquariums[0]) setSelectedAquarium(aquariums[0].id);
@@ -1339,37 +1368,99 @@ function AssistantScreen({
   };
 
   return (
-    <Page>
-      <ReferenceHero
-        tone={tone}
-        eyebrow="BLACKWATERLEAF KI"
-        title="KI-ASSISTENT"
-        subtitle="Echte KI-Hilfe. Keine Scheinantwort. Unsicherheit bleibt sichtbar."
-        icon="hardware-chip-outline"
-      />
+    <Page
+      key={`assistant-${tool}-${selectionCollapsed ? "compact" : "expanded"}`}
+    >
+      {selectionCollapsed ? (
+        <View
+          style={[
+            styles.assistantCompactHeader,
+            { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+          ]}
+        >
+          <View style={styles.assistantCompactHeading}>
+            <View
+              style={[
+                styles.assistantCompactIcon,
+                {
+                  borderColor: `${tone.accent}88`,
+                  backgroundColor: `${tone.accent}16`,
+                },
+              ]}
+            >
+              <Ionicons
+                name={
+                  tool === "plant"
+                    ? "scan-outline"
+                    : tool === "aquarium"
+                      ? "fish-outline"
+                      : "send-outline"
+                }
+                size={20}
+                color={tone.accent}
+              />
+            </View>
+            <View style={styles.flex}>
+              <Text style={[styles.chip, { color: tone.accent }]}>
+                KI-WERKZEUG
+              </Text>
+              <Text style={styles.assistantCompactTitle}>
+                {activeToolLabel}
+              </Text>
+            </View>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Alle KI-Werkzeuge anzeigen"
+            onPress={showAllTools}
+            style={({ pressed }) => [
+              styles.assistantToolsButton,
+              { borderColor: `${tone.accent}66` },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Text
+              style={[styles.assistantToolsButtonText, { color: tone.accent }]}
+            >
+              ALLE WERKZEUGE
+            </Text>
+            <Ionicons name="grid-outline" size={15} color={tone.accent} />
+          </Pressable>
+        </View>
+      ) : (
+        <ReferenceHero
+          tone={tone}
+          eyebrow="BLACKWATERLEAF KI"
+          title="KI-ASSISTENT"
+          subtitle="Echte KI-Hilfe. Keine Scheinantwort. Unsicherheit bleibt sichtbar."
+          icon="hardware-chip-outline"
+        />
+      )}
       <ActionGrid
         tone={tone}
+        compact={selectionCollapsed}
+        activeTitle={activeToolLabel}
         actions={[
           {
             title: "Frage stellen",
             note: "Gespräch beginnen",
             icon: "send-outline",
             image: ASSETS.ai,
-            onPress: () => setTool("chat"),
+            onPress: () => chooseTool("chat"),
           },
           {
             title: "Pflanze bestimmen",
             note: "Foto sicher prüfen",
             icon: "scan-outline",
             image: ASSETS.botany,
-            onPress: () => setTool("plant"),
+            onPress: () => chooseTool("plant"),
           },
           {
             title: "Aquarium verstehen",
             note: "Eigenes Becken analysieren",
             icon: "fish-outline",
             image: ASSETS.aquarium,
-            onPress: () => setTool("aquarium"),
+            onPress: () => chooseTool("aquarium"),
           },
           {
             title: "Wissen & Quellen",
@@ -2743,38 +2834,73 @@ function SectionLabel({
   );
 }
 
-function ActionGrid({ tone, actions }: { tone: Tone; actions: Action[] }) {
+function ActionGrid({
+  tone,
+  actions,
+  compact = false,
+  activeTitle,
+}: {
+  tone: Tone;
+  actions: Action[];
+  compact?: boolean;
+  activeTitle?: string;
+}) {
   return (
-    <View style={styles.grid}>
+    <View style={[styles.grid, compact && styles.gridCompact]}>
       {actions.map(action => (
-        <ReferenceCard key={action.title} tone={tone} action={action} />
+        <ReferenceCard
+          key={action.title}
+          tone={tone}
+          action={action}
+          compact={compact}
+          active={activeTitle === action.title.toUpperCase()}
+        />
       ))}
     </View>
   );
 }
 
-function ReferenceCard({ tone, action }: { tone: Tone; action: Action }) {
+function ReferenceCard({
+  tone,
+  action,
+  compact = false,
+  active = false,
+}: {
+  tone: Tone;
+  action: Action;
+  compact?: boolean;
+  active?: boolean;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${action.title}: ${action.note}`}
+      accessibilityState={{ selected: active }}
       style={({ pressed }) => [
         styles.referenceCard,
+        compact && styles.referenceCardCompact,
         { borderColor: `${tone.accent}77` },
+        active && { borderColor: tone.accent },
         pressed && styles.pressed,
       ]}
       onPress={action.onPress}
     >
       <ImageBackground
         source={{ uri: action.image }}
-        style={styles.referenceImage}
+        style={[styles.referenceImage, compact && styles.referenceImageCompact]}
         imageStyle={styles.referenceImageInner}
       >
         <View style={styles.cardShade} />
-        <View style={styles.referenceContent}>
+        <View
+          style={[
+            styles.referenceContent,
+            compact && styles.referenceContentCompact,
+          ]}
+        >
           <View
             style={[
               styles.cardIcon,
+              compact && styles.cardIconCompact,
               {
                 borderColor: `${tone.accent}99`,
                 backgroundColor: `${tone.accent}16`,
@@ -2784,10 +2910,22 @@ function ReferenceCard({ tone, action }: { tone: Tone; action: Action }) {
             <Ionicons name={action.icon} size={20} color={tone.accent} />
           </View>
           <View style={styles.flex}>
-            <Text style={styles.referenceTitle} numberOfLines={2}>
+            <Text
+              style={[
+                styles.referenceTitle,
+                compact && styles.referenceTitleCompact,
+              ]}
+              numberOfLines={2}
+            >
               {action.title}
             </Text>
-            <Text style={styles.referenceNote} numberOfLines={2}>
+            <Text
+              style={[
+                styles.referenceNote,
+                compact && styles.referenceNoteCompact,
+              ]}
+              numberOfLines={2}
+            >
               {action.note}
             </Text>
             {action.unavailable ? (
@@ -3519,6 +3657,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.45,
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  gridCompact: { gap: 7 },
   referenceCard: {
     width: "48.5%",
     minHeight: 176,
@@ -3527,7 +3666,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: c.surface,
   },
+  referenceCardCompact: {
+    minHeight: 84,
+    borderRadius: 13,
+  },
   referenceImage: { flex: 1, minHeight: 174, justifyContent: "flex-end" },
+  referenceImageCompact: { minHeight: 82 },
   referenceImageInner: { borderRadius: 17 },
   cardShade: {
     ...StyleSheet.absoluteFill,
@@ -3539,6 +3683,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: 7,
   },
+  referenceContentCompact: {
+    minHeight: 82,
+    padding: 9,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 7,
+  },
   cardIcon: {
     width: 39,
     height: 39,
@@ -3548,6 +3700,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 3,
   },
+  cardIconCompact: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginBottom: 0,
+  },
   referenceTitle: {
     color: c.text,
     fontSize: 15,
@@ -3555,12 +3713,14 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     paddingRight: 8,
   },
+  referenceTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
   referenceNote: {
     color: "#D4E1D6",
     fontSize: 10,
     lineHeight: 14,
     paddingRight: 4,
   },
+  referenceNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
   unavailableLabel: {
     fontSize: 7,
     fontWeight: "900",
@@ -3685,6 +3845,49 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: { fontSize: 9, fontWeight: "900", letterSpacing: 0.4 },
   inlineButtons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  assistantCompactHeader: {
+    minHeight: 78,
+    padding: 11,
+    borderRadius: 15,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+  assistantCompactHeading: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+  assistantCompactIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  assistantCompactTitle: {
+    color: c.text,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: "900",
+  },
+  assistantToolsButton: {
+    minHeight: 38,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 3,
+  },
+  assistantToolsButtonText: {
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
   workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1 },
   toolTabs: { flexDirection: "row", gap: 7 },
   toolTab: {

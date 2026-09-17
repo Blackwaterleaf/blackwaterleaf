@@ -26,8 +26,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.9"');
-    expect(appConfig).toContain('"versionCode": 9');
+    expect(appConfig).toContain('"version": "1.0.10"');
+    expect(appConfig).toContain('"versionCode": 10');
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
@@ -113,5 +113,11 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("community_publishing");
     expect(app).toContain("maximal 3 Einzelbilder");
     expect(app).toContain("Admins und Moderatoren");
+    expect(app).toContain("selectionCollapsed");
+    expect(app).toContain("ALLE WERKZEUGE");
+    expect(app).toContain("gridCompact");
+    expect(app).toContain("referenceCardCompact");
+    expect(app).toContain('onPress: () => chooseTool("plant")');
+    expect(app).toContain("FOTO 1 AUSWÄHLEN");
   });
 });
