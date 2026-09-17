@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,6 +19,7 @@ function getSessionKey() {
 }
 
 export function AnalyticsTracker() {
+  const auth = useAuth();
   const [location] = useLocation();
   const record = trpc.analytics.record.useMutation();
   const startedAt = useRef(Date.now());
@@ -30,9 +32,10 @@ export function AnalyticsTracker() {
       return null;
     }
   });
+  const isOwner = auth.isAuthenticated && auth.user?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
 
   useEffect(() => {
-    if (consent !== "granted") return;
+    if (!isOwner || consent !== "granted") return;
     const key = getSessionKey();
     if (!key) return;
     const durationSeconds = Math.max(0, Math.round((Date.now() - startedAt.current) / 1000));
@@ -45,9 +48,9 @@ export function AnalyticsTracker() {
     void record.mutateAsync({ sessionKey: key, eventType: "page_view", path: location, durationSeconds: 0 }).catch(() => undefined);
     previousPath.current = location;
     startedAt.current = Date.now();
-  }, [consent, location]);
+  }, [consent, isOwner, location]);
 
-  if (consent !== null) return null;
+  if (!isOwner || consent !== null) return null;
   return (
     <aside className="analytics-consent" role="dialog" aria-label="Datenschutz für Reichweitenmessung">
       <strong>Reichweite datensparsam messen?</strong>
