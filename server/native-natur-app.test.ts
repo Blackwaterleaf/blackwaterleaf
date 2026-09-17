@@ -26,8 +26,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.8"');
-    expect(appConfig).toContain('"versionCode": 8');
+    expect(appConfig).toContain('"version": "1.0.9"');
+    expect(appConfig).toContain('"versionCode": 9');
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
@@ -78,6 +78,9 @@ describe("BlackWaterLeaf native application contract", () => {
   it("contains an Android APK profile and the complete native source tree", () => {
     expect(existsSync(resolve(root, "mobile-natur/eas.json"))).toBe(true);
     expect(readFileSync(resolve(root, "mobile-natur/eas.json"), "utf8")).toContain('"buildType": "apk"');
+    expect(appConfig).toContain('"recordAudioAndroid": false');
+    expect(appConfig).toContain('"blockedPermissions"');
+    expect(appConfig).toContain('"android.permission.RECORD_AUDIO"');
   });
 
   it("keeps the native marketplace accent and shared seasonal helper", () => {

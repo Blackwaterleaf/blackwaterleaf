@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlackWaterLeaf",
     "slug": "blackwater-agent",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
@@ -19,7 +19,10 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.blackwaterleaf",
-      "versionCode": 8,
+      "versionCode": 9,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
     },
     "plugins": [
       "expo-secure-store",
@@ -28,7 +31,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst."
+          "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst.",
+          "recordAudioAndroid": false
         }
       ],
       [
