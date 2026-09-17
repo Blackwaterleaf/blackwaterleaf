@@ -1038,3 +1038,15 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 /* One selector per area: AI action cards remain the only tool switcher. */
 .assistant-workflow__tabs { display: none; }
 .reference-after-actions { scroll-margin-top: 92px; }
+
+/* Controlled contrast: stronger recognition, restrained glow. */
+.reference-action__icon, .reference-action__chevron { filter: brightness(1.18) saturate(1.08); }
+.reference-action__copy strong, .reference-hero h1, .section-heading h2 { text-shadow: 0 2px 8px rgba(0,0,0,.52); }
+.primary-action, .secondary-action { text-shadow: 0 1px 5px rgba(0,0,0,.24); }
+.partner-home-section { max-height: 470px; overflow: hidden; }
+.partner-home-grid { max-height: 330px; overflow: hidden; }
+.partner-product-teasers { max-height: 164px; overflow: hidden; }
+
+.reference-action-hint, .reference-list-empty { display: flex; align-items: center; gap: 9px; margin: 0; padding: 10px 12px; color: #d9ead7; border: 1px solid color-mix(in srgb, var(--reference-accent, var(--reference-botany)) 35%, transparent); border-radius: 12px; background: rgba(8,31,17,.72); font-size: .63rem; line-height: 1.35; }
+.reference-action-hint strong { color: var(--reference-accent, var(--reference-botany)); font: 800 .5rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; white-space: nowrap; }
+.reference-list-empty { color: #b9cfba; }

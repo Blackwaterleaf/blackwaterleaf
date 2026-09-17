@@ -60,6 +60,7 @@ export default function Realm() {
   const [publish, setPublish] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
   const submitObservation = async (event: FormEvent) => {
@@ -83,8 +84,8 @@ export default function Realm() {
   return (
     <div className={`reference-page reference-page--${realm.tone}`}>
       <ReferenceHero tone={realm.tone} image={realm.image} eyebrow={realm.eyebrow} title={realm.title} subtitle={realm.subtitle} icon={realm.icon} />
-      <ReferenceActionGrid tone={realm.tone} actions={actionsFor(realmKey)} />
-      {!auth.isAuthenticated ? <ReferenceEmptyState tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : (
+      <ReferenceActionGrid tone={realm.tone} actions={actionsFor(realmKey).map(action => (action.title === "Pflanze hinzufügen" || action.title === "Aquarium hinzufügen" || action.title === "Terrarium fotografieren") ? { ...action, href: undefined, targetId: "capture", onActivate: () => setCaptureOpen(true) } : action)} />
+      {!auth.isAuthenticated ? <ReferenceEmptyState tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : captureOpen ? (
         <form id="capture" className="observation-form glass-panel reference-after-actions" onSubmit={submitObservation}>
           <div className="form-heading"><div><span className="eyebrow">[PRIVATE_CAPTURE]</span><h2>{locale === "de" ? "BEOBACHTUNG ERFASSEN" : "CAPTURE OBSERVATION"}</h2></div><span className="system-chip">V1</span></div>
           <p>{locale === "de" ? "Erfasse nur, was du selbst beobachtest. Der Eintrag bleibt standardmäßig privat und ungeprüft." : "Record only what you observe. The entry stays private and unverified by default."}</p>
@@ -101,8 +102,8 @@ export default function Realm() {
           <button type="submit" className="primary-action" disabled={createObservation.isPending || updateObservation.isPending || uploadImage.isPending}><Save size={16} />{createObservation.isPending ? t("common.loading") : locale === "de" ? "BEOBACHTUNG SPEICHERN" : "SAVE OBSERVATION"}</button>
           {status ? <p className="form-status" role="status">{status}</p> : null}
         </form>
-      )}
-      {auth.isAuthenticated && (observations.isLoading ? <StatePanel code="OBS/LOAD" state="loading" title={t("common.loading")} body={t("realm.empty")} /> : observations.isError ? <StatePanel code="OBS/ERROR" state="error" title={t("common.error")} body={t("realm.empty")} /> : !observations.data?.length ? <ReferenceEmptyState tone={realm.tone} code={`OBS / ${realm.api.toUpperCase()} / EMPTY`} title={t("realm.empty")} body={t("home.truth.body")} /> : <div className="observation-grid">{observations.data.map(item => <article key={item.id} className="observation-card glass-panel">{item.media[0] ? <img className="observation-media" src={item.media[0].accessUrl} alt="" /> : null}<span className="evidence-chip">{item.evidenceState}</span><h2>{item.subject ?? realm.title}</h2>{item.scientificName ? <em>{item.scientificName}</em> : null}{item.note ? <p>{item.note}</p> : null}{item.metrics.map(metric => <div key={metric.key} className="metric-row"><span>{metric.key}</span><strong>{String(metric.value)}{metric.unit ? ` ${metric.unit}` : ""}</strong></div>)}<small>{item.visibility} · {new Date(item.updatedAt).toLocaleString(locale)}</small></article>)}</div>)}
+      ) : <p className="reference-action-hint"><strong>BEREIT / PRIVAT</strong><span>Wähle eine Karte, um eine Anlage oder Beobachtung direkt hier zu erfassen.</span></p>}
+      {auth.isAuthenticated && (observations.isLoading ? <StatePanel code="OBS/LOAD" state="loading" title={t("common.loading")} body={t("realm.empty")} /> : observations.isError ? <StatePanel code="OBS/ERROR" state="error" title={t("common.error")} body={t("realm.empty")} /> : !observations.data?.length ? <p className="reference-list-empty" data-state-code={`OBS / ${realm.api.toUpperCase()} / EMPTY`}>{t("realm.empty")}</p> : <div className="observation-grid">{observations.data.map(item => <article key={item.id} className="observation-card glass-panel">{item.media[0] ? <img className="observation-media" src={item.media[0].accessUrl} alt="" /> : null}<span className="evidence-chip">{item.evidenceState}</span><h2>{item.subject ?? realm.title}</h2>{item.scientificName ? <em>{item.scientificName}</em> : null}{item.note ? <p>{item.note}</p> : null}{item.metrics.map(metric => <div key={metric.key} className="metric-row"><span>{metric.key}</span><strong>{String(metric.value)}{metric.unit ? ` ${metric.unit}` : ""}</strong></div>)}<small>{item.visibility} · {new Date(item.updatedAt).toLocaleString(locale)}</small></article>)}</div>)}
     </div>
   );
 }

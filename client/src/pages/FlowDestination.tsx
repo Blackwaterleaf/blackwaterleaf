@@ -60,10 +60,9 @@ export default function FlowDestination() {
   return (
     <div className={`reference-page reference-page--${spec.tone}`}>
       <ReferenceHero {...spec} />
+      <ReferenceActionGrid tone={spec.tone} actions={spec.actions} />
       {flow === "live" ? <ReferenceEmptyState tone="aquarium" code="LIVE-VERBINDUNG" title="NOCH NICHT VERBUNDEN" body="Smartgeräte, Kamera und automatische Benachrichtigungen werden erst nach einer echten, widerrufbaren Verbindung aktiviert." /> : null}
       {flow === "foto" ? <PhotoCapture /> : null}
-      {flow === "beitrag" ? <section className="reference-composer-preview"><span><Leaf size={19} /></span><div><strong>DEIN MOMENT</strong><small>Der nächste Schritt öffnet den echten Feed-Editor.</small></div><Link href="/community?compose=1"><Send size={16} /> ZUM FEED-EDITOR</Link></section> : null}
-      <ReferenceActionGrid tone={spec.tone} actions={spec.actions} />
     </div>
   );
 }
