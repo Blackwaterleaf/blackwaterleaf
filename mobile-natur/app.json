@@ -27,6 +27,7 @@
       "expo-status-bar",
       ["expo-camera", { "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
       ["expo-image-picker", { "photosPermission": "BlackWaterLeaf benötigt Zugriff auf ausgewählte Fotos nur, wenn du einen privaten Naturmoment hochlädst.", "cameraPermission": "BlackWaterLeaf verwendet die Kamera nur, wenn du einen privaten Naturmoment aufnimmst." }],
+      ["expo-location", { "locationWhenInUsePermission": "BlackWaterLeaf verwendet deinen Standort nur für das aktuelle Außenwetter und speichert keine Koordinaten." }],
       "expo-sharing"
     ],
     "extra": {

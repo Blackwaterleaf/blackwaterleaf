@@ -11,6 +11,7 @@ export type HabitatPayload =
   | { kind: "terrarium"; name: string; details: { volumeLiters: number | null; lengthCm: number | null; widthCm: number | null; heightCm: number | null; occupants: string | null; plants: string | null; dayTemperatureC: number | null; nightTemperatureC: number | null; humidityPercent: number | null; substrate: string | null; equipment: string | null; notes: string | null } };
 
 export type PlatformAvailability = { api: "available" | "temporarily_unavailable"; database: "available" | "not_connected" | "temporarily_unavailable"; authentication: "available"; mediaStorage: "available" | "not_connected"; community: "available" | "temporarily_unavailable"; knowledge: "available" | "temporarily_unavailable"; aiAssistant: "available" | "not_connected" | "temporarily_unavailable"; aiReason: string };
+export type OutdoorWeather = { temperatureC: number; humidityPercent: number; condition: string; effect: string; observedAt: string; source: "open_meteo" };
 export type MarketplaceProduct = { id: number; partnerName: string; disclosureLabel: string; title: string; description: string | null; destinationUrl: string; priceLabel: string | null; imageUrl: string | null; imageAltText: string | null; marketplaceCategory: string | null };
 export type CommunityPost = { id: string; author: { name: string | null; username: string | null }; content: string; realm: string | null; media: Array<{ id: string; accessUrl: string }>; likesCount: number; commentsCount: number; createdAt: string };
 export type KnowledgeArticle = { id: string; title: string; excerpt: string; realm: string | null; evidenceState: string; sources: Array<{ label: string; url: string }> };
@@ -34,6 +35,7 @@ export const readToken = () => SecureStore.getItemAsync(NATIVE_TOKEN_KEY);
 export const writeToken = (token: string) => SecureStore.setItemAsync(NATIVE_TOKEN_KEY, token, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
 export const clearToken = () => SecureStore.deleteItemAsync(NATIVE_TOKEN_KEY);
 export const platformAvailability = () => trpcGet<PlatformAvailability>("platform.availability", null);
+export const outdoorWeather = (latitude: number, longitude: number) => trpcGet<OutdoorWeather>("sensors.outdoor", { latitude, longitude });
 export const marketplace = () => trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const communityFeed = () => trpcGet<CommunityPost[]>("community.feed", { limit: 40 });
 export const knowledge = () => trpcGet<KnowledgeArticle[]>("knowledge.listPublished", { locale: "de", limit: 40 });

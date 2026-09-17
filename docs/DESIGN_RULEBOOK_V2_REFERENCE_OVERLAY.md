@@ -69,6 +69,8 @@ Die Basis ist fast schwarzes Tannengrün. Bildflächen werden mit dunklen, organ
 
 Die mobile Referenz ist die primäre Komposition. Die Web-App erweitert sie behutsam auf größere Breiten: Der Zielseiteninhalt bleibt als fokussierter, bildstarker Bereich lesbar. Die vier Funktionskarten bleiben im Standard **2 × 2** und werden nicht zu einer austauschbaren vierteiligen Desktopzeile. Die Bottom Navigation bleibt in der Referenzansicht sichtbar; eine zusätzliche Desktop-Textnavigation darf diese nicht als primäre Zielnavigation ersetzen.
 
+Web und native Expo-App verwenden dieselbe visuelle Sensorregel: Die kompakte vierteilige Sensorleiste erscheint ausschließlich auf Home, bleibt dort als 2 × 2-Wertfläche klein und wird auf Profil, Entdecken, Community, Marktplatz, Moment und Builder nicht wiederholt. Die native App verwendet dieselben Bereichsfarben (`#C7F35B`, `#28D8FF`, `#E1D661`, `#C36BFF`) und öffnet die Standortfreigabe erst über die sichtbare Außenwetter-Aktion.
+
 Die zugelieferte BlackWaterLeaf-Originalmarke mit Monogramm, Blattwerk, Fisch und Wortmarke ist die alleinige Marke für Webkopf, PWA-/Launcher-Icon, native Kopfmarke und den zentralen Markenknopf. Die Marke ersetzt **nicht** fachliche Bedienicons: Blatt, Fisch, Kamera, Sensor, Bot und vergleichbare Symbole behalten ihre eindeutige Funktionssemantik. Bild- oder Hinweisflächen dürfen Hero-Titel, Text oder Hauptaktionen nicht überdecken. Dekorative Hero-Hinweise wie „Privat starten“ sind daher nicht zulässig.
 
 ## 5. Sensor- und Datenwahrheitsvertrag
