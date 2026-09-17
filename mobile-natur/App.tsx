@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -1750,6 +1751,19 @@ function AssistantScreen({
                 disabled={busy || !photos.length}
                 onPress={() => void identifyPlant()}
               />
+              {busy ? (
+                <View
+                  accessibilityRole="progressbar"
+                  accessibilityLabel="Pflanzenbild wird von der KI analysiert"
+                  style={[styles.analysisLoading, { borderColor: `${tone.accent}66`, backgroundColor: `${tone.accent}12` }]}
+                >
+                  <ActivityIndicator color={tone.accent} size="small" />
+                  <View style={styles.analysisLoadingCopy}>
+                    <Text style={[styles.chip, { color: tone.accent }]}>KI / ANALYSE LÄUFT</Text>
+                    <Text style={styles.copy}>Bildmerkmale werden geprüft. Bitte die App geöffnet lassen.</Text>
+                  </View>
+                </View>
+              ) : null}
               {plantAnswer ? (
                 <>
                   <Result
@@ -3698,6 +3712,16 @@ const styles = StyleSheet.create({
   },
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   homeHeroActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  analysisLoading: {
+    minHeight: 66,
+    padding: 12,
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+  },
+  analysisLoadingCopy: { flex: 1, gap: 4 },
   headingTitle: {
     color: c.text,
     fontSize: 23,

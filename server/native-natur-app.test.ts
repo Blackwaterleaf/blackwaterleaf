@@ -26,8 +26,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.12"');
-    expect(appConfig).toContain('"versionCode": 12');
+    expect(appConfig).toContain('"version": "1.0.13"');
+    expect(appConfig).toContain('"versionCode": 13');
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
@@ -122,5 +122,7 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain('onPress={() => void requestWeather()}');
     expect(app).toContain('title="DEINE BEREICHE"');
     expect(app).toContain('label="WELT ENTDECKEN"');
+    expect(app).toContain('accessibilityLabel="Pflanzenbild wird von der KI analysiert"');
+    expect(app).toContain('KI / ANALYSE LÄUFT');
   });
 });
