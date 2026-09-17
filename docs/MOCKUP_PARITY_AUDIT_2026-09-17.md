@@ -65,3 +65,7 @@ The corresponding full-page 412 × 915 Terraristik preview confirms the same sha
 ## Complete regression pass after composer correction
 
 A fresh 412 × 915 pass covered Home, Explore, Aquaristik, Terraristik, KI, Marktplatz, Community and Profile. The reference hierarchy remains readable without any four-card replacement grid: area heroes and 2 × 2 choice cards stay intact, the shared bottom navigation remains visible, Home alone shows the sensor rail, and the corrected route surfaces retain Cyan, Gold, Violet, Amber and Botanical semantics. The signed-in owner screenshot includes the private analytics consent and profile data according to the existing consent/auth state; no new data was created by the visual pass.
+
+## Image fidelity follow-up
+
+The supplied motif files are not low resolution: the Botany and Aquarium world images are 3000 px wide, the Terrarium world image is 3000 px wide, and the tall Aquarium reference image is 1440 × 2560. The visible blue cast came from presentation CSS rather than the files. The Web image layer now preserves the original image colors, removes seasonal hue/saturation filters from hero/world images, uses only a neutral black readability shade, and keeps a restrained brightness/saturation adjustment on action cards. Fresh 412 × 915 captures of Botany, Aquaristik, Terraristik and Marktplatz show the original green, cyan, gold and amber imagery without a blue overlay; text remains readable and the 2 × 2 card hierarchy is unchanged.
