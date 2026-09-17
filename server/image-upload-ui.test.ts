@@ -1,0 +1,27 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const root = resolve(import.meta.dirname, "..");
+const files = readFileSync(resolve(root, "client/src/lib/files.ts"), "utf8");
+const assistant = readFileSync(resolve(root, "client/src/pages/Assistant.tsx"), "utf8");
+const community = readFileSync(resolve(root, "client/src/pages/Community.tsx"), "utf8");
+const realm = readFileSync(resolve(root, "client/src/pages/Realm.tsx"), "utf8");
+
+describe("mobile image upload contract", () => {
+  it("resizes oversized phone photos before enforcing the server upload limit", () => {
+    expect(files).toContain("MAX_IMAGE_DIMENSION = 2400");
+    expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", 0.86)');
+    expect(files).toContain("image_too_large_after_resize");
+  });
+
+  it("does not reject valid large phone photos before the resize helper runs", () => {
+    expect(assistant).not.toContain("file.size > 8 * 1024 * 1024");
+    expect(assistant).toContain("readImageAsBase64(plantFile)");
+  });
+
+  it("maps raw upload errors to readable localized messages in every upload flow", () => {
+    for (const source of [community, realm, assistant]) expect(source).toContain("imageErrorMessage");
+    expect(files).toContain("Das Bild konnte nicht verarbeitet werden.");
+  });
+});
