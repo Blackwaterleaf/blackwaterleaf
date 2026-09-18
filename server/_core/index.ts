@@ -1,79 +1,57 @@
 import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
-import net from "net";
-import rateLimit from "express-rate-limit";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
-import { registerBackupRoutes } from "./backupRoutes";
-import { registerAdminBackupRoutes } from "./adminBackupRoutes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-
-function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise(resolve => {
-    const server = net.createServer();
-    server.listen(port, () => {
-      server.close(() => resolve(true));
-    });
-    server.on("error", () => resolve(false));
-  });
-}
-
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
-  for (let port = startPort; port < startPort + 20; port++) {
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  throw new Error(`No available port found starting from ${startPort}`);
-}
+import {
+  aiRateLimiter,
+  apiRateLimiter,
+  authRateLimiter,
+  communityRateLimiter,
+  localAuthRateLimiter,
+  sameOriginMutationGuard,
+  securityHeaders,
+  uploadRateLimiter,
+  weatherRateLimiter,
+} from "../security";
 
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  
-  // SECURITY FIX: Reduce body limit and add rate limiting
-  app.use(express.json({ limit: "35mb" }));
-  app.use(express.urlencoded({ limit: "35mb", extended: true }));
-  
-  // Rate limiting for uploads (max 10 uploads per 15 minutes per IP)
-  const uploadLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: "Too many uploads, please try again later",
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  
-  // Apply rate limiting to upload endpoints
-  app.use("/api/trpc/plants.addPhoto", uploadLimiter);
-  app.use("/api/trpc/aquariums.addPhoto", uploadLimiter);
-  app.use("/api/trpc/posts.create", uploadLimiter);
-  app.use("/api/trpc/users.uploadAvatar", uploadLimiter);
-  
-  // Register backup routes (for individual users)
-  registerBackupRoutes(app);
-  
-  // Register admin backup routes (for entire database)
-  registerAdminBackupRoutes(app);
-  
+  app.set("trust proxy", 1);
+  app.disable("x-powered-by");
+  app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok" }));
+  app.use(securityHeaders);
+  // 12 MB request limit allows an 8 MB image plus base64 overhead while
+  // preventing the previous unrestricted 50 MB API payload surface.
+  app.use(express.json({ limit: "12mb" }));
+  app.use(express.urlencoded({ limit: "12mb", extended: true }));
   registerStorageProxy(app);
+  app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
-  
-  // General rate limiting (100 requests per 15 minutes per IP)
-  const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
-  app.use("/api/trpc", generalLimiter);
+  app.use([
+    "/api/trpc/auth.register",
+    "/api/trpc/auth.login",
+    "/api/trpc/auth.requestPasswordReset",
+    "/api/trpc/auth.resetPassword",
+    "/api/trpc/auth.verifyEmail",
+    "/api/trpc/auth.resendVerification",
+  ], localAuthRateLimiter);
+  app.use("/api/trpc/profile.uploadAvatar", uploadRateLimiter);
+  app.use("/api/trpc/observations.uploadImage", uploadRateLimiter);
+  app.use("/api/trpc/community.uploadDraftImage", uploadRateLimiter);
+  app.use("/api/trpc/community", communityRateLimiter);
+  app.use("/api/trpc/assistant", aiRateLimiter);
+  app.use("/api/trpc/sensors.outdoor", weatherRateLimiter);
   // tRPC API
   app.use(
     "/api/trpc",
+    apiRateLimiter,
+    sameOriginMutationGuard,
     createExpressMiddleware({
       router: appRouter,
       createContext,
@@ -86,14 +64,14 @@ async function startServer() {
     serveStatic(app);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
-
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+  // The managed runtime routes traffic only to the declared PORT. Falling back to
+  // another free port leaves the deploy healthy-looking but externally unreachable.
+  if (process.env.NODE_ENV === "production" && !process.env.PORT) {
+    throw new Error("Production runtime requires a managed PORT");
   }
+  const port = parseInt(process.env.PORT || "3000", 10);
 
-  server.listen(port, () => {
+  server.listen(port, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
 }

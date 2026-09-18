@@ -1,316 +1,93 @@
-import { Seo } from "@/components/Seo";
-import { useState } from "react";
-import { ArrowRight, ShieldCheck, Mail } from "lucide-react";
-import { motion } from "framer-motion";
-
-// Farb-Konstanten
-const C = {
-  bg: "#070A08",
-  card: "rgba(13,17,14,0.90)",
-  cardBorder: "1px solid rgba(45,107,63,0.30)",
-  green: "#2D9B6E",
-  greenLight: "#34D399",
-  greenBg: "rgba(45,155,110,0.15)",
-  gold: "#D4AF37",
-  goldBg: "rgba(212,175,55,0.12)",
-  textPrimary: "#FFFFFF",
-  textSecondary: "rgba(255,255,255,0.70)",
-  textMuted: "rgba(255,255,255,0.45)",
-};
-
-const CATEGORIES = [
-  { value: "aquaristik", label: "Aquaristik" },
-  { value: "pflanzenwelt", label: "Pflanzenwelt" },
-  { value: "zubehoer", label: "Zubehör" },
-] as const;
-
-const CATEGORY_DESCRIPTIONS: Record<string, string> = {
-  aquaristik: "Technik, Becken, Filter, Beleuchtung und Zubehör für dein Aquarium.",
-  pflanzenwelt: "Seltene Pflanzen, Stecklinge, Erde und Pflanzenzubehör.",
-  zubehoer: "Werkzeug, Deko, Substrate und Pflegeprodukte.",
-};
+import { LiveSensorStrip } from "@/components/LiveSensorStrip";
+import { ReferenceHero } from "@/components/ReferenceOverlay";
+import { StatePanel } from "@/components/StatePanel";
+import { readMarketplaceFavorites, toggleMarketplaceFavorite, writeMarketplaceFavorites } from "@/lib/marketplaceCart";
+import { filterMarketplaceProducts, marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceProduct } from "@/lib/marketplacePresentation";
+import { trpc } from "@/lib/trpc";
+import { REFERENCE_ASSETS } from "@/lib/worlds";
+import { ArrowRight, ExternalLink, Heart, Leaf, PackageOpen, Search, ShoppingBag, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "wouter";
 
 export default function Marketplace() {
-  const [activeCategory, setActiveCategory] = useState<string>("aquaristik");
-  const [showContactForm, setShowContactForm] = useState(false);
+  const catalogue = trpc.partners.marketplace.useQuery(undefined, { retry: false });
+  const [search, setSearch] = useState("");
+  const [partnerId, setPartnerId] = useState<number | "all">("all");
+  const [category, setCategory] = useState<string | "all">("all");
+  const [favorites, setFavorites] = useState<MarketplaceProduct[]>([]);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = "Marktplatz · BlackWaterLeaf";
+    setFavorites(readMarketplaceFavorites());
+  }, []);
+
+  const products = catalogue.data ?? [];
+  const partners = useMemo(() => Array.from(new Map(products.map(product => [product.partnerId, { id: product.partnerId, name: product.partnerName }])).values()), [products]);
+  const categories = useMemo(() => Array.from(new Set(products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value)))).sort((first, second) => marketplaceCategoryLabel(first).localeCompare(marketplaceCategoryLabel(second), "de")), [products]);
+  const filtered = useMemo(() => filterMarketplaceProducts(products, search, partnerId, category), [products, search, partnerId, category]);
+  const favoriteCount = favorites.length;
+
+  const toggleFavorite = (product: MarketplaceProduct) => {
+    const next = toggleMarketplaceFavorite(favorites, product);
+    setFavorites(next);
+    writeMarketplaceFavorites(next);
+  };
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <Seo
-        title="Marktplatz – Geprüfte Partner & Empfehlungen"
-        path="/marketplace"
-        description="BlackwaterLeaf Marktplatz: Geprüfte Partner aus Aquaristik und Botanik. Ehrliche Empfehlungen, transparent gekennzeichnet."
+    <div className="marketplace-page reference-page reference-page--aquarium">
+      <LiveSensorStrip compact />
+      <ReferenceHero
+        tone="aquarium"
+        icon={ShoppingBag}
+        eyebrow="BLACKWATERLEAF MARKTPLATZ"
+        title="GUTES FINDET SEINEN ORT."
+        subtitle="Entdecke sorgfältig freigegebene Angebote unserer Partner für Aquaristik, Botanik und Terraristik."
+        image={REFERENCE_ASSETS.aquarium}
+        badge="PARTNER-ANGEBOTE"
       />
 
-      {/* HERO-BEREICH */}
-      <div
-        className="relative overflow-hidden px-4 pt-5 pb-10"
-        style={{
-          background: "linear-gradient(160deg, rgba(13,25,18,1) 0%, #070A08 100%)",
-          minHeight: 280,
-        }}
-      >
-        {/* Radial-Glow links */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          aria-hidden="true"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 90% at 90% 30%, rgba(45,155,110,0.22) 0%, transparent 60%), radial-gradient(ellipse 50% 60% at 10% 80%, rgba(212,175,55,0.10) 0%, transparent 55%)",
-          }}
-        />
-        {/* Horizontale Trennlinie unten */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(45,155,110,0.35), transparent)" }}
-        />
+      <section className="marketplace-entry glass-panel" aria-label="Marktplatz Einstieg">
+        <div className="marketplace-entry__icon"><ShoppingBag size={20} /></div>
+        <div><span className="eyebrow">[KURATIERT & TRANSPARENT]</span><h2>Finde, was zu deiner Welt passt.</h2><p>Durchsuche ausschließlich aktuell freigegebene Partnerangebote oder sichere Artikel für später in deiner lokalen Merkliste.</p></div>
+        <a className="secondary-action" href="#partnerangebote"><Search size={16} />ANGEBOTE ANSEHEN</a>
+      </section>
 
-        <p
-          className="text-xs font-bold uppercase mb-4 relative flex items-center gap-2"
-          style={{ color: C.greenLight, letterSpacing: "0.18em" }}
-        >
-          <span
-            className="inline-block w-1.5 h-1.5 rounded-full"
-            style={{ background: C.greenLight, boxShadow: `0 0 6px ${C.greenLight}` }}
-          />
-          MARKTPLATZ
-        </p>
+      <section className="marketplace-trust glass-panel">
+        <Leaf size={20} />
+        <div><strong>Transparent vermittelt</strong><p>BlackWaterLeaf verkauft nicht selbst. Produkte, Versand, Rückgabe und Zahlung liegen beim jeweiligen Partner. Jeder externe Link ist als Angebot eines Partners gekennzeichnet.</p></div>
+      </section>
 
-        <h1
-          className="font-brand leading-none mb-5 relative"
-          style={{
-            fontSize: "clamp(2.6rem, 10vw, 3.8rem)",
-            color: C.textPrimary,
-            letterSpacing: "0.02em",
-            lineHeight: 1.0,
-          }}
-        >
-          GEPRÜFTE PARTNER.
-          <br />
-          <span style={{ color: C.gold }}>EHRLICHE</span>
-          <br />
-          EMPFEHLUNGEN.
-        </h1>
+      <section className="marketplace-toolbar" aria-label="Produkte filtern">
+        <label className="marketplace-search"><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Produkte oder Partner suchen" aria-label="Produkte oder Partner suchen" /></label>
+        <button className="marketplace-cart-trigger" type="button" onClick={() => setFavoritesOpen(true)} aria-label={`Merkliste öffnen, ${favoriteCount} Favoriten`}><Heart size={18} /><span>MERKLISTE</span>{favoriteCount ? <b>{favoriteCount}</b> : null}</button>
+      </section>
 
-        <p className="text-sm leading-relaxed relative" style={{ color: C.textSecondary, maxWidth: 380 }}>
-          BlackwaterLeaf verkauft nichts selbst. Wir verbinden dich mit geprüften Partnerunternehmen aus Aquaristik und
-          Botanik. Werbung kennzeichnen wir immer transparent.
-        </p>
-      </div>
+      <section id="partnerangebote" className="marketplace-catalogue" aria-label="Partnerangebote">
+        <div className="section-heading"><div><span className="eyebrow">[AUSGEWÄHLT & TRANSPARENT]</span><h2>Partner-Angebote</h2></div><span className="marketplace-count">{catalogue.isLoading ? "…" : `${filtered.length} PRODUKTE`}</span></div>
+        {partners.length > 1 ? <div className="marketplace-filters" role="list" aria-label="Partner auswählen"><button className={partnerId === "all" ? "active" : ""} type="button" onClick={() => setPartnerId("all")}>Alle Partner</button>{partners.map(partner => <button key={partner.id} className={partner.id === partnerId ? "active" : ""} type="button" onClick={() => setPartnerId(partner.id)}>{partner.name}</button>)}</div> : null}
+        {categories.length ? <div className="marketplace-filters marketplace-filters--categories" role="list" aria-label="Kategorie auswählen"><button className={category === "all" ? "active" : ""} type="button" onClick={() => setCategory("all")}>Alle Kategorien</button>{categories.map(item => <button key={item} className={item === category ? "active" : ""} type="button" onClick={() => setCategory(item)}>{marketplaceCategoryLabel(item)}</button>)}</div> : null}
 
-      {/* TRANSPARENZ-HINWEIS */}
-      <div className="px-4 pb-5">
-        <div
-          className="flex items-start gap-3 p-4 rounded-2xl"
-          style={{
-            background: "rgba(0,0,0,0.4)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
-          <div
-            className="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold mt-0.5"
-            style={{ background: C.goldBg, color: C.gold, border: `1px solid rgba(212,175,55,0.25)` }}
-          >
-            Transparenz
-          </div>
-          <p className="text-sm leading-relaxed" style={{ color: C.textSecondary }}>
-            Alle bezahlten Platzierungen werden mit „Anzeige" oder „Partner" gekennzeichnet. Fachliche Beratung ersetzt
-            der Marktplatz nicht.
-          </p>
-        </div>
-      </div>
+        {catalogue.isLoading ? <MarketplaceLoading /> : null}
+        {catalogue.isError ? <StatePanel code="MARKET/ERROR" state="error" title="MARKTPLATZ DERZEIT NICHT VERFÜGBAR" body="Die freigegebenen Partnerangebote konnten nicht verifiziert werden. Bitte versuche es später erneut." /> : null}
+        {!catalogue.isLoading && !catalogue.isError && products.length === 0 ? <StatePanel code="MARKET/EMPTY" title="NOCH KEINE FREIGEGEBENEN ANGEBOTE" body="Sobald ein Partner freigegeben ist und Artikel aktiviert hat, erscheinen die Produkte hier. Für KiemenKumpel können die Artikel später aus deiner PDF vorbereitet und kontrolliert eingepflegt werden." /> : null}
+        {!catalogue.isLoading && !catalogue.isError && products.length > 0 && filtered.length === 0 ? <StatePanel code="MARKET/FILTER" title="KEIN PASSENDES ANGEBOT" body="Ändere die Suche oder wähle einen anderen Partner." /> : null}
+        {filtered.length ? <div className="marketplace-grid">{filtered.map(product => {
+          const isFavorite = favorites.some(favorite => favorite.id === product.id);
+          return <article key={product.id} className="marketplace-card"><button type="button" className={`marketplace-favorite-toggle ${isFavorite ? "is-favorite" : ""}`} onClick={() => toggleFavorite(product)} aria-label={`${product.title} ${isFavorite ? "aus der Merkliste entfernen" : "zur Merkliste hinzufügen"}`} aria-pressed={isFavorite}><Heart size={17} fill={isFavorite ? "currentColor" : "none"} /></button><Link href={`/marketplace/product/${product.id}`} className="marketplace-card__image">{product.imageUrl ? <img src={product.imageUrl} alt={product.imageAltText ?? product.title} /> : <span><PackageOpen size={31} />Kein Produktbild</span>}</Link><div className="marketplace-card__body"><p className="marketplace-card__disclosure">{marketplaceDisclosure(product)}</p><span className="marketplace-category">{marketplaceCategoryLabel(product.marketplaceCategory)}</span><Link href={`/marketplace/product/${product.id}`}><h3>{product.title}</h3></Link>{product.description ? <p className="marketplace-card__description">{product.description}</p> : <p className="marketplace-card__description">Mehr Details und Bedingungen direkt beim Partner.</p>}<div className="marketplace-card__offer"><div className="marketplace-card__price"><span>PREIS</span><strong>{product.priceLabel ?? "Preis beim Partner"}</strong></div><span className="marketplace-card__vendor">{product.sourceVendor ?? (product.partnerType === "company" ? "Unternehmenspartner" : "Persönliche Empfehlung")}</span></div><div className="marketplace-card__actions"><Link href={`/marketplace/product/${product.id}`} className="marketplace-detail-link">DETAILS <ArrowRight size={15} /></Link><span className={isFavorite ? "marketplace-saved-status" : "marketplace-save-hint"}>{isFavorite ? "GEMERKT" : "HERZ = MERKEN"}</span></div></div></article>;
+        })}</div> : null}
+      </section>
 
-      {/* KATEGORIE-FILTER */}
-      <div className="px-4 pb-5">
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.value;
-            return (
-              <button
-                key={cat.value}
-                onClick={() => setActiveCategory(cat.value)}
-                className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 active:scale-95"
-                style={{
-                  background: isActive ? "#2D9B6E" : "rgba(0,0,0,0.4)",
-                  color: isActive ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.65)",
-                  border: isActive ? "1px solid rgba(45,155,110,0.7)" : "1px solid rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(12px)",
-                  WebkitBackdropFilter: "blur(12px)",
-                  boxShadow: isActive ? "0 0 16px rgba(45,155,110,0.35)" : "none",
-                }}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* KATEGORIE-KARTE */}
-      <div className="px-4 pb-5">
-        <motion.div
-          className="rounded-2xl overflow-hidden"
-          style={{
-            background: "rgba(0,0,0,0.45)",
-            backdropFilter: "blur(20px) saturate(1.4)",
-            WebkitBackdropFilter: "blur(20px) saturate(1.4)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
-          }}
-          whileHover={{ y: -2, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
-          transition={{ duration: 0.2 }}
-        >
-          <div
-            className="relative overflow-hidden"
-            style={{
-              height: 200,
-              background: "linear-gradient(160deg, rgba(22,40,28,1) 0%, rgba(13,17,14,1) 100%)",
-            }}
-          >
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(ellipse 80% 80% at 80% 50%, rgba(45,155,110,0.28) 0%, transparent 60%), radial-gradient(ellipse 40% 60% at 20% 80%, rgba(52,211,153,0.12) 0%, transparent 50%)",
-              }}
-            />
-            {/* Shimmer-Linie */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-px"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(45,155,110,0.40), transparent)" }}
-            />
-            <div className="absolute top-3 left-3">
-              <span
-                className="px-2.5 py-1 rounded-lg text-xs font-semibold"
-                style={{
-                  background: "rgba(7,10,8,0.85)",
-                  color: C.greenLight,
-                  border: "1px solid rgba(45,155,110,0.35)",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                {CATEGORIES.find((c) => c.value === activeCategory)?.label}
-              </span>
-            </div>
-          </div>
-          <div className="p-4">
-            <h2 className="font-brand text-2xl mb-1.5" style={{ color: C.textPrimary, letterSpacing: "0.04em" }}>
-              {CATEGORIES.find((c) => c.value === activeCategory)?.label?.toUpperCase()}
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: C.textSecondary }}>
-              {CATEGORY_DESCRIPTIONS[activeCategory]}
-            </p>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* PARTNER-SEKTION */}
-      <div className="px-4 pb-5">
-        <p className="text-xs font-bold uppercase mb-3" style={{ color: C.greenLight, letterSpacing: "0.14em" }}>
-          PARTNER
-        </p>
-        <h2 className="text-2xl font-bold mb-4" style={{ color: C.textPrimary }}>
-          Geprüfte Anbieter
-        </h2>
-
-        {/* Leerer Zustand */}
-        <div className="rounded-2xl p-5" style={{
-          background: "rgba(0,0,0,0.4)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}>
-          <div className="flex items-start gap-3 mb-3">
-            <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: C.greenLight }} />
-            <div>
-              <p className="font-bold text-base mb-1" style={{ color: C.textPrimary }}>
-                Noch keine Partner freigeschaltet
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: C.textSecondary }}>
-                Wir schalten hier nur Unternehmen frei, die unsere Prüfung bestehen. Solange keine geprüften Partner
-                gelistet sind, bleibt dieser Bereich leer – wir erfinden keine Anbieter.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PARTNER WERDEN */}
-      <div className="px-4 pb-5">
-        <div
-          className="relative rounded-2xl p-5 overflow-hidden"
-          style={{
-            background: "rgba(0,0,0,0.45)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(212,175,55,0.25)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,175,55,0.08)",
-          }}
-        >
-          {/* Gold-Glow oben rechts */}
-          <div
-            className="absolute top-0 right-0 w-40 h-40 pointer-events-none"
-            style={{ background: "radial-gradient(circle at 80% 20%, rgba(212,175,55,0.15) 0%, transparent 65%)" }}
-          />
-          <p className="text-xs font-bold uppercase mb-2" style={{ color: C.gold, letterSpacing: "0.14em" }}>
-            FÜR UNTERNEHMEN
-          </p>
-          <h3 className="font-brand text-2xl font-bold mb-3" style={{ color: C.textPrimary }}>
-            Partner werden
-          </h3>
-          <p className="text-sm leading-relaxed mb-5" style={{ color: C.textSecondary }}>
-            Du betreibst einen Shop oder eine Gärtnerei im Bereich Aquaristik oder Botanik? Bewirb dich als geprüfter
-            Partner. Ablauf: Bewerbung → Prüfung → Freischaltung → Profilpflege → Produktverwaltung.
-          </p>
-
-          {!showContactForm ? (
-            <button
-              onClick={() => setShowContactForm(true)}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-full font-semibold text-sm transition-all duration-150 active:scale-[0.97]"
-              style={{ background: C.greenLight, color: "#070A08" }}
-            >
-              Bewerbung anfragen
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm font-medium" style={{ color: C.textPrimary }}>
-                Schreib uns eine E-Mail mit deinem Unternehmensnamen und einer kurzen Beschreibung:
-              </p>
-              <a
-                href="mailto:BlackwaterLeaf@gmail.com?subject=Partner-Bewerbung&body=Hallo BlackwaterLeaf-Team,%0A%0AIch möchte mich als Partner bewerben.%0A%0AUnternehmen:%0ABeschreibung:%0AWebsite:"
-                className="flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm transition-all duration-150 active:scale-[0.97]"
-                style={{
-                  background: C.greenBg,
-                  color: C.greenLight,
-                  border: `1px solid rgba(45,155,110,0.40)`,
-                  display: "inline-flex",
-                }}
-              >
-                <Mail className="w-4 h-4" />
-                BlackwaterLeaf@gmail.com
-              </a>
-              <button
-                onClick={() => setShowContactForm(false)}
-                className="block text-xs mt-2"
-                style={{ color: C.textMuted }}
-              >
-                Abbrechen
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* FOOTER-HINWEIS */}
-      <div className="px-4 pb-10">
-        <p className="text-xs text-center leading-relaxed" style={{ color: C.textMuted }}>
-          Der Marktplatz befindet sich im Aufbau. Funktionen wie Suche, KI-Empfehlungen und Produktkatalog folgen mit
-          freigeschalteten Partnern.
-        </p>
-      </div>
+      <MarketplaceFavorites open={favoritesOpen} onClose={() => setFavoritesOpen(false)} favorites={favorites} onChange={next => { setFavorites(next); writeMarketplaceFavorites(next); }} />
     </div>
   );
+}
+
+function MarketplaceFavorites({ open, onClose, favorites, onChange }: { open: boolean; onClose: () => void; favorites: MarketplaceProduct[]; onChange: (next: MarketplaceProduct[]) => void }) {
+  if (!open) return null;
+  return <div className="marketplace-cart-layer" role="dialog" aria-modal="true" aria-label="Favoriten in der Merkliste"><button className="marketplace-cart-backdrop" type="button" aria-label="Merkliste schließen" onClick={onClose} /><aside className="marketplace-cart marketplace-favorites"><header><div><p className="eyebrow">[DEINE MERKLISTE]</p><h2>Favoriten</h2></div><button type="button" onClick={onClose} aria-label="Schließen"><X size={20} /></button></header>{favorites.length === 0 ? <div className="marketplace-cart-empty"><Heart size={27} /><p>Markiere Produkte mit dem Herz, damit sie hier für später gespeichert bleiben.</p></div> : <div className="marketplace-favorite-list">{favorites.map(product => <article key={product.id} className="marketplace-favorite-line">{product.imageUrl ? <img src={product.imageUrl} alt="" /> : <span className="marketplace-cart-fallback"><PackageOpen size={16} /></span>}<div><strong>{product.title}</strong><small>{product.priceLabel ?? "Preis beim Partner"} · {product.partnerName}</small></div><a className="marketplace-favorite-link" href={product.destinationUrl} target="_blank" rel="sponsored nofollow noopener" aria-label={`${product.title} beim Partner öffnen`}><ExternalLink size={15} /></a><button className="marketplace-remove" type="button" aria-label={`${product.title} aus der Merkliste entfernen`} onClick={() => onChange(favorites.filter(favorite => favorite.id !== product.id))}><Heart size={16} fill="currentColor" /></button></article>)}</div>}<p className="marketplace-cart-note">Favoriten bleiben nur auf diesem Gerät. Preis, Verfügbarkeit, Zahlung, Versand und Rückgabe gelten beim jeweiligen Partner.</p></aside></div>;
+}
+
+function MarketplaceLoading() {
+  return <section className="marketplace-loading" aria-busy="true" aria-live="polite" role="status"><div className="marketplace-loading__copy"><span className="marketplace-loading__pulse" aria-hidden="true" /><div><strong>Partnerangebote werden geprüft</strong><p>Es werden nur aktuell freigegebene, aktive Angebote geladen.</p></div></div><div className="marketplace-loading__grid" aria-hidden="true">{Array.from({ length: 4 }, (_, index) => <div className="marketplace-loading__card" key={index}><i /><span /><b /><em /></div>)}</div></section>;
 }

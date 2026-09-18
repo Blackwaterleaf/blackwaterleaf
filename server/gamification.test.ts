@@ -1,33 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { levelForXp, LEVELS } from "./db";
+import { dayKey, levelForXp, XP_REWARDS } from "./gamification";
 
-describe("levelForXp", () => {
-  it("returns level 1 for 0 XP", () => {
-    const r = levelForXp(0);
-    expect(r.level).toBe(1);
-    expect(r.title).toBe(LEVELS[0].title);
-    expect(r.nextLevelXp).toBe(LEVELS[1].minXp);
+describe("BlackWaterLeaf XP rules", () => {
+  it("uses fixed server-owned reward values", () => {
+    expect(XP_REWARDS).toEqual({ dailyCheckIn: 5, observationPhoto: 10, assistantResponse: 3 });
   });
 
-  it("promotes to the correct level at thresholds", () => {
-    const second = LEVELS[1];
-    const r = levelForXp(second.minXp);
-    expect(r.level).toBe(second.level);
-    expect(r.title).toBe(second.title);
+  it("creates stable UTC day keys", () => {
+    expect(dayKey(new Date("2026-09-16T23:59:59.000Z"))).toBe("2026-09-16");
+    expect(dayKey(new Date("2026-09-17T00:00:00.000Z"))).toBe("2026-09-17");
   });
 
-  it("returns the highest level with null next at max", () => {
-    const top = LEVELS[LEVELS.length - 1];
-    const r = levelForXp(top.minXp + 10_000);
-    expect(r.level).toBe(top.level);
-    expect(r.nextLevelXp).toBeNull();
-    expect(r.nextTitle).toBeNull();
-  });
-
-  it("stays on a level just below the next threshold", () => {
-    const second = LEVELS[1];
-    const r = levelForXp(second.minXp - 1);
-    expect(r.level).toBe(LEVELS[0].level);
-    expect(r.nextLevelXp).toBe(second.minXp);
+  it("levels experience in 100-XP bands", () => {
+    expect(levelForXp(0)).toBe(1);
+    expect(levelForXp(99)).toBe(1);
+    expect(levelForXp(100)).toBe(2);
+    expect(levelForXp(275)).toBe(3);
   });
 });

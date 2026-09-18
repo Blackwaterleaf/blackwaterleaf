@@ -1,0 +1,5 @@
+-- Schema metadata reconciliation only.
+-- The previous migration was applied manually with the shorter `smart_meas_device_fk`
+-- name because TiDB rejects the generated identifier as longer than 64 characters.
+-- No DDL belongs here: running a DROP would fail because the long generated name
+-- was never created in the target database.

@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
+import { isSessionPayloadBoundToApp } from "../security";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -22,6 +23,7 @@ export type SessionPayload = {
   openId: string;
   appId: string;
   name: string;
+  provider?: "manus" | "local";
 };
 
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
@@ -172,6 +174,23 @@ class SDKServer {
         openId,
         appId: ENV.appId,
         name: options.name || "",
+        provider: "manus",
+      },
+      options
+    );
+  }
+
+  /** Creates a BlackWaterLeaf-local account session without contacting Manus OAuth. */
+  async createLocalSessionToken(
+    openId: string,
+    options: { expiresInMs?: number; name?: string } = {}
+  ): Promise<string> {
+    return this.signSession(
+      {
+        openId,
+        appId: ENV.appId,
+        name: options.name || "",
+        provider: "local",
       },
       options
     );
@@ -190,15 +209,17 @@ class SDKServer {
       openId: payload.openId,
       appId: payload.appId,
       name: payload.name,
+      provider: payload.provider ?? "manus",
     })
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setIssuedAt()
       .setExpirationTime(expirationSeconds)
       .sign(secretKey);
   }
 
   async verifySession(
     cookieValue: string | undefined | null
-  ): Promise<{ openId: string; appId: string; name: string } | null> {
+  ): Promise<{ openId: string; appId: string; name: string; provider: "manus" | "local"; issuedAt: number | null } | null> {
     if (!cookieValue) {
       console.warn("[Auth] Missing session cookie");
       return null;
@@ -209,21 +230,20 @@ class SDKServer {
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
       });
-      const { openId, appId, name } = payload as Record<string, unknown>;
+      const { openId, appId, name, provider, iat } = payload as Record<string, unknown>;
 
-      if (
-        !isNonEmptyString(openId) ||
-        !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
-      ) {
-        console.warn("[Auth] Session payload missing required fields");
+      const sessionPayload = { openId, appId, name };
+      if (!isSessionPayloadBoundToApp(sessionPayload, ENV.appId)) {
+        console.warn("[Auth] Session payload is incomplete or belongs to a different application");
         return null;
       }
 
       return {
-        openId,
-        appId,
-        name,
+        openId: sessionPayload.openId,
+        appId: sessionPayload.appId,
+        name: sessionPayload.name,
+        provider: provider === "local" ? "local" : "manus",
+        issuedAt: typeof iat === "number" ? iat * 1_000 : null,
       };
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));
@@ -291,6 +311,9 @@ class SDKServer {
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {
+      if (session.provider === "local") {
+        throw ForbiddenError("Local session user not found");
+      }
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
         await db.upsertUser({
@@ -309,6 +332,14 @@ class SDKServer {
 
     if (!user) {
       throw ForbiddenError("User not found");
+    }
+
+    if (session.provider === "local") {
+      if (user.loginMethod !== "local") throw ForbiddenError("Local session not permitted for this account");
+      const credential = await db.getLocalCredentialByUserId(user.id);
+      if (!credential?.emailVerifiedAt || (session.issuedAt !== null && session.issuedAt < credential.passwordChangedAt.getTime())) {
+        throw ForbiddenError("Local session expired");
+      }
     }
 
     await db.upsertUser({

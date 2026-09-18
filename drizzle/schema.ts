@@ -1,558 +1,690 @@
 import {
+  type AnyMySqlColumn,
+  boolean,
+  decimal,
+  foreignKey,
+  index,
   int,
+  json,
   mysqlEnum,
   mysqlTable,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
-  boolean,
-  float,
-  json,
 } from "drizzle-orm/mysql-core";
 
-// ─── Users ───────────────────────────────────────────────────────────────────
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
-  name: text("name"),
-  // Öffentlicher, eindeutiger Handle (z. B. @pflanzentante). Optional bis gesetzt.
-  username: varchar("username", { length: 32 }).unique(),
-  email: varchar("email", { length: 320 }),
-  loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "moderator", "admin"]).default("user").notNull(),
-  // Kontostatus für Moderation (Sperren etc.)
-  status: mysqlEnum("status", ["active", "suspended", "banned"]).default("active").notNull(),
-  // Abo-Stufe gemäß Business Handbook (Monetarisierung). Enforcement erst in V2.
-  plan: mysqlEnum("plan", ["free", "premium", "pro"]).default("free").notNull(),
-  // Erfahrungslevel aus Onboarding (Personalisierung).
-  experienceLevel: mysqlEnum("experienceLevel", ["beginner", "intermediate", "expert"]),
-  // Interessen-Tags als JSON-Array (z. B. ["aquaristik","pflanzen"]).
-  interests: json("interests"),
-  avatarUrl: text("avatarUrl"),
-  bio: text("bio"),
-  location: varchar("location", { length: 128 }),
-  // Öffentliche Social-Media-Links im Profil (optional, vom Nutzer gesetzt).
-  socialInstagram: varchar("socialInstagram", { length: 255 }),
-  socialTiktok: varchar("socialTiktok", { length: 255 }),
-  socialYoutube: varchar("socialYoutube", { length: 255 }),
-  socialFacebook: varchar("socialFacebook", { length: 255 }),
-  socialWebsite: varchar("socialWebsite", { length: 255 }),
-  // Denormalisierte Zähler für Profile (Performance).
-  followersCount: int("followersCount").default(0).notNull(),
-  followingCount: int("followingCount").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
+export const users = mysqlTable(
+  "users",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    openId: varchar("openId", { length: 64 }).notNull().unique(),
+    name: text("name"),
+    username: varchar("username", { length: 32 }),
+    email: varchar("email", { length: 320 }),
+    loginMethod: varchar("loginMethod", { length: 64 }),
+    role: mysqlEnum("role", ["user", "moderator", "admin"]).default("user").notNull(),
+    status: mysqlEnum("status", ["active", "suspended", "banned"]).default("active").notNull(),
+    locale: mysqlEnum("locale", ["de", "en"]).default("de").notNull(),
+    unitSystem: mysqlEnum("unitSystem", ["metric", "imperial"]).default("metric").notNull(),
+    profileVisibility: mysqlEnum("profileVisibility", ["private", "unlisted", "public"])
+      .default("private")
+      .notNull(),
+    avatarUrl: text("avatarUrl"),
+    avatarStorageKey: text("avatarStorageKey"),
+    bio: text("bio"),
+    location: varchar("location", { length: 128 }),
+    socialInstagram: varchar("socialInstagram", { length: 255 }),
+    socialTiktok: varchar("socialTiktok", { length: 255 }),
+    socialYoutube: varchar("socialYoutube", { length: 255 }),
+    socialFacebook: varchar("socialFacebook", { length: 255 }),
+    socialWebsite: varchar("socialWebsite", { length: 255 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+    lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("users_username_unique").on(table.username), index("users_status_idx").on(table.status)],
+);
+
+export const userConsents = mysqlTable(
+  "user_consents",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", [
+      "terms",
+      "privacy",
+      "profile_publication",
+      "observation_publishing",
+      "media_processing",
+      "community_publishing",
+      "location_processing",
+      "ai_processing",
+    ]).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    granted: boolean("granted").default(false).notNull(),
+    grantedAt: timestamp("grantedAt"),
+    revokedAt: timestamp("revokedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_consents_user_purpose_version_unique").on(
+      table.userId,
+      table.purpose,
+      table.policyVersion,
+    ),
+  ],
+);
+
+/** Current, policy-versioned consent state used by all authorization checks. */
+export const userConsentCurrent = mysqlTable(
+  "user_consent_current",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", [
+      "terms",
+      "privacy",
+      "profile_publication",
+      "observation_publishing",
+      "media_processing",
+      "community_publishing",
+      "location_processing",
+      "ai_processing",
+    ]).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    granted: boolean("granted").default(false).notNull(),
+    grantedAt: timestamp("grantedAt"),
+    revokedAt: timestamp("revokedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_consent_current_user_purpose_unique").on(table.userId, table.purpose),
+    index("user_consent_current_authorization_idx").on(table.userId, table.purpose, table.granted),
+  ],
+);
+
+/** Append-only consent history. Existing consent rows are copied as baseline events. */
+export const userConsentEvents = mysqlTable(
+  "user_consent_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", [
+      "terms",
+      "privacy",
+      "profile_publication",
+      "observation_publishing",
+      "media_processing",
+      "community_publishing",
+      "location_processing",
+      "ai_processing",
+    ]).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    granted: boolean("granted").notNull(),
+    eventType: mysqlEnum("eventType", ["baseline", "member_update"]).notNull(),
+    occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  },
+  table => [index("user_consent_events_user_purpose_occurred_idx").on(table.userId, table.purpose, table.occurredAt)],
+);
+
+/** Local email/password identity. Passwords are stored as scrypt hashes only. */
+export const localCredentials = mysqlTable(
+  "local_credentials",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    email: varchar("email", { length: 320 }).notNull(),
+    normalizedEmail: varchar("normalizedEmail", { length: 320 }).notNull(),
+    passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+    emailVerifiedAt: timestamp("emailVerifiedAt"),
+    passwordChangedAt: timestamp("passwordChangedAt").defaultNow().notNull(),
+    lastSignedInAt: timestamp("lastSignedInAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("local_credentials_user_unique").on(table.userId),
+    uniqueIndex("local_credentials_normalized_email_unique").on(table.normalizedEmail),
+  ],
+);
+
+/** One-time, hashed and expiry-bound tokens for local account verification and recovery. */
+export const localAuthTokens = mysqlTable(
+  "local_auth_tokens",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    purpose: mysqlEnum("purpose", ["email_verification", "password_reset"]).notNull(),
+    tokenHash: varchar("tokenHash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("local_auth_tokens_hash_unique").on(table.tokenHash),
+    index("local_auth_tokens_user_purpose_expires_idx").on(table.userId, table.purpose, table.expiresAt),
+  ],
+);
+
+export const observations = mysqlTable(
+  "observations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    clientId: varchar("clientId", { length: 128 }).notNull(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]).notNull(),
+    subject: varchar("subject", { length: 128 }),
+    scientificName: varchar("scientificName", { length: 160 }),
+    note: text("note"),
+    metrics: json("metrics").notNull(),
+    evidenceState: mysqlEnum("evidenceState", [
+      "confirmed",
+      "contextual",
+      "unverified",
+      "conflicting",
+      "insufficient",
+    ])
+      .default("unverified")
+      .notNull(),
+    visibility: mysqlEnum("visibility", ["private", "unlisted", "public"])
+      .default("private")
+      .notNull(),
+    syncState: mysqlEnum("syncState", [
+      "local_only",
+      "queued_for_review",
+      "synced",
+      "sync_failed",
+      "conflict",
+    ])
+      .default("synced")
+      .notNull(),
+    revision: int("revision").default(1).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("observations_user_client_unique").on(table.userId, table.clientId),
+    index("observations_owner_realm_updated_idx").on(table.userId, table.realm, table.updatedAt),
+    index("observations_user_updated_idx").on(table.userId, table.updatedAt),
+    index("observations_visibility_updated_idx").on(table.visibility, table.updatedAt),
+  ],
+);
+
+export const communityPosts = mysqlTable(
+  "community_posts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    content: text("content").notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    visibility: mysqlEnum("visibility", ["private", "unlisted", "public"])
+      .default("private")
+      .notNull(),
+    status: mysqlEnum("status", ["draft", "published", "hidden", "removed"])
+      .default("draft")
+      .notNull(),
+    likesCount: int("likesCount").default(0).notNull(),
+    commentsCount: int("commentsCount").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("community_posts_feed_idx").on(table.status, table.visibility, table.createdAt),
+    index("community_posts_user_updated_idx").on(table.userId, table.updatedAt),
+  ],
+);
+
+export const mediaAssets = mysqlTable(
+  "media_assets",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    observationId: int("observationId").references(() => observations.id),
+    postId: int("postId").references(() => communityPosts.id),
+    kind: mysqlEnum("kind", ["avatar", "observation_image", "post_image"]).notNull(),
+    mimeType: mysqlEnum("mimeType", ["image/jpeg", "image/png", "image/webp"]).notNull(),
+    byteSize: int("byteSize").notNull(),
+    width: int("width"),
+    height: int("height"),
+    accessUrl: text("accessUrl").notNull(),
+    storageKey: varchar("storageKey", { length: 512 }).notNull(),
+    visibility: mysqlEnum("visibility", ["private", "unlisted", "public"])
+      .default("private")
+      .notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("media_assets_storage_key_unique").on(table.storageKey),
+    index("media_assets_owner_idx").on(table.userId, table.createdAt),
+    index("media_assets_post_user_visibility_idx").on(table.postId, table.userId, table.visibility),
+    index("media_assets_observation_user_created_idx").on(table.observationId, table.userId, table.createdAt),
+  ],
+);
+
+/** Immutable, server-created experience-point journal. */
+export const xpEvents = mysqlTable(
+  "xp_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use"]).notNull(),
+    points: int("points").notNull(),
+    eventKey: varchar("eventKey", { length: 191 }).notNull(),
+    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request"]).notNull(),
+    sourceId: varchar("sourceId", { length: 191 }).notNull(),
+    dayKey: varchar("dayKey", { length: 10 }).notNull(),
+    policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("xp_events_event_key_unique").on(table.eventKey),
+    index("xp_events_user_created_idx").on(table.userId, table.createdAt),
+    index("xp_events_user_type_day_idx").on(table.userId, table.eventType, table.dayKey),
+  ],
+);
+
+/** Minimal audit record for paid AI calls; prompts and responses are intentionally not retained. */
+export const assistantUsage = mysqlTable(
+  "assistant_usage",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    clientRequestId: varchar("clientRequestId", { length: 96 }).notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    model: varchar("model", { length: 96 }).notNull(),
+    promptChars: int("promptChars").notNull(),
+    completionChars: int("completionChars").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("assistant_usage_user_request_unique").on(table.userId, table.clientRequestId),
+    index("assistant_usage_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
+/** Private, structured setup records for a member's living worlds. */
+export const privateHabitats = mysqlTable(
+  "private_habitats",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    kind: mysqlEnum("kind", ["aquarium", "plant", "terrarium"]).notNull(),
+    name: varchar("name", { length: 128 }).notNull(),
+    details: json("details").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("private_habitats_user_kind_updated_idx").on(table.userId, table.kind, table.updatedAt),
+    index("private_habitats_user_updated_idx").on(table.userId, table.updatedAt),
+  ],
+);
+
+/**
+ * A user's private smart-device selection. OAuth/API credentials are deliberately
+ * not stored here; a provider-specific authorization is required before sync.
+ */
+export const smartDeviceConnections = mysqlTable(
+  "smart_device_connections",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    habitatId: int("habitatId").references(() => privateHabitats.id),
+    provider: mysqlEnum("provider", ["home_assistant", "aquarium_controller", "water_monitor", "zigbee_matter", "other"]).notNull(),
+    modelLabel: varchar("modelLabel", { length: 128 }),
+    requestedMetrics: json("requestedMetrics").notNull(),
+    status: mysqlEnum("status", ["selected", "awaiting_authorization", "connected", "disabled"]).default("selected").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("smart_device_connections_user_updated_idx").on(table.userId, table.updatedAt),
+    index("smart_device_connections_habitat_idx").on(table.habitatId),
+  ],
+);
+
+/** Append-only private water-value timeline. Credentials and raw provider payloads are never stored. */
+export const smartDeviceMeasurements = mysqlTable(
+  "smart_device_measurements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    habitatId: int("habitatId")
+      .notNull()
+      .references(() => privateHabitats.id),
+    deviceConnectionId: int("deviceConnectionId"),
+    metric: mysqlEnum("metric", [
+      "temperatureC",
+      "ph",
+      "gh",
+      "kh",
+      "nitriteMgL",
+      "nitrateMgL",
+      "conductivityUs",
+    ]).notNull(),
+    valueDecimal: decimal("valueDecimal", { precision: 12, scale: 4 }).notNull(),
+    unit: varchar("unit", { length: 32 }).notNull(),
+    source: mysqlEnum("source", ["manual", "smart_device"]).notNull(),
+    quality: mysqlEnum("quality", ["reported", "estimated", "rejected"]).default("reported").notNull(),
+    observedAt: timestamp("observedAt").notNull(),
+    receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("smart_device_measurements_device_metric_observed_unique").on(
+      table.deviceConnectionId,
+      table.metric,
+      table.observedAt,
+    ),
+    foreignKey({
+      columns: [table.deviceConnectionId],
+      foreignColumns: [smartDeviceConnections.id],
+      name: "smart_meas_device_fk",
+    }).onDelete("no action").onUpdate("no action"),
+    index("smart_device_measurements_habitat_metric_observed_idx").on(
+      table.habitatId,
+      table.metric,
+      table.observedAt,
+    ),
+    index("smart_device_measurements_user_observed_idx").on(table.userId, table.observedAt),
+  ],
+);
+
+export const knowledgeArticles = mysqlTable(
+  "knowledge_articles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    locale: mysqlEnum("locale", ["de", "en"]).notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    excerpt: varchar("excerpt", { length: 500 }).notNull(),
+    content: text("content").notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    evidenceState: mysqlEnum("evidenceState", [
+      "confirmed",
+      "contextual",
+      "unverified",
+      "conflicting",
+      "insufficient",
+    ]).notNull(),
+    sources: json("sources").notNull(),
+    isPublished: boolean("isPublished").default(false).notNull(),
+    publishedAt: timestamp("publishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("knowledge_slug_locale_unique").on(table.slug, table.locale),
+    index("knowledge_public_locale_idx").on(table.isPublished, table.locale, table.updatedAt),
+  ],
+);
+
+export const postLikes = mysqlTable(
+  "post_likes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    postId: int("postId")
+      .notNull()
+      .references(() => communityPosts.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("post_likes_user_post_unique").on(table.userId, table.postId)],
+);
+
+export const postComments = mysqlTable(
+  "post_comments",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    postId: int("postId")
+      .notNull()
+      .references(() => communityPosts.id),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    parentId: int("parentId").references((): AnyMySqlColumn => postComments.id, { onDelete: "set null" }),
+    content: text("content").notNull(),
+    status: mysqlEnum("status", ["visible", "hidden", "removed"]).default("visible").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("post_comments_post_status_idx").on(table.postId, table.status, table.createdAt),
+    index("post_comments_parent_idx").on(table.postId, table.parentId, table.createdAt),
+  ],
+);
+
+export const moderationLogs = mysqlTable(
+  "moderation_logs",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    actorId: int("actorId")
+      .notNull()
+      .references(() => users.id),
+    action: varchar("action", { length: 64 }).notNull(),
+    targetType: varchar("targetType", { length: 32 }).notNull(),
+    targetId: int("targetId").notNull(),
+    note: text("note"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [index("moderation_logs_target_idx").on(table.targetType, table.targetId, table.createdAt)],
+);
+
+/**
+ * Tamper-evident append-only application ledger. TiDB does not support
+ * triggers; entries therefore use a server-only HMAC signature and a hash chain.
+ */
+export const auditLedgerEntries = mysqlTable(
+  "audit_ledger_entries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 64 }).notNull(),
+    actorId: int("actorId")
+      .notNull()
+      .references(() => users.id),
+    action: varchar("action", { length: 64 }).notNull(),
+    targetType: varchar("targetType", { length: 32 }).notNull(),
+    targetId: int("targetId").notNull(),
+    payloadHash: varchar("payloadHash", { length: 64 }).notNull(),
+    previousHash: varchar("previousHash", { length: 64 }),
+    entryHash: varchar("entryHash", { length: 64 }).notNull(),
+    signature: varchar("signature", { length: 64 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("audit_ledger_event_id_unique").on(table.eventId),
+    uniqueIndex("audit_ledger_entry_hash_unique").on(table.entryHash),
+    index("audit_ledger_target_idx").on(table.targetType, table.targetId, table.createdAt),
+  ],
+);
+
+/** The only mutable ledger state; it makes deletion or reordering detectable. */
+export const auditLedgerHeads = mysqlTable("audit_ledger_heads", {
+  id: int("id").primaryKey(),
+  lastEntryHash: varchar("lastEntryHash", { length: 64 }),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
+
+/** A real person or company that an active administrator has documented for partner review. */
+export const partnerProfiles = mysqlTable(
+  "partner_profiles",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    displayName: varchar("displayName", { length: 160 }).notNull(),
+    partyType: mysqlEnum("partyType", ["person", "company"]).notNull(),
+    destinationUrl: varchar("destinationUrl", { length: 500 }),
+    disclosureLabel: varchar("disclosureLabel", { length: 80 }).default("Werbung").notNull(),
+    authorizationConfirmedAt: timestamp("authorizationConfirmedAt"),
+    status: mysqlEnum("status", ["draft", "approved", "paused", "removed"]).default("draft").notNull(),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("partner_profiles_status_idx").on(table.status, table.updatedAt)],
+);
+
+/** A merchant-managed product draft. It becomes public only through a currently authorized active partner placement. */
+export const partnerProducts = mysqlTable(
+  "partner_products",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    title: varchar("title", { length: 160 }).notNull(),
+    description: text("description"),
+    sourceDescriptionHtml: text("sourceDescriptionHtml"),
+    destinationUrl: varchar("destinationUrl", { length: 500 }).notNull(),
+    priceLabel: varchar("priceLabel", { length: 80 }),
+    sourceHandle: varchar("sourceHandle", { length: 255 }),
+    sourceVendor: varchar("sourceVendor", { length: 160 }),
+    marketplaceCategory: varchar("marketplaceCategory", { length: 64 }),
+    sourceProductCategory: varchar("sourceProductCategory", { length: 1_000 }),
+    productType: varchar("productType", { length: 160 }),
+    sourceTags: text("sourceTags"),
+    variantSummary: varchar("variantSummary", { length: 1_000 }),
+    variantCount: int("variantCount").default(0).notNull(),
+    sourceVariants: json("sourceVariants"),
+    sourceImageUrl: varchar("sourceImageUrl", { length: 1_000 }),
+    imageAltText: varchar("imageAltText", { length: 512 }),
+    seoTitle: varchar("seoTitle", { length: 160 }),
+    seoDescription: varchar("seoDescription", { length: 320 }),
+    imageStorageKey: varchar("imageStorageKey", { length: 512 }),
+    imageMimeType: mysqlEnum("imageMimeType", ["image/jpeg", "image/png", "image/webp"]),
+    imageByteSize: int("imageByteSize"),
+    status: mysqlEnum("status", ["draft", "active", "paused", "removed"]).default("draft").notNull(),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("partner_products_partner_status_updated_idx").on(table.partnerId, table.status, table.updatedAt),
+    index("partner_products_catalog_category_idx").on(table.partnerId, table.marketplaceCategory, table.status, table.updatedAt),
+    uniqueIndex("partner_products_partner_destination_unique").on(table.partnerId, table.destinationUrl),
+    uniqueIndex("partner_products_partner_source_handle_unique").on(table.partnerId, table.sourceHandle),
+  ],
+);
+
+/** Source-traceable gallery images imported from an authorized partner catalogue. */
+export const partnerProductImages = mysqlTable(
+  "partner_product_images",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    productId: int("productId")
+      .notNull()
+      .references(() => partnerProducts.id, { onDelete: "cascade" }),
+    position: int("position").notNull(),
+    sourceUrl: varchar("sourceUrl", { length: 1_000 }).notNull(),
+    storageKey: varchar("storageKey", { length: 512 }),
+    mimeType: mysqlEnum("mimeType", ["image/jpeg", "image/png", "image/webp"]),
+    byteSize: int("byteSize"),
+    altText: varchar("altText", { length: 512 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_product_images_product_position_unique").on(table.productId, table.position),
+    index("partner_product_images_product_position_idx").on(table.productId, table.position),
+  ],
+);
+
+/** A reviewable, time-bounded placement. Only an active home placement may be public. */
+export const partnerPlacements = mysqlTable(
+  "partner_placements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    placement: mysqlEnum("placement", ["home"]).default("home").notNull(),
+    status: mysqlEnum("status", ["draft", "active", "paused", "expired", "removed"]).default("draft").notNull(),
+    startsAt: timestamp("startsAt"),
+    endsAt: timestamp("endsAt"),
+    createdByUserId: int("createdByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_placements_partner_placement_unique").on(table.partnerId, table.placement),
+    index("partner_placements_public_idx").on(table.placement, table.status, table.startsAt, table.endsAt),
+  ],
+);
+
+/** Versioned authorization events for real partner advertising; only the most recent event determines validity. */
+export const partnerAuthorizations = mysqlTable(
+  "partner_authorizations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 64 }).notNull(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    authorizationVersion: varchar("authorizationVersion", { length: 32 }).notNull(),
+    state: mysqlEnum("state", ["granted", "revoked"]).notNull(),
+    confirmedByUserId: int("confirmedByUserId")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_authorizations_event_id_unique").on(table.eventId),
+    index("partner_authorizations_partner_created_idx").on(table.partnerId, table.createdAt),
+  ],
+);
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-// ─── Plants ──────────────────────────────────────────────────────────────────
-export const plants = mysqlTable("plants", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  name: varchar("name", { length: 128 }).notNull(),
-  scientificName: varchar("scientificName", { length: 128 }),
-  category: mysqlEnum("category", ["aquatic", "tropical", "alocasia", "monstera", "philodendron", "other"]).default("other").notNull(),
-  description: text("description"),
-  coverImageUrl: text("coverImageUrl"),
-  // Care parameters
-  lightRequirement: mysqlEnum("lightRequirement", ["low", "medium", "high"]),
-  wateringFrequency: varchar("wateringFrequency", { length: 64 }),
-  humidity: mysqlEnum("humidity", ["low", "medium", "high"]),
-  temperature: varchar("temperature", { length: 64 }),
-  substrate: varchar("substrate", { length: 128 }),
-  fertilizing: varchar("fertilizing", { length: 128 }),
-  difficulty: mysqlEnum("difficulty", ["beginner", "intermediate", "expert"]),
-  isPublic: boolean("isPublic").default(true).notNull(),
-  acquiredAt: timestamp("acquiredAt"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Plant = typeof plants.$inferSelect;
-export type InsertPlant = typeof plants.$inferInsert;
-
-// ─── Plant Photos ─────────────────────────────────────────────────────────────
-export const plantPhotos = mysqlTable("plant_photos", {
-  id: int("id").autoincrement().primaryKey(),
-  plantId: int("plantId").notNull(),
-  userId: int("userId").notNull(),
-  imageUrl: text("imageUrl").notNull(),
-  storageKey: text("storageKey").notNull(),
-  caption: text("caption"),
-  takenAt: timestamp("takenAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type PlantPhoto = typeof plantPhotos.$inferSelect;
-
-// ─── Aquariums ────────────────────────────────────────────────────────────────
-export const aquariums = mysqlTable("aquariums", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  name: varchar("name", { length: 128 }).notNull(),
-  description: text("description"),
-  coverImageUrl: text("coverImageUrl"),
-  type: mysqlEnum("type", ["freshwater", "saltwater", "blackwater", "planted", "biotope", "other"]).default("freshwater").notNull(),
-  volumeLiters: float("volumeLiters"),
-  lengthCm: float("lengthCm"),
-  widthCm: float("widthCm"),
-  heightCm: float("heightCm"),
-  // Water parameters
-  phValue: float("phValue"),
-  ghValue: float("ghValue"),
-  khValue: float("khValue"),
-  temperatureCelsius: float("temperatureCelsius"),
-  conductivity: float("conductivity"),
-  nitrate: float("nitrate"),
-  nitrite: float("nitrite"),
-  ammonia: float("ammonia"),
-  // Setup info
-  filterType: varchar("filterType", { length: 128 }),
-  lightingType: varchar("lightingType", { length: 128 }),
-  substrate: varchar("substrate", { length: 128 }),
-  inhabitants: text("inhabitants"),
-  plants: text("plants"),
-  setupDate: timestamp("setupDate"),
-  isPublic: boolean("isPublic").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Aquarium = typeof aquariums.$inferSelect;
-export type InsertAquarium = typeof aquariums.$inferInsert;
-
-// ─── Aquarium Photos ──────────────────────────────────────────────────────────
-export const aquariumPhotos = mysqlTable("aquarium_photos", {
-  id: int("id").autoincrement().primaryKey(),
-  aquariumId: int("aquariumId").notNull(),
-  userId: int("userId").notNull(),
-  imageUrl: text("imageUrl").notNull(),
-  storageKey: text("storageKey").notNull(),
-  caption: text("caption"),
-  takenAt: timestamp("takenAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type AquariumPhoto = typeof aquariumPhotos.$inferSelect;
-
-// ─── Aquarium Events ──────────────────────────────────────────────────────────
-export const aquariumEvents = mysqlTable("aquarium_events", {
-  id: int("id").autoincrement().primaryKey(),
-  aquariumId: int("aquariumId").notNull(),
-  userId: int("userId").notNull(),
-  type: mysqlEnum("type", ["water_change", "feeding", "fertilizing", "maintenance", "measurement", "new_inhabitant", "health_issue", "other"]).notNull(),
-  title: varchar("title", { length: 128 }).notNull(),
-  description: text("description"),
-  data: json("data"), // flexible JSON for measurements etc.
-  occurredAt: timestamp("occurredAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type AquariumEvent = typeof aquariumEvents.$inferSelect;
-
-// ─── Posts ────────────────────────────────────────────────────────────────────
-export const posts = mysqlTable("posts", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  content: text("content").notNull(),
-  imageUrl: text("imageUrl"),
-  storageKey: text("storageKey"),
-  videoUrl: text("videoUrl"),
-  videoStorageKey: text("videoStorageKey"),
-  mediaType: mysqlEnum("mediaType", ["none", "image", "video"]).default("none").notNull(),
-  category: mysqlEnum("category", ["plant", "aquarium", "question", "tip", "showcase", "marketplace", "other"]).default("other").notNull(),
-  plantId: int("plantId"),
-  aquariumId: int("aquariumId"),
-  // Optionale Zuordnung zu einer Fachgruppe (null = allgemeiner Feed).
-  groupId: int("groupId"),
-  likesCount: int("likesCount").default(0).notNull(),
-  commentsCount: int("commentsCount").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Post = typeof posts.$inferSelect;
-export type InsertPost = typeof posts.$inferInsert;
-
-// ─── Likes ────────────────────────────────────────────────────────────────────
-export const likes = mysqlTable("likes", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  postId: int("postId").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Like = typeof likes.$inferSelect;
-
-// ─── Comments ─────────────────────────────────────────────────────────────────
-export const comments = mysqlTable("comments", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  postId: int("postId").notNull(),
-  // Threaded replies: null = Top-Level-Kommentar, sonst Verweis auf Eltern-Kommentar.
-  parentId: int("parentId"),
-  content: text("content").notNull(),
-  likesCount: int("likesCount").default(0).notNull(),
-  repliesCount: int("repliesCount").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Comment = typeof comments.$inferSelect;
-
-// ─── Notifications ────────────────────────────────────────────────────────────
-export const notifications = mysqlTable("notifications", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  type: mysqlEnum("type", ["like", "comment", "reply", "follow", "mention", "message", "group_invite", "group_post", "moderation", "care_reminder", "system"]).notNull(),
-  title: varchar("title", { length: 128 }).notNull(),
-  message: text("message").notNull(),
-  isRead: boolean("isRead").default(false).notNull(),
-  relatedPostId: int("relatedPostId"),
-  relatedUserId: int("relatedUserId"),
-  relatedCommentId: int("relatedCommentId"),
-  relatedGroupId: int("relatedGroupId"),
-  relatedConversationId: int("relatedConversationId"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Notification = typeof notifications.$inferSelect;
-
-// ─── AI Chat History ──────────────────────────────────────────────────────────
-export const aiChats = mysqlTable("ai_chats", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  sessionId: varchar("sessionId", { length: 64 }).notNull(),
-  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
-  content: text("content").notNull(),
-  contextType: mysqlEnum("contextType", ["general", "plant", "aquarium", "channa"]),
-  contextId: int("contextId"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type AiChat = typeof aiChats.$inferSelect;
-
-// ─── Knowledge Base Articles ────────────────────────────────────────────────
-export const knowledgeArticles = mysqlTable("knowledge_articles", {
-  id: int("id").autoincrement().primaryKey(),
-  slug: varchar("slug", { length: 160 }).notNull().unique(),
-  title: varchar("title", { length: 200 }).notNull(),
-  category: mysqlEnum("category", ["aquaristik", "aquascaping", "channa", "blackwater", "houseplants", "basics"]).default("basics").notNull(),
-  // Plant genus for houseplants (e.g., "Alocasia", "Monstera", "Philodendron")
-  genus: varchar("genus", { length: 64 }).default(""),
-  excerpt: varchar("excerpt", { length: 320 }).notNull(),
-  content: text("content").notNull(),
-  coverImageUrl: text("coverImageUrl"),
-  author: varchar("author", { length: 128 }).default("BlackwaterLeaf Redaktion").notNull(),
-  readingMinutes: int("readingMinutes").default(5).notNull(),
-  isFeatured: boolean("isFeatured").default(false).notNull(),
-  viewsCount: int("viewsCount").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;
-export type InsertKnowledgeArticle = typeof knowledgeArticles.$inferInsert;
-
-// ─── Gamification: User Stats ───────────────────────────────────────────────
-export const userStats = mysqlTable("user_stats", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
-  xp: int("xp").default(0).notNull(),
-  level: int("level").default(1).notNull(),
-  points: int("points").default(0).notNull(),
-  streak: int("streak").default(0).notNull(),
-  longestStreak: int("longestStreak").default(0).notNull(),
-  lastCheckIn: timestamp("lastCheckIn"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type UserStats = typeof userStats.$inferSelect;
-export type InsertUserStats = typeof userStats.$inferInsert;
-
-// ─── Gamification: Badges (catalog) ─────────────────────────────────────────
-export const badges = mysqlTable("badges", {
-  id: int("id").autoincrement().primaryKey(),
-  code: varchar("code", { length: 64 }).notNull().unique(),
-  name: varchar("name", { length: 128 }).notNull(),
-  description: varchar("description", { length: 320 }).notNull(),
-  icon: varchar("icon", { length: 64 }).default("award").notNull(),
-  tier: mysqlEnum("tier", ["bronze", "silver", "gold", "special"]).default("bronze").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Badge = typeof badges.$inferSelect;
-
-// ─── Gamification: User Badges (earned) ─────────────────────────────────────
-export const userBadges = mysqlTable("user_badges", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  badgeId: int("badgeId").notNull(),
-  earnedAt: timestamp("earnedAt").defaultNow().notNull(),
-});
-
-export type UserBadge = typeof userBadges.$inferSelect;
-
-// ─── Gamification: Weekly Challenges ────────────────────────────────────────
-export const challenges = mysqlTable("challenges", {
-  id: int("id").autoincrement().primaryKey(),
-  title: varchar("title", { length: 200 }).notNull(),
-  description: text("description").notNull(),
-  rewardXp: int("rewardXp").default(50).notNull(),
-  category: mysqlEnum("category", ["photo", "post", "care", "knowledge", "community"]).default("community").notNull(),
-  startsAt: timestamp("startsAt").defaultNow().notNull(),
-  endsAt: timestamp("endsAt").notNull(),
-  isActive: boolean("isActive").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Challenge = typeof challenges.$inferSelect;
-
-/**
- * Community-sourced corrections to AI output. These are treated as authoritative
- * facts and fed back into the AI context so the platform relies on real expertise
- * rather than generic content.
- */
-export const aiCorrections = mysqlTable("ai_corrections", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  // "chat" | "identify" — which AI feature was corrected
-  kind: varchar("kind", { length: 32 }).notNull(),
-  // The user prompt or subject the correction relates to (e.g. plant name, question)
-  topic: varchar("topic", { length: 255 }),
-  // What the AI originally said (optional snapshot)
-  originalAnswer: text("originalAnswer"),
-  // The corrected, factual statement from the community
-  correctedText: text("correctedText").notNull(),
-  // moderation: pending | approved | rejected
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("approved").notNull(),
-  upvotes: int("upvotes").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type AiCorrection = typeof aiCorrections.$inferSelect;
-export type InsertAiCorrection = typeof aiCorrections.$inferInsert;
-
-// ─── Follows (Nutzer folgt Nutzer) ──────────────────────────────────────────
-export const follows = mysqlTable("follows", {
-  id: int("id").autoincrement().primaryKey(),
-  followerId: int("followerId").notNull(),
-  followingId: int("followingId").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Follow = typeof follows.$inferSelect;
-
-// ─── Comment Likes ──────────────────────────────────────────────────────────
-export const commentLikes = mysqlTable("comment_likes", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  commentId: int("commentId").notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type CommentLike = typeof commentLikes.$inferSelect;
-
-// ─── Fachgruppen ────────────────────────────────────────────────────────────
-export const groups = mysqlTable("groups", {
-  id: int("id").autoincrement().primaryKey(),
-  slug: varchar("slug", { length: 96 }).notNull().unique(),
-  name: varchar("name", { length: 128 }).notNull(),
-  description: text("description"),
-  coverImageUrl: text("coverImageUrl"),
-  // Fachbereich der Gruppe.
-  topic: mysqlEnum("topic", ["plants", "aquaristics", "terraristics", "general"]).default("general").notNull(),
-  visibility: mysqlEnum("visibility", ["public", "private"]).default("public").notNull(),
-  createdBy: int("createdBy").notNull(),
-  membersCount: int("membersCount").default(0).notNull(),
-  postsCount: int("postsCount").default(0).notNull(),
-  // Offizielle, von der Redaktion gepflegte Kern-Fachgruppen.
-  isOfficial: boolean("isOfficial").default(false).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Group = typeof groups.$inferSelect;
-export type InsertGroup = typeof groups.$inferInsert;
-
-// ─── Gruppen-Mitgliedschaften ───────────────────────────────────────────────
-export const groupMembers = mysqlTable("group_members", {
-  id: int("id").autoincrement().primaryKey(),
-  groupId: int("groupId").notNull(),
-  userId: int("userId").notNull(),
-  role: mysqlEnum("role", ["member", "moderator", "owner"]).default("member").notNull(),
-  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
-});
-
-export type GroupMember = typeof groupMembers.$inferSelect;
-
-// ─── Private Konversationen (1:1 und Gruppenchat) ───────────────────────────
-export const conversations = mysqlTable("conversations", {
-  id: int("id").autoincrement().primaryKey(),
-  // direct = 1:1, group = Gruppenchat mit Titel.
-  kind: mysqlEnum("kind", ["direct", "group"]).default("direct").notNull(),
-  title: varchar("title", { length: 128 }),
-  createdBy: int("createdBy").notNull(),
-  lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Conversation = typeof conversations.$inferSelect;
-
-// ─── Konversations-Teilnehmer ───────────────────────────────────────────────
-export const conversationParticipants = mysqlTable("conversation_participants", {
-  id: int("id").autoincrement().primaryKey(),
-  conversationId: int("conversationId").notNull(),
-  userId: int("userId").notNull(),
-  // Zeitpunkt des letzten Lesens für Ungelesen-Zähler.
-  lastReadAt: timestamp("lastReadAt"),
-  joinedAt: timestamp("joinedAt").defaultNow().notNull(),
-});
-
-export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
-
-// ─── Nachrichten ────────────────────────────────────────────────────────────
-export const messages = mysqlTable("messages", {
-  id: int("id").autoincrement().primaryKey(),
-  conversationId: int("conversationId").notNull(),
-  senderId: int("senderId").notNull(),
-  content: text("content").notNull(),
-  imageUrl: text("imageUrl"),
-  storageKey: text("storageKey"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type Message = typeof messages.$inferSelect;
-
-// ─── Meldungen (Moderation) ─────────────────────────────────────────────────
-export const reports = mysqlTable("reports", {
-  id: int("id").autoincrement().primaryKey(),
-  reporterId: int("reporterId").notNull(),
-  // Art des gemeldeten Inhalts.
-  targetType: mysqlEnum("targetType", ["post", "comment", "user", "message", "group"]).notNull(),
-  targetId: int("targetId").notNull(),
-  reason: mysqlEnum("reason", ["spam", "harassment", "misinformation", "inappropriate", "illegal", "other"]).notNull(),
-  details: text("details"),
-  status: mysqlEnum("status", ["open", "reviewing", "resolved", "dismissed"]).default("open").notNull(),
-  handledBy: int("handledBy"),
-  resolutionNote: text("resolutionNote"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type Report = typeof reports.$inferSelect;
-
-// ─── Moderations-/Audit-Log ─────────────────────────────────────────────────
-export const moderationLogs = mysqlTable("moderation_logs", {
-  id: int("id").autoincrement().primaryKey(),
-  actorId: int("actorId").notNull(),
-  action: varchar("action", { length: 64 }).notNull(),
-  targetType: varchar("targetType", { length: 32 }).notNull(),
-  targetId: int("targetId").notNull(),
-  note: text("note"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type ModerationLog = typeof moderationLogs.$inferSelect;
-
-// ─── Featured / Promo Accounts (Werbeträger) ────────────────────────────────
-// Admin-verwaltete Werbe-Einträge, die auf EXTERNE Profile verlinken
-// (Instagram, TikTok, Facebook, WhatsApp, YouTube). Für Familie/Freunde
-// kostenlos vom Admin gepflegt; bezahlte Fremd-Werbung folgt in V2.
-export const featuredAccounts = mysqlTable("featured_accounts", {
-  id: int("id").autoincrement().primaryKey(),
-  // Anzeigename, z. B. "Pflanzentante" oder "Kim Kumpel"
-  name: varchar("name", { length: 120 }).notNull(),
-  // Kurzer Untertitel/Beschreibung (optional), z. B. "Seltene Zimmerpflanzen"
-  tagline: varchar("tagline", { length: 160 }),
-  // Plattform des verlinkten Profils
-  platform: mysqlEnum("platform", ["instagram", "tiktok", "facebook", "whatsapp", "youtube", "website"]).notNull(),
-  // Ziel-Link (externe URL, z. B. https://instagram.com/...)
-  url: text("url").notNull(),
-  // Hochgeladenes Profilbild (S3-URL) – wird manuell gesetzt, da Plattformen
-  // das automatische Auslesen von Profilbildern blockieren.
-  imageUrl: text("imageUrl"),
-  imageKey: text("imageKey"),
-  // Platzierung: auf der Startseite ("Account des Tages") und/oder in der
-  // Community-Promo-Leiste anzeigen.
-  showOnHome: boolean("showOnHome").default(false).notNull(),
-  showInCommunity: boolean("showInCommunity").default(true).notNull(),
-  // Aktiv/sichtbar schalten ohne Löschen.
-  active: boolean("active").default(true).notNull(),
-  // Sortierreihenfolge (kleiner = weiter vorne/oben).
-  sortOrder: int("sortOrder").default(0).notNull(),
-  // Ist dies ein bezahlter Werbeplatz? (V2-Vorbereitung; Standard: nein)
-  isPaid: boolean("isPaid").default(false).notNull(),
-  // Wer hat den Eintrag erstellt (Admin-User-Id).
-  createdBy: int("createdBy"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type FeaturedAccount = typeof featuredAccounts.$inferSelect;
-export type InsertFeaturedAccount = typeof featuredAccounts.$inferInsert;
-
-// ─── Taxonomie-Datenbank (verifizierte Arten) ────────────────────────────────
-// Validierte Pflanzennamen für KI-Bestimmungs-Whitelist-Check.
-// Quellen: POWO (Kew Gardens), WFO, GBIF, FishBase.
-export const taxonomySpecies = mysqlTable("taxonomy_species", {
-  id: int("id").autoincrement().primaryKey(),
-  // Wissenschaftlicher Name ohne Sorte, z.B. "Alocasia baginda"
-  scientificName: varchar("scientificName", { length: 255 }).notNull().unique(),
-  // Sortenname/Kultivar, z.B. "Dragon Scale" (ohne Anführungszeichen)
-  cultivar: varchar("cultivar", { length: 255 }),
-  // Gattung, z.B. "Alocasia"
-  genus: varchar("genus", { length: 100 }).notNull(),
-  // Familie, z.B. "Araceae"
-  family: varchar("family", { length: 100 }),
-  // Gebräuchliche Namen als JSON: {"de": "Drachenschuppen-Alocasia", "en": "Dragon Scale Alocasia"}
-  commonNames: json("commonNames"),
-  // Synonyme als JSON-Array: ["Alocasia sp. Dragon Scale"]
-  synonyms: json("synonyms"),
-  // Sichtbare Schlüsselmerkmale für Confidence-Score-Berechnung
-  keyFeatures: json("keyFeatures"),
-  // Natürlicher Lebensraum, z.B. "Tropischer Regenwald, Borneo"
-  habitat: varchar("habitat", { length: 255 }),
-  // Pflegeschwierigkeit
-  careLevel: mysqlEnum("careLevel", ["einfach", "mittel", "anspruchsvoll"]),
-  // Lichtbedarf
-  light: varchar("light", { length: 100 }),
-  // Wasserbedarf
-  water: varchar("water", { length: 100 }),
-  // Kategorie für Filterung
-  category: mysqlEnum("category", ["alocasia", "philodendron", "monstera", "aquatic", "channa", "other"]).default("other").notNull(),
-  // Datenquelle, z.B. "POWO", "WFO", "GBIF", "FishBase", "manual"
-  source: varchar("source", { length: 255 }),
-  // ID bei der Quelle
-  sourceId: varchar("sourceId", { length: 255 }),
-  // Manuell verifiziert
-  verified: boolean("verified").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type TaxonomySpecies = typeof taxonomySpecies.$inferSelect;
-export type InsertTaxonomySpecies = typeof taxonomySpecies.$inferInsert;
-
-// ─── KI-Halluzinations-Blacklist ─────────────────────────────────────────────
-// Bekannte erfundene/falsche Artnamen die die KI halluziniert.
-// Admin kann neue Einträge hinzufügen. Wird bei jeder Bestimmung geprüft.
-export const aiHallucinationBlacklist = mysqlTable("ai_hallucination_blacklist", {
-  id: int("id").autoincrement().primaryKey(),
-  // Der halluzinierte Begriff (case-insensitive Vergleich)
-  term: varchar("term", { length: 255 }).notNull().unique(),
-  // Warum dieser Begriff falsch ist
-  reason: text("reason"),
-  // Korrekte Alternative (falls bekannt)
-  correctAlternative: varchar("correctAlternative", { length: 255 }),
-  // Wer hat den Eintrag hinzugefügt
-  addedBy: int("addedBy"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-
-export type AiHallucinationBlacklist = typeof aiHallucinationBlacklist.$inferSelect;
-export type InsertAiHallucinationBlacklist = typeof aiHallucinationBlacklist.$inferInsert;
+export type UserConsent = typeof userConsents.$inferSelect;
+export type UserConsentCurrent = typeof userConsentCurrent.$inferSelect;
+export type UserConsentEvent = typeof userConsentEvents.$inferSelect;
+export type ObservationRecord = typeof observations.$inferSelect;
+export type InsertObservationRecord = typeof observations.$inferInsert;
+export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
+export type XpEventRecord = typeof xpEvents.$inferSelect;
+export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
+export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
+export type SmartDeviceMeasurementRecord = typeof smartDeviceMeasurements.$inferSelect;
+export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
+export type CommunityPostRecord = typeof communityPosts.$inferSelect;
+export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;
+export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
+export type PartnerProductRecord = typeof partnerProducts.$inferSelect;
+export type PartnerPlacementRecord = typeof partnerPlacements.$inferSelect;
+export type PartnerAuthorizationRecord = typeof partnerAuthorizations.$inferSelect;
