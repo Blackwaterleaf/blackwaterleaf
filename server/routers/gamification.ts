@@ -2,6 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { awardXpIfReady, dayKey, getExperienceSummary, XP_REWARDS } from "../gamification";
+import { users, xpEvents } from "../../drizzle/schema";
+import { desc, eq, sql } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 
 async function requireDatabase() {
@@ -24,6 +26,19 @@ export const gamificationRouter = router({
     }
     const db = await requireDatabase();
     return { status: "ready" as const, ...(await getExperienceSummary(db, ctx.user.id)) };
+  }),
+
+  leaderboard: protectedProcedure.query(async () => {
+    const db = await requireDatabase();
+    const rows = await db
+      .select({ userId: users.id, name: users.name, username: users.username, totalXp: sql<number>`COALESCE(SUM(${xpEvents.points}), 0)` })
+      .from(users)
+      .innerJoin(xpEvents, eq(xpEvents.userId, users.id))
+      .where(eq(users.status, "active"))
+      .groupBy(users.id, users.name, users.username)
+      .orderBy(desc(sql`SUM(${xpEvents.points})`))
+      .limit(25);
+    return rows.map((row, index) => ({ rank: index + 1, userId: String(row.userId), name: row.name ?? row.username ?? "BlackWaterLeaf-Nutzer", totalXp: Number(row.totalXp ?? 0) }));
   }),
 
   dailyCheckIn: protectedProcedure.mutation(async ({ ctx }) => {

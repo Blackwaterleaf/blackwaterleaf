@@ -233,6 +233,16 @@ export const communityRouter = router({
       return { id: String(input.postId), status: nextStatus, visibility: input.visibility } as const;
     }),
 
+  deleteMine: protectedProcedure
+    .input(z.object({ postId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const post = await db.select({ id: communityPosts.id, userId: communityPosts.userId }).from(communityPosts).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id))).limit(1);
+      if (!post[0] || !isResourceOwner(ctx.user.id, post[0].userId)) throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
+      await db.update(communityPosts).set({ status: "removed", visibility: "private" }).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)));
+      return { deleted: true, id: String(input.postId) } as const;
+    }),
+
   like: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const visible = await db
