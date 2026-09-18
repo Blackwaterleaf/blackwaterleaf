@@ -121,6 +121,29 @@ export const profileRouter = router({
       return serializeProfile(updated[0], true);
     }),
 
+  closeAccount: protectedProcedure
+    .input(z.object({ confirmation: z.literal("LÖSCHEN") }))
+    .mutation(async ({ ctx }) => {
+      const db = await requireDatabase();
+      await db.update(users).set({
+        name: "Gelöschtes Konto",
+        username: null,
+        email: null,
+        bio: null,
+        location: null,
+        socialInstagram: null,
+        socialTiktok: null,
+        socialYoutube: null,
+        socialFacebook: null,
+        socialWebsite: null,
+        avatarUrl: null,
+        avatarStorageKey: null,
+        profileVisibility: "private",
+        status: "banned",
+      }).where(eq(users.id, ctx.user.id));
+      return { success: true } as const;
+    }),
+
   setConsent: protectedProcedure
     .input(
       z.object({

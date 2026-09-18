@@ -112,8 +112,10 @@ export function AppShell({ children }: PropsWithChildren) {
               <span className="profile-header-menu__eyebrow">PROFIL · SCHNELLWAHL</span>
               <Link href="/profile">Profil öffnen</Link>
               <Link href="/profile#profile-edit">Name & Profil bearbeiten</Link>
-              <Link href="/profile#profile-edit">Profilbild bearbeiten</Link>
-              <Link href="/profile#profile-display-settings">01–03 · Anzeigen</Link>
+              <Link href="/profile#profile-avatar">Profilbild bearbeiten</Link>
+              <Link href="/world/botany">01 · Botanik</Link>
+              <Link href="/world/aquarium">02 · Aquaristik</Link>
+              <Link href="/world/terrarium">03 · Terraristik</Link>
               <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
             </div>
           </details>
