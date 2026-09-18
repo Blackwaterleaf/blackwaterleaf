@@ -113,9 +113,12 @@ export function AppShell({ children }: PropsWithChildren) {
               <Link href="/profile">Profil öffnen</Link>
               <Link href="/profile#profile-edit">Name & Profil bearbeiten</Link>
               <Link href="/profile#profile-avatar">Profilbild bearbeiten</Link>
-              <Link href="/world/botany">01 · Botanik</Link>
-              <Link href="/world/aquarium">02 · Aquaristik</Link>
-              <Link href="/world/terrarium">03 · Terraristik</Link>
+              <Link href="/profile#profile-private">01 · Privat</Link>
+              <Link href="/profile#profile-habitats">02 · Anlagen</Link>
+              <Link href="/profile#progress">03 · Punkte</Link>
+              <Link href="/profile#profile-consents">Datenschutz & Freigaben</Link>
+              <Link href="/profile#profile-preferences">Sprache</Link>
+              <Link href="/profile#profile-preferences">Einheiten</Link>
               <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
             </div>
           </details>

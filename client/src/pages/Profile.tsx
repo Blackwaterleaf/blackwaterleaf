@@ -76,8 +76,11 @@ export default function Profile() {
 
   useEffect(() => {
     const openHashTarget = () => {
-      const target = window.location.hash === "#profile-edit" ? "profile-edit" : window.location.hash === "#profile-display-settings" ? "profile-display-settings" : window.location.hash === "#profile-tools" ? "profile-tools" : null;
-      if (target) (document.getElementById(target) as HTMLDetailsElement | null)?.setAttribute("open", "");
+      const target = window.location.hash.replace(/^#/, "");
+      if (!target) return;
+      const element = document.getElementById(target);
+      if (element instanceof HTMLDetailsElement) element.open = true;
+      element?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     openHashTarget();
     window.addEventListener("hashchange", openHashTarget);
@@ -162,6 +165,17 @@ export default function Profile() {
         <StatePanel code="PROFILE/ERROR" state="error" title={t("common.error")} body={t("profile.signedOut")} />
       ) : (
         <>
+          <details id="profile-private" className="profile-page-actions glass-panel" open>
+            <summary><span>AKTIONEN</span><small>Privat verwalten</small><b>+</b></summary>
+            <nav className="profile-page-actions__menu" aria-label="Profilaktionen">
+              <Link href="#profile-edit">01 · Privat</Link>
+              <Link href="#profile-privacy">Datenschutz & Freigaben</Link>
+              <Link href="#profile-habitats">02 · Anlagen</Link>
+              <Link href="#progress">03 · Punkte</Link>
+              <Link href="#profile-preferences">Sprache & Einheiten</Link>
+              <Link href="#profile-tools">Weitere Werkzeuge</Link>
+            </nav>
+          </details>
           <section className="profile-card glass-panel" id="progress">
             <div className="profile-identity">
               <div className="profile-avatar" id="profile-image">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
@@ -175,27 +189,31 @@ export default function Profile() {
             ) : <p className="form-status">{locale === "de" ? "Punkte werden geladen." : "Points are loading."}</p>}
           </section>
 
-          <details id="profile-display-settings" className="profile-display-settings glass-panel">
+          <details id="profile-privacy" className="profile-display-settings glass-panel">
             <summary><span>ANZEIGEN</span><small>Welche Anlagen sollen im Profil erscheinen?</small><b>+</b></summary>
             <div className="profile-display-settings__items">
               {([['plant', 'Pflanzen', Leaf], ['aquarium', 'Aquarium', null], ['terrarium', 'Terraristik', null]] as const).map(([kind, label, Icon]) => <button key={kind} type="button" className={visibleKinds.includes(kind) ? "is-selected" : ""} onClick={() => toggleVisibleKind(kind)}>{Icon ? <Icon size={15} /> : <span className="profile-display-settings__dot" />}<span>{label}</span><b>{visibleKinds.includes(kind) ? "✓" : "○"}</b></button>)}
             </div>
           </details>
 
+          <details id="profile-consents" className="account-section glass-panel profile-menu-only">
+            <summary><span>DATENSCHUTZ & FREIGABEN</span><small>Du entscheidest über jede Freigabe</small></summary>
+            <section className="profile-consent-list">
+              <ConsentToggle label="Profil veröffentlichen" checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
+              <ConsentToggle label="Beobachtungen veröffentlichen" checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
+              <ConsentToggle label="Bilder sicher verarbeiten" checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
+              <ConsentToggle label="Community-Beiträge veröffentlichen" checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
+              <ConsentToggle label="KI-Anfragen sicher verarbeiten" checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
+            </section>
+          </details>
+
           <details id="profile-edit" className="account-section glass-panel profile-menu-only">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <label id="profile-avatar" className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild ändern" : "Change profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
-              <div className="form-grid">
+              <div className="form-grid profile-short-edit">
                 <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
                 <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
-                <Field label={locale === "de" ? "Ort" : "Location"} value={form.location} onChange={value => setForm(current => ({ ...current, location: value }))} />
-                <Field label="Website" type="url" value={form.website} onChange={value => setForm(current => ({ ...current, website: value }))} />
-                <Field label="Instagram" type="url" value={form.instagram} onChange={value => setForm(current => ({ ...current, instagram: value }))} />
-                <Field label="TikTok" type="url" value={form.tiktok} onChange={value => setForm(current => ({ ...current, tiktok: value }))} />
-                <Field label="YouTube" type="url" value={form.youtube} onChange={value => setForm(current => ({ ...current, youtube: value }))} />
-                <Field label="Facebook" type="url" value={form.facebook} onChange={value => setForm(current => ({ ...current, facebook: value }))} />
-                <label className="field"><span>{locale === "de" ? "Profilsichtbarkeit" : "Profile visibility"}</span><select value={form.profileVisibility} onChange={event => setForm(current => ({ ...current, profileVisibility: event.target.value as ProfileForm["profileVisibility"] }))}><option value="private">private</option><option value="unlisted">unlisted</option><option value="public">public</option></select></label>
               </div>
               <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
               <button type="submit" className="primary-action" disabled={update.isPending}><Save size={16} />{update.isPending ? t("common.loading") : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
@@ -214,6 +232,14 @@ export default function Profile() {
                 <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
                 <button type="button" className="danger-action" disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}><AlertTriangle size={16} />{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
               </section>
+            </div>
+          </details>
+
+          <details id="profile-preferences" className="profile-secondary-tools account-section glass-panel">
+            <summary><span>SPRACHE & EINHEITEN</span><small>Persönliche Darstellung</small></summary>
+            <div className="profile-preferences-grid">
+              <div><span className="eyebrow">SPRACHE</span><button type="button" className={locale === "de" ? "is-selected" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "is-selected" : ""} onClick={() => void changeLocale("en")}>English</button></div>
+              <div><span className="eyebrow">EINHEITEN</span><button type="button" className={unitSystem === "metric" ? "is-selected" : ""} onClick={() => void changeUnits("metric")}>Metrisch</button><button type="button" className={unitSystem === "imperial" ? "is-selected" : ""} onClick={() => void changeUnits("imperial")}>Imperial</button></div>
             </div>
           </details>
 

@@ -1158,3 +1158,22 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .account-danger-zone .field input { border-color: rgba(255, 91, 150, .32); }
 .danger-action { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 0 12px; border: 1px solid rgba(255, 91, 150, .42); border-radius: 9px; background: rgba(76, 14, 35, .46); font: 800 .57rem/1 "JetBrains Mono", monospace; cursor: pointer; }
 .danger-action:disabled { opacity: .48; cursor: not-allowed; }
+
+/* Profile reference parity: actions live at the top-left of the profile content; editing remains short and familiar. */
+.profile-page-actions { display: grid; gap: 9px; margin-bottom: 10px; padding: 10px 12px; border-color: rgba(199,243,91,.34); }
+.profile-page-actions > summary { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 9px; cursor: pointer; list-style: none; }
+.profile-page-actions > summary::-webkit-details-marker { display: none; }
+.profile-page-actions > summary span { color: #c7f35b; font: 800 .58rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.profile-page-actions > summary small { color: #9fbd9c; font-size: .59rem; }
+.profile-page-actions > summary b { color: #c7f35b; font-size: 1.1rem; font-weight: 400; }
+.profile-page-actions__menu { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.profile-page-actions__menu a { display: flex; align-items: center; justify-content: center; min-height: 34px; padding: 5px; color: #e5f7dd; border: 1px solid rgba(174,249,135,.2); border-radius: 8px; background: rgba(5,31,14,.7); font: 700 .53rem/1.15 "Inter", sans-serif; text-align: center; text-decoration: none; }
+.profile-page-actions__menu a:hover { color: #f5ffe9; border-color: rgba(199,243,91,.65); background: rgba(39,86,34,.72); }
+.profile-short-edit { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.profile-consent-list { display: grid; gap: 7px; }
+.profile-preferences-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.profile-preferences-grid > div { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; padding: 8px; border: 1px solid rgba(174,249,135,.16); border-radius: 9px; }
+.profile-preferences-grid .eyebrow { grid-column: 1 / -1; }
+.profile-preferences-grid button { min-height: 30px; padding: 4px; color: #a9c3aa; border: 1px solid rgba(174,249,135,.18); border-radius: 7px; background: rgba(5,31,14,.65); font: 700 .5rem/1 "Inter", sans-serif; }
+.profile-preferences-grid button.is-selected { color: #efffe9; border-color: rgba(199,243,91,.66); background: rgba(57,125,45,.35); }
+@media (max-width: 420px) { .profile-page-actions__menu { grid-template-columns: repeat(2, minmax(0,1fr)); }.profile-preferences-grid { grid-template-columns: 1fr; } }
