@@ -1,5 +1,5 @@
 import type { PrivateHabitatInput } from "@shared/blackwaterleaf-contract-v1";
-import { Box, Fish, Pencil, Plus, Save, Sprout } from "lucide-react";
+import { Box, Fish, Pencil, Plus, Save, Sprout, Trash2, X } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
@@ -166,11 +166,13 @@ export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[]
   const create = trpc.habitats.create.useMutation();
   const update = trpc.habitats.update.useMutation();
   const uploadImage = trpc.habitats.uploadImage.useMutation();
+  const deleteImage = trpc.habitats.deleteImage.useMutation();
   const [form, setForm] = useState<FormValues | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<NonNullable<HabitatRecord["images"]>[number] | null>(null);
   const records = (habitats.data ?? []) as unknown as HabitatRecord[];
   const shownKinds = visibleKinds?.length ? visibleKinds : (Object.keys(META) as HabitatKind[]);
   const visibleRecords = records.filter(record => shownKinds.includes(record.kind));
@@ -205,6 +207,15 @@ export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[]
       setStatus(error instanceof Error && error.message ? imageErrorMessage(error, locale) : copy.saveFailed);
     }
   };
+  const removeImage = async (habitatId: string, imageId: string) => {
+    try {
+      await deleteImage.mutateAsync({ habitatId: Number(habitatId), imageId: Number(imageId) });
+      await utils.habitats.mine.invalidate();
+      setStatus("Bild und Dateiverweis entfernt.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : copy.saveFailed);
+    }
+  };
 
   return (
     <details className="account-section habitat-section">
@@ -221,16 +232,18 @@ export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[]
         {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
         {visibleRecords.length ? <div className="habitat-list">{visibleRecords.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
-          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map(image => <img key={image.id} src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" />)}</div> : null}</div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
+          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map(image => <button type="button" className="habitat-image-thumb" key={image.id} onClick={() => setPreviewImage(image)} aria-label="Privates Bild vergrößern"><img src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" /></button>)}</div> : null}</div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
         })}</div> : <p className="habitat-empty">{copy.empty}</p>}
 
         {form ? <form className="habitat-editor" onSubmit={save}>
           <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>
           <div className="form-grid">{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
+          {editingId ? <div className="habitat-existing-images"><span>Gespeicherte Bilder</span>{(records.find(record => Number(record.id) === editingId)?.images ?? []).map(image => <div key={image.id}><button type="button" className="habitat-image-thumb" onClick={() => setPreviewImage(image)}><img src={image.accessUrl} alt="Privates Anlagenbild" /></button><button type="button" className="icon-button" aria-label="Bild und Datei entfernen" onClick={() => void removeImage(String(editingId), image.id)} disabled={deleteImage.isPending}><Trash2 size={14} /></button></div>)}</div> : null}
           <label className="habitat-image-picker"><span>Private Bilder hinzufügen · maximal 3</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={event => { setImageError(null); setImageFiles(Array.from(event.target.files ?? []).slice(0, 3)); }} />{imageFiles.length ? <small>{imageFiles.length} Bild{imageFiles.length === 1 ? "" : "er"} ausgewählt</small> : <small>JPG, PNG oder WebP · bleibt privat</small>}</label>
           {imageError ? <p className="form-status" role="alert">{imageError}</p> : null}
           <button type="submit" className="primary-action" disabled={create.isPending || update.isPending || uploadImage.isPending}><Save size={16} />{create.isPending || update.isPending || uploadImage.isPending ? copy.saving : editingId ? copy.update : copy.save}</button>
         </form> : null}
+        {previewImage ? <div className="habitat-image-lightbox" role="dialog" aria-modal="true" aria-label="Privates Bild"><button type="button" className="habitat-lightbox-close" onClick={() => setPreviewImage(null)} aria-label="Bild schließen"><X size={20} /></button><img src={previewImage.accessUrl} alt="Privates Anlagenbild vergrößert" /></div> : null}
         {status ? <p className="form-status" role="status">{status}</p> : null}
       </div>
     </details>

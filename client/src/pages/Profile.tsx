@@ -122,7 +122,7 @@ export default function Profile() {
         socialYoutube: form.youtube.trim() || null,
         socialFacebook: form.facebook.trim() || null,
       });
-      await utils.profile.me.invalidate();
+      await Promise.all([utils.profile.me.invalidate(), utils.auth.me.invalidate()]);
       setStatus(locale === "de" ? "Profil sicher gespeichert." : "Profile saved securely.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "profile_update_failed");

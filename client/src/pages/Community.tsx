@@ -66,7 +66,7 @@ export default function Community() {
   };
 
   return (
-    <div className="reference-page reference-page--botany">
+    <div className="reference-page reference-page--botany reference-page--community">
       <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow="GEMEINSAM WACHSEN" title={t("community.title")} subtitle={locale === "de" ? "Echte Naturmomente von echten Konten." : "Real nature moments from real accounts."} icon={UsersRound} badge="BLACKWATERLEAF" />
       <ReferenceActionGrid tone="botany" heading="COMMUNITY" actions={[
         { title: "Beobachten", note: "Moment sicher festhalten", icon: Eye, image: WORLD_ASSETS.botany, href: "/flow/foto" },

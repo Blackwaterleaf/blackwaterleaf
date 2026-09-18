@@ -131,6 +131,19 @@ export const habitatsRouter = router({
       return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
     }),
 
+  deleteImage: protectedProcedure
+    .input(z.object({ habitatId: z.number().int().positive(), imageId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const rows = await db.select({ id: mediaAssets.id })
+        .from(mediaAssets)
+        .where(and(eq(mediaAssets.id, input.imageId), eq(mediaAssets.habitatId, input.habitatId), eq(mediaAssets.userId, ctx.user.id)))
+        .limit(1);
+      if (!rows[0]) throw new TRPCError({ code: "NOT_FOUND", message: "habitat_image_not_found" });
+      await db.delete(mediaAssets).where(and(eq(mediaAssets.id, input.imageId), eq(mediaAssets.habitatId, input.habitatId), eq(mediaAssets.userId, ctx.user.id)));
+      return { success: true } as const;
+    }),
+
   countByKind: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
     const rows = await db
