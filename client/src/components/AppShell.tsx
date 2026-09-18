@@ -71,12 +71,12 @@ export function AppShell({ children }: PropsWithChildren) {
             <div className="profile-quick-menu__panel">
               <p className="profile-quick-menu__eyebrow">PROFIL · SCHNELLWAHL</p>
               <Link href="/profile" className="profile-quick-menu__item">Profil öffnen</Link>
-              <Link href="/profile#profile-edit" className="profile-quick-menu__item">Name &amp; Profil bearbeiten</Link>
-              <Link href="/profile#profile-avatar" className="profile-quick-menu__item">Profilbild bearbeiten</Link>
+              <Link href="/profile/settings#profile-edit" className="profile-quick-menu__item">Profil verwalten</Link>
+              <Link href="/profile/settings#profile-avatar" className="profile-quick-menu__item">Profilbild bearbeiten</Link>
               <Link href="/world/botany" className="profile-quick-menu__item">01 · Botanik</Link>
               <Link href="/world/aquarium" className="profile-quick-menu__item">02 · Aquaristik</Link>
               <Link href="/world/terrarium" className="profile-quick-menu__item">03 · Terraristik</Link>
-              <Link href="/profile#profile-tools" className="profile-quick-menu__item">Weitere Werkzeuge</Link>
+              <Link href="/profile/settings#profile-tools" className="profile-quick-menu__item">Einstellungen &amp; Werkzeuge</Link>
               {profile.data?.role === "admin" ? <Link href="/admin" className="profile-quick-menu__item profile-quick-menu__item--admin">Admin-Dashboard</Link> : null}
             </div>
           </details>

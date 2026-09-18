@@ -35,6 +35,7 @@ function Router() {
         <Route path={"/explore"} component={Explore} />
         <Route path={"/community"} component={Community} />
         <Route path={"/assistant"} component={Assistant} />
+        <Route path={"/profile/settings"} component={Profile} />
         <Route path={"/profile"} component={Profile} />
         <Route path={"/knowledge"} component={Knowledge} />
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />

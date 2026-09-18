@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { HabitatProfiles } from "@/components/HabitatProfiles";
+import { HabitatHubCards, HabitatProfiles } from "@/components/HabitatProfiles";
 import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { SmartDeviceDialog } from "@/components/SmartDeviceDialog";
@@ -10,7 +10,7 @@ import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { AlertTriangle, Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 const POLICY_VERSION = "privacy-2026-09-16-v1";
 type ProfileForm = {
@@ -31,6 +31,8 @@ const EMPTY_PROFILE: ProfileForm = {
 
 export default function Profile() {
   const auth = useAuth();
+  const [location] = useLocation();
+  const settingsOnly = location.startsWith("/profile/settings");
   const utils = trpc.useUtils();
   const { locale, unitSystem, setLocale, setUnitSystem, t } = useI18n();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
@@ -180,7 +182,7 @@ export default function Profile() {
             {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
 
-          <details id="profile-edit" className="account-section glass-panel">
+          {settingsOnly ? <details id="profile-edit" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <div className="form-grid">
@@ -197,9 +199,9 @@ export default function Profile() {
               <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
               <button type="submit" className="primary-action" disabled={update.isPending}><Save size={16} />{update.isPending ? t("common.loading") : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
             </form>
-          </details>
+          </details> : null}
 
-          <details id="profile-display-settings" className="account-section glass-panel">
+          {settingsOnly ? <details id="profile-display-settings" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Datenschutz & Freigaben" : "Privacy & permissions"}</span><small>{locale === "de" ? "Du entscheidest über jede Freigabe" : "You control every permission"}</small></summary>
             <section className="consent-panel">
               <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
@@ -208,9 +210,9 @@ export default function Profile() {
               <ConsentToggle label={locale === "de" ? "Community-Beiträge veröffentlichen" : "Publish community posts"} checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
               <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
             </section>
-          </details>
+          </details> : null}
 
-          <div id="profile-tools">
+          {settingsOnly ? <div id="profile-tools">
             <HabitatProfiles />
             <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
             <section className="account-danger-zone glass-panel" aria-labelledby="account-close-title">
@@ -218,12 +220,12 @@ export default function Profile() {
               <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
               <button type="button" className="danger-action" disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}><AlertTriangle size={16} />{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
             </section>
-          </div>
+          </div> : <HabitatHubCards />}
 
-          <section className="reference-settings-grid">
+          {settingsOnly ? <section className="reference-settings-grid">
             <article className="reference-setting-card"><Languages size={20} /><strong>{t("common.language")}</strong><div className="segmented-control"><button type="button" className={locale === "de" ? "active" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "active" : ""} onClick={() => void changeLocale("en")}>English</button></div></article>
             <article className="reference-setting-card"><Ruler size={20} /><strong>{t("common.units")}</strong><div className="segmented-control"><button type="button" className={unitSystem === "metric" ? "active" : ""} onClick={() => void changeUnits("metric")}>{t("common.metric")}</button><button type="button" className={unitSystem === "imperial" ? "active" : ""} onClick={() => void changeUnits("imperial")}>{t("common.imperial")}</button></div></article>
-          </section>
+          </section> : null}
           {status ? <p className="form-status" role="status">{status}</p> : null}
         </>
       )}

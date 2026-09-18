@@ -3,6 +3,7 @@ import { Box, Fish, Pencil, Plus, Save, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
+import { Link } from "wouter";
 
 type HabitatKind = PrivateHabitatInput["kind"];
 type HabitatRecord = {
@@ -220,4 +221,29 @@ export function HabitatProfiles() {
       </div>
     </details>
   );
+}
+
+export function HabitatHubCards() {
+  const { locale } = useI18n();
+  const copy = habitatText(locale);
+  const habitats = trpc.habitats.mine.useQuery();
+  const records = (habitats.data ?? []) as unknown as HabitatRecord[];
+  const cards: { kind: HabitatKind; accent: string; icon: typeof Fish }[] = [
+    { kind: "plant", accent: "mint", icon: Sprout },
+    { kind: "aquarium", accent: "cyan", icon: Fish },
+    { kind: "terrarium", accent: "gold", icon: Box },
+  ];
+  return <section className="profile-hub-habitats" aria-labelledby="profile-hub-habitats-title">
+    <div className="profile-hub-section-heading"><div><p className="eyebrow">[PRIVAT / DEINE ANLAGEN]</p><h2 id="profile-hub-habitats-title">Meine Anlagen &amp; Werte</h2><p>Wähle direkt den Bereich, den du verwalten möchtest.</p></div><Link className="secondary-action" href="/profile/settings#profile-tools">Alle Einstellungen</Link></div>
+    <div className="profile-hub-habitat-grid">{cards.map(card => {
+      const Icon = card.icon;
+      const items = records.filter(record => record.kind === card.kind);
+      const first = items[0];
+      return <Link key={card.kind} href="/profile/settings#profile-tools" className={`profile-hub-habitat-card profile-hub-habitat-card--${card.accent}`}>
+        <span className="profile-hub-habitat-icon"><Icon size={22} /></span>
+        <span className="profile-hub-habitat-copy"><strong>{copy.kinds[card.kind].plural}</strong><small>{items.length ? `${items.length} ${items.length === 1 ? "Anlage" : "Anlagen"}` : "Noch keine Anlage"}</small>{first ? <em>{first.name}</em> : <em>Jetzt einrichten</em>}</span>
+        <span className="profile-hub-habitat-arrow" aria-hidden="true">→</span>
+      </Link>;
+    })}</div>
+  </section>;
 }
