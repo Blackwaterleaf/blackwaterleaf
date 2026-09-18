@@ -2,17 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { StatePanel } from "@/components/StatePanel";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
-import { Camera, ChevronRight, Eye, Leaf, MoreVertical, Pencil, RefreshCw, Ruler, Settings, ShieldCheck, Trophy, UserRound, Wrench } from "lucide-react";
+import { Camera, ChevronRight, Leaf, Pencil, RefreshCw, Settings, Trophy, UserRound } from "lucide-react";
 import { Link } from "wouter";
-
-const actionItems = [
-  ["01 · PRIVAT", "#profile-consents", ShieldCheck],
-  ["02 · ANLAGEN", "#habitats", Leaf],
-  ["03 · PUNKTE", "#progress", Trophy],
-  ["DATENSCHUTZ & FREIGABEN", "#profile-consents", Eye],
-  ["SPRACHE & EINHEITEN", "#profile-preferences", Ruler],
-  ["WEITERE WERKZEUGE", "#profile-tools", Wrench],
-] as const;
 
 export default function ProfileHome() {
   const auth = useAuth();
@@ -28,10 +19,7 @@ export default function ProfileHome() {
 
   const visibleHabitatCount = habitats.data?.length ?? 0;
   return <div className="reference-page reference-page--botany profile-page-only profile-reference-home">
-    <section className="profile-reference-actions glass-panel">
-      <div className="profile-reference-section-head"><span className="eyebrow">AKTIONEN</span><span>Privat verwalten</span><Link href="/profile/settings#profile-edit" aria-label="Profil bearbeiten"><MoreVertical size={17} /></Link></div>
-      <div className="profile-reference-action-grid">{actionItems.map(([label, hash, Icon]) => <Link key={label} href={`/profile/settings${hash}`} className="profile-reference-action"><Icon size={16} /><span>{label}</span><ChevronRight size={14} /></Link>)}</div>
-    </section>
+    <Link className="profile-reference-private-entry glass-panel" href="/profile/private"><Settings size={17} /><span><strong>PROFIL VERWALTEN</strong><small>Privatbereich, Anzeigename und Profilbild bearbeiten</small></span><ChevronRight size={16} /></Link>
 
     <section className="profile-reference-identity glass-panel">
       <div className="profile-reference-avatar">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={34} />}</div>

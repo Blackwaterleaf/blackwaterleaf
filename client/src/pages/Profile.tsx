@@ -7,7 +7,7 @@ import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
 import { AlertTriangle, Camera, Leaf, Loader2, LockKeyhole, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 const POLICY_VERSION = "privacy-2026-09-16-v1";
 type ProfileForm = {
@@ -28,6 +28,7 @@ const EMPTY_PROFILE: ProfileForm = {
 
 export default function Profile() {
   const auth = useAuth();
+  const [location] = useLocation();
   const utils = trpc.useUtils();
   const { locale, unitSystem, setLocale, setUnitSystem, t } = useI18n();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
@@ -157,25 +158,16 @@ export default function Profile() {
     }
   };
 
+  const section = location.startsWith("/profile/") ? location.split("/")[2] : "settings";
   return (
-    <div className="reference-page reference-page--botany profile-page-only">
+    <div className={`reference-page reference-page--botany profile-page-only profile-settings-page profile-section-${section}`}>
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
         <StatePanel code="PROFILE/LOAD" state="loading" title={t("common.loading")} body={t("profile.signedOut")} />
       ) : profile.isError || !profile.data ? (
         <StatePanel code="PROFILE/ERROR" state="error" title={t("common.error")} body={t("profile.signedOut")} />
       ) : (
         <>
-          <details id="profile-private" className="profile-page-actions glass-panel" open>
-            <summary><span>AKTIONEN</span><small>Privat verwalten</small><b>+</b></summary>
-            <nav className="profile-page-actions__menu" aria-label="Profilaktionen">
-              <Link href="/profile#profile-edit">01 · Privat</Link>
-              <Link href="/profile#profile-consents">Datenschutz & Freigaben</Link>
-              <Link href="/profile#habitats">02 · Anlagen</Link>
-              <Link href="/profile#progress">03 · Punkte</Link>
-              <Link href="/profile#profile-preferences">Sprache & Einheiten</Link>
-              <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
-            </nav>
-          </details>
+          <div className="profile-subpage-heading"><Link href="/profile">‹ Profil</Link><span className="eyebrow">BLACKWATERLEAF · PROFIL</span><h1>{section === "private" ? "PRIVATBEREICH" : section === "habitats" ? "MEINE ANLAGEN" : section === "progress" ? "PUNKTE & FORTSCHRITT" : section === "privacy" ? "DATENSCHUTZ & FREIGABEN" : section === "preferences" ? "SPRACHE & EINHEITEN" : section === "tools" ? "WEITERE WERKZEUGE" : "PROFIL EINSTELLUNGEN"}</h1><p>Nur die Funktionen dieses Bereichs werden hier angezeigt.</p></div>
           <section className="profile-card glass-panel" id="progress">
             <div className="profile-identity">
               <div className="profile-avatar" id="profile-image">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>

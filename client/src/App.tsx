@@ -46,6 +46,12 @@ function Router() {
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/profile/settings"} component={Profile} />
+        <Route path={"/profile/private"} component={Profile} />
+        <Route path={"/profile/habitats"} component={Profile} />
+        <Route path={"/profile/progress"} component={Profile} />
+        <Route path={"/profile/privacy"} component={Profile} />
+        <Route path={"/profile/preferences"} component={Profile} />
+        <Route path={"/profile/tools"} component={Profile} />
         <Route path={"/knowledge"} component={Knowledge} />
         <Route path={"/wissen"} component={Knowledge} />
         <Route path={"/feed"} component={Community} />

@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, MoreVertical, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
+import { Bell, Compass, Home, Menu, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -107,16 +107,16 @@ export function AppShell({ children }: PropsWithChildren) {
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
           <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
           <details className="profile-header-menu">
-            <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><UserRound size={18} /><MoreVertical className="profile-header-menu__dots" size={11} /></summary>
+            <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
             <div className="profile-header-menu__panel">
-              <span className="profile-header-menu__eyebrow">PROFIL · SCHNELLWAHL</span>
+              <span className="profile-header-menu__eyebrow">PROFIL · EINSTELLUNGEN</span>
               <Link href="/profile">Profil öffnen</Link>
-              <Link href="/profile/settings#profile-edit">Name & Profil bearbeiten</Link>
-              <Link href="/profile/settings#profile-avatar">Profilbild bearbeiten</Link>
-              <Link href="/profile/settings#profile-consents">Datenschutz & Freigaben</Link>
-              <Link href="/profile/settings#profile-preferences">Sprache</Link>
-              <Link href="/profile/settings#profile-preferences">Einheiten</Link>
-              <Link href="/profile/settings#profile-tools">Weitere Werkzeuge</Link>
+              <Link href="/profile/private">Privatbereich & Profil bearbeiten</Link>
+              <Link href="/profile/habitats">Meine Anlagen</Link>
+              <Link href="/profile/progress">Punkte & Fortschritt</Link>
+              <Link href="/profile/privacy">Datenschutz & Freigaben</Link>
+              <Link href="/profile/preferences">Sprache & Einheiten</Link>
+              <Link href="/profile/tools">Weitere Werkzeuge</Link>
             </div>
           </details>
         </div>
