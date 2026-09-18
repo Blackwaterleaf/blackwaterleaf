@@ -844,7 +844,7 @@ function Header({
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.realmText}>Name & Profil bearbeiten</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.realmText}>Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("display"); }}><Text style={styles.realmText}>01–03 · Anzeigen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>PROFIL & EINSTELLUNGEN</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>Weitere Werkzeuge</Text></Pressable>
       </View> : null}
     </View>
@@ -2629,7 +2629,9 @@ function ProfileScreen({
   const [draftBio, setDraftBio] = useState(account?.bio ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
   useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); }, [account?.name, account?.bio]);
+  useEffect(() => { if (token) void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([])); }, [token]);
   const saveNativeProfile = async () => {
     setProfileSaving(true); setProfileMessage(null);
     try { await onUpdateProfile({ name: draftName.trim() || null, bio: draftBio.trim() || null }); setProfileMessage("Profil sicher gespeichert."); }
@@ -2698,6 +2700,15 @@ function ProfileScreen({
           text={error ?? "Private Daten konnten nicht geladen werden."}
         />
       ) : null}
+      <SectionLabel
+        tone={tone}
+        overline="PRIVAT / DEIN KONTO"
+        title="EIGENE BEITRÄGE"
+      />
+      <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        {ownPosts.length ? ownPosts.slice(0, 12).map(post => <View key={post.id} style={styles.profilePostRow}><Text style={[styles.chip, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "OHNE BEREICH"}</Text><Text style={styles.realmText}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></View>) : <Text style={styles.miniCopy}>Noch keine eigenen Beiträge. Öffne Community, um deinen ersten Naturmoment zu erstellen.</Text>}
+        <SecondaryButton tone={tone} label="BEITRAG ERSTELLEN" icon="create-outline" onPress={() => navigate("post")} />
+      </View>
       <SectionLabel
         tone={tone}
         overline="PRIVAT / DEIN KONTO"
@@ -4294,6 +4305,8 @@ const styles = StyleSheet.create({
     backgroundColor: c.raised,
   },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
+  profilePostsPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
+  profilePostRow: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.16)", backgroundColor: "rgba(0,0,0,.14)", gap: 4 },
   profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
   profileEditPanel: { gap: 8 },
   profileInput: { minHeight: 42, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", borderRadius: 9, paddingHorizontal: 11, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
