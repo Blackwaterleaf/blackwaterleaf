@@ -8,7 +8,7 @@ import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
-import { Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Camera, Languages, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -39,8 +39,10 @@ export default function Profile() {
   const update = trpc.profile.update.useMutation();
   const setConsent = trpc.profile.setConsent.useMutation();
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
+  const closeAccount = trpc.profile.closeAccount.useMutation();
   const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
   const [status, setStatus] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   useEffect(() => {
     if (!profile.data) return;
@@ -126,6 +128,16 @@ export default function Profile() {
     }
   };
 
+  const deleteAccount = async () => {
+    setStatus(null);
+    try {
+      await closeAccount.mutateAsync({ confirmation: "LÖSCHEN" });
+      await auth.logout();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "account_close_failed");
+    }
+  };
+
   return (
     <div className="reference-page reference-page--botany">
       <LiveSensorStrip compact />
@@ -201,6 +213,11 @@ export default function Profile() {
           <div id="profile-tools">
             <HabitatProfiles />
             <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
+            <section className="account-danger-zone glass-panel" aria-labelledby="account-close-title">
+              <div><span className="eyebrow">KONTO</span><h2 id="account-close-title">Konto schließen</h2><p>Deine persönlichen Profildaten werden anonymisiert und der Zugang wird deaktiviert. Dieser Schritt kann nicht rückgängig gemacht werden.</p></div>
+              <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
+              <button type="button" className="danger-action" disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}><AlertTriangle size={16} />{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
+            </section>
           </div>
 
           <section className="reference-settings-grid">
