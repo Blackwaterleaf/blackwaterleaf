@@ -112,8 +112,9 @@ export function AppShell({ children }: PropsWithChildren) {
               <span className="profile-header-menu__eyebrow">PROFIL · SCHNELLWAHL</span>
               <Link href="/profile">Profil öffnen</Link>
               <Link href="/profile#profile-edit">Name & Profil bearbeiten</Link>
-              <Link href="/profile#profile-image-edit">Profilbild bearbeiten</Link>
-              <Link href="/profile#profile-menu">01–03 & Einstellungen</Link>
+              <Link href="/profile#profile-edit">Profilbild bearbeiten</Link>
+              <Link href="/profile#profile-display-settings">01–03 · Anzeigen</Link>
+              <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
             </div>
           </details>
         </div>

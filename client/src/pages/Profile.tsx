@@ -5,7 +5,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Camera, Languages, Leaf, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { Camera, Leaf, LockKeyhole, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -38,6 +38,7 @@ export default function Profile() {
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
   const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
   const [status, setStatus] = useState<string | null>(null);
+  const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
 
   useEffect(() => {
     if (!profile.data) return;
@@ -53,11 +54,27 @@ export default function Profile() {
       facebook: profile.data.socialLinks.facebook ?? "",
       profileVisibility: profile.data.profileVisibility,
     });
+    const stored = window.localStorage.getItem(`bwl-profile-kinds-${profile.data.id}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as string[];
+        const valid = parsed.filter((kind): kind is "plant" | "aquarium" | "terrarium" => ["plant", "aquarium", "terrarium"].includes(kind));
+        if (valid.length) setVisibleKinds(valid);
+      } catch { /* ignore malformed local preference */ }
+    }
   }, [profile.data]);
+
+  const toggleVisibleKind = (kind: "plant" | "aquarium" | "terrarium") => {
+    setVisibleKinds(current => {
+      const next = current.includes(kind) ? current.filter(value => value !== kind) : [...current, kind];
+      if (profile.data?.id) window.localStorage.setItem(`bwl-profile-kinds-${profile.data.id}`, JSON.stringify(next));
+      return next.length ? next : current;
+    });
+  };
 
   useEffect(() => {
     const openHashTarget = () => {
-      const target = window.location.hash === "#profile-edit" ? "profile-edit" : window.location.hash === "#privacy" ? "privacy" : null;
+      const target = window.location.hash === "#profile-edit" ? "profile-edit" : window.location.hash === "#profile-display-settings" ? "profile-display-settings" : window.location.hash === "#profile-tools" ? "profile-tools" : null;
       if (target) (document.getElementById(target) as HTMLDetailsElement | null)?.setAttribute("open", "");
     };
     openHashTarget();
@@ -127,11 +144,6 @@ export default function Profile() {
 
   return (
     <div className="reference-page reference-page--botany profile-page-only">
-          <section className="profile-page-heading glass-panel" aria-labelledby="profile-page-title">
-            <span className="profile-page-heading__icon"><UserRound size={20} /></span>
-            <div><span className="eyebrow">{t("profile.eyebrow")}</span><h1 id="profile-page-title">{t("profile.title")}</h1><p>{locale === "de" ? "Privat, sicher und in deiner Hand." : "Private, secure and in your hands."}</p></div>
-          </section>
-
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
         <StatePanel code="PROFILE/LOAD" state="loading" title={t("common.loading")} body={t("profile.signedOut")} />
       ) : profile.isError || !profile.data ? (
@@ -143,43 +155,25 @@ export default function Profile() {
               <div className="profile-avatar" id="profile-image">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
               <div><h2>{profile.data.name ?? profile.data.username ?? "BlackWaterLeaf"}</h2><p>{profile.data.email ?? ""}</p></div>
             </div>
-            <div className="verified-grid">
-              <div><small>{locale === "de" ? "Rolle" : "Role"}</small><strong>{profile.data.role}</strong></div>
-              <div><small>{locale === "de" ? "Status" : "Status"}</small><strong>{profile.data.status}</strong></div>
-              <div><small>{locale === "de" ? "Sichtbar" : "Visible"}</small><strong>{profile.data.profileVisibility}</strong></div>
-            </div>
             {experience.data?.status === "ready" ? (
               <div className="verified-grid">
                 <div><small><Trophy size={13} /> XP</small><strong>{experience.data.totalXp}</strong></div>
                 <div><small>{locale === "de" ? "Level" : "Level"}</small><strong>{experience.data.level}</strong></div>
-                <div><small>{locale === "de" ? "Nächstes Level" : "Next level"}</small><strong>{experience.data.nextLevelXp} XP</strong></div>
               </div>
-            ) : <p className="form-status">{locale === "de" ? "XP wird nach der Staging-Migration aktiviert." : "XP activates after the staging migration."}</p>}
-            <div className="account-actions">
-              <label id="profile-image-edit" className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild" : "Profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
-              <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
-            </div>
-            {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
+            ) : <p className="form-status">{locale === "de" ? "Punkte werden geladen." : "Points are loading."}</p>}
           </section>
 
-          <details id="profile-menu" className="profile-quick-menu glass-panel" open>
-            <summary><span className="profile-quick-menu__label">PROFIL · MENÜ</span><small>Privat · Anlagen · Punkte · Einstellungen</small><b>+</b></summary>
-            <div className="profile-quick-menu__items">
-              <a href="#privacy"><b>01</b><LockKeyhole size={14} /><span>Privat</span></a>
-              <a href="#habitats"><b>02</b><Leaf size={14} /><span>Anlagen</span></a>
-              <a href="#progress"><b>03</b><Trophy size={14} /><span>Punkte</span></a>
-              <a href="#settings"><Languages size={14} /><span>Sprache</span></a>
-              <a href="#settings"><Ruler size={14} /><span>Einheiten</span></a>
-            </div>
-            <div id="settings" className="profile-quick-menu__settings">
-              <article className="reference-setting-card"><Languages size={18} /><strong>{t("common.language")}</strong><div className="segmented-control"><button type="button" className={locale === "de" ? "active" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "active" : ""} onClick={() => void changeLocale("en")}>English</button></div></article>
-              <article className="reference-setting-card"><Ruler size={18} /><strong>{t("common.units")}</strong><div className="segmented-control"><button type="button" className={unitSystem === "metric" ? "active" : ""} onClick={() => void changeUnits("metric")}>{t("common.metric")}</button><button type="button" className={unitSystem === "imperial" ? "active" : ""} onClick={() => void changeUnits("imperial")}>{t("common.imperial")}</button></div></article>
+          <details id="profile-display-settings" className="profile-display-settings glass-panel">
+            <summary><span>ANZEIGEN</span><small>Welche Anlagen sollen im Profil erscheinen?</small><b>+</b></summary>
+            <div className="profile-display-settings__items">
+              {([['plant', 'Pflanzen', Leaf], ['aquarium', 'Aquarium', null], ['terrarium', 'Terraristik', null]] as const).map(([kind, label, Icon]) => <button key={kind} type="button" className={visibleKinds.includes(kind) ? "is-selected" : ""} onClick={() => toggleVisibleKind(kind)}>{Icon ? <Icon size={15} /> : <span className="profile-display-settings__dot" />}<span>{label}</span><b>{visibleKinds.includes(kind) ? "✓" : "○"}</b></button>)}
             </div>
           </details>
 
-          <details id="profile-edit" className="account-section glass-panel">
+          <details id="profile-edit" className="account-section glass-panel profile-menu-only">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
+              <label id="profile-image-edit" className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild ändern" : "Change profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
               <div className="form-grid">
                 <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
                 <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
@@ -196,27 +190,15 @@ export default function Profile() {
             </form>
           </details>
 
-          <details id="privacy" className="account-section glass-panel">
-            <summary><span>{locale === "de" ? "Datenschutz & Freigaben" : "Privacy & permissions"}</span><small>{locale === "de" ? "Du entscheidest über jede Freigabe" : "You control every permission"}</small></summary>
-            <section className="consent-panel">
-              <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
-              <ConsentToggle label={locale === "de" ? "Beobachtungen veröffentlichen" : "Publish observations"} checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
-              <ConsentToggle label={locale === "de" ? "Bilder sicher verarbeiten" : "Process images securely"} checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
-              <ConsentToggle label={locale === "de" ? "Community-Beiträge veröffentlichen" : "Publish community posts"} checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
-              <ConsentToggle label={locale === "de" ? "KI-Anfragen sicher verarbeiten" : "Process AI requests securely"} checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
-            </section>
-          </details>
+          <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} /></section>
 
-          <section id="habitats" className="profile-habitats-section"><HabitatProfiles /></section>
-          <section className="habitat-builder-entry glass-panel">
-            <div>
-              <span className="eyebrow">[HABITAT BUILDER]</span>
-              <h2>Deinen Lebensraum planen</h2>
-              <p>Wähle ein privates Aquarium oder Terrarium als Grundlage, prüfe Maße und Struktur und exportiere deinen Entwurf. Die Planung erteilt keine Haltungs- oder Sicherheitsfreigabe.</p>
+          <details id="profile-tools" className="profile-secondary-tools account-section glass-panel">
+            <summary><span>WEITERE WERKZEUGE</span><small>Nur bei Bedarf öffnen</small></summary>
+            <div className="profile-secondary-tools__body">
+              <Link className="secondary-action" href="/habitat-builder"><Ruler size={16} />HABITAT PLANEN</Link>
+              <div className="profile-secondary-tools__smart"><span className="eyebrow">SMART-WERTE</span><span className="sr-only">Smart-Werte verbinden</span><SmartDeviceDialog /></div>
             </div>
-            <Link className="secondary-action" href="/habitat-builder"><Ruler size={16} />HABITAT PLANEN</Link>
-          </section>
-          <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
+          </details>
 
           {status ? <p className="form-status" role="status">{status}</p> : null}
         </>

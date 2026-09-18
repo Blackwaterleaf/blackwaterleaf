@@ -314,6 +314,7 @@ function NaturApp() {
   const [state, setState] = useState<State>("loading");
   const [error, setError] = useState<string | null>(null);
   const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
+  const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
 
   const tone =
     screen === "collection"
@@ -725,6 +726,8 @@ function NaturApp() {
             token={token}
             account={account}
             habitats={habitats}
+            visibleKinds={visibleKinds}
+            onToggleVisibleKind={kind => setVisibleKinds(current => current.includes(kind) ? current.length > 1 ? current.filter(value => value !== kind) : current : [...current, kind])}
             state={state}
             error={error}
             onSignIn={signIn}
@@ -788,6 +791,7 @@ function Header({
   onNotifications: () => void;
   onProfile: () => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <View style={[styles.header, { borderBottomColor: `${tone.accent}55` }]}>
       <View style={styles.brandRow}>
@@ -822,9 +826,15 @@ function Header({
           icon={account ? "person" : "person-outline"}
           color={account ? tone.accent : c.muted}
           label="Profil"
-          onPress={onProfile}
+          onPress={() => setMenuOpen(current => !current)}
         />
       </View>
+      {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}>
+        <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>Name & Profilbild bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>01–03 · Anzeigen</Text></Pressable>
+      </View> : null}
     </View>
   );
 }
@@ -2575,6 +2585,8 @@ function ProfileScreen({
   token,
   account,
   habitats,
+  visibleKinds,
+  onToggleVisibleKind,
   state,
   error,
   onSignIn,
@@ -2586,6 +2598,8 @@ function ProfileScreen({
   token: string | null;
   account: Account | null;
   habitats: Habitat[];
+  visibleKinds: Array<"plant" | "aquarium" | "terrarium">;
+  onToggleVisibleKind: (kind: "plant" | "aquarium" | "terrarium") => void;
   state: State;
   error: string | null;
   onSignIn: () => Promise<void>;
@@ -2638,9 +2652,19 @@ function ProfileScreen({
         overline="PRIVAT / DEIN KONTO"
         title="DEINE ANLAGEN"
       />
+      <View style={[styles.profileDisplayPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <Text style={[styles.chip, { color: tone.accent }]}>ANZEIGEN</Text>
+        <Text style={styles.miniCopy}>Wähle, welche Anlagearten in deinem Profil erscheinen.</Text>
+        <View style={styles.profileDisplayRow}>
+          {([['plant', 'Pflanzen', 'leaf-outline'], ['aquarium', 'Aquarium', 'water-outline'], ['terrarium', 'Terraristik', 'bug-outline']] as const).map(([kind, label, icon]) => {
+            const selected = visibleKinds.includes(kind);
+            return <Pressable key={kind} onPress={() => onToggleVisibleKind(kind)} style={[styles.profileDisplayChoice, { borderColor: selected ? tone.accent : `${tone.accent}33`, backgroundColor: selected ? `${tone.accent}1c` : 'rgba(0,0,0,.14)' }]}><Ionicons name={icon} size={16} color={tone.accent} /><Text style={[styles.realmText, selected && { color: c.text }]}>{label}</Text><Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={tone.accent} /></Pressable>;
+          })}
+        </View>
+      </View>
       <ActionGrid
         tone={tone}
-        actions={[
+        actions={([
           {
             title: "Pflanzen",
             note: `${habitats.filter(item => item.kind === "plant").length} private Anlagen`,
@@ -2669,7 +2693,7 @@ function ProfileScreen({
             image: ASSETS.ai,
             onPress: () => navigate("assistant"),
           },
-        ]}
+        ] as Action[]).filter(action => action.title === "Pflanzen" ? visibleKinds.includes("plant") : action.title === "Aquarien" ? visibleKinds.includes("aquarium") : action.title === "Terrarien" ? visibleKinds.includes("terrarium") : false)}
       />
     </Page>
   );
@@ -3731,6 +3755,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerActions: { flexDirection: "row", gap: 7 },
+  nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 205, padding: 10, borderRadius: 12, borderWidth: 1, gap: 6 },
+  nativeProfileMenuItem: { minHeight: 34, paddingHorizontal: 9, justifyContent: "center", borderRadius: 8, backgroundColor: "rgba(0,0,0,.18)" },
   headerAction: {
     width: 34,
     height: 34,
@@ -4217,6 +4243,9 @@ const styles = StyleSheet.create({
     backgroundColor: c.raised,
   },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
+  profileDisplayPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 6 },
+  profileDisplayRow: { gap: 6 },
+  profileDisplayChoice: { minHeight: 38, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 7 },
   realmPicker: { flexDirection: "row", gap: 7 },
   realmButton: {
     flex: 1,

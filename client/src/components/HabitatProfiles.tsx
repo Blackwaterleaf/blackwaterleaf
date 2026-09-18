@@ -158,7 +158,7 @@ export function summarizeHabitat(record: Pick<HabitatRecord, "kind" | "details">
   return [numericSummary(details.volumeLiters, "L"), numericSummary(details.humidityPercent, copy.relativeHumidity), numericSummary(details.dayTemperatureC, "°C")].filter(Boolean).join(" · ");
 }
 
-export function HabitatProfiles() {
+export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[] } = {}) {
   const { locale } = useI18n();
   const copy = habitatText(locale);
   const utils = trpc.useUtils();
@@ -172,6 +172,8 @@ export function HabitatProfiles() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const records = (habitats.data ?? []) as unknown as HabitatRecord[];
+  const shownKinds = visibleKinds?.length ? visibleKinds : (Object.keys(META) as HabitatKind[]);
+  const visibleRecords = records.filter(record => shownKinds.includes(record.kind));
   const counts = useMemo(() => ({
     aquarium: records.filter(item => item.kind === "aquarium").length,
     plant: records.filter(item => item.kind === "plant").length,
@@ -210,14 +212,14 @@ export function HabitatProfiles() {
       <div className="habitat-body">
         <p className="habitat-intro">{copy.intro}</p>
         <div className="habitat-kind-grid" aria-label={copy.addHabitat}>
-          {(Object.keys(META) as HabitatKind[]).map(kind => {
+          {shownKinds.map(kind => {
             const meta = META[kind]; const Icon = meta.icon;
             return <button key={kind} type="button" className={`habitat-kind habitat-kind--${meta.accent}`} onClick={() => startNew(kind)}><Icon size={18} /><span>{copy.kinds[kind].plural}</span><small>{copy.count(counts[kind])}</small><Plus size={14} /></button>;
           })}
         </div>
 
         {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
-        {records.length ? <div className="habitat-list">{records.map(record => {
+        {visibleRecords.length ? <div className="habitat-list">{visibleRecords.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
           return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map(image => <img key={image.id} src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" />)}</div> : null}</div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
         })}</div> : <p className="habitat-empty">{copy.empty}</p>}

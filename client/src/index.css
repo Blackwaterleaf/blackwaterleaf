@@ -1114,3 +1114,22 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .smart-metric-option i { justify-self: end; width: 20px; height: 20px; border: 1px solid rgba(185,248,155,.28); border-radius: 50%; position: relative; }
 .smart-metric-option.is-selected i { border: 1px solid #b9fc8a; background: #b9fc8a; }
 .smart-metric-option.is-selected i::after { position: absolute; top: 4px; left: 6px; width: 5px; height: 9px; border-right: 2px solid #12331d; border-bottom: 2px solid #12331d; content: ""; transform: rotate(45deg); }
+
+.profile-display-settings { display: grid; gap: 8px; padding: 10px 12px; border-color: rgba(199,243,91,.28); }
+.profile-display-settings > summary { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 9px; cursor: pointer; list-style: none; }
+.profile-display-settings > summary::-webkit-details-marker { display: none; }
+.profile-display-settings > summary span { color: #c7f35b; font: 800 .55rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.profile-display-settings > summary small { color: #9fbd9c; font-size: .58rem; }
+.profile-display-settings > summary b { color: #c7f35b; font-size: 1.15rem; font-weight: 400; }
+.profile-display-settings[open] > summary b { transform: rotate(45deg); }
+.profile-display-settings__items { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; }
+.profile-display-settings__items button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 35px; padding: 5px; color: #aac4a7; border: 1px solid rgba(174,249,135,.18); border-radius: 8px; background: rgba(5,31,14,.65); font: 700 .53rem/1.1 "Inter", sans-serif; cursor: pointer; }
+.profile-display-settings__items button.is-selected { color: #efffe9; border-color: rgba(199,243,91,.66); background: rgba(57,125,45,.35); }
+.profile-display-settings__items button b { margin-left: auto; color: #c7f35b; font-size: .75rem; }
+.profile-display-settings__dot { width: 13px; height: 13px; border: 1px solid #c7f35b; border-radius: 50%; }
+
+/* Secondary actions are reached from the top-right profile popup, not shown in the core profile flow. */
+.profile-menu-only, .profile-secondary-tools { display: none; }
+.profile-menu-only:target, .profile-secondary-tools:target { display: grid; }
+.profile-secondary-tools__body { display: grid; gap: 9px; }
+.profile-secondary-tools__smart { display: grid; gap: 7px; }
