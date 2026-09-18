@@ -58,6 +58,14 @@ export default function Profile() {
     });
   }, [profile.data]);
 
+  useEffect(() => {
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    if (target instanceof HTMLDetailsElement) target.open = true;
+    window.requestAnimationFrame(() => target?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, []);
+
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
   const updateConsent = async (purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing", granted: boolean) => {
@@ -153,19 +161,19 @@ export default function Profile() {
                 <div><small>{locale === "de" ? "Nächstes Level" : "Next level"}</small><strong>{experience.data.nextLevelXp} XP</strong></div>
               </div>
             ) : <p className="form-status">{locale === "de" ? "XP wird nach der Staging-Migration aktiviert." : "XP activates after the staging migration."}</p>}
-            <div className="account-actions">
+            <div id="profile-avatar" className="account-actions">
               <label className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild" : "Profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
               <button type="button" className="secondary-action" onClick={() => auth.logout()}><LogOut size={16} />{t("profile.logout")}</button>
             </div>
             {profile.data.role === "admin" ? <a className="primary-action admin-entry" href="/admin"><ShieldCheck size={16} />{locale === "de" ? "ADMIN-DASHBOARD" : "ADMIN DASHBOARD"}</a> : null}
           </section>
 
-          <details className="account-section glass-panel">
+          <details id="profile-edit" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <div className="form-grid">
-                <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
-                <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
+                <Field required label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
+                <Field required label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
                 <Field label={locale === "de" ? "Ort" : "Location"} value={form.location} onChange={value => setForm(current => ({ ...current, location: value }))} />
                 <Field label="Website" type="url" value={form.website} onChange={value => setForm(current => ({ ...current, website: value }))} />
                 <Field label="Instagram" type="url" value={form.instagram} onChange={value => setForm(current => ({ ...current, instagram: value }))} />
@@ -179,7 +187,7 @@ export default function Profile() {
             </form>
           </details>
 
-          <details className="account-section glass-panel">
+          <details id="profile-display-settings" className="account-section glass-panel">
             <summary><span>{locale === "de" ? "Datenschutz & Freigaben" : "Privacy & permissions"}</span><small>{locale === "de" ? "Du entscheidest über jede Freigabe" : "You control every permission"}</small></summary>
             <section className="consent-panel">
               <ConsentToggle label={locale === "de" ? "Profil öffentlich anzeigen" : "Publish profile"} checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
@@ -190,8 +198,10 @@ export default function Profile() {
             </section>
           </details>
 
-          <HabitatProfiles />
-          <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
+          <div id="profile-tools">
+            <HabitatProfiles />
+            <section className="smart-device-entry glass-panel"><div><span className="eyebrow">DEINE TECHNIK</span><h2>Smart-Werte verbinden</h2><p>Wähle ein Gerät und lege fest, welche Wasserwerte später automatisch in dein Aquarium fließen dürfen.</p></div><SmartDeviceDialog /></section>
+          </div>
 
           <section className="reference-settings-grid">
             <article className="reference-setting-card"><Languages size={20} /><strong>{t("common.language")}</strong><div className="segmented-control"><button type="button" className={locale === "de" ? "active" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "active" : ""} onClick={() => void changeLocale("en")}>English</button></div></article>
@@ -219,8 +229,8 @@ function ProfileAuthOverlay({ locale }: { locale: AppLocale }) {
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (value: string) => void; type?: string }) {
-  return <label className="field"><span>{label}</span><input type={type} value={value} onChange={event => onChange(event.target.value)} /></label>;
+function Field({ label, value, onChange, type = "text", required = false }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean }) {
+  return <label className="field"><span>{label}{required ? " *" : ""}</span><input required={required} type={type} value={value} onChange={event => onChange(event.target.value)} /></label>;
 }
 
 function ConsentToggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (checked: boolean) => void }) {

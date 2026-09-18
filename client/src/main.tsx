@@ -8,6 +8,7 @@ import App from "./App";
 import { startLogin } from "./const";
 import { I18nProvider } from "./i18n";
 import "./index.css";
+import "./profile-quick-menu.css";
 
 const queryClient = new QueryClient();
 

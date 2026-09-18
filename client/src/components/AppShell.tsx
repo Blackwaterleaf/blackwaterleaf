@@ -66,7 +66,17 @@ export function AppShell({ children }: PropsWithChildren) {
           <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
           <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
-          <Link href="/profile" className="icon-button profile-button" aria-label={t("tabs.profile")}><UserRound size={18} /></Link>
+          <details className="profile-quick-menu">
+            <summary className="icon-button profile-button" aria-label={t("tabs.profile")}><UserRound size={18} /></summary>
+            <div className="profile-quick-menu__panel">
+              <p className="profile-quick-menu__eyebrow">PROFIL · SCHNELLWAHL</p>
+              <Link href="/profile" className="profile-quick-menu__item">Profil öffnen</Link>
+              <Link href="/profile#profile-edit" className="profile-quick-menu__item">Name &amp; Profil bearbeiten</Link>
+              <Link href="/profile#profile-avatar" className="profile-quick-menu__item">Profilbild bearbeiten</Link>
+              <Link href="/profile#profile-display-settings" className="profile-quick-menu__item">01–03 · Anzeigen</Link>
+              <Link href="/profile#profile-tools" className="profile-quick-menu__item">Weitere Werkzeuge</Link>
+            </div>
+          </details>
         </div>
       </header>
       <ConnectionStateBanner />
