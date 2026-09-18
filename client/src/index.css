@@ -1200,3 +1200,8 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-settings-entry > span { display: grid; flex: 1; gap: 3px; }
 .profile-settings-entry strong { font: 800 .68rem/1 "JetBrains Mono", monospace; }
 .profile-settings-entry small { color: #94b296; font-size: .68rem; }
+
+.profile-home__post-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.action-spinner { animation: action-spin .8s linear infinite; }
+@keyframes action-spin { to { transform: rotate(360deg); } }
+@media (max-width: 640px) { .profile-home__post-actions { width: 100%; justify-content: flex-start; } }

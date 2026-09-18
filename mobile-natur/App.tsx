@@ -2630,8 +2630,15 @@ function ProfileScreen({
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
+  const [ownPostsRefreshing, setOwnPostsRefreshing] = useState(false);
   useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); }, [account?.name, account?.bio]);
   useEffect(() => { if (token) void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([])); }, [token]);
+  const refreshOwnPosts = async () => {
+    if (!token) return;
+    setOwnPostsRefreshing(true);
+    try { setOwnPosts(await myCommunityPosts(token)); }
+    finally { setOwnPostsRefreshing(false); }
+  };
   const saveNativeProfile = async () => {
     setProfileSaving(true); setProfileMessage(null);
     try { await onUpdateProfile({ name: draftName.trim() || null, bio: draftBio.trim() || null }); setProfileMessage("Profil sicher gespeichert."); }
@@ -2661,7 +2668,7 @@ function ProfileScreen({
       </Page>
     );
   return (
-    <Page>
+    <Page refresh={refreshOwnPosts} refreshing={ownPostsRefreshing}>
       {menuTarget !== "open" ? <View style={[styles.profileTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
         <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "01–03 · ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
