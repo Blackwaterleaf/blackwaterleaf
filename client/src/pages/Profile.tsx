@@ -168,12 +168,12 @@ export default function Profile() {
           <details id="profile-private" className="profile-page-actions glass-panel" open>
             <summary><span>AKTIONEN</span><small>Privat verwalten</small><b>+</b></summary>
             <nav className="profile-page-actions__menu" aria-label="Profilaktionen">
-              <Link href="#profile-edit">01 · Privat</Link>
-              <Link href="#profile-privacy">Datenschutz & Freigaben</Link>
-              <Link href="#profile-habitats">02 · Anlagen</Link>
-              <Link href="#progress">03 · Punkte</Link>
-              <Link href="#profile-preferences">Sprache & Einheiten</Link>
-              <Link href="#profile-tools">Weitere Werkzeuge</Link>
+              <Link href="/profile#profile-edit">01 · Privat</Link>
+              <Link href="/profile#profile-consents">Datenschutz & Freigaben</Link>
+              <Link href="/profile#habitats">02 · Anlagen</Link>
+              <Link href="/profile#progress">03 · Punkte</Link>
+              <Link href="/profile#profile-preferences">Sprache & Einheiten</Link>
+              <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
             </nav>
           </details>
           <section className="profile-card glass-panel" id="progress">

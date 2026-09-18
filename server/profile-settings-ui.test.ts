@@ -10,12 +10,11 @@ describe("profile settings navigation", () => {
     const shell = source("client/src/components/AppShell.tsx");
     expect(shell).toContain("/profile#profile-edit");
     expect(shell).toContain("/profile#profile-avatar");
-    expect(shell).toContain("/profile#profile-private");
-    expect(shell).toContain("/profile#profile-habitats");
-    expect(shell).toContain("/profile#progress");
     expect(shell).toContain("/profile#profile-consents");
     expect(shell).toContain("/profile#profile-preferences");
     expect(shell).toContain("/profile#profile-tools");
+    expect(shell).not.toContain("/profile#profile-private");
+    expect(shell).not.toContain("/profile#profile-habitats");
   });
 
   it("renders the owner-only account closure flow and server mutation", () => {
