@@ -141,6 +141,7 @@ type Tone = {
 };
 type IconName = keyof typeof Ionicons.glyphMap;
 type Realm = "botany" | "aquarium" | "terrarium";
+type ProfileMenuTarget = "open" | "edit" | "avatar" | "display" | "tools";
 
 type Action = {
   title: string;
@@ -315,6 +316,7 @@ function NaturApp() {
   const [error, setError] = useState<string | null>(null);
   const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
   const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
+  const [profileMenuTarget, setProfileMenuTarget] = useState<ProfileMenuTarget>("open");
 
   const tone =
     screen === "collection"
@@ -492,7 +494,10 @@ function NaturApp() {
         account={account}
         onSearch={() => navigate("search")}
         onNotifications={notificationInfo}
-        onProfile={() => navigate("profile")}
+        onProfileTarget={target => {
+          setProfileMenuTarget(target);
+          navigate("profile");
+        }}
       />
       <View style={[styles.body, { backgroundColor: seasonSurface }]}>
         {screen === "home" && (
@@ -727,6 +732,7 @@ function NaturApp() {
             account={account}
             habitats={habitats}
             visibleKinds={visibleKinds}
+            menuTarget={profileMenuTarget}
             onToggleVisibleKind={kind => setVisibleKinds(current => current.includes(kind) ? current.length > 1 ? current.filter(value => value !== kind) : current : [...current, kind])}
             state={state}
             error={error}
@@ -783,13 +789,13 @@ function Header({
   account,
   onSearch,
   onNotifications,
-  onProfile,
+  onProfileTarget,
 }: {
   tone: Tone;
   account: Account | null;
   onSearch: () => void;
   onNotifications: () => void;
-  onProfile: () => void;
+  onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -831,9 +837,11 @@ function Header({
       </View>
       {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>Name & Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfile(); }}><Text style={styles.realmText}>01–03 · Anzeigen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.realmText}>Name & Profil bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.realmText}>Profilbild bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("display"); }}><Text style={styles.realmText}>01–03 · Anzeigen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>Weitere Werkzeuge</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -2586,6 +2594,7 @@ function ProfileScreen({
   account,
   habitats,
   visibleKinds,
+  menuTarget,
   onToggleVisibleKind,
   state,
   error,
@@ -2599,6 +2608,7 @@ function ProfileScreen({
   account: Account | null;
   habitats: Habitat[];
   visibleKinds: Array<"plant" | "aquarium" | "terrarium">;
+  menuTarget: ProfileMenuTarget;
   onToggleVisibleKind: (kind: "plant" | "aquarium" | "terrarium") => void;
   state: State;
   error: string | null;
@@ -2620,6 +2630,12 @@ function ProfileScreen({
     );
   return (
     <Page>
+      {menuTarget !== "open" ? <View style={[styles.profileTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
+        <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "01–03 · ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
+        <Text style={styles.miniCopy}>{menuTarget === "display" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
+        {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+      </View> : null}
       <View
         style={[
           styles.profileFocus,
@@ -4243,6 +4259,7 @@ const styles = StyleSheet.create({
     backgroundColor: c.raised,
   },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
+  profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
   profileDisplayPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 6 },
   profileDisplayRow: { gap: 6 },
   profileDisplayChoice: { minHeight: 38, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 7 },
