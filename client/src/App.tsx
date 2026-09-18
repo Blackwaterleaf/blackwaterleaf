@@ -10,6 +10,7 @@ import Explore from "./pages/Explore";
 import Home from "./pages/Home";
 import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
+import ProfileHome from "./pages/ProfileHome";
 import Realm from "./pages/Realm";
 import FlowDestination from "./pages/FlowDestination";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -43,7 +44,8 @@ function Router() {
         <Route path={"/explore"} component={Explore} />
         <Route path={"/community"} component={Community} />
         <Route path={"/assistant"} component={Assistant} />
-        <Route path={"/profile"} component={Profile} />
+        <Route path={"/profile"} component={ProfileHome} />
+        <Route path={"/profile/settings"} component={Profile} />
         <Route path={"/knowledge"} component={Knowledge} />
         <Route path={"/wissen"} component={Knowledge} />
         <Route path={"/feed"} component={Community} />

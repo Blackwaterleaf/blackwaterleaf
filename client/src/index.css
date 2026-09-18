@@ -1183,3 +1183,20 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .action-loading::after { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.13) 48%, transparent 76%); content: ""; transform: translateX(-100%); animation: action-loading-sheen 1.25s ease-in-out infinite; }
 @keyframes action-loading-sheen { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .action-loading::after { animation: none; opacity: .08; } }
+
+/* TikTok-like profile hub: identity, own posts, and one separate settings entry. */
+.profile-home__identity { padding: 16px; }
+.profile-home__identity .profile-identity { align-items: flex-start; }
+.profile-home__identity h1 { margin: 0; color: #efffe9; font-size: clamp(1.35rem, 4vw, 2rem); }
+.profile-home__bio { max-width: 46ch; margin: 5px 0 0; color: #a8c3aa; }
+.profile-home__stats { display: flex; gap: 18px; margin-top: 14px; color: #c7f35b; font: 700 .68rem/1 "JetBrains Mono", monospace; }
+.profile-home__stats span { display: inline-flex; align-items: center; gap: 5px; }
+.profile-home__tabs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 6px; margin: 10px 0; }
+.profile-home__tabs a { padding: 10px 5px; color: #8eaa91; border-bottom: 2px solid rgba(174,249,135,.15); font: 800 .56rem/1 "JetBrains Mono", monospace; text-align: center; text-decoration: none; }
+.profile-home__tabs a.is-active { color: #efffe9; border-color: #c7f35b; }
+.profile-home__posts { display: grid; gap: 10px; }
+.profile-post-list { display: grid; gap: 8px; }
+.profile-settings-entry { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 13px; color: #e5f7dd; text-decoration: none; }
+.profile-settings-entry > span { display: grid; flex: 1; gap: 3px; }
+.profile-settings-entry strong { font: 800 .68rem/1 "JetBrains Mono", monospace; }
+.profile-settings-entry small { color: #94b296; font-size: .68rem; }

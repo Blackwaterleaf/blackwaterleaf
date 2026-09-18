@@ -111,12 +111,12 @@ export function AppShell({ children }: PropsWithChildren) {
             <div className="profile-header-menu__panel">
               <span className="profile-header-menu__eyebrow">PROFIL · SCHNELLWAHL</span>
               <Link href="/profile">Profil öffnen</Link>
-              <Link href="/profile#profile-edit">Name & Profil bearbeiten</Link>
-              <Link href="/profile#profile-avatar">Profilbild bearbeiten</Link>
-              <Link href="/profile#profile-consents">Datenschutz & Freigaben</Link>
-              <Link href="/profile#profile-preferences">Sprache</Link>
-              <Link href="/profile#profile-preferences">Einheiten</Link>
-              <Link href="/profile#profile-tools">Weitere Werkzeuge</Link>
+              <Link href="/profile/settings#profile-edit">Name & Profil bearbeiten</Link>
+              <Link href="/profile/settings#profile-avatar">Profilbild bearbeiten</Link>
+              <Link href="/profile/settings#profile-consents">Datenschutz & Freigaben</Link>
+              <Link href="/profile/settings#profile-preferences">Sprache</Link>
+              <Link href="/profile/settings#profile-preferences">Einheiten</Link>
+              <Link href="/profile/settings#profile-tools">Weitere Werkzeuge</Link>
             </div>
           </details>
         </div>
