@@ -127,6 +127,8 @@ export type Account = {
   name: string | null;
   username: string | null;
   email: string | null;
+  bio?: string | null;
+  avatarUrl?: string | null;
   role: "user" | "moderator" | "admin";
   status: string;
 };
@@ -232,6 +234,14 @@ export const knowledge = () =>
   });
 export const currentAccount = (token: string) =>
   trpcGet<Account | null>("auth.me", undefined, token);
+export const updateProfile = (
+  token: string,
+  input: { name?: string | null; bio?: string | null }
+) => trpcPost<Account>("profile.update", input, token);
+export const uploadProfileAvatar = (
+  token: string,
+  input: { base64: string; mimeType: string }
+) => trpcPost<{ accessUrl: string }>("profile.uploadAvatar", input, token);
 export const privateHabitats = (token: string) =>
   trpcGet<Habitat[]>("habitats.mine", undefined, token);
 export const createHabitat = (token: string, input: HabitatPayload) =>

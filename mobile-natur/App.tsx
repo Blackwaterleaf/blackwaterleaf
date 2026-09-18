@@ -54,6 +54,8 @@ import {
   publishCommunityDraft,
   readToken,
   setProfileConsent,
+  updateProfile,
+  uploadProfileAvatar,
   submitPlantCorrection,
   updateCommunityPost,
   type Account,
@@ -738,6 +740,8 @@ function NaturApp() {
             error={error}
             onSignIn={signIn}
             onSignOut={signOut}
+            onUpdateProfile={async input => { if (!token) return; await updateProfile(token, input); await refreshPrivate(token); }}
+            onUploadAvatar={async (base64, mimeType) => { if (!token) return; await uploadProfileAvatar(token, { base64, mimeType }); await refreshPrivate(token); }}
             onCollection={openCollection}
             navigate={navigate}
           />
@@ -2600,6 +2604,8 @@ function ProfileScreen({
   error,
   onSignIn,
   onSignOut,
+  onUpdateProfile,
+  onUploadAvatar,
   onCollection,
   navigate,
 }: {
@@ -2614,9 +2620,33 @@ function ProfileScreen({
   error: string | null;
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
+  onUpdateProfile: (input: { name?: string | null; bio?: string | null }) => Promise<void>;
+  onUploadAvatar: (base64: string, mimeType: string) => Promise<void>;
   onCollection: (realm: Realm) => void;
   navigate: (screen: Screen) => void;
 }) {
+  const [draftName, setDraftName] = useState(account?.name ?? "");
+  const [draftBio, setDraftBio] = useState(account?.bio ?? "");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); }, [account?.name, account?.bio]);
+  const saveNativeProfile = async () => {
+    setProfileSaving(true); setProfileMessage(null);
+    try { await onUpdateProfile({ name: draftName.trim() || null, bio: draftBio.trim() || null }); setProfileMessage("Profil sicher gespeichert."); }
+    catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Profil konnte nicht gespeichert werden."); }
+    finally { setProfileSaving(false); }
+  };
+  const chooseNativeAvatar = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { setProfileMessage("Zugriff auf die Galerie wurde nicht freigegeben."); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.86, allowsEditing: true, aspect: [1, 1], base64: false });
+    const asset = result.canceled ? null : result.assets[0];
+    if (!asset) return;
+    setProfileSaving(true); setProfileMessage(null);
+    try { const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 }); await onUploadAvatar(base64, asset.mimeType ?? "image/jpeg"); setProfileMessage("Profilbild sicher gespeichert."); }
+    catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Profilbild konnte nicht gespeichert werden."); }
+    finally { setProfileSaving(false); }
+  };
   if (!token)
     return (
       <Page>
@@ -2635,6 +2665,11 @@ function ProfileScreen({
         <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "01–03 · ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+        {menuTarget === "edit" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
+          {menuTarget === "avatar" ? <SecondaryButton tone={tone} label="PROFILBILD AUS GALERIE WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /> : null}
+          {menuTarget === "edit" ? <><TextInput value={draftName} onChangeText={setDraftName} placeholder="Anzeigename" placeholderTextColor={c.muted} style={styles.profileInput} maxLength={160} /><TextInput value={draftBio} onChangeText={setDraftBio} placeholder="Bio" placeholderTextColor={c.muted} style={[styles.profileInput, styles.profileBioInput]} multiline maxLength={2000} /><PrimaryButton tone={tone} label={profileSaving ? "SPEICHERN…" : "PROFIL SPEICHERN"} icon="save-outline" onPress={() => void saveNativeProfile()} disabled={profileSaving} /><SecondaryButton tone={tone} label="PROFILBILD WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /></> : null}
+          {profileMessage ? <Text style={styles.miniCopy}>{profileMessage}</Text> : null}
+        </View> : null}
       </View> : null}
       <View
         style={[
@@ -4260,6 +4295,9 @@ const styles = StyleSheet.create({
   },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
   profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
+  profileEditPanel: { gap: 8 },
+  profileInput: { minHeight: 42, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", borderRadius: 9, paddingHorizontal: 11, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
+  profileBioInput: { minHeight: 86, paddingTop: 10, textAlignVertical: "top" },
   profileDisplayPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 6 },
   profileDisplayRow: { gap: 6 },
   profileDisplayChoice: { minHeight: 38, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 7 },
