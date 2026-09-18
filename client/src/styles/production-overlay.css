@@ -1,0 +1,238 @@
+/* BlackwaterLeaf production overlay refinements.
+ * Shared visual contract derived from docs/design/screens in the handoff package.
+ */
+:root {
+  --bwl-neon-botany: #c7f35b;
+  --bwl-neon-aquarium: #28d8ff;
+  --bwl-neon-terrarium: #e1d661;
+  --bwl-neon-ai: #c36bff;
+  --bwl-glass-deep: rgba(2, 15, 10, 0.76);
+}
+
+.bwl-production-page {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+}
+
+.bwl-production-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 88% 8%, color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 13%, transparent), transparent 33%),
+    radial-gradient(ellipse at 14% 92%, rgba(7, 77, 47, 0.22), transparent 37%);
+}
+
+.bwl-production-page-aquarium { --bwl-page-accent: var(--bwl-neon-aquarium); }
+.bwl-production-page-community { --bwl-page-accent: var(--bwl-neon-botany); }
+.bwl-production-page-ai { --bwl-page-accent: var(--bwl-neon-ai); }
+
+.bwl-production-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(228px, 42vw, 320px);
+  margin: 0 0 14px;
+  border: 1px solid color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 42%, rgba(255,255,255,.13));
+  border-radius: 25px;
+  background: #04130c;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 20px 42px rgba(0,0,0,.31), 0 0 34px color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 8%, transparent);
+}
+
+.bwl-production-hero > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(.84) saturate(1.19);
+  transform: scale(1.025);
+}
+
+.bwl-production-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(1, 11, 7, .91) 0%, rgba(2, 16, 10, .58) 48%, rgba(1, 11, 7, .14) 100%),
+    linear-gradient(0deg, rgba(1, 10, 7, .75), transparent 62%);
+}
+
+.bwl-production-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 80% 24%, color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 30%, transparent), transparent 26%);
+  mix-blend-mode: screen;
+}
+
+.bwl-production-hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-height: inherit;
+  max-width: min(78%, 600px);
+  padding: 23px;
+}
+
+.bwl-production-hero-copy > span:first-child {
+  margin: 0 0 7px;
+  color: var(--bwl-page-accent, var(--bwl-neon-botany));
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .17em;
+}
+
+.bwl-production-hero-copy h1 {
+  margin: 0 0 7px;
+  color: #fff;
+  font-family: "Bebas Neue", Impact, sans-serif;
+  font-size: clamp(38px, 10vw, 58px);
+  font-weight: 400;
+  letter-spacing: .035em;
+  line-height: .9;
+  text-shadow: 0 4px 14px rgba(0,0,0,.8);
+}
+
+.bwl-production-hero-copy h1 strong { color: var(--bwl-page-accent, var(--bwl-neon-botany)); font-weight: inherit; }
+.bwl-production-hero-copy > p { margin: 0; color: rgba(245,251,240,.78); font-size: 13px; line-height: 1.35; }
+
+.bwl-aquarium-glass {
+  background: linear-gradient(145deg, rgba(3, 28, 38, .76), rgba(2, 13, 17, .87)) !important;
+  border-color: rgba(40, 216, 255, .26) !important;
+  box-shadow: inset 0 1px 0 rgba(212, 250, 255, .13), 0 12px 32px rgba(0,0,0,.27), 0 0 22px rgba(40,216,255,.07) !important;
+}
+
+.bwl-aquarium-action {
+  background: rgba(40,216,255,.12) !important;
+  border-color: rgba(40,216,255,.48) !important;
+  color: #dffbff !important;
+  box-shadow: 0 0 21px rgba(40,216,255,.20) !important;
+}
+
+.bwl-aquarium-action:hover { background: rgba(40,216,255,.20) !important; }
+
+.bwl-community-empty {
+  position: relative;
+  overflow: hidden;
+  padding: 30px 20px;
+  border: 1px solid rgba(199,243,91,.27);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(3, 28, 18, .78), rgba(2, 12, 8, .9));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 18px 36px rgba(0,0,0,.28), 0 0 28px rgba(199,243,91,.08);
+  text-align: center;
+}
+
+.bwl-community-empty::before {
+  content: "";
+  position: absolute;
+  inset: -25% 10% auto;
+  height: 190px;
+  background: radial-gradient(ellipse, rgba(199,243,91,.19), transparent 67%);
+  pointer-events: none;
+}
+
+.bwl-community-empty > * { position: relative; }
+.bwl-community-empty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(199,243,91,.37);
+  border-radius: 999px;
+  color: var(--bwl-neon-botany);
+  background: rgba(4,23,13,.62);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+
+.bwl-community-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  margin: 18px auto 12px;
+  border: 1px solid rgba(199,243,91,.48);
+  border-radius: 50%;
+  color: var(--bwl-neon-botany);
+  box-shadow: 0 0 0 9px rgba(199,243,91,.07), 0 0 24px rgba(199,243,91,.25);
+}
+.bwl-community-empty-icon svg { width: 29px; height: 29px; stroke-width: 1.35; }
+.bwl-community-empty h2 { margin: 0 0 7px; color: #fff; font-family: "Bebas Neue", Impact, sans-serif; font-size: clamp(25px, 7vw, 36px); font-weight: 400; line-height: .96; letter-spacing: .035em; }
+.bwl-community-empty p { max-width: 340px; margin: 0 auto 16px; color: rgba(239,248,231,.62); font-size: 12px; line-height: 1.4; }
+
+.bwl-profile-access-card,
+.bwl-knowledge-empty {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 20px;
+  border: 1px solid rgba(199,243,91,.27);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(3, 28, 18, .78), rgba(2, 12, 8, .9));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 18px 36px rgba(0,0,0,.28), 0 0 28px rgba(199,243,91,.08);
+  text-align: center;
+}
+
+.bwl-profile-access-card::before,
+.bwl-knowledge-empty::before {
+  content: "";
+  position: absolute;
+  inset: -34% 10% auto;
+  height: 190px;
+  background: radial-gradient(ellipse, rgba(199,243,91,.16), transparent 67%);
+  pointer-events: none;
+}
+
+.bwl-profile-access-card > *,
+.bwl-knowledge-empty > * { position: relative; }
+
+.bwl-profile-access-mark,
+.bwl-knowledge-empty-mark {
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 15px;
+  border: 1px solid rgba(199,243,91,.52);
+  border-radius: 50%;
+  color: var(--bwl-neon-botany);
+  background: radial-gradient(circle at 50% 36%, rgba(122,193,93,.34), rgba(4,24,13,.85) 64%);
+  box-shadow: 0 0 0 9px rgba(199,243,91,.06), 0 0 26px rgba(199,243,91,.23);
+}
+
+.bwl-profile-access-mark svg,
+.bwl-knowledge-empty-mark svg { width: 31px; height: 31px; stroke-width: 1.35; }
+.bwl-profile-access-card h1,
+.bwl-knowledge-empty h2 { margin: 0 0 8px; color: #fff; font-family: "Bebas Neue", Impact, sans-serif; font-size: clamp(29px, 8vw, 40px); font-weight: 400; line-height: .95; letter-spacing: .04em; }
+.bwl-profile-access-card > p,
+.bwl-knowledge-empty > p { max-width: 355px; margin: 0 auto 18px; color: rgba(239,248,231,.64); font-size: 12px; line-height: 1.48; }
+.bwl-profile-access-list { max-width: 355px; margin: 17px auto 0; border-top: 1px solid rgba(218,246,207,.12); text-align: left; }
+.bwl-profile-access-list > div { display: flex; align-items: center; gap: 11px; padding: 12px 0; border-bottom: 1px solid rgba(218,246,207,.1); color: rgba(246,252,241,.84); font-size: 12px; }
+.bwl-profile-access-list svg { width: 17px; height: 17px; color: var(--bwl-neon-botany); }
+.bwl-profile-access-list span { flex: 1; }
+.bwl-profile-access-list small { color: rgba(239,248,231,.47); font-size: 10px; }
+
+.bwl-production-page .bwl-sensor-rail {
+  margin-bottom: 15px;
+  border-color: color-mix(in srgb, var(--bwl-page-accent, var(--bwl-neon-botany)) 24%, rgba(255,255,255,.12));
+  background: rgba(2, 17, 11, .73);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 10px 24px rgba(0,0,0,.22);
+}
+
+@media (max-width: 640px) {
+  .bwl-production-hero { min-height: 262px; border-radius: 22px; }
+  .bwl-production-hero-copy { max-width: 87%; padding: 20px; }
+  .bwl-production-hero-copy h1 { font-size: clamp(37px, 10.5vw, 47px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bwl-production-hero > img { transform: none; }
+}

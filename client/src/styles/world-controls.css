@@ -1,0 +1,84 @@
+/*
+ * BlackwaterLeaf interactive world controls
+ * Visual palette is derived from the user-supplied layout:
+ *   botany #C7F35B · aquarium #28D8FF · terrarium #E1D661 · AI #C36BFF
+ */
+:root {
+  --bwl-neon-botany: #c7f35b;
+  --bwl-neon-aquarium: #28d8ff;
+  --bwl-neon-terrarium: #e1d661;
+  --bwl-neon-ai: #c36bff;
+  --bwl-world-surface: rgba(3, 14, 10, 0.82);
+  --bwl-world-border: rgba(221, 243, 202, 0.16);
+}
+
+.bwl-sensor-rail { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin:0 0 14px; padding:8px 10px; border:1px solid rgba(215,245,197,.18); border-radius:15px; background:rgba(4,22,15,.7); box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 24px rgba(0,0,0,.18); backdrop-filter:blur(16px) saturate(1.25); }
+.bwl-sensor-item { min-width:0; display:flex; align-items:center; gap:7px; color:var(--bwl-neon-botany); }.bwl-sensor-item svg { flex:0 0 auto; width:17px;height:17px;stroke-width:1.55; }.bwl-sensor-item > span{min-width:0;display:flex;flex-direction:column;gap:2px}.bwl-sensor-item strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(246,251,240,.82);font-size:10px;line-height:1;font-weight:600}.bwl-sensor-item small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(225,241,216,.47);font-size:8px;line-height:1}.bwl-sensor-item-aquarium{color:var(--bwl-neon-aquarium)}.bwl-sensor-item-terrarium{color:var(--bwl-neon-terrarium)}.bwl-sensor-item-ai{color:var(--bwl-neon-ai)}
+
+.bwl-world-selector {
+  margin: 30px 0 24px;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.bwl-world-selector-head {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 11px;
+}
+.bwl-world-selector-head > div { display: flex; align-items: baseline; gap: 8px; flex-shrink: 0; }
+.bwl-world-selector-head p { margin: 0; color: var(--bwl-neon-botany); font-size: 11px; line-height: 1; letter-spacing: .145em; font-weight: 800; }
+.bwl-world-selector-head span:not(.bwl-world-selector-line) { color: rgba(232, 242, 220, .52); font-size: 8px; line-height: 1; letter-spacing: .1em; }
+.bwl-world-selector-line { display: block; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(199,243,91,.34), transparent); }
+.bwl-world-choice-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.bwl-world-choice {
+  min-width: 0;
+  height: 160px;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  display: block;
+  border: 1px solid var(--bwl-world-border);
+  border-radius: 14px;
+  background: #07130e;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 25px rgba(0,0,0,.22);
+  transition: transform 180ms cubic-bezier(.23,1,.32,1), border-color 180ms cubic-bezier(.23,1,.32,1), box-shadow 180ms cubic-bezier(.23,1,.32,1);
+}
+.bwl-world-choice:hover { transform: translateY(-3px); box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 16px 35px rgba(0,0,0,.35); }
+.bwl-world-choice:active { transform: scale(.98); }
+.bwl-world-choice img { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(.69) saturate(.82); transition: transform 500ms cubic-bezier(.23,1,.32,1), filter 250ms ease; }
+.bwl-world-choice:hover img { transform: scale(1.07); filter: brightness(.78) saturate(1.02); }
+.bwl-world-choice-shade { position:absolute; z-index:-1; inset:0; background: linear-gradient(180deg, rgba(1, 7, 4, .15), rgba(1, 8, 5, .9) 94%); }
+.bwl-world-choice-copy { position: absolute; left: 12px; bottom: 11px; display: flex; flex-direction: column; gap: 4px; }
+.bwl-world-choice-copy strong { color: rgba(255,255,255,.94); font-size: 12px; line-height: 1.05; letter-spacing: -.025em; text-shadow: 0 2px 7px #000; }
+.bwl-world-choice-copy strong span { display: block; }
+.bwl-world-choice-copy small { color: rgba(243,249,235,.65); font-size: 8px; line-height: 1; }
+.bwl-world-choice-mark { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid currentColor; border-radius: 50%; background: rgba(3,12,8,.48); color: var(--bwl-neon-botany); box-shadow: 0 0 13px color-mix(in srgb, currentColor 26%, transparent), inset 0 1px 0 rgba(255,255,255,.13); }
+.bwl-world-choice-mark svg { width: 16px; height: 16px; }
+.bwl-world-choice-botany:hover, .bwl-world-choice-botany.is-current { border-color: rgba(199,243,91,.7); }.bwl-world-choice-botany .bwl-world-choice-mark { color:var(--bwl-neon-botany); }
+.bwl-world-choice-aquarium:hover, .bwl-world-choice-aquarium.is-current { border-color: rgba(40,216,255,.7); }.bwl-world-choice-aquarium .bwl-world-choice-mark { color:var(--bwl-neon-aquarium); }
+.bwl-world-choice-terrarium:hover, .bwl-world-choice-terrarium.is-current { border-color: rgba(225,214,97,.7); }.bwl-world-choice-terrarium .bwl-world-choice-mark { color:var(--bwl-neon-terrarium); }
+.bwl-world-choice-ai:hover, .bwl-world-choice-ai.is-current { border-color: rgba(195,107,255,.7); }.bwl-world-choice-ai .bwl-world-choice-mark { color:var(--bwl-neon-ai); }
+
+.bwl-world-icon { display: inline-grid; place-items: center; flex: 0 0 auto; border: 1px solid currentColor; border-radius: 50%; background: color-mix(in srgb, currentColor 9%, transparent); box-shadow: 0 0 14px color-mix(in srgb, currentColor 18%, transparent); }
+.bwl-world-icon-botany { color:var(--bwl-neon-botany); }.bwl-world-icon-aquarium { color:var(--bwl-neon-aquarium); }.bwl-world-icon-terrarium { color:var(--bwl-neon-terrarium); }.bwl-world-icon-ai { color:var(--bwl-neon-ai); }
+
+/* Central, expandable action wheel */
+.bwl-quick-wheel { position: relative; height: 290px; display: grid; place-items: center; margin: 0 auto 22px; isolation: isolate; }
+.bwl-quick-wheel::before { content:""; position:absolute; z-index:-2; width: 260px; height: 153px; border-radius: 50%; background: radial-gradient(ellipse, rgba(45,190,112,.30), rgba(16,91,55,.16) 42%, transparent 72%); filter: blur(18px); transform: translateY(16px); }
+.bwl-quick-water, .bwl-quick-water::before, .bwl-quick-water::after { position:absolute; z-index:-1; width: 268px; height: 74px; border: 1px solid rgba(157,252,183,.25); border-radius: 50%; transform: perspective(190px) rotateX(63deg) translateY(30px); }
+.bwl-quick-water::before, .bwl-quick-water::after { content:""; left:50%; top:50%; transform:translate(-50%, -50%); }
+.bwl-quick-water::before { width: 186px; height: 52px; border-color: rgba(155,247,187,.3); }.bwl-quick-water::after { width: 100px; height:28px; border-color:rgba(217,255,197,.52); }
+.bwl-quick-core { z-index:3; position:relative; display:grid; place-items:center; width:96px; height:96px; border:2px solid rgba(211,255,119,.92); border-radius:50%; padding:0; color:#daf779; background:radial-gradient(circle at 50% 32%,#479e66,#083220 61%,#021109); box-shadow:0 0 0 7px rgba(142,243,113,.14),0 0 0 11px rgba(177,243,113,.07),0 0 35px rgba(134,250,130,.72),inset 0 0 19px rgba(221,255,113,.34); transition:transform 220ms cubic-bezier(.23,1,.32,1),box-shadow 220ms cubic-bezier(.23,1,.32,1); }
+.bwl-quick-core:hover{box-shadow:0 0 0 9px rgba(142,243,113,.15),0 0 46px rgba(173,255,130,.92),inset 0 0 24px rgba(221,255,113,.42)}.bwl-quick-core:active{transform:scale(.95)}.bwl-quick-core svg{position:relative;z-index:1;width:42px;height:42px;filter:drop-shadow(0 0 6px #d2ff71)}.bwl-quick-core-ring{position:absolute;inset:11px;border-radius:50%;border:1px solid rgba(222,255,142,.61);box-shadow:0 0 0 5px rgba(174,255,123,.12)}
+.bwl-quick-wheel > p { position:absolute; margin:0; bottom: 19px; color:rgba(218,240,202,.6); font-size:10px; letter-spacing:.07em; transition:opacity .16s ease; }
+.bwl-quick-actions { position:absolute; inset:0; }
+.bwl-quick-action { --x: 0; --y: 0; z-index:2; position:absolute; left:50%; top:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; width:62px; height:62px; margin:-31px; border:1px solid rgba(221,246,206,.3); border-radius:50%; background:rgba(3,16,10,.72); color:rgba(240,248,229,.94); box-shadow:0 8px 18px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.1); backdrop-filter:blur(12px) saturate(1.2); transform:translate(var(--x),var(--y)) scale(.6); opacity:0; pointer-events:none; transition:transform 250ms cubic-bezier(.23,1,.32,1),opacity 160ms ease,background 160ms ease,border-color 160ms ease; }
+.bwl-quick-wheel.is-open .bwl-quick-action { opacity:1; pointer-events:auto; transform:translate(var(--x),var(--y)) scale(1); }.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(2){transition-delay:25ms}.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(3){transition-delay:50ms}.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(4){transition-delay:75ms}.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(5){transition-delay:100ms}.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(6){transition-delay:125ms}.bwl-quick-wheel.is-open .bwl-quick-action:nth-child(7){transition-delay:150ms}
+.bwl-quick-action:hover { background:rgba(56,126,74,.7); border-color:rgba(210,249,138,.68); }.bwl-quick-action:active { transform:translate(var(--x),var(--y)) scale(.92) !important; }.bwl-quick-action svg{width:20px;height:20px;stroke-width:1.6;color:#d4eb80}.bwl-quick-action > span{display:flex;flex-direction:column;align-items:center;font-size:8px;line-height:1.09;text-align:center;white-space:nowrap}.bwl-quick-action-botany svg{color:var(--bwl-neon-botany)}.bwl-quick-action-aquarium svg{color:var(--bwl-neon-aquarium)}.bwl-quick-action-terrarium svg{color:var(--bwl-neon-terrarium)}.bwl-quick-action-ai svg{color:var(--bwl-neon-ai)}
+.bwl-quick-action-north-west{--x:-114px;--y:-82px}.bwl-quick-action-north{--x:0px;--y:-125px}.bwl-quick-action-north-east{--x:114px;--y:-82px}.bwl-quick-action-west{--x:-142px;--y:14px}.bwl-quick-action-east{--x:142px;--y:14px}.bwl-quick-action-south-west{--x:-104px;--y:106px}.bwl-quick-action-south-east{--x:104px;--y:106px}
+.bwl-quick-wheel.is-open .bwl-quick-water::after { animation: bwlWaterPulse 1.9s ease-out infinite; }
+@keyframes bwlWaterPulse { 0%{transform:translate(-50%,-50%) scale(.6);opacity:.82}100%{transform:translate(-50%,-50%) scale(1.6);opacity:0} }
+
+@media (max-width: 560px) { .bwl-world-choice-grid { gap: 7px; }.bwl-world-choice { height: 112px; border-radius: 11px; }.bwl-world-choice-copy { left:8px;bottom:8px;gap:3px; }.bwl-world-choice-copy strong { font-size: 9px; }.bwl-world-choice-copy small { font-size:6px; }.bwl-world-choice-mark{right:7px;bottom:7px;width:23px;height:23px}.bwl-world-choice-mark svg{width:13px;height:13px}.bwl-world-selector{margin-top:23px}.bwl-world-selector-head p{font-size:9px}.bwl-quick-wheel{height:270px;margin-left:-14px;margin-right:-14px;transform:scale(.9)} }
+@media (min-width: 1024px) { .bwl-world-choice { height: 182px; }.bwl-quick-wheel { max-width: 560px; transform: scale(1.04); margin-top:6px; margin-bottom:33px; } }
+@media (prefers-reduced-motion: reduce) { .bwl-world-choice,.bwl-world-choice img,.bwl-quick-core,.bwl-quick-action { transition:none; }.bwl-quick-wheel.is-open .bwl-quick-water::after { animation:none; } }

@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "BlackwaterLeaf",
+    "slug": "blackwaterleaf",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "blackwaterleaf",
+    "android": {
+      "package": "com.blackwaterleaf.app",
+      "adaptiveIcon": { "backgroundColor": "#020b07" }
+    },
+    "ios": { "bundleIdentifier": "com.blackwaterleaf.app" },
+    "web": { "bundler": "metro" }
+  }
+}
