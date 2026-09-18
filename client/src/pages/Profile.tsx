@@ -5,7 +5,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Camera, Leaf, LockKeyhole, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Camera, Leaf, Loader2, LockKeyhole, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -210,13 +210,13 @@ export default function Profile() {
           <details id="profile-edit" className="account-section glass-panel profile-menu-only">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
-              <label id="profile-avatar" className="secondary-action file-action"><Camera size={16} />{locale === "de" ? "Profilbild ändern" : "Change profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
+              <label id="profile-avatar" className={`secondary-action file-action ${uploadAvatar.isPending ? "action-loading" : ""}`}><>{uploadAvatar.isPending ? <Loader2 size={16} className="spin" /> : <Camera size={16} />}</>{uploadAvatar.isPending ? "BILD WIRD GESPEICHERT …" : locale === "de" ? "Profilbild ändern" : "Change profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadAvatar.isPending} onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
               <div className="form-grid profile-short-edit">
                 <Field label={locale === "de" ? "Anzeigename" : "Display name"} value={form.name} onChange={value => setForm(current => ({ ...current, name: value }))} />
                 <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
               </div>
               <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
-              <button type="submit" className="primary-action" disabled={update.isPending}><Save size={16} />{update.isPending ? t("common.loading") : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
+              <button type="submit" className={`primary-action ${update.isPending ? "action-loading" : ""}`} disabled={update.isPending}>{update.isPending ? <Loader2 size={16} className="spin" /> : <Save size={16} />}{update.isPending ? "PROFIL WIRD GESPEICHERT …" : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
             </form>
           </details>
 
@@ -230,7 +230,7 @@ export default function Profile() {
               <section className="account-danger-zone glass-panel" aria-labelledby="account-close-title">
                 <div><span className="eyebrow">KONTO</span><h2 id="account-close-title">Konto schließen</h2><p>Deine persönlichen Profildaten werden anonymisiert und der Zugang wird deaktiviert. Dieser Schritt kann nicht rückgängig gemacht werden.</p></div>
                 <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
-                <button type="button" className="danger-action" disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}><AlertTriangle size={16} />{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
+                <button type="button" className={`danger-action ${closeAccount.isPending ? "action-loading" : ""}`} disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}>{closeAccount.isPending ? <Loader2 size={16} className="spin" /> : <AlertTriangle size={16} />}{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
               </section>
             </div>
           </details>
@@ -270,5 +270,5 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
 }
 
 function ConsentToggle({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled: boolean; onChange: (checked: boolean) => void }) {
-  return <label className="consent-toggle"><span>{label}</span><input type="checkbox" checked={checked} disabled={disabled} onChange={event => onChange(event.target.checked)} /></label>;
+  return <label className="consent-toggle"><span>{label}</span>{disabled ? <Loader2 size={13} className="spin" aria-label="Wird gespeichert" /> : null}<input type="checkbox" checked={checked} disabled={disabled} onChange={event => onChange(event.target.checked)} /></label>;
 }

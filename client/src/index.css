@@ -1177,3 +1177,9 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-preferences-grid button { min-height: 30px; padding: 4px; color: #a9c3aa; border: 1px solid rgba(174,249,135,.18); border-radius: 7px; background: rgba(5,31,14,.65); font: 700 .5rem/1 "Inter", sans-serif; }
 .profile-preferences-grid button.is-selected { color: #efffe9; border-color: rgba(199,243,91,.66); background: rgba(57,125,45,.35); }
 @media (max-width: 420px) { .profile-page-actions__menu { grid-template-columns: repeat(2, minmax(0,1fr)); }.profile-preferences-grid { grid-template-columns: 1fr; } }
+
+/* Consistent action feedback: pending saves and uploads remain readable while the spinner moves. */
+.action-loading { position: relative; pointer-events: none; }
+.action-loading::after { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.13) 48%, transparent 76%); content: ""; transform: translateX(-100%); animation: action-loading-sheen 1.25s ease-in-out infinite; }
+@keyframes action-loading-sheen { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .action-loading::after { animation: none; opacity: .08; } }
