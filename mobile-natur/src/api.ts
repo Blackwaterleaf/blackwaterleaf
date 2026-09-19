@@ -106,6 +106,27 @@ export type CommunityPost = {
   commentsCount: number;
   createdAt: string;
 };
+export type CommunityComment = {
+  id: number;
+  postId: number;
+  parentId: number | null;
+  content: string;
+  createdAt: string;
+  authorId: number;
+  authorName: string | null;
+  authorUsername: string | null;
+};
+export type NativeNotification = {
+  id: number;
+  type: "comment" | "like" | "system";
+  postId: number | null;
+  commentId: number | null;
+  message: string;
+  readAt: string | null;
+  createdAt: string;
+  actorName: string;
+  isRead: boolean;
+};
 export type OwnCommunityPost = {
   id: number;
   content: string;
@@ -225,6 +246,16 @@ export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const communityFeed = () =>
   trpcGet<CommunityPost[]>("community.feed", { limit: 40 });
+export const communityComments = (postId: number) =>
+  trpcGet<CommunityComment[]>("community.comments", { postId });
+export const addCommunityComment = (
+  token: string,
+  input: { postId: number; content: string; parentId?: number | null },
+) => trpcPost<{ success: true }>("community.addComment", input, token);
+export const notificationFeed = (token: string) =>
+  trpcGet<NativeNotification[]>("notifications.feed", undefined, token);
+export const markNotificationsRead = (token: string, notificationId?: number) =>
+  trpcPost<{ success: true }>("notifications.markRead", { notificationId }, token);
 export const myCommunityPosts = (token: string) =>
   trpcGet<OwnCommunityPost[]>("community.myPosts", undefined, token);
 export const knowledge = () =>

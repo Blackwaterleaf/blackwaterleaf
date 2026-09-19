@@ -40,14 +40,18 @@ import {
   assistantAquariumAnalyze,
   assistantChat,
   assistantPlantIdentify,
+  addCommunityComment,
   clearToken,
+  communityComments,
   communityFeed,
   createCommunityDraft,
   currentAccount,
   deleteCommunityPost,
   knowledge,
   marketplace,
+  markNotificationsRead,
   myCommunityPosts,
+  notificationFeed,
   outdoorWeather,
   platformAvailability,
   privateHabitats,
@@ -62,10 +66,12 @@ import {
   type Account,
   type AssistantReply,
   type CommunityPost,
+  type CommunityComment,
   type Habitat,
   type KnowledgeArticle,
   type MarketplaceProduct,
   type OwnCommunityPost,
+  type NativeNotification,
   type OutdoorWeather,
   type PlatformAvailability,
   type ProfileConsent,
@@ -125,7 +131,8 @@ type Screen =
   | "post"
   | "collection"
   | "builder"
-  | "search";
+  | "search"
+  | "notifications";
 type BottomTab =
   | "home"
   | "explore"
@@ -291,6 +298,14 @@ const TONES: Record<Screen, Tone> = {
     label: "SUCHE",
     active: "explore",
   },
+  notifications: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "BENACHRICHTIGUNGEN",
+    active: "community",
+  },
 };
 
 export default function App() {
@@ -311,6 +326,7 @@ function NaturApp() {
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [notifications, setNotifications] = useState<NativeNotification[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [weather, setWeather] = useState<OutdoorWeather | null>(null);
@@ -372,6 +388,7 @@ function NaturApp() {
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
       if (screen === "community") setPosts(await communityFeed());
+      if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
       if (screen === "knowledge" || screen === "search")
         setArticles(await knowledge());
       setState("ready");
@@ -383,7 +400,7 @@ function NaturApp() {
       );
       setState("error");
     }
-  }, [screen]);
+  }, [screen, token]);
 
   useEffect(() => {
     void readToken().then(value => {
@@ -469,11 +486,9 @@ function NaturApp() {
   }, []);
 
   const notificationInfo = useCallback(() => {
-    Alert.alert(
-      "Benachrichtigungen",
-      "Benachrichtigungen werden erst nach einer echten Geräteverbindung und deiner ausdrücklichen Freigabe aktiviert."
-    );
-  }, []);
+    if (token) navigate("notifications");
+    else void signIn();
+  }, [navigate, signIn, token]);
 
   const seasonSurface =
     screen === "home"
@@ -727,6 +742,16 @@ function NaturApp() {
             token={token}
             onSignIn={signIn}
             navigate={navigate}
+          />
+        )}
+        {screen === "notifications" && (
+          <NotificationsScreen
+            tone={TONES.notifications}
+            token={token}
+            notifications={notifications}
+            state={state}
+            error={error}
+            refresh={loadScreen}
           />
         )}
         {screen === "profile" && (
@@ -2040,15 +2065,10 @@ function LiveScreen({
           },
           {
             title: "Benachrichtigungen",
-            note: "Gerätefreigabe erforderlich",
+            note: "Kommentare und Kontohinweise öffnen",
             icon: "notifications-outline",
             image: ASSETS.aquarium,
-            unavailable: true,
-            onPress: () =>
-              Alert.alert(
-                "Noch nicht verfügbar",
-                "Benachrichtigungen werden erst nach einer echten Geräteverbindung aktiviert."
-              ),
+            onPress: () => (token ? navigate("notifications") : onPrivate()),
           },
           {
             title: "Entdecken",
@@ -2599,12 +2619,26 @@ function CommunityScreen({
                 await deleteCommunityPost(token, Number(post.id));
                 await refresh();
               }}
+              token={token}
             />
           ))}
         </View>
       )}
     </Page>
   );
+}
+
+function NotificationsScreen({ tone, token, notifications, state, error, refresh }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void> }) {
+  const markAllRead = async () => {
+    if (!token) return;
+    await markNotificationsRead(token);
+    await refresh();
+  };
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <ReferenceHero tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
+    <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <View key={item.id} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}</View>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+  </Page>;
 }
 
 function ProfileScreen({
@@ -3256,8 +3290,22 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, onEdit, onDelete }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void> }) {
+function PostCard({ tone, post, isOwner, onEdit, onDelete, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [commentPending, setCommentPending] = useState(false);
+  const loadComments = async () => setComments(await communityComments(Number(post.id)));
+  const submitComment = async () => {
+    if (!token || !commentText.trim()) return;
+    setCommentPending(true);
+    try {
+      await addCommunityComment(token, { postId: Number(post.id), content: commentText.trim() });
+      setCommentText("");
+      await loadComments();
+    } finally { setCommentPending(false); }
+  };
   return (
     <View
       style={[
@@ -3289,6 +3337,14 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete }: { tone: Tone; post:
       <Text style={styles.date}>
         {post.likesCount} Likes · {post.commentsCount} Kommentare
       </Text>
+      <Pressable style={styles.commentToggle} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}>
+        <Ionicons name="chatbubble-outline" size={16} color={tone.accent} />
+        <Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text>
+      </Pressable>
+      {commentsOpen ? <View style={styles.commentPanel}>
+        {comments.map(comment => <View key={comment.id} style={styles.commentRow}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text></View>)}
+        {token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder="Kommentar schreiben…" placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} /><Pressable style={[styles.commentSend, commentPending && { opacity: 0.55 }]} disabled={commentPending} onPress={() => void submitComment()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Text style={styles.miniCopy}>Zum Kommentieren bitte sicher anmelden.</Text>}
+      </View> : null}
     </View>
   );
 }
@@ -4330,6 +4386,17 @@ const styles = StyleSheet.create({
   postOwnerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
   postOwnerButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
   postOwnerDelete: { borderColor: "rgba(255,171,176,.42)" },
+  commentToggle: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10, paddingVertical: 7 },
+  commentPanel: { gap: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)" },
+  commentRow: { padding: 8, borderRadius: 9, backgroundColor: "rgba(0,0,0,.16)", gap: 3 },
+  commentAuthor: { color: c.text, fontSize: 11, fontWeight: "900" },
+  commentComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7 },
+  commentInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
+  commentSend: { width: 38, height: 38, borderRadius: 19, backgroundColor: c.botany, alignItems: "center", justifyContent: "center" },
+  notificationActions: { alignItems: "flex-end", marginBottom: 10 },
+  notificationRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
+  notificationCopy: { flex: 1, gap: 3 },
+  unreadDot: { width: 8, height: 8, borderRadius: 4 },
   date: { color: c.muted, fontSize: 9 },
   postImage: {
     width: "100%",

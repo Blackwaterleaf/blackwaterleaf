@@ -264,6 +264,25 @@ export const communityPosts = mysqlTable(
   ],
 );
 
+export const notifications = mysqlTable(
+  "notifications",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    recipientId: int("recipientId").notNull().references(() => users.id),
+    actorId: int("actorId").notNull().references(() => users.id),
+    type: mysqlEnum("type", ["comment", "like", "system"]).notNull(),
+    postId: int("postId").references(() => communityPosts.id),
+    commentId: int("commentId"),
+    message: varchar("message", { length: 255 }).notNull(),
+    readAt: timestamp("readAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    index("notifications_recipient_created_idx").on(table.recipientId, table.createdAt),
+    index("notifications_recipient_read_idx").on(table.recipientId, table.readAt),
+  ],
+);
+
 export const mediaAssets = mysqlTable(
   "media_assets",
   {

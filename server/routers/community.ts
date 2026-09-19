@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, mediaAssets, postComments, postLikes, users } from "../../drizzle/schema";
+import { communityPosts, mediaAssets, notifications, postComments, postLikes, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -320,7 +320,7 @@ export const communityRouter = router({
       const db = await requireDatabase();
       await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
       const visible = await db
-        .select({ id: communityPosts.id })
+        .select({ id: communityPosts.id, userId: communityPosts.userId })
         .from(communityPosts)
         .where(
           and(
@@ -342,7 +342,7 @@ export const communityRouter = router({
       }
 
       await db.transaction(async tx => {
-        await tx.insert(postComments).values({
+        const inserted = await tx.insert(postComments).values({
           postId: input.postId,
           userId: ctx.user.id,
           parentId: input.parentId ?? null,
@@ -352,6 +352,16 @@ export const communityRouter = router({
           .update(communityPosts)
           .set({ commentsCount: sql`${communityPosts.commentsCount} + 1` })
           .where(eq(communityPosts.id, input.postId));
+        if (visible[0].userId !== ctx.user.id) {
+          await tx.insert(notifications).values({
+            recipientId: visible[0].userId,
+            actorId: ctx.user.id,
+            type: "comment",
+            postId: input.postId,
+            commentId: Number(inserted[0].insertId),
+            message: "Jemand hat deinen Community-Beitrag kommentiert.",
+          });
+        }
       });
       return { success: true } as const;
     }),
