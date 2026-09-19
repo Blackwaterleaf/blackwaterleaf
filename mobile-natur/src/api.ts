@@ -98,7 +98,7 @@ export type MarketplaceProduct = {
 };
 export type CommunityPost = {
   id: string;
-  author: { name: string | null; username: string | null };
+  author: { id: string; name: string | null; username: string | null };
   content: string;
   realm: string | null;
   media: Array<{ id: string; accessUrl: string }>;
@@ -359,3 +359,5 @@ export const updateCommunityPost = (
     input,
     token
   );
+export const deleteCommunityPost = (token: string, postId: number) =>
+  trpcPost<{ deleted: true; id: string }>("community.deleteMine", { postId }, token);

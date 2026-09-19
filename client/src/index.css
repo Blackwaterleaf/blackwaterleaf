@@ -1270,3 +1270,6 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-settings-page.profile-section-settings .profile-secondary-tools { display:grid; }
 .profile-settings-page.profile-section-settings .profile-habitats-section { display:block; }
 .profile-settings-page.profile-section-settings #profile-privacy { display:grid; }
+
+/* Owner-scoped post controls: edit and delete stay visible on the post header. */
+.community-post .post-author { position:relative; padding-right:76px; }.community-post-owner-actions { position:absolute; top:0; right:0; display:flex; align-items:center; gap:5px; }.community-post-owner-actions .icon-button { width:31px; height:31px; color:#bdf28a; border:1px solid rgba(189,242,138,.38); border-radius:8px; background:rgba(8,37,20,.78); cursor:pointer; }.community-post-owner-actions .icon-button:hover { color:#f4ffbf; border-color:#bdf28a; background:rgba(74,149,58,.3); }.community-post-owner-actions .icon-button--danger { color:#ffabb0; border-color:rgba(255,171,176,.38); }.community-post-owner-actions .icon-button--danger:hover { color:#fff0f0; border-color:#ffabb0; background:rgba(142,42,53,.3); }.community-post-owner-actions .icon-button:disabled { opacity:.55; cursor:wait; }

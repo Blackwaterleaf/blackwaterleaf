@@ -44,6 +44,7 @@ import {
   communityFeed,
   createCommunityDraft,
   currentAccount,
+  deleteCommunityPost,
   knowledge,
   marketplace,
   myCommunityPosts,
@@ -718,6 +719,7 @@ function NaturApp() {
         {screen === "community" && (
           <CommunityScreen
             tone={TONES.community}
+            account={account}
             posts={posts}
             state={state}
             error={error}
@@ -2522,6 +2524,7 @@ function MarketplaceScreen({
 
 function CommunityScreen({
   tone,
+  account,
   posts,
   state,
   error,
@@ -2531,6 +2534,7 @@ function CommunityScreen({
   navigate,
 }: {
   tone: Tone;
+  account: Account | null;
   posts: CommunityPost[];
   state: State;
   error: string | null;
@@ -2584,7 +2588,18 @@ function CommunityScreen({
       ) : (
         <View style={styles.stack}>
           {posts.map(post => (
-            <PostCard key={post.id} tone={tone} post={post} />
+            <PostCard
+              key={post.id}
+              tone={tone}
+              post={post}
+              isOwner={Boolean(account?.id && String(account.id) === String(post.author.id))}
+              onEdit={() => navigate("post")}
+              onDelete={async () => {
+                if (!token) return;
+                await deleteCommunityPost(token, Number(post.id));
+                await refresh();
+              }}
+            />
           ))}
         </View>
       )}
@@ -3241,7 +3256,8 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post }: { tone: Tone; post: CommunityPost }) {
+function PostCard({ tone, post, isOwner, onEdit, onDelete }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void> }) {
+  const [actionPending, setActionPending] = useState(false);
   return (
     <View
       style={[
@@ -3250,12 +3266,18 @@ function PostCard({ tone, post }: { tone: Tone; post: CommunityPost }) {
       ]}
     >
       <View style={styles.postHead}>
-        <Text style={styles.cardTitle}>
-          {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
-        </Text>
-        <Text style={styles.date}>
-          {new Date(post.createdAt).toLocaleDateString("de-DE")}
-        </Text>
+        <View style={styles.postHeadCopy}>
+          <Text style={styles.cardTitle}>
+            {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
+          </Text>
+          <Text style={styles.date}>
+            {new Date(post.createdAt).toLocaleDateString("de-DE")}
+          </Text>
+        </View>
+        {isOwner ? <View style={styles.postOwnerActions}>
+          <Pressable accessibilityLabel="Beitrag bearbeiten" style={styles.postOwnerButton} onPress={onEdit}><Ionicons name="pencil-outline" size={18} color={c.botany} /></Pressable>
+          <Pressable accessibilityLabel="Beitrag löschen" style={[styles.postOwnerButton, styles.postOwnerDelete]} disabled={actionPending} onPress={() => { Alert.alert("Beitrag löschen", "Diesen eigenen Beitrag wirklich löschen?", [{ text: "Abbrechen", style: "cancel" }, { text: "Löschen", style: "destructive", onPress: () => { setActionPending(true); void onDelete().finally(() => setActionPending(false)); } }]); }}><Ionicons name="trash-outline" size={18} color="#ffabb0" /></Pressable>
+        </View> : null}
       </View>
       <Text style={styles.copy}>{post.content}</Text>
       {post.media[0] ? (
@@ -4303,7 +4325,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   price: { fontSize: 13, fontWeight: "900", flex: 1 },
-  postHead: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  postHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
+  postHeadCopy: { flex: 1, gap: 3 },
+  postOwnerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
+  postOwnerButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
+  postOwnerDelete: { borderColor: "rgba(255,171,176,.42)" },
   date: { color: c.muted, fontSize: 9 },
   postImage: {
     width: "100%",
