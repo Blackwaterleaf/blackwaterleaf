@@ -7,7 +7,7 @@ import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
-import { canReadCommunityPost, isResourceOwner } from "../accessPolicy";
+import { canReadCommunityPost, canReadMedia, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
 import { appendAuditEntry } from "../auditLedger";
 import { assertValidMediaContext } from "../mediaIntegrity";
@@ -44,7 +44,16 @@ async function publicMediaForPost(postId: number, userId: number) {
       ),
     );
   return Promise.all(
-    rows.map(async item => ({
+    rows
+      .filter(item => canReadMedia({
+        viewerId: null,
+        ownerId: item.userId,
+        ownerStatus: "active",
+        assetVisibility: item.visibility,
+        parentVisibility: "public",
+        parentPublicationStatus: "published",
+      }))
+      .map(async item => ({
       id: String(item.id),
       ownerId: String(item.userId),
       kind: item.kind,
@@ -55,7 +64,7 @@ async function publicMediaForPost(postId: number, userId: number) {
       accessUrl: await storageGetSignedUrl(item.storageKey),
       visibility: item.visibility,
       createdAt: item.createdAt.toISOString(),
-    })),
+      })),
   );
 }
 
@@ -80,7 +89,7 @@ export const communityRouter = router({
 
       return Promise.all(
         rows
-          .filter(({ post, author }) =>
+        .filter(({ post, author }) =>
             canReadCommunityPost({
               authorStatus: author.status,
               visibility: post.visibility,
@@ -103,7 +112,7 @@ export const communityRouter = router({
           },
           content: post.content,
           realm: post.realm,
-          media: await publicMediaForPost(post.id, post.userId),
+            media: await publicMediaForPost(post.id, post.userId),
           visibility: "public" as const,
           likesCount: post.likesCount,
           commentsCount: post.commentsCount,
@@ -243,7 +252,10 @@ export const communityRouter = router({
       const db = await requireDatabase();
       const post = await db.select({ id: communityPosts.id, userId: communityPosts.userId }).from(communityPosts).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id))).limit(1);
       if (!post[0] || !isResourceOwner(ctx.user.id, post[0].userId)) throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
-      await db.update(communityPosts).set({ status: "removed", visibility: "private" }).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)));
+      await db.transaction(async tx => {
+        await tx.update(communityPosts).set({ status: "removed", visibility: "private" }).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id)));
+        await tx.update(mediaAssets).set({ visibility: "private" }).where(and(eq(mediaAssets.postId, input.postId), eq(mediaAssets.userId, ctx.user.id)));
+      });
       return { deleted: true, id: String(input.postId) } as const;
     }),
 

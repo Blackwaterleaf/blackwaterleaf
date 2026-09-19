@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canReadCommunityPost, canReadObservation, canReadProfile, isResourceOwner } from "./accessPolicy";
+import { canReadCommunityPost, canReadMedia, canReadObservation, canReadProfile, isResourceOwner } from "./accessPolicy";
 
 describe("BlackWaterLeaf ownership and visibility policy", () => {
   it("never treats a foreign account as the owner", () => {
@@ -22,5 +22,14 @@ describe("BlackWaterLeaf ownership and visibility policy", () => {
     expect(canReadCommunityPost({ authorStatus: "active", visibility: "public", publicationStatus: "published" })).toBe(true);
     expect(canReadCommunityPost({ authorStatus: "active", visibility: "private", publicationStatus: "draft" })).toBe(false);
     expect(canReadCommunityPost({ authorStatus: "banned", visibility: "public", publicationStatus: "published" })).toBe(false);
+  });
+
+  it("never exposes media after a private, hidden, or removed parent state", () => {
+    const base = { viewerId: null, ownerId: 8, ownerStatus: "active" as const, assetVisibility: "public" as const };
+    expect(canReadMedia({ ...base, parentVisibility: "public", parentPublicationStatus: "published" })).toBe(true);
+    expect(canReadMedia({ ...base, parentVisibility: "private", parentPublicationStatus: "published" })).toBe(false);
+    expect(canReadMedia({ ...base, parentVisibility: "public", parentPublicationStatus: "hidden" })).toBe(false);
+    expect(canReadMedia({ ...base, assetVisibility: "private", parentVisibility: "public", parentPublicationStatus: "published" })).toBe(false);
+    expect(canReadMedia({ ...base, viewerId: 8, assetVisibility: "private", parentVisibility: "private" })).toBe(true);
   });
 });

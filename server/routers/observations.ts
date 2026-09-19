@@ -15,7 +15,7 @@ import { getDb } from "../db";
 import { awardXpIfReady, XP_REWARDS } from "../gamification";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
-import { canReadObservation, isResourceOwner } from "../accessPolicy";
+import { canReadMedia, canReadObservation, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
 import { assertValidMediaContext } from "../mediaIntegrity";
 import { assertSafetyGateAllows } from "../safetyGates";
@@ -40,7 +40,15 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
     .orderBy(desc(mediaAssets.createdAt));
 
   const media = await Promise.all(
-    mediaRows.map(async item => ({
+    mediaRows
+      .filter(item => canReadMedia({
+        viewerId: canReadPrivate ? record.userId : null,
+        ownerId: item.userId,
+        ownerStatus: "active",
+        assetVisibility: item.visibility,
+        parentVisibility: record.visibility,
+      }))
+      .map(async item => ({
       id: String(item.id),
       ownerId: String(item.userId),
       kind: item.kind,
@@ -48,13 +56,10 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
       byteSize: item.byteSize,
       width: item.width,
       height: item.height,
-      accessUrl:
-        canReadPrivate || item.visibility === "public"
-          ? await storageGetSignedUrl(item.storageKey)
-          : "",
+      accessUrl: await storageGetSignedUrl(item.storageKey),
       visibility: item.visibility,
       createdAt: item.createdAt.toISOString(),
-    })),
+      })),
   );
 
   return {
@@ -67,7 +72,7 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
     scientificName: record.scientificName,
     note: record.note,
     metrics: observationMetricSchema.array().parse(record.metrics),
-    media: media.filter(item => item.accessUrl),
+    media,
     evidenceState: record.evidenceState,
     visibility: record.visibility,
     syncState: record.syncState,
@@ -183,10 +188,18 @@ export const observationsRouter = router({
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_publishing_consent_required" });
       }
       const { id, expectedRevision, ...changes } = input;
-      await db
-        .update(observations)
-        .set({ ...changes, syncState: "synced", revision: current.revision + 1 })
-        .where(and(eq(observations.id, id), eq(observations.userId, ctx.user.id), eq(observations.revision, expectedRevision)));
+      await db.transaction(async tx => {
+        await tx
+          .update(observations)
+          .set({ ...changes, syncState: "synced", revision: current.revision + 1 })
+          .where(and(eq(observations.id, id), eq(observations.userId, ctx.user.id), eq(observations.revision, expectedRevision)));
+        if (input.visibility) {
+          await tx
+            .update(mediaAssets)
+            .set({ visibility: input.visibility })
+            .where(and(eq(mediaAssets.observationId, id), eq(mediaAssets.userId, ctx.user.id)));
+        }
+      });
       const updated = await db.select().from(observations).where(eq(observations.id, id)).limit(1);
       if (!updated[0]) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "observation_update_failed" });
       return serializeObservation(updated[0], true);

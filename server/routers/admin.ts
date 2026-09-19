@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, communityPosts, userRoles, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, communityPosts, mediaAssets, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
@@ -66,7 +66,10 @@ export const adminRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "public_post_not_found" });
       }
 
-      await db.update(communityPosts).set({ status: input.status }).where(eq(communityPosts.id, input.id));
+      await db.transaction(async tx => {
+        await tx.update(communityPosts).set({ status: input.status }).where(eq(communityPosts.id, input.id));
+        await tx.update(mediaAssets).set({ visibility: "private" }).where(eq(mediaAssets.postId, input.id));
+      });
       await appendAuditEntry({
         actorId: ctx.user.id,
         action: "community_post_moderated",
@@ -83,7 +86,10 @@ export const adminRouter = router({
       const db = await requireDatabase();
       const [post] = await db.select({ id: communityPosts.id, status: communityPosts.status, visibility: communityPosts.visibility }).from(communityPosts).where(eq(communityPosts.id, input.id)).limit(1);
       if (!post || post.status !== "published" || post.visibility !== "public") throw new TRPCError({ code: "NOT_FOUND", message: "public_post_not_found" });
-      await db.update(communityPosts).set({ status: "removed", visibility: "private" }).where(eq(communityPosts.id, input.id));
+      await db.transaction(async tx => {
+        await tx.update(communityPosts).set({ status: "removed", visibility: "private" }).where(eq(communityPosts.id, input.id));
+        await tx.update(mediaAssets).set({ visibility: "private" }).where(eq(mediaAssets.postId, input.id));
+      });
       await appendAuditEntry({ actorId: ctx.user.id, action: "community_post_deleted_by_admin", targetType: "community_post", targetId: input.id, payload: { before: "published/public", after: "removed/private" } });
       return { id: input.id, status: "removed" } as const;
     }),
