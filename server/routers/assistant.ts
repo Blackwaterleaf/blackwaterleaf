@@ -8,7 +8,7 @@ import { getDb } from "../db";
 import { awardXpIfReady, hasAssistantCallsToday, XP_REWARDS } from "../gamification";
 import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
-import { protectedProcedure, router } from "../_core/trpc";
+import { assistantProcedure, router } from "../_core/trpc";
 import { hasCurrentConsent } from "../consents";
 
 const MAX_DAILY_ASSISTANT_CALLS = 10;
@@ -107,13 +107,13 @@ export function aquariumContext(name: string, rawDetails: unknown) {
 }
 
 export const assistantRouter = router({
-  chat: protectedProcedure.input(chatInput).mutation(async ({ ctx, input }) => {
+  chat: assistantProcedure.input(chatInput).mutation(async ({ ctx, input }) => {
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, input.realm, input.message.length + input.history.reduce((sum, item) => sum + item.content.length, 0));
     const contextLabel = input.realm ? `Der Kontextbereich ist ${input.realm}.` : "Kein Bereich wurde ausgewählt.";
     return generateAnswer(reservation, ctx.user.id, [{ role: "system", content: safetySystemPrompt }, { role: "system", content: contextLabel }, ...input.history.slice(-6).map(message => ({ role: message.role, content: message.content })), { role: "user", content: input.message }]);
   }),
 
-  plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
+  plantIdentify: assistantProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
     const image = validateImageUpload(input.imageBase64, input.mimeType);
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + image.byteSize);
     const imageUrl = `data:${image.mimeType};base64,${image.buffer.toString("base64")}`;
@@ -123,7 +123,7 @@ export const assistantRouter = router({
     ]);
   }),
 
-  aquariumAnalyze: protectedProcedure.input(aquariumAnalyzeInput).mutation(async ({ ctx, input }) => {
+  aquariumAnalyze: assistantProcedure.input(aquariumAnalyzeInput).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const rows = await db.select().from(privateHabitats).where(and(eq(privateHabitats.id, input.habitatId), eq(privateHabitats.userId, ctx.user.id))).limit(1);
     const habitat = rows[0];

@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { communityPosts, mediaAssets, postComments, postLikes, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { communityProcedure, protectedCommunityProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
@@ -46,7 +46,7 @@ async function publicMediaForPost(postId: number, userId: number) {
 }
 
 export const communityRouter = router({
-  feed: publicProcedure
+  feed: communityProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ input }) => {
       const db = await requireDatabase();
@@ -99,7 +99,7 @@ export const communityRouter = router({
       );
     }),
 
-  myPosts: protectedProcedure.query(async ({ ctx }) => {
+  myPosts: protectedCommunityProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
     return db
       .select()
@@ -108,7 +108,7 @@ export const communityRouter = router({
       .orderBy(desc(communityPosts.updatedAt));
   }),
 
-  createDraft: protectedProcedure
+  createDraft: protectedCommunityProcedure
     .input(
       z.object({
         content: z.string().trim().min(1).max(10_000),
@@ -127,7 +127,7 @@ export const communityRouter = router({
       return { id: String(inserted[0].insertId), status: "draft" } as const;
     }),
 
-  uploadDraftImage: protectedProcedure
+  uploadDraftImage: protectedCommunityProcedure
     .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
@@ -165,7 +165,7 @@ export const communityRouter = router({
       return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
     }),
 
-  publish: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+  publish: protectedCommunityProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     if (!(await hasCurrentConsent(db, ctx.user.id, "community_publishing"))) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "community_publishing_consent_required" });
@@ -192,7 +192,7 @@ export const communityRouter = router({
     return { status: "published", visibility: "public" } as const;
   }),
 
-  like: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+  like: protectedCommunityProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const visible = await db
       .select({ id: communityPosts.id })
@@ -226,7 +226,7 @@ export const communityRouter = router({
     return { liked: true } as const;
   }),
 
-  comments: publicProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ input }) => {
+  comments: communityProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ input }) => {
     const db = await requireDatabase();
     const visible = await db
       .select({ id: communityPosts.id })
@@ -263,7 +263,7 @@ export const communityRouter = router({
       .orderBy(postComments.createdAt);
   }),
 
-  addComment: protectedProcedure
+  addComment: protectedCommunityProcedure
     .input(z.object({ postId: z.number().int().positive(), parentId: z.number().int().positive().nullable().optional(), content: z.string().trim().min(1).max(2_000) }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
