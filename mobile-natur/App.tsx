@@ -55,6 +55,7 @@ import {
   deleteCommunityPost,
   knowledge,
   marketplace,
+  marketplaceEvent,
   markNotificationsRead,
   myCommunityPosts,
   notificationFeed,
@@ -2612,6 +2613,14 @@ function MarketplaceScreen({
   error: string | null;
   refresh: () => Promise<void>;
 }) {
+  const shops = Array.from(new Map(products.map(product => [product.partnerId, { partnerId: product.partnerId, partnerName: product.partnerName, products: products.filter(item => item.partnerId === product.partnerId) }])).values());
+  const recordProductEvent = async (product: MarketplaceProduct, eventType: "outbound_click" | "purchase_intent") => {
+    try {
+      await marketplaceEvent({ eventId: `native-${Date.now()}-${Math.random().toString(36).slice(2)}`, productId: product.id, eventType });
+    } catch {
+      // Attribution must never block the partner handoff or the native UI.
+    }
+  };
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <ReferenceHero
@@ -2653,8 +2662,22 @@ function MarketplaceScreen({
         />
       ) : (
         <View style={styles.stack}>
-          {products.map(product => (
-            <ProductCard key={product.id} tone={tone} product={product} />
+          <View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+            <Text style={[styles.chip, { color: tone.accent }]}>JEDER HÄNDLER · EIN EIGENER SHOP</Text>
+            <Text style={styles.cardTitle}>PARTNER-SHOPS</Text>
+            <Text style={styles.copy}>Wähle direkt, bei welchem Händler du das Angebot ansehen möchtest.</Text>
+          </View>
+          {shops.map(shop => (
+            <View key={shop.partnerId} style={[styles.infoCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+              <Text style={[styles.chip, { color: tone.accent }]}>PARTNER-SHOP · {shop.products.length} PRODUKTE</Text>
+              <Text style={styles.cardTitle}>{shop.partnerName}</Text>
+              <Text style={styles.copy}>Eigener Händlerbereich · transparent vermittelt</Text>
+              <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => { const first = shop.products[0]; if (first) { void recordProductEvent(first, "outbound_click"); void Linking.openURL(first.destinationUrl); } }}>
+                <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>ICH WILL ZU {shop.partnerName.toUpperCase()}</Text>
+                <Ionicons name="arrow-forward-outline" size={16} color={tone.accent} />
+              </Pressable>
+              <View style={styles.stack}>{shop.products.map(product => <ProductCard key={product.id} tone={tone} product={product} onInterest={item => void recordProductEvent(item, "purchase_intent")} />)}</View>
+            </View>
           ))}
         </View>
       )}
@@ -3329,44 +3352,26 @@ function KnowledgeCard({
 function ProductCard({
   tone,
   product,
+  onInterest,
 }: {
   tone: Tone;
   product: MarketplaceProduct;
+  onInterest?: (product: MarketplaceProduct) => void;
 }) {
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.productCard,
-        { borderColor: `${tone.accent}77`, backgroundColor: tone.panel },
-        pressed && styles.pressed,
-      ]}
-      onPress={() => void Linking.openURL(product.destinationUrl)}
-    >
-      <View style={styles.productImageFrame}>
-        {product.imageUrl ? (
-          <Image
-            source={{ uri: product.imageUrl }}
-            style={styles.productImage}
-          />
-        ) : (
-          <Ionicons name="cube-outline" color={tone.accent} size={26} />
-        )}
-      </View>
-      <View style={styles.productBody}>
-        <Text style={[styles.chip, { color: tone.accent }]}>
-          {product.disclosureLabel} · {product.partnerName}
-        </Text>
-        <Text style={styles.productTitle} numberOfLines={2}>
-          {product.title}
-        </Text>
-        <View style={styles.productBottom}>
-          <Text style={[styles.price, { color: c.champagne }]}>
-            {product.priceLabel ?? "Preis beim Partner"}
-          </Text>
-          <Ionicons name="open-outline" color={tone.accent} size={18} />
+    <View style={[styles.productCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+      <Pressable style={({ pressed }) => [pressed && styles.pressed]} onPress={() => void Linking.openURL(product.destinationUrl)}>
+        <View style={styles.productImageFrame}>
+          {product.imageUrl ? <Image source={{ uri: product.imageUrl }} style={styles.productImage} /> : <Ionicons name="cube-outline" color={tone.accent} size={26} />}
         </View>
-      </View>
-    </Pressable>
+        <View style={styles.productBody}>
+          <Text style={[styles.chip, { color: tone.accent }]}>{product.disclosureLabel} · {product.partnerName}</Text>
+          <Text style={styles.productTitle} numberOfLines={2}>{product.title}</Text>
+          <View style={styles.productBottom}><Text style={[styles.price, { color: c.champagne }]}>{product.priceLabel ?? "Preis beim Partner"}</Text><Ionicons name="open-outline" color={tone.accent} size={18} /></View>
+        </View>
+      </Pressable>
+      {onInterest ? <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}66`, marginTop: 8 }]} onPress={() => onInterest(product)}><Text style={[styles.secondaryButtonText, { color: tone.accent }]}>KAUFINTERESSE MERKEN</Text><Ionicons name="locate-outline" size={15} color={tone.accent} /></Pressable> : null}
+    </View>
   );
 }
 

@@ -86,6 +86,7 @@ export type OutdoorWeather = {
 };
 export type MarketplaceProduct = {
   id: number;
+  partnerId: number;
   partnerName: string;
   disclosureLabel: string;
   title: string;
@@ -268,6 +269,8 @@ export const outdoorWeather = (latitude: number, longitude: number) =>
   trpcGet<OutdoorWeather>("sensors.outdoor", { latitude, longitude });
 export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
+export const marketplaceEvent = (input: { eventId: string; productId: number; eventType: "outbound_click" | "purchase_intent" }) =>
+  trpcPost<{ recorded: boolean; eventId: string }>("partners.marketplaceEvent", input, "");
 export const communityFeed = () =>
   trpcGet<CommunityPost[]>("community.feed", { limit: 40 });
 export const communityComments = (postId: number) =>

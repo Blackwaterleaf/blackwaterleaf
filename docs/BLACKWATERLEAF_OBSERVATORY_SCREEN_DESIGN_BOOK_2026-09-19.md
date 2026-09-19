@@ -85,6 +85,14 @@ Karten- und Listenansicht sind gleichwertige Zugänge. Wenn eine Karte technisch
 
 Community bleibt ein vertikaler, fachlich moderierter Feed mit Bereich, Autor, Zeit, Sichtbarkeit, Medien, Kommentaren, Speichern, Bearbeiten, Melden und owner-scoped Löschen. Der Marktplatz bleibt transparent gekennzeichnet und darf wissenschaftliche Evidenz nicht imitieren. Die KI zeigt Hypothese, Kandidaten, Konfidenz, Merkmale, Zweitprüfung, Quellen, Sicherheitshinweise und Korrekturmöglichkeit in klaren Karten.
 
+### Marktplatz: getrennte Händler-Shops und ehrliche Vermittlungszählung
+
+Der Marktplatz zeigt nicht nur eine gemeinsame Produktreihe. Jeder freigegebene Händler erhält einen eigenen, klar abgegrenzten **Shop-Bereich** mit Händlername, Shop-Typ, Produktanzahl, seinen eigenen Produkten und einer eindeutigen Aktion wie „Ich will zu [Händler]“. Die Shop-Auswahl filtert ausschließlich diesen Händler; Produkte verschiedener Händler dürfen nicht visuell zu einem scheinbar gemeinsamen Shop verschmelzen.
+
+Händler verwalten ihren eigenen Shop über ein geschütztes Händlerportal. Dort können sie Shopname und Händlerart ändern, Produktentwürfe anlegen, Produktentwürfe bearbeiten und sie zur Admin-Prüfung einreichen. Veröffentlichung, Freigabe, Startseitenplatzierung und Statuswechsel bleiben serverseitig beim Admin. Die Oberfläche muss auch bei mehreren Händlern übersichtlich bleiben und darf nicht zu einer langen ungegliederten Produktliste werden.
+
+Solange kein Zahlungsanbieter und kein Checkout angeschlossen ist, darf BlackWaterLeaf **keine bestätigten Verkäufe behaupten**. Die Plattform zählt deshalb getrennt: datensparsame Weiterleitungen zum Partner, ausdrücklich gemerkte Kaufinteressen und bestätigte Verkäufe. Der bestätigte Verkaufszähler bleibt bis zur späteren Checkout-Integration bei null. Diese Bezeichnungen müssen in Marktplatz und Händlerportal sichtbar bleiben.
+
 ## 9. Web-/Native-Parität
 
 Web und Native benutzen dieselben Begriffe, Icons, Bilder, Farbtöne, Kartenhierarchien und Zustände. Native wird als echte Expo-Oberfläche umgesetzt. WebView, Screenshot-Hülle und abweichende Navigationslogik sind ausgeschlossen. Desktop erhält die linke Navigation; Mobile erhält die feste untere Navigation. Die Daten- und Berechtigungslogik bleibt identisch.

@@ -890,6 +890,31 @@ export const partnerAuthorizations = mysqlTable(
   ],
 );
 
+/**
+ * Attribution events for partner offers. Until a payment provider is connected,
+ * these are deliberately not called completed sales: they count verified
+ * outbound offer clicks and explicit purchase intents from BlackWaterLeaf.
+ */
+export const partnerOfferEvents = mysqlTable(
+  "partner_offer_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    eventId: varchar("eventId", { length: 96 }).notNull(),
+    partnerId: int("partnerId")
+      .notNull()
+      .references(() => partnerProfiles.id),
+    productId: int("productId")
+      .notNull()
+      .references(() => partnerProducts.id),
+    eventType: mysqlEnum("eventType", ["outbound_click", "purchase_intent"]).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("partner_offer_events_event_id_unique").on(table.eventId),
+    index("partner_offer_events_partner_product_type_created_idx").on(table.partnerId, table.productId, table.eventType, table.createdAt),
+  ],
+);
+
 /** Private recurring care plans. These records never enter public feeds or XP. */
 export const carePlans = mysqlTable(
   "care_plans",
@@ -978,6 +1003,7 @@ export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
 export type PartnerProductRecord = typeof partnerProducts.$inferSelect;
 export type PartnerPlacementRecord = typeof partnerPlacements.$inferSelect;
 export type PartnerAuthorizationRecord = typeof partnerAuthorizations.$inferSelect;
+export type PartnerOfferEventRecord = typeof partnerOfferEvents.$inferSelect;
 export type CarePlanRecord = typeof carePlans.$inferSelect;
 export type CareTaskRecord = typeof careTasks.$inferSelect;
 export type CareEventRecord = typeof careEvents.$inferSelect;

@@ -4,7 +4,7 @@ import { addMarketplaceProduct, readMarketplaceCart, writeMarketplaceCart } from
 import { marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
 import { trpc } from "@/lib/trpc";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
-import { ArrowLeft, ExternalLink, PackageOpen, Plus, ShieldCheck, ShoppingBag } from "lucide-react";
+import { ArrowLeft, ExternalLink, PackageOpen, Plus, ShieldCheck, ShoppingBag, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 
@@ -20,6 +20,7 @@ export default function MarketplaceProduct() {
   const id = Number(params?.id);
   const hasValidId = Number.isInteger(id) && id > 0;
   const product = trpc.partners.marketplaceProduct.useQuery({ id }, { enabled: hasValidId, retry: false });
+  const recordEvent = trpc.partners.marketplaceEvent.useMutation();
   const [notice, setNotice] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
@@ -54,6 +55,12 @@ export default function MarketplaceProduct() {
     const next: MarketplaceCartLine[] = addMarketplaceProduct(readMarketplaceCart(), item);
     writeMarketplaceCart(next);
     setNotice("Produkt wurde auf diesem Gerät in deiner Merkliste gespeichert.");
+  };
+
+  const recordMarketplaceEvent = (eventType: "outbound_click" | "purchase_intent") => {
+    if (!item) return;
+    const eventId = globalThis.crypto?.randomUUID?.();
+    if (eventId) recordEvent.mutate({ eventId, productId: item.id, eventType });
   };
 
   const heroTitle = item?.title ?? detailState?.title ?? "PARTNERANGEBOT";
@@ -109,7 +116,8 @@ export default function MarketplaceProduct() {
               {item.variantSummary ? <div className="marketplace-variants"><strong>{item.variantCount > 1 ? `${item.variantCount} Varianten` : "Variante"}</strong><span>{item.variantSummary}</span></div> : null}
               <div className="marketplace-detail-actions">
                 <button type="button" className="secondary-action" onClick={addToCart}><Plus size={16} />MERKEN</button>
-                <a className="primary-action" href={item.destinationUrl} target="_blank" rel="sponsored nofollow noopener">ZUM ANGEBOT <ExternalLink size={16} /></a>
+                <button type="button" className="secondary-action" onClick={() => { recordMarketplaceEvent("purchase_intent"); setNotice("Kaufinteresse für diesen Artikel wurde anonym vorgemerkt."); }}><Target size={16} />KAUFINTERESSE</button>
+                <a className="primary-action" href={item.destinationUrl} target="_blank" rel="sponsored nofollow noopener" onClick={() => recordMarketplaceEvent("outbound_click")}>ZUM ANGEBOT <ExternalLink size={16} /></a>
               </div>
               {notice ? <p className="marketplace-detail-notice" role="status">{notice}</p> : null}
             </div>

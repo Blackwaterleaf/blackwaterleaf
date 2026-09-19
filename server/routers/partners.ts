@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { partnerAuthorizations, partnerPlacements, partnerProductImages, partnerProducts, partnerProfiles } from "../../drizzle/schema";
+import { partnerAuthorizations, partnerOfferEvents, partnerPlacements, partnerProductImages, partnerProducts, partnerProfiles } from "../../drizzle/schema";
 import { partnerProductInputSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
@@ -330,6 +330,19 @@ export const partnersRouter = router({
     return getPublicMarketplaceProducts(db);
   }),
 
+  /** Record a verified handoff or explicit purchase interest without claiming a completed sale. */
+  marketplaceEvent: publicProcedure
+    .input(z.object({ eventId: z.string().uuid(), productId: z.number().int().positive(), eventType: z.enum(["outbound_click", "purchase_intent"]) }))
+    .mutation(async ({ input }) => {
+      const db = await requireDatabase();
+      const existing = await db.select({ id: partnerOfferEvents.id }).from(partnerOfferEvents).where(eq(partnerOfferEvents.eventId, input.eventId)).limit(1);
+      if (existing.length) return { recorded: false, eventId: input.eventId } as const;
+      const product = (await getPublicMarketplaceProducts(db)).find(item => item.id === input.productId);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "marketplace_product_not_found" });
+      await db.insert(partnerOfferEvents).values({ eventId: input.eventId, partnerId: product.partnerId, productId: product.id, eventType: input.eventType });
+      return { recorded: true, eventId: input.eventId } as const;
+    }),
+
   marketplaceProduct: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .query(async ({ input }) => {
@@ -346,15 +359,46 @@ export const partnersRouter = router({
       .from(partnerProfiles).where(eq(partnerProfiles.createdByUserId, ctx.user.id)).orderBy(desc(partnerProfiles.updatedAt));
   }),
 
+  merchantUpdateProfile: merchantProcedure
+    .input(z.object({ partnerId: z.number().int().positive(), displayName: z.string().trim().min(1).max(160), partyType: z.enum(["person", "company"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [partner] = await db.select({ id: partnerProfiles.id, displayName: partnerProfiles.displayName, partyType: partnerProfiles.partyType }).from(partnerProfiles).where(and(eq(partnerProfiles.id, input.partnerId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
+      if (!partner) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_partner_not_found" });
+      await db.update(partnerProfiles).set({ displayName: input.displayName, partyType: input.partyType }).where(eq(partnerProfiles.id, input.partnerId));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_partner_profile_updated", targetType: "partner_profile", targetId: input.partnerId, payload: { before: partner, after: { displayName: input.displayName, partyType: input.partyType } } });
+      return { id: input.partnerId, displayName: input.displayName, partyType: input.partyType } as const;
+    }),
+
   merchantProducts: merchantProcedure
     .input(z.object({ partnerId: z.number().int().positive() }))
     .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
       const [partner] = await db.select({ id: partnerProfiles.id }).from(partnerProfiles).where(and(eq(partnerProfiles.id, input.partnerId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
       if (!partner) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_partner_not_found" });
-      return db.select({ id: partnerProducts.id, partnerId: partnerProducts.partnerId, title: partnerProducts.title, description: partnerProducts.description, destinationUrl: partnerProducts.destinationUrl, priceLabel: partnerProducts.priceLabel, marketplaceCategory: partnerProducts.marketplaceCategory, status: partnerProducts.status, imageStorageKey: partnerProducts.imageStorageKey, createdAt: partnerProducts.createdAt, updatedAt: partnerProducts.updatedAt })
+      return db.select({ id: partnerProducts.id, partnerId: partnerProducts.partnerId, title: partnerProducts.title, description: partnerProducts.description, destinationUrl: partnerProducts.destinationUrl, priceLabel: partnerProducts.priceLabel, marketplaceCategory: partnerProducts.marketplaceCategory, productType: partnerProducts.productType, variantSummary: partnerProducts.variantSummary, seoTitle: partnerProducts.seoTitle, seoDescription: partnerProducts.seoDescription, status: partnerProducts.status, imageStorageKey: partnerProducts.imageStorageKey, createdAt: partnerProducts.createdAt, updatedAt: partnerProducts.updatedAt })
         .from(partnerProducts).where(eq(partnerProducts.partnerId, input.partnerId)).orderBy(desc(partnerProducts.updatedAt));
     }),
+
+  /** Per-shop attribution summary. Until checkout exists these are explicitly interests, not confirmed sales. */
+  merchantSalesSummary: merchantProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db
+      .select({
+        partnerId: partnerProfiles.id,
+        partnerName: partnerProfiles.displayName,
+        productId: partnerProducts.id,
+        productTitle: partnerProducts.title,
+        outboundClicks: sql<number>`coalesce(sum(case when ${partnerOfferEvents.eventType} = 'outbound_click' then 1 else 0 end), 0)`,
+        purchaseIntents: sql<number>`coalesce(sum(case when ${partnerOfferEvents.eventType} = 'purchase_intent' then 1 else 0 end), 0)`,
+      })
+      .from(partnerProfiles)
+      .leftJoin(partnerProducts, eq(partnerProducts.partnerId, partnerProfiles.id))
+      .leftJoin(partnerOfferEvents, eq(partnerOfferEvents.productId, partnerProducts.id))
+      .where(eq(partnerProfiles.createdByUserId, ctx.user.id))
+      .groupBy(partnerProfiles.id, partnerProfiles.displayName, partnerProducts.id, partnerProducts.title)
+      .orderBy(desc(partnerProfiles.id), desc(partnerProducts.id));
+  }),
 
   merchantCreateProfile: merchantProcedure
     .input(z.object({ displayName: z.string().trim().min(1).max(160), partyType: z.enum(["person", "company"]) }))
@@ -380,6 +424,18 @@ export const partnersRouter = router({
       const id = Number(inserted[0].insertId);
       await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_product_draft_created", targetType: "partner_product", targetId: id, payload: { partnerId: input.partnerId, status: "draft" } });
       return { id, status: "draft" as const };
+    }),
+
+  merchantUpdateProduct: merchantProcedure
+    .input(z.object({ productId: z.number().int().positive(), product: partnerProductInputSchema }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [product] = await db.select({ id: partnerProducts.id, partnerId: partnerProducts.partnerId, status: partnerProducts.status }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(eq(partnerProducts.id, input.productId), eq(partnerProfiles.createdByUserId, ctx.user.id))).limit(1);
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "merchant_product_not_found" });
+      if (product.status !== "draft") throw new TRPCError({ code: "BAD_REQUEST", message: "only_draft_products_can_be_edited" });
+      await db.update(partnerProducts).set({ title: input.product.title, description: input.product.description ?? null, destinationUrl: input.product.destinationUrl, priceLabel: input.product.priceLabel ?? null, marketplaceCategory: input.product.marketplaceCategory ?? null, productType: input.product.productType ?? null, variantSummary: input.product.variantSummary ?? null, seoTitle: input.product.seoTitle ?? null, seoDescription: input.product.seoDescription ?? null }).where(eq(partnerProducts.id, input.productId));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "merchant_product_draft_updated", targetType: "partner_product", targetId: input.productId, payload: { partnerId: product.partnerId, status: product.status } });
+      return { id: input.productId, status: product.status } as const;
     }),
 
   merchantSubmitProduct: merchantProcedure
