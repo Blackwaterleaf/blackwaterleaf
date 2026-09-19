@@ -33,7 +33,13 @@ describe("marketplace UI truth contract", () => {
 
   it("keeps products, categories, search and partner handoffs inside the selected shop", () => {
     expect(shop).toContain("marketplace-shop-categories");
+    expect(shop).toContain("marketplace-shop-subcategories");
+    expect(shop).toContain("marketplaceSubcategoryLabel");
+    expect(shop).toContain("priceAsc");
+    expect(shop).toContain("priceDesc");
+    expect(shop).toContain("newest");
     expect(shop).toContain("filterMarketplaceProducts");
+    expect(shop).toContain("sortMarketplaceProducts");
     expect(shop).toContain("KAUFINTERESSE MERKEN");
     expect(shop).toContain('rel="sponsored nofollow noopener"');
     expect(detail).toContain('rel="sponsored nofollow noopener"');
@@ -44,6 +50,7 @@ describe("marketplace UI truth contract", () => {
     expect(router).toContain("getPublicMarketplaceProducts");
     expect(router).toContain("isPublicPartnerProduct");
     expect(router).toContain("marketplaceProduct: publicProcedure");
+    expect(router).toContain("updatedAt: product.updatedAt");
   });
 
   it("keeps source-labelled images, verified galleries and the official merchant asset", () => {

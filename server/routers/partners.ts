@@ -141,6 +141,7 @@ export type PublicMarketplaceProduct = {
   variantCount: number;
   seoTitle: string | null;
   seoDescription: string | null;
+  updatedAt: Date;
 };
 
 export type PublicMarketplaceProductDetail = PublicMarketplaceProduct & {
@@ -242,6 +243,7 @@ async function getPublicMarketplaceProducts(db: Database): Promise<PublicMarketp
       variantCount: product.variantCount,
       seoTitle: product.seoTitle,
       seoDescription: product.seoDescription,
+      updatedAt: product.updatedAt,
     }];
   }).map(async product => ({
     ...product,

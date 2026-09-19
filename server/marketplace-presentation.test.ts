@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { filterMarketplaceProducts, groupMarketplaceCart, marketplaceCategoryLabel, marketplaceDisclosure, marketplaceProductCount, type MarketplaceCartLine } from "../client/src/lib/marketplacePresentation";
+import { filterMarketplaceProducts, groupMarketplaceCart, marketplaceCategoryLabel, marketplaceDisclosure, marketplaceProductCount, marketplaceSubcategoryLabel, sortMarketplaceProducts, type MarketplaceCartLine } from "../client/src/lib/marketplacePresentation";
 
 const productData = {
   imageAltText: null,
@@ -10,6 +10,7 @@ const productData = {
   variantCount: 0,
   seoTitle: null,
   seoDescription: null,
+  updatedAt: new Date("2026-09-01T00:00:00Z"),
 };
 
 const products: MarketplaceCartLine[] = [
@@ -39,5 +40,12 @@ describe("marketplace presentation", () => {
     expect(marketplaceDisclosure(products[0]!)).toBe("Werbung · Angebot von Kiemen-Kumpel");
     expect(marketplaceCategoryLabel("dekoration")).toBe("Dekoration");
     expect(marketplaceCategoryLabel(null)).toBe("Weitere Artikel");
+  });
+
+  it("derives honest subcategories and deterministic product ordering", () => {
+    expect(marketplaceSubcategoryLabel(products[0]!)).toBe("Treibholz");
+    expect(marketplaceSubcategoryLabel({ marketplaceCategory: "futter", productType: "Futter" })).toBeNull();
+    expect(sortMarketplaceProducts(products, "priceAsc").map(product => product.id)).toEqual([1, 3, 2]);
+    expect(sortMarketplaceProducts(products, "name").map(product => product.id)).toEqual([1, 2, 3]);
   });
 });

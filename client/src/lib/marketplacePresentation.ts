@@ -18,6 +18,7 @@ export type MarketplaceProduct = {
   variantCount: number;
   seoTitle: string | null;
   seoDescription: string | null;
+  updatedAt: Date;
 };
 
 export type MarketplaceCartLine = MarketplaceProduct & { quantity: number };
@@ -72,4 +73,38 @@ export const marketplaceCategoryLabels: Record<string, string> = {
 
 export function marketplaceCategoryLabel(category: string | null) {
   return category ? marketplaceCategoryLabels[category] ?? "Weitere Artikel" : "Weitere Artikel";
+}
+
+export function marketplaceSubcategoryLabel(product: Pick<MarketplaceProduct, "marketplaceCategory" | "productType">) {
+  const value = product.productType?.trim();
+  if (!value || value.toLocaleLowerCase("de-DE") === product.marketplaceCategory?.trim().toLocaleLowerCase("de-DE")) return null;
+  return value;
+}
+
+export type MarketplaceSort = "relevance" | "name" | "priceAsc" | "priceDesc" | "newest";
+
+function numericPrice(value: string | null) {
+  if (!value) return null;
+  const normalized = value.replace(/\./g, "").replace(",", ".").match(/\d+(?:\.\d+)?/)?.[0];
+  return normalized ? Number(normalized) : null;
+}
+
+export function sortMarketplaceProducts(products: MarketplaceProduct[], sort: MarketplaceSort, search = "") {
+  const query = search.trim().toLocaleLowerCase("de-DE");
+  return [...products].sort((first, second) => {
+    if (sort === "name") return first.title.localeCompare(second.title, "de");
+    if (sort === "newest") return second.updatedAt.getTime() - first.updatedAt.getTime();
+    if (sort === "priceAsc" || sort === "priceDesc") {
+      const firstPrice = numericPrice(first.priceLabel);
+      const secondPrice = numericPrice(second.priceLabel);
+      if (firstPrice === null && secondPrice !== null) return 1;
+      if (firstPrice !== null && secondPrice === null) return -1;
+      if (firstPrice !== null && secondPrice !== null && firstPrice !== secondPrice) return sort === "priceAsc" ? firstPrice - secondPrice : secondPrice - firstPrice;
+    }
+    const firstText = `${first.title} ${first.productType ?? ""}`.toLocaleLowerCase("de-DE");
+    const secondText = `${second.title} ${second.productType ?? ""}`.toLocaleLowerCase("de-DE");
+    const firstMatch = query && firstText.includes(query) ? 1 : 0;
+    const secondMatch = query && secondText.includes(query) ? 1 : 0;
+    return secondMatch - firstMatch || first.title.localeCompare(second.title, "de");
+  });
 }
