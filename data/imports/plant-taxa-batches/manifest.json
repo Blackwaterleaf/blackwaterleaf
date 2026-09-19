@@ -1,0 +1,7 @@
+{
+  "source": "data/imports/legacy-seed-taxonomy.sql",
+  "importedRecords": 84,
+  "excludedRecords": 15,
+  "excludedCategory": "channa",
+  "batches": 5
+}

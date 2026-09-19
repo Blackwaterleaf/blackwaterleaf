@@ -4,14 +4,14 @@
 
 Der aktuelle WebDev-Stand `blackwaterleaf-parity-staging` ist der führende Produktstand für die neue Web-/Native-Parität. Der ursprüngliche GitHub-Stand `Blackwaterleaf/blackwaterleaf` enthält ältere, wertvolle Pflanzen- und KI-Funktionen. Beide Stände wurden vor der Zusammenführung unverändert gesichert.
 
-Der aktuelle Stand verwendet die neue Tabelle `plant_taxa`; sie enthält derzeit keine Datensätze. Der ältere Stand verwendet `taxonomy_species` und enthält eine versionierte Taxonomiequelle in `scripts/seed-taxonomy.sql` sowie einen älteren PlantNet-Validierungsfluss.
+Der aktuelle Stand verwendet die neue Tabelle `plant_taxa`; die alte Quelle wird dafür deterministisch aufbereitet. Der ältere Stand verwendet `taxonomy_species` und enthält eine versionierte Taxonomiequelle in `scripts/seed-taxonomy.sql` sowie einen älteren PlantNet-Validierungsfluss.
 
 ## Sicherungsstand
 
 - Aktueller Stand: Commit `37bc073`
 - Alter Produktstand: Commit `bbe27ba`
 - Lokale Git-Bundles und Manifest: `/home/ubuntu/blackwaterleaf-merge-safety-20260919/`
-- Die aktuelle Datenbank wurde bei diesem Arbeitsschritt nicht verändert.
+- Die aktuelle Datenbank wurde ausschließlich additiv über idempotente SQL-Batches erweitert; bestehende Nutzer-, Community- und Care-Daten wurden nicht verändert.
 
 ## Übernommene Quelle
 
@@ -29,13 +29,13 @@ Der vorbereitete Katalog enthält 99 eindeutige Datensätze:
 | Channa | 15 |
 | Monstera | 10 |
 
-Der Import wurde noch nicht in die Datenbank geschrieben. Dadurch bleiben bestehende Nutzerdaten und der aktuelle Datenbankstand unverändert, bis die Feldzuordnung und die Abgrenzung zwischen Pflanzen- und Aquaristik-Taxa abschließend geprüft sind.
+Für den aktuellen `plant_taxa`-Vertrag wurden 84 Pflanzen- und Aquaristikpflanzen-Datensätze in fünf idempotenten SQL-Batches importiert und verifiziert: 84 veröffentlichte Datensätze, davon 20 Aquaristikpflanzen und 64 Land-/Zimmerpflanzen, mit 84 eindeutigen Quellkennungen. Die 15 Channa-Fischdatensätze bleiben separat archiviert, weil `plant_taxa` keine Organismen-Kategorie besitzt.
 
 ## Zusammenführungsregeln
 
 Der neue Stand bleibt die führende Oberfläche, Navigation, Authentifizierung, Datenbankstruktur und Web-/Native-Paritätsbasis. Alte Pflanzen-/KI-Funktionen werden additiv übernommen, nicht durch Ersetzen der aktuellen App. Öffentliche Taxa werden nur mit Quellen- und Verifikationsmetadaten veröffentlicht. Private Anlagen, Beobachtungen und Community-Daten werden nicht als Taxonomiequelle verwendet.
 
-Als nächster technischer Schritt folgt die serverseitige PlantNet-Anbindung mit sicherer Schlüsselkonfiguration. Der Schlüssel wird nicht in Git, Client-Code oder Importdateien gespeichert. Danach wird der vorbereitete Katalog in einer kontrollierten, idempotenten Migration importiert und mit Suche, Detailseite sowie Bestimmungs- und Korrekturworkflow validiert.
+Die serverseitige PlantNet-Anbindung ist jetzt im aktuellen Assistant-Router aktiv und verwendet die sicher hinterlegte Variable `PLANTNET_API_KEY`. Die Prüfung ist eine unabhängige Zweitmeinung, bleibt bei Upstream-Fehlern ausfallsicher und wird im Ergebnis transparent ausgewiesen. Als nächster technischer Schritt folgt der kontrollierte, idempotente Katalogimport mit Suche, Detailseite sowie Bestimmungs- und Korrekturworkflow.
 
 ## Externe Referenz
 

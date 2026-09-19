@@ -11,6 +11,7 @@ import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { hasCurrentConsent } from "../consents";
+import { validateWithPlantNet } from "../plantnet";
 
 const MAX_DAILY_ASSISTANT_CALLS = 10;
 const requestIdSchema = z.string().uuid();
@@ -160,9 +161,19 @@ export const assistantRouter = router({
     }
     let result: PlantIdentificationResult;
     try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
-    const answer = formatPlantIdentification(result);
+    const plantNetValidation = await validateWithPlantNet(
+      images[0].buffer,
+      images[0].mimeType,
+      result.candidates[0]?.scientificName ?? "",
+    );
+    const answer = [
+      formatPlantIdentification(result),
+      plantNetValidation
+        ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
+        : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
+    ].join("\n\n");
     const xpAwarded = await completeRequest(reservation, ctx.user.id, answer);
-    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {

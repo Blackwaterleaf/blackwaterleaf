@@ -11,10 +11,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Drachenschuppen-Alocasia",
-        "en": "Dragon Scale Alocasia"
-      },
+      "commonNames": [
+        "Drachenschuppen-Alocasia",
+        "Dragon Scale Alocasia"
+      ],
       "synonyms": [
         "Alocasia sp. Dragon Scale",
         "Alocasia baginda Dragon Scale"
@@ -40,10 +40,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Silberdrachen-Alocasia",
-        "en": "Silver Dragon Alocasia"
-      },
+      "commonNames": [
+        "Silberdrachen-Alocasia",
+        "Silver Dragon Alocasia"
+      ],
       "synonyms": [
         "Alocasia baginda Silver Dragon"
       ],
@@ -68,10 +68,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Zebra-Alocasia",
-        "en": "Zebra Elephant Ear"
-      },
+      "commonNames": [
+        "Zebra-Alocasia",
+        "Zebra Elephant Ear"
+      ],
       "synonyms": [
         "Alocasia zebrina var. zebrina"
       ],
@@ -96,10 +96,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Amazonica Polly",
-        "en": "African Mask Plant"
-      },
+      "commonNames": [
+        "Amazonica Polly",
+        "African Mask Plant"
+      ],
       "synonyms": [
         "Alocasia x amazonica",
         "Alocasia Polly"
@@ -125,10 +125,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Riesenaronstab",
-        "en": "Giant Taro"
-      },
+      "commonNames": [
+        "Riesenaronstab",
+        "Giant Taro"
+      ],
       "synonyms": [
         "Alocasia macrorrhiza",
         "Colocasia macrorrhizos"
@@ -154,10 +154,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Langlappige Alocasia",
-        "en": "Longiloba Elephant Ear"
-      },
+      "commonNames": [
+        "Langlappige Alocasia",
+        "Longiloba Elephant Ear"
+      ],
       "synonyms": [
         "Alocasia longiloba var. longiloba"
       ],
@@ -182,10 +182,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Kupfer-Alocasia",
-        "en": "Mirror Plant, Jewel Alocasia"
-      },
+      "commonNames": [
+        "Kupfer-Alocasia",
+        "Mirror Plant, Jewel Alocasia"
+      ],
       "synonyms": [
         "Alocasia cuprea var. cuprea"
       ],
@@ -210,10 +210,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Schwarzer Samt",
-        "en": "Black Velvet Alocasia"
-      },
+      "commonNames": [
+        "Schwarzer Samt",
+        "Black Velvet Alocasia"
+      ],
       "synonyms": [
         "Alocasia reginula Black Velvet",
         "Alocasia Black Velvet"
@@ -239,10 +239,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Maharani Alocasia",
-        "en": "Grey Dragon Alocasia"
-      },
+      "commonNames": [
+        "Maharani Alocasia",
+        "Grey Dragon Alocasia"
+      ],
       "synonyms": [
         "Alocasia maharani Grey Dragon"
       ],
@@ -267,10 +267,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Frydek Alocasia, Grüner Samt",
-        "en": "Green Velvet Alocasia"
-      },
+      "commonNames": [
+        "Frydek Alocasia, Grüner Samt",
+        "Green Velvet Alocasia"
+      ],
       "synonyms": [
         "Alocasia frydek",
         "Alocasia micholitziana Frydek"
@@ -296,10 +296,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Wentii Alocasia",
-        "en": "Hardy Elephant Ear"
-      },
+      "commonNames": [
+        "Wentii Alocasia",
+        "Hardy Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: große pfeilförmige Blätter; Blattunterseite purpurviolett; robuste Art; aufrechter Wuchs",
       "careProfile": {
@@ -322,10 +322,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Lauterbachs Alocasia",
-        "en": "Purple Sword Alocasia"
-      },
+      "commonNames": [
+        "Lauterbachs Alocasia",
+        "Purple Sword Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: schmale lanzettliche Blätter; gewellter Blattrand; Blattunterseite purpurviolett; aufrechter Wuchs",
       "careProfile": {
@@ -348,10 +348,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Sanders Alocasia, Kris Plant",
-        "en": "Kris Plant"
-      },
+      "commonNames": [
+        "Sanders Alocasia, Kris Plant",
+        "Kris Plant"
+      ],
       "synonyms": [
         "Alocasia sanderiana var. sanderiana"
       ],
@@ -376,10 +376,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Melo Alocasia",
-        "en": "Melo Elephant Ear"
-      },
+      "commonNames": [
+        "Melo Alocasia",
+        "Melo Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo\nMerkmale: extrem dicke, fast sukkulente Blätter; stark strukturierte Blattoberfläche; grau-grüne Farbe; kompakter Wuchs",
       "careProfile": {
@@ -402,10 +402,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Skalpell-Alocasia",
-        "en": "Scalprum Elephant Ear"
-      },
+      "commonNames": [
+        "Skalpell-Alocasia",
+        "Scalprum Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Philippinen\nMerkmale: schmale lanzettliche Blätter; ledrige Blattstruktur; dunkelgrüne Farbe; aufrechter Wuchs",
       "careProfile": {
@@ -428,10 +428,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Gewellte Alocasia",
-        "en": "Quilted Dreams Alocasia"
-      },
+      "commonNames": [
+        "Gewellte Alocasia",
+        "Quilted Dreams Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Philippinen\nMerkmale: stark strukturierte, wellige Blattoberfläche; dunkelgrüne Farbe; kompakter Wuchs; Jewel Alocasia",
       "careProfile": {
@@ -454,10 +454,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Nebula Alocasia",
-        "en": "Nebula Elephant Ear"
-      },
+      "commonNames": [
+        "Nebula Alocasia",
+        "Nebula Elephant Ear"
+      ],
       "synonyms": [
         "Alocasia nebula Imperialis"
       ],
@@ -482,10 +482,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Azlanii Alocasia",
-        "en": "Red Mambo Alocasia"
-      },
+      "commonNames": [
+        "Azlanii Alocasia",
+        "Red Mambo Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo (Malaysia)\nMerkmale: metallisch-grüne Blattoberfläche; rote bis violette Blattadern; Blattunterseite tief violett; kompakter Wuchs",
       "careProfile": {
@@ -508,10 +508,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Schwarze Magie Alocasia",
-        "en": "Black Magic Alocasia"
-      },
+      "commonNames": [
+        "Schwarze Magie Alocasia",
+        "Black Magic Alocasia"
+      ],
       "synonyms": [
         "Alocasia infernalis Black Magic"
       ],
@@ -536,10 +536,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Verschiedenblättrige Alocasia",
-        "en": "Heterophylla Elephant Ear"
-      },
+      "commonNames": [
+        "Verschiedenblättrige Alocasia",
+        "Heterophylla Elephant Ear"
+      ],
       "synonyms": [
         "Alocasia heterophylla Dragons Breath"
       ],
@@ -564,10 +564,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Jacklyn Alocasia",
-        "en": "Jacklyn Elephant Ear"
-      },
+      "commonNames": [
+        "Jacklyn Alocasia",
+        "Jacklyn Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: tief eingeschnittene Blätter; dunkelgrüne Farbe; ausgeprägte Nervatur; aufrechter Wuchs",
       "careProfile": {
@@ -590,10 +590,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Stachelrochen-Alocasia",
-        "en": "Stingray Alocasia"
-      },
+      "commonNames": [
+        "Stachelrochen-Alocasia",
+        "Stingray Alocasia"
+      ],
       "synonyms": [
         "Alocasia macrorrhizos Stingray"
       ],
@@ -618,10 +618,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Watsons Alocasia",
-        "en": "Watson Elephant Ear"
-      },
+      "commonNames": [
+        "Watsons Alocasia",
+        "Watson Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo\nMerkmale: große Blätter mit silbrig-grüner Oberfläche; ausgeprägte Nervatur; aufrechter Wuchs",
       "careProfile": {
@@ -644,10 +644,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Duftende Alocasia",
-        "en": "Night-scented Lily"
-      },
+      "commonNames": [
+        "Duftende Alocasia",
+        "Night-scented Lily"
+      ],
       "synonyms": [
         "Alocasia odora var. odora"
       ],
@@ -672,10 +672,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Schildförmige Alocasia",
-        "en": "Green Shield Alocasia"
-      },
+      "commonNames": [
+        "Schildförmige Alocasia",
+        "Green Shield Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Philippinen\nMerkmale: schildförmige Blätter; grüne Farbe; kompakter Wuchs",
       "careProfile": {
@@ -698,10 +698,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Umgekehrte Alocasia",
-        "en": "Reversa Elephant Ear"
-      },
+      "commonNames": [
+        "Umgekehrte Alocasia",
+        "Reversa Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo\nMerkmale: ungewöhnliche Blattform; dunkelgrüne Farbe; kompakter Wuchs",
       "careProfile": {
@@ -724,10 +724,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Königin-Alocasia",
-        "en": "Queen Alocasia"
-      },
+      "commonNames": [
+        "Königin-Alocasia",
+        "Queen Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo\nMerkmale: metallisch-grüne Blattoberfläche; kompakter Wuchs; Jewel Alocasia",
       "careProfile": {
@@ -750,10 +750,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Prinz-Alocasia",
-        "en": "Purple Cloak Alocasia"
-      },
+      "commonNames": [
+        "Prinz-Alocasia",
+        "Purple Cloak Alocasia"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo\nMerkmale: dunkelgrüne bis fast schwarze Blätter; Blattunterseite violett; kompakter Wuchs",
       "careProfile": {
@@ -776,10 +776,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Portes Alocasia",
-        "en": "Portei Elephant Ear"
-      },
+      "commonNames": [
+        "Portes Alocasia",
+        "Portei Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Philippinen\nMerkmale: tief eingeschnittene Blätter; aufrechter Wuchs; große Blätter",
       "careProfile": {
@@ -802,10 +802,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Alocasia",
-      "commonNames": {
-        "de": "Brancifolia Alocasia",
-        "en": "Brancifolia Elephant Ear"
-      },
+      "commonNames": [
+        "Brancifolia Alocasia",
+        "Brancifolia Elephant Ear"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Australien\nMerkmale: tief eingeschnittene Blätter; aufrechter Wuchs",
       "careProfile": {
@@ -828,10 +828,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Gloriosum Philodendron",
-        "en": "Gloriosum Philodendron"
-      },
+      "commonNames": [
+        "Gloriosum Philodendron",
+        "Gloriosum Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Kolumbien, tropischer Regenwald\nMerkmale: samtige dunkelgrüne Blätter; weiße/cremefarbene Blattadern; kriechender Wuchs (terrestrisch); herzförmige Blätter; Blätter werden sehr groß",
       "careProfile": {
@@ -854,10 +854,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Schwarzgold-Philodendron",
-        "en": "Black Gold Philodendron"
-      },
+      "commonNames": [
+        "Schwarzgold-Philodendron",
+        "Black Gold Philodendron"
+      ],
       "synonyms": [
         "Philodendron andreanum"
       ],
@@ -882,10 +882,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Warziger Philodendron",
-        "en": "Velvet Leaf Philodendron"
-      },
+      "commonNames": [
+        "Warziger Philodendron",
+        "Velvet Leaf Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Costa Rica, Kolumbien, Ecuador, Peru\nMerkmale: samtige dunkelgrüne Blätter; hellgrüne Blattadern; rötliche Blattstiele mit Haaren; kletternder Wuchs",
       "careProfile": {
@@ -908,10 +908,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Splendid Philodendron",
-        "en": "Splendid Philodendron"
-      },
+      "commonNames": [
+        "Splendid Philodendron",
+        "Splendid Philodendron"
+      ],
       "synonyms": [
         "Philodendron splendid"
       ],
@@ -936,10 +936,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Florida Beauty Philodendron",
-        "en": "Florida Beauty Philodendron"
-      },
+      "commonNames": [
+        "Florida Beauty Philodendron",
+        "Florida Beauty Philodendron"
+      ],
       "synonyms": [
         "Philodendron florida beauty variegata"
       ],
@@ -964,10 +964,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Florida Ghost Philodendron",
-        "en": "Florida Ghost Philodendron"
-      },
+      "commonNames": [
+        "Florida Ghost Philodendron",
+        "Florida Ghost Philodendron"
+      ],
       "synonyms": [],
       "summary": "Kultivar: Florida Ghost\nLebensraum: Züchtung\nMerkmale: tief eingeschnittene Blätter; junge Blätter fast weiß/mint; kletternder Wuchs; rote Blattstiele",
       "careProfile": {
@@ -990,10 +990,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Pink Princess Philodendron",
-        "en": "Pink Princess Philodendron"
-      },
+      "commonNames": [
+        "Pink Princess Philodendron",
+        "Pink Princess Philodendron"
+      ],
       "synonyms": [
         "Philodendron pink princess"
       ],
@@ -1018,10 +1018,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "White Princess Philodendron",
-        "en": "White Princess Philodendron"
-      },
+      "commonNames": [
+        "White Princess Philodendron",
+        "White Princess Philodendron"
+      ],
       "synonyms": [],
       "summary": "Kultivar: White Princess\nLebensraum: Züchtung\nMerkmale: dunkelgrüne Blätter; weiße Panaschierung; kletternder Wuchs",
       "careProfile": {
@@ -1044,10 +1044,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "White Wizard Philodendron",
-        "en": "White Wizard Philodendron"
-      },
+      "commonNames": [
+        "White Wizard Philodendron",
+        "White Wizard Philodendron"
+      ],
       "synonyms": [],
       "summary": "Kultivar: White Wizard\nLebensraum: Züchtung\nMerkmale: dunkelgrüne Blätter; weiße Panaschierung; grüne Blattstiele (Unterschied zu White Princess); kletternder Wuchs",
       "careProfile": {
@@ -1070,10 +1070,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Birkin Philodendron",
-        "en": "Birkin Philodendron"
-      },
+      "commonNames": [
+        "Birkin Philodendron",
+        "Birkin Philodendron"
+      ],
       "synonyms": [
         "Philodendron birkin"
       ],
@@ -1098,10 +1098,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Brasil Philodendron",
-        "en": "Brasil Philodendron"
-      },
+      "commonNames": [
+        "Brasil Philodendron",
+        "Brasil Philodendron"
+      ],
       "synonyms": [
         "Philodendron brasil"
       ],
@@ -1126,10 +1126,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Micans Philodendron, Samtblatt",
-        "en": "Velvet Leaf Philodendron"
-      },
+      "commonNames": [
+        "Micans Philodendron, Samtblatt",
+        "Velvet Leaf Philodendron"
+      ],
       "synonyms": [
         "Philodendron micans"
       ],
@@ -1154,10 +1154,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Herzblatt-Philodendron",
-        "en": "Heartleaf Philodendron"
-      },
+      "commonNames": [
+        "Herzblatt-Philodendron",
+        "Heartleaf Philodendron"
+      ],
       "synonyms": [
         "Philodendron scandens",
         "Philodendron oxycardium"
@@ -1183,10 +1183,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Silberschwert Philodendron",
-        "en": "Silver Sword Philodendron"
-      },
+      "commonNames": [
+        "Silberschwert Philodendron",
+        "Silver Sword Philodendron"
+      ],
       "synonyms": [
         "Philodendron hastatum Silver Sword"
       ],
@@ -1211,10 +1211,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Mamei Philodendron",
-        "en": "Mamei Philodendron"
-      },
+      "commonNames": [
+        "Mamei Philodendron",
+        "Mamei Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Ecuador\nMerkmale: silbrig gemusterte Blätter; kriechender Wuchs; herzförmige Blätter",
       "careProfile": {
@@ -1237,10 +1237,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Plowmanii Philodendron",
-        "en": "Plowmanii Philodendron"
-      },
+      "commonNames": [
+        "Plowmanii Philodendron",
+        "Plowmanii Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Peru, Ecuador\nMerkmale: gewellter Blattrand; kriechender Wuchs; große Blätter; grüne Farbe",
       "careProfile": {
@@ -1263,10 +1263,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Pastazanum Philodendron",
-        "en": "Pastazanum Philodendron"
-      },
+      "commonNames": [
+        "Pastazanum Philodendron",
+        "Pastazanum Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Ecuador\nMerkmale: große herzförmige Blätter; kriechender Wuchs; grüne Farbe",
       "careProfile": {
@@ -1289,10 +1289,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Riesen-Philodendron",
-        "en": "Giant Philodendron"
-      },
+      "commonNames": [
+        "Riesen-Philodendron",
+        "Giant Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Panama\nMerkmale: sehr große samtige Blätter; kletternder Wuchs; dunkelgrüne Farbe",
       "careProfile": {
@@ -1315,10 +1315,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Schuppenstieliger Philodendron",
-        "en": "Hairy Philodendron"
-      },
+      "commonNames": [
+        "Schuppenstieliger Philodendron",
+        "Hairy Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Brasilien, Surinam\nMerkmale: rote haarige Blattstiele; tief eingeschnittene Blätter; kletternder Wuchs",
       "careProfile": {
@@ -1341,10 +1341,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Billietiae Philodendron",
-        "en": "Billietiae Philodendron"
-      },
+      "commonNames": [
+        "Billietiae Philodendron",
+        "Billietiae Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Brasilien, Guyana\nMerkmale: orange-gelbe Blattstiele; lange schmale Blätter; kletternder Wuchs",
       "careProfile": {
@@ -1367,10 +1367,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Atabapoense Philodendron",
-        "en": "Atabapoense Philodendron"
-      },
+      "commonNames": [
+        "Atabapoense Philodendron",
+        "Atabapoense Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Venezuela, Brasilien\nMerkmale: lange schmale Blätter; Blattunterseite rötlich-violett; kletternder Wuchs",
       "careProfile": {
@@ -1393,10 +1393,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Heiliger Geist Philodendron",
-        "en": "Spiritus Sancti Philodendron"
-      },
+      "commonNames": [
+        "Heiliger Geist Philodendron",
+        "Spiritus Sancti Philodendron"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Brasilien (Espírito Santo)\nMerkmale: extrem seltene Art; schmale hängende Blätter; kletternder Wuchs; vom Aussterben bedroht",
       "careProfile": {
@@ -1419,10 +1419,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "El Choco Red Philodendron",
-        "en": "El Choco Red Philodendron"
-      },
+      "commonNames": [
+        "El Choco Red Philodendron",
+        "El Choco Red Philodendron"
+      ],
       "synonyms": [
         "Philodendron el choco red"
       ],
@@ -1447,10 +1447,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Philodendron",
-      "commonNames": {
-        "de": "Jose Buono Philodendron",
-        "en": "Jose Buono Philodendron"
-      },
+      "commonNames": [
+        "Jose Buono Philodendron",
+        "Jose Buono Philodendron"
+      ],
       "synonyms": [
         "Philodendron jose buono"
       ],
@@ -1475,10 +1475,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Fensterblatt, Köstliche Monstera",
-        "en": "Swiss Cheese Plant"
-      },
+      "commonNames": [
+        "Fensterblatt, Köstliche Monstera",
+        "Swiss Cheese Plant"
+      ],
       "synonyms": [
         "Monstera deliciosa var. deliciosa"
       ],
@@ -1503,10 +1503,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Weißes Fensterblatt",
-        "en": "Albo Monstera, White Monstera"
-      },
+      "commonNames": [
+        "Weißes Fensterblatt",
+        "Albo Monstera, White Monstera"
+      ],
       "synonyms": [
         "Monstera deliciosa Albo",
         "Monstera albo variegata"
@@ -1532,10 +1532,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Thai Constellation Monstera",
-        "en": "Thai Constellation Monstera"
-      },
+      "commonNames": [
+        "Thai Constellation Monstera",
+        "Thai Constellation Monstera"
+      ],
       "synonyms": [],
       "summary": "Kultivar: Thai Constellation\nLebensraum: Züchtung (Thailand)\nMerkmale: cremefarbene Panaschierung mit Sternenmuster; tief eingeschnittene Blätter; kletternder Wuchs; stabile Panaschierung",
       "careProfile": {
@@ -1558,10 +1558,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Adansonii Monstera, Schweizer Käse Rebe",
-        "en": "Swiss Cheese Vine"
-      },
+      "commonNames": [
+        "Adansonii Monstera, Schweizer Käse Rebe",
+        "Swiss Cheese Vine"
+      ],
       "synonyms": [
         "Monstera friedrichsthalii"
       ],
@@ -1586,10 +1586,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Variegierte Adansonii",
-        "en": "Variegated Swiss Cheese Vine"
-      },
+      "commonNames": [
+        "Variegierte Adansonii",
+        "Variegated Swiss Cheese Vine"
+      ],
       "synonyms": [],
       "summary": "Kultivar: Variegata\nLebensraum: Züchtung\nMerkmale: ovale Blätter mit Löchern; weiße/cremefarbene Panaschierung; kletternder Wuchs",
       "careProfile": {
@@ -1612,10 +1612,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Obliqua Monstera",
-        "en": "Obliqua Monstera"
-      },
+      "commonNames": [
+        "Obliqua Monstera",
+        "Obliqua Monstera"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südamerika\nMerkmale: sehr viele Löcher (mehr Loch als Blatt); extrem selten; kletternder Wuchs; zarte dünne Blätter",
       "careProfile": {
@@ -1638,10 +1638,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Silberne Monstera",
-        "en": "Silver Monstera"
-      },
+      "commonNames": [
+        "Silberne Monstera",
+        "Silver Monstera"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Mexiko, Mittelamerika\nMerkmale: silbrig-grüne Blätter als Jungpflanze; kletternder Wuchs; Blattform ändert sich mit Alter",
       "careProfile": {
@@ -1664,10 +1664,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Standleyana Monstera",
-        "en": "Standleyana Monstera"
-      },
+      "commonNames": [
+        "Standleyana Monstera",
+        "Standleyana Monstera"
+      ],
       "synonyms": [
         "Philodendron cobanum"
       ],
@@ -1692,10 +1692,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Dubia Monstera",
-        "en": "Dubia Monstera"
-      },
+      "commonNames": [
+        "Dubia Monstera",
+        "Dubia Monstera"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Mittel- und Südamerika\nMerkmale: Jungpflanze kriecht an Baumstämmen; Blätter wechseln Form mit Alter; silbrig gemusterte Jungblätter",
       "careProfile": {
@@ -1718,10 +1718,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Monstera",
-      "commonNames": {
-        "de": "Pinnatipartita Monstera",
-        "en": "Pinnatipartita Monstera"
-      },
+      "commonNames": [
+        "Pinnatipartita Monstera",
+        "Pinnatipartita Monstera"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Kolumbien, Peru\nMerkmale: tief eingeschnittene Blätter; kletternder Wuchs; Blätter werden mit Alter größer",
       "careProfile": {
@@ -1744,10 +1744,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Bucephalandra",
-      "commonNames": {
-        "de": "Bucephalandra",
-        "en": "Bucephalandra"
-      },
+      "commonNames": [
+        "Bucephalandra",
+        "Bucephalandra"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Borneo, Bachläufe\nMerkmale: kleine Wasserpflanze; auf Steinen/Holz befestigbar; diverse Formen und Farben; langsames Wachstum",
       "careProfile": {
@@ -1770,10 +1770,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Anubias",
-      "commonNames": {
-        "de": "Anubias",
-        "en": "Anubias"
-      },
+      "commonNames": [
+        "Anubias",
+        "Anubias"
+      ],
       "synonyms": [
         "Anubias barteri var. barteri"
       ],
@@ -1798,10 +1798,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Anubias",
-      "commonNames": {
-        "de": "Zwerg-Anubias",
-        "en": "Dwarf Anubias"
-      },
+      "commonNames": [
+        "Zwerg-Anubias",
+        "Dwarf Anubias"
+      ],
       "synonyms": [
         "Anubias nana",
         "Anubias barteri var. nana"
@@ -1827,10 +1827,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Anubias",
-      "commonNames": {
-        "de": "Petite Zwerg-Anubias",
-        "en": "Petite Dwarf Anubias"
-      },
+      "commonNames": [
+        "Petite Zwerg-Anubias",
+        "Petite Dwarf Anubias"
+      ],
       "synonyms": [
         "Anubias nana petite"
       ],
@@ -1855,10 +1855,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Cryptocoryne",
-      "commonNames": {
-        "de": "Wendts Wasserkelch",
-        "en": "Wendt Crypt"
-      },
+      "commonNames": [
+        "Wendts Wasserkelch",
+        "Wendt Crypt"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Sri Lanka\nMerkmale: rosettenwüchsig; braun-grüne Blätter; robust; Bodenpflanze",
       "careProfile": {
@@ -1881,10 +1881,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Cryptocoryne",
-      "commonNames": {
-        "de": "Zwerg-Wasserkelch",
-        "en": "Dwarf Crypt"
-      },
+      "commonNames": [
+        "Zwerg-Wasserkelch",
+        "Dwarf Crypt"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Sri Lanka\nMerkmale: sehr kleine Rosette; grüne Blätter; Bodenpflanze; langsames Wachstum",
       "careProfile": {
@@ -1907,10 +1907,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Cryptocoryne",
-      "commonNames": {
-        "de": "Balansa Wasserkelch",
-        "en": "Balansa Crypt"
-      },
+      "commonNames": [
+        "Balansa Wasserkelch",
+        "Balansa Crypt"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Thailand, Vietnam\nMerkmale: lange schmale Blätter; stark gewellter Blattrand; Bodenpflanze",
       "careProfile": {
@@ -1933,10 +1933,10 @@
       "rank": "species",
       "family": "Araceae",
       "genus": "Cryptocoryne",
-      "commonNames": {
-        "de": "Gewellter Wasserkelch",
-        "en": "Undulate Crypt"
-      },
+      "commonNames": [
+        "Gewellter Wasserkelch",
+        "Undulate Crypt"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Sri Lanka\nMerkmale: gewellte Blätter; braun-grüne Farbe; Bodenpflanze",
       "careProfile": {
@@ -1959,10 +1959,10 @@
       "rank": "species",
       "family": "Polypodiaceae",
       "genus": "Microsorum",
-      "commonNames": {
-        "de": "Javafarn",
-        "en": "Java Fern"
-      },
+      "commonNames": [
+        "Javafarn",
+        "Java Fern"
+      ],
       "synonyms": [
         "Leptochilus pteropus"
       ],
@@ -1987,10 +1987,10 @@
       "rank": "species",
       "family": "Hypnaceae",
       "genus": "Taxiphyllum",
-      "commonNames": {
-        "de": "Javamoos",
-        "en": "Java Moss"
-      },
+      "commonNames": [
+        "Javamoos",
+        "Java Moss"
+      ],
       "synonyms": [
         "Vesicularia dubyana (falsch zugeordnet)"
       ],
@@ -2015,10 +2015,10 @@
       "rank": "species",
       "family": "Hypnaceae",
       "genus": "Vesicularia",
-      "commonNames": {
-        "de": "Weihnachtsmoos",
-        "en": "Christmas Moss"
-      },
+      "commonNames": [
+        "Weihnachtsmoos",
+        "Christmas Moss"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: Moos mit weihnachtsbaumartiger Struktur; auf Steinen/Holz befestigbar",
       "careProfile": {
@@ -2041,10 +2041,10 @@
       "rank": "species",
       "family": "Linderniaceae",
       "genus": "Hemianthus",
-      "commonNames": {
-        "de": "Kuba-Perlkraut",
-        "en": "Dwarf Baby Tears, HC Cuba"
-      },
+      "commonNames": [
+        "Kuba-Perlkraut",
+        "Dwarf Baby Tears, HC Cuba"
+      ],
       "synonyms": [
         "HC Cuba"
       ],
@@ -2069,10 +2069,10 @@
       "rank": "species",
       "family": "Cyperaceae",
       "genus": "Eleocharis",
-      "commonNames": {
-        "de": "Nadelsimse, Haargras",
-        "en": "Needle Spike-rush, Hair Grass"
-      },
+      "commonNames": [
+        "Nadelsimse, Haargras",
+        "Needle Spike-rush, Hair Grass"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Weltweit verbreitet\nMerkmale: grasartige Pflanze; Bodendecker; grüne Halme",
       "careProfile": {
@@ -2095,10 +2095,10 @@
       "rank": "species",
       "family": "Lythraceae",
       "genus": "Rotala",
-      "commonNames": {
-        "de": "Runde Rotala",
-        "en": "Roundleaf Toothcup"
-      },
+      "commonNames": [
+        "Runde Rotala",
+        "Roundleaf Toothcup"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: rötliche Stängelpflanze; kleine runde Blätter; Mittelgrundpflanze",
       "careProfile": {
@@ -2121,10 +2121,10 @@
       "rank": "species",
       "family": "Onagraceae",
       "genus": "Ludwigia",
-      "commonNames": {
-        "de": "Kriechende Ludwigia",
-        "en": "Creeping Primrose-willow"
-      },
+      "commonNames": [
+        "Kriechende Ludwigia",
+        "Creeping Primrose-willow"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Nordamerika\nMerkmale: rötliche Blätter; Stängelpflanze; Hintergrundpflanze",
       "careProfile": {
@@ -2147,10 +2147,10 @@
       "rank": "species",
       "family": "Amaranthaceae",
       "genus": "Alternanthera",
-      "commonNames": {
-        "de": "Papageienblatt",
-        "en": "Reineck Alternanthera"
-      },
+      "commonNames": [
+        "Papageienblatt",
+        "Reineck Alternanthera"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südamerika\nMerkmale: rote bis violette Blätter; Stängelpflanze; Hintergrundpflanze",
       "careProfile": {
@@ -2173,10 +2173,10 @@
       "rank": "species",
       "family": "Lamiaceae",
       "genus": "Pogostemon",
-      "commonNames": {
-        "de": "Downoi, Kleiner Stern",
-        "en": "Downoi, Little Star Plant"
-      },
+      "commonNames": [
+        "Downoi, Kleiner Stern",
+        "Downoi, Little Star Plant"
+      ],
       "synonyms": [
         "Downoi"
       ],
@@ -2201,10 +2201,10 @@
       "rank": "species",
       "family": "Acanthaceae",
       "genus": "Hygrophila",
-      "commonNames": {
-        "de": "Fiederspaltige Hygrophila",
-        "en": "Pinnatifida Hygrophila"
-      },
+      "commonNames": [
+        "Fiederspaltige Hygrophila",
+        "Pinnatifida Hygrophila"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Indien\nMerkmale: tief eingeschnittene Blätter; braun-rötliche Farbe; auf Steinen/Holz befestigbar",
       "careProfile": {
@@ -2227,10 +2227,10 @@
       "rank": "species",
       "family": "Dryopteridaceae",
       "genus": "Bolbitis",
-      "commonNames": {
-        "de": "Afrikanischer Wasserfarn",
-        "en": "African Water Fern"
-      },
+      "commonNames": [
+        "Afrikanischer Wasserfarn",
+        "African Water Fern"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Westafrika\nMerkmale: dunkelgrüner Farn; auf Steinen/Holz befestigbar; langsames Wachstum",
       "careProfile": {
@@ -2253,10 +2253,10 @@
       "rank": "species",
       "family": "Hydrocharitaceae",
       "genus": "Vallisneria",
-      "commonNames": {
-        "de": "Schraubenvallisnerie",
-        "en": "Straight Vallisneria"
-      },
+      "commonNames": [
+        "Schraubenvallisnerie",
+        "Straight Vallisneria"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Europa, Asien, Afrika\nMerkmale: lange bandförmige Blätter; Hintergrundpflanze; robust; schnelles Wachstum",
       "careProfile": {
@@ -2279,10 +2279,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Andraos Schlangenkopf",
-        "en": "Andrao Snakehead"
-      },
+      "commonNames": [
+        "Andraos Schlangenkopf",
+        "Andrao Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Bangladesch, Indien (Assam)\nMerkmale: leuchtend orange-rote Flossen; kompakter Körperbau; Zwergschlangenkopf; max. 15-20cm",
       "careProfile": {
@@ -2305,10 +2305,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Chinesischer Schlangenkopf",
-        "en": "Small Snakehead"
-      },
+      "commonNames": [
+        "Chinesischer Schlangenkopf",
+        "Small Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: China, Vietnam\nMerkmale: grün-braune Musterung; mittlere Größe; max. 35cm",
       "careProfile": {
@@ -2331,10 +2331,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Orangeflecken-Schlangenkopf",
-        "en": "Orange-spotted Snakehead"
-      },
+      "commonNames": [
+        "Orangeflecken-Schlangenkopf",
+        "Orange-spotted Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Indien (Assam, Brahmaputra)\nMerkmale: orange Flecken auf dunklem Körper; leuchtende Flossen; max. 40cm",
       "careProfile": {
@@ -2357,10 +2357,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Barca Schlangenkopf",
-        "en": "Barca Snakehead"
-      },
+      "commonNames": [
+        "Barca Schlangenkopf",
+        "Barca Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Indien, Bangladesch\nMerkmale: auffällige Musterung; große Art; max. 90cm; Tigermuster",
       "careProfile": {
@@ -2383,10 +2383,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Blehers Schlangenkopf, Regenbogen-Schlangenkopf",
-        "en": "Rainbow Snakehead"
-      },
+      "commonNames": [
+        "Blehers Schlangenkopf, Regenbogen-Schlangenkopf",
+        "Rainbow Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Indien (Assam)\nMerkmale: leuchtend bunte Flossen (rot, blau, orange); Zwergschlangenkopf; max. 20cm; kühle Temperaturen bevorzugt",
       "careProfile": {
@@ -2409,10 +2409,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Malabar-Schlangenkopf",
-        "en": "Malabar Snakehead"
-      },
+      "commonNames": [
+        "Malabar-Schlangenkopf",
+        "Malabar Snakehead"
+      ],
       "synonyms": [
         "Channa diplogramma"
       ],
@@ -2437,10 +2437,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Zwerg-Schlangenkopf",
-        "en": "Dwarf Snakehead"
-      },
+      "commonNames": [
+        "Zwerg-Schlangenkopf",
+        "Dwarf Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Süd- und Südostasien\nMerkmale: Zwergschlangenkopf; max. 20cm; variable Färbung je nach Herkunft; bunte Flossen",
       "careProfile": {
@@ -2463,10 +2463,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Gesäumter Schlangenkopf",
-        "en": "Limbata Snakehead"
-      },
+      "commonNames": [
+        "Gesäumter Schlangenkopf",
+        "Limbata Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: orange gesäumte Flossen; Zwergschlangenkopf; max. 20cm",
       "careProfile": {
@@ -2489,10 +2489,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Hecht-Schlangenkopf",
-        "en": "Splendid Snakehead"
-      },
+      "commonNames": [
+        "Hecht-Schlangenkopf",
+        "Splendid Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: schlanker Körperbau; max. 40cm; grün-braune Musterung",
       "careProfile": {
@@ -2515,10 +2515,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Kaiser-Schlangenkopf",
-        "en": "Emperor Snakehead"
-      },
+      "commonNames": [
+        "Kaiser-Schlangenkopf",
+        "Emperor Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: große Art; max. 65cm; auffällige Musterung",
       "careProfile": {
@@ -2541,10 +2541,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Riesenschlangenkopf",
-        "en": "Giant Snakehead"
-      },
+      "commonNames": [
+        "Riesenschlangenkopf",
+        "Giant Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Südostasien\nMerkmale: größte Channa-Art; max. 130cm; Jungtiere rot-schwarz gestreift; Adulte grün-schwarz",
       "careProfile": {
@@ -2567,10 +2567,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Schmuckflossen-Schlangenkopf",
-        "en": "Ornate Snakehead"
-      },
+      "commonNames": [
+        "Schmuckflossen-Schlangenkopf",
+        "Ornate Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Zentralafrika\nMerkmale: leuchtend bunte Flossen; Zwergschlangenkopf; max. 20cm",
       "careProfile": {
@@ -2593,10 +2593,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Schöner Schlangenkopf",
-        "en": "Beautiful Snakehead"
-      },
+      "commonNames": [
+        "Schöner Schlangenkopf",
+        "Beautiful Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Myanmar\nMerkmale: leuchtend blaue Flossen; Zwergschlangenkopf; max. 25cm; kühle Temperaturen",
       "careProfile": {
@@ -2619,10 +2619,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Stewarts Schlangenkopf",
-        "en": "Stewart Snakehead"
-      },
+      "commonNames": [
+        "Stewarts Schlangenkopf",
+        "Stewart Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Indien (Assam, Brahmaputra)\nMerkmale: orange-rote Flossen; Zwergschlangenkopf; max. 20cm; kühle Temperaturen",
       "careProfile": {
@@ -2645,10 +2645,10 @@
       "rank": "species",
       "family": "Channidae",
       "genus": "Channa",
-      "commonNames": {
-        "de": "Gestreifter Schlangenkopf",
-        "en": "Striped Snakehead"
-      },
+      "commonNames": [
+        "Gestreifter Schlangenkopf",
+        "Striped Snakehead"
+      ],
       "synonyms": [],
       "summary": "Lebensraum: Süd- und Südostasien\nMerkmale: gestreifte Musterung; mittlere bis große Art; max. 90cm; weit verbreitet",
       "careProfile": {

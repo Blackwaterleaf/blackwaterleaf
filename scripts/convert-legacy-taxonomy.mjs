@@ -70,6 +70,10 @@ for (const tuple of splitTuples(sql.slice(valuesStart + "VALUES".length))) {
   if (fields.length < 14) continue;
   const [scientificName, cultivar, genus, family, commonNames, synonyms, keyFeatures, habitat, careLevel, light, water, category, source, verified] = fields;
   if (scientificName === "scientificName") continue;
+  const parsedCommonNames = jsonValue(commonNames, {});
+  const normalizedCommonNames = Array.isArray(parsedCommonNames)
+    ? parsedCommonNames
+    : Object.values(parsedCommonNames).filter(value => typeof value === "string");
   const sourceRecordId = `${scientificName}${cultivar ? `:${cultivar}` : ""}`;
   records.push({
     source: source ?? "legacy-blackwaterleaf",
@@ -80,7 +84,7 @@ for (const tuple of splitTuples(sql.slice(valuesStart + "VALUES".length))) {
     rank: "species",
     family,
     genus,
-    commonNames: jsonValue(commonNames, {}),
+    commonNames: normalizedCommonNames,
     synonyms: jsonValue(synonyms, []),
     summary: [cultivar ? `Kultivar: ${cultivar}` : null, habitat ? `Lebensraum: ${habitat}` : null, keyFeatures ? `Merkmale: ${jsonValue(keyFeatures, []).join("; ")}` : null].filter(Boolean).join("\n"),
     careProfile: { cultivar, careLevel, light, water, category },

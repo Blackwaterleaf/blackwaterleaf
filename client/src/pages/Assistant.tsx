@@ -13,7 +13,7 @@ import { Streamdown } from "streamdown";
 import { Link } from "wouter";
 
 type AssistantTool = "chat" | "plant" | "aquarium";
-const AI_MAINTENANCE = true;
+const AI_MAINTENANCE = false;
 function requestId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 
 function PlantCorrectionForm({ originalAnswer, assistantUsageId }: { originalAnswer: string; assistantUsageId: number }) {
