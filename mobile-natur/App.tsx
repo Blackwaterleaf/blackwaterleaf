@@ -2874,15 +2874,15 @@ function ProfileScreen({
   const [draftBio, setDraftBio] = useState(account?.bio ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
-  const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
-  const [ownPostsRefreshing, setOwnPostsRefreshing] = useState(false);
+  const [publicPosts, setPublicPosts] = useState<PublicProfilePost[]>([]);
+  const [publicPostsRefreshing, setPublicPostsRefreshing] = useState(false);
   useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); }, [account?.name, account?.bio]);
-  useEffect(() => { if (token) void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([])); }, [token]);
-  const refreshOwnPosts = async () => {
-    if (!token) return;
-    setOwnPostsRefreshing(true);
-    try { setOwnPosts(await myCommunityPosts(token)); }
-    finally { setOwnPostsRefreshing(false); }
+  useEffect(() => { if (token && account?.id) void publicProfilePosts(account.id).then(setPublicPosts).catch(() => setPublicPosts([])); }, [token, account?.id]);
+  const refreshPublicPosts = async () => {
+    if (!token || !account?.id) return;
+    setPublicPostsRefreshing(true);
+    try { setPublicPosts(await publicProfilePosts(account.id)); }
+    finally { setPublicPostsRefreshing(false); }
   };
   const saveNativeProfile = async () => {
     setProfileSaving(true); setProfileMessage(null);
@@ -2915,7 +2915,7 @@ function ProfileScreen({
       </Page>
     );
   return (
-    <Page refresh={refreshOwnPosts} refreshing={ownPostsRefreshing}>
+    <Page refresh={refreshPublicPosts} refreshing={publicPostsRefreshing}>
       {menuTarget !== "open" ? <View style={[styles.profileTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
@@ -2958,10 +2958,10 @@ function ProfileScreen({
           </Pressable>
         ))}
       </View>
-      <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
-        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>MEIN BEREICH</Text><Text style={styles.sectionTitle}>EIGENE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
-        {ownPosts.length ? <View style={styles.stack}>{ownPosts.slice(0, 6).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={[styles.profilePostRow, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "OHNE BEREICH"}</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View> : <Text style={styles.miniCopy}>Noch keine eigenen Beiträge.</Text>}
-      </View>
+      {publicPosts.length ? <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>FREIGEGEBEN</Text><Text style={styles.sectionTitle}>ÖFFENTLICHE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
+        <View style={styles.stack}>{publicPosts.slice(0, 6).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={[styles.profilePostRow, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }]}><Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHT · {post.realm ?? "COMMUNITY"}</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View>
+      </View> : null}
       <SecondaryButton tone={tone} label="ABMELDEN" icon="log-out-outline" onPress={() => void onSignOut()} />
     </Page>
   );

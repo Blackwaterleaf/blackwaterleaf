@@ -15,7 +15,11 @@ export default function ProfileHome() {
   const auth = useAuth();
   const { locale, t } = useI18n();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
-  const posts = trpc.community.myPosts.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const ownUserId = Number(auth.user?.id);
+  const publicPosts = trpc.profile.publicPosts.useQuery(
+    { userId: ownUserId, limit: 6 },
+    { enabled: auth.isAuthenticated && Number.isSafeInteger(ownUserId) && ownUserId > 0, retry: false },
+  );
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated });
   const habitats = trpc.habitats.mine.useQuery(undefined, { enabled: auth.isAuthenticated });
 
@@ -40,7 +44,7 @@ export default function ProfileHome() {
 
     <section className="profile-reference-habitats"><div className="profile-reference-title"><div><span className="eyebrow">PRIVATE SAMMLUNG</span><h2>MEINE ANLAGEN & WERTE</h2><p>Privat · Wähle direkt deinen Bereich</p></div><Link href="/profile/habitats" aria-label="Alle Anlagen öffnen"><ChevronRight size={22} /></Link></div><div className="profile-habitat-choice-grid">{habitatChoices.map(({ key, label, note, icon: Icon, className }) => <Link key={key} href={`/profile/habitats?kind=${key}`} className={`profile-habitat-card ${className}`}><Icon size={22} /><span><strong>{label}</strong><small>{note}</small></span><ChevronRight size={17} /></Link>)}</div></section>
 
-    <section className="profile-reference-posts glass-panel"><div className="profile-reference-title"><div><span className="eyebrow">MEIN BEREICH</span><h2>EIGENE BEITRÄGE</h2></div><div className="profile-reference-post-actions"><Link className="secondary-action" href="/community?compose=1"><Camera size={14} />POST</Link></div></div>{posts.isLoading ? <p className="form-status">Beiträge werden geladen …</p> : posts.isError ? <StatePanel code="PROFILE/POSTS_ERROR" state="error" title="BEITRÄGE NICHT VERFÜGBAR" body="Eigene Beiträge konnten nicht geladen werden." action={<button type="button" className="secondary-action" onClick={() => void posts.refetch()}>ERNEUT VERSUCHEN</button>} /> : !posts.data?.length ? <p className="reference-list-empty">Noch keine eigenen Beiträge.</p> : <div className="profile-reference-post-list">{posts.data.slice(0, 6).map(post => <article key={post.id}><div><strong>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</strong><p>{post.content}</p><small>{new Date(post.updatedAt).toLocaleString(locale)}</small></div><Link href="/community"><ChevronRight size={15} /></Link></article>)}</div>}</section>
+    {publicPosts.data?.length ? <section className="profile-reference-posts glass-panel"><div className="profile-reference-title"><div><span className="eyebrow">FREIGEGEBEN</span><h2>ÖFFENTLICHE BEITRÄGE</h2></div><div className="profile-reference-post-actions"><Link className="secondary-action" href="/community?compose=1"><Camera size={14} />POST</Link></div></div><div className="profile-reference-post-list">{publicPosts.data.map(post => <article key={post.id}><div><strong>VERÖFFENTLICHT · {post.realm ?? "COMMUNITY"}</strong><p>{post.content}</p><small>{new Date(post.updatedAt).toLocaleString(locale)}</small></div><Link href={`/community?post=${post.id}`}><ChevronRight size={15} /></Link></article>)}</div></section> : null}
 
   </div>;
 }

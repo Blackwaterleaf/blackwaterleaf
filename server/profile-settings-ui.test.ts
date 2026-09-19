@@ -35,6 +35,19 @@ describe("profile settings navigation", () => {
     expect(profile).not.toContain("profile-page-actions__menu");
     expect(profile).toContain("profile-subpage-heading");
   });
+
+  it("keeps private drafts out of both profile homes while retaining only published public posts", () => {
+    const webProfile = source("client/src/pages/ProfileHome.tsx");
+    const native = source("mobile-natur/App.tsx");
+    const nativeProfile = native.slice(native.indexOf("function ProfileScreen"), native.indexOf("function CollectionScreen"));
+    expect(webProfile).not.toContain("community.myPosts");
+    expect(webProfile).toContain("profile.publicPosts.useQuery");
+    expect(webProfile).toContain("ÖFFENTLICHE BEITRÄGE");
+    expect(nativeProfile).not.toContain("myCommunityPosts");
+    expect(nativeProfile).not.toContain("EIGENE BEITRÄGE");
+    expect(nativeProfile).toContain("publicProfilePosts(account.id)");
+    expect(nativeProfile).toContain("VERÖFFENTLICHT");
+  });
 });
 
 export {};
