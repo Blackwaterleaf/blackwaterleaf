@@ -152,6 +152,8 @@ export type Account = {
   avatarUrl?: string | null;
   role: "user" | "moderator" | "admin";
   status: string;
+  locale?: "de" | "en";
+  unitSystem?: "metric" | "imperial";
 };
 export type Habitat = {
   id: number;
@@ -171,7 +173,7 @@ export type Observation = {
   createdAt: string;
 };
 export type ProfileConsent = {
-  purpose: "ai_processing" | "media_processing" | "community_publishing";
+  purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing";
   granted: boolean;
   policyVersion: string;
   updatedAt: string;
@@ -289,7 +291,7 @@ export const currentAccount = (token: string) =>
   trpcGet<Account | null>("auth.me", undefined, token);
 export const updateProfile = (
   token: string,
-  input: { name?: string | null; bio?: string | null }
+  input: { name?: string | null; bio?: string | null; locale?: "de" | "en"; unitSystem?: "metric" | "imperial" }
 ) => trpcPost<Account>("profile.update", input, token);
 export const uploadProfileAvatar = (
   token: string,
@@ -339,7 +341,7 @@ export const profileConsents = (token: string) =>
 export const setProfileConsent = (
   token: string,
   input: {
-    purpose: "ai_processing" | "media_processing" | "community_publishing";
+    purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing";
     policyVersion: string;
     granted: boolean;
   }

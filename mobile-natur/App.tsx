@@ -190,7 +190,7 @@ type Tone = {
 };
 type IconName = keyof typeof Ionicons.glyphMap;
 type Realm = "botany" | "aquarium" | "terrarium";
-type ProfileMenuTarget = "open" | "edit" | "avatar" | "display" | "tools";
+type ProfileMenuTarget = "open" | "edit" | "avatar" | "display" | "private" | "habitats" | "progress" | "privacy" | "preferences" | "tools";
 
 type Action = {
   title: string;
@@ -607,6 +607,10 @@ function NaturApp() {
         onNotifications={notificationInfo}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
         onProfileTarget={target => {
+          if (target === "progress") {
+            navigate("ranking");
+            return;
+          }
           setProfileMenuTarget(target);
           navigate("profile");
         }}
@@ -868,6 +872,7 @@ function NaturApp() {
             token={token}
             account={account}
             habitats={habitats}
+            consents={consents}
             visibleKinds={visibleKinds}
             menuTarget={profileMenuTarget}
             onToggleVisibleKind={kind => setVisibleKinds(current => current.includes(kind) ? current.length > 1 ? current.filter(value => value !== kind) : current : [...current, kind])}
@@ -876,6 +881,7 @@ function NaturApp() {
             onSignIn={signIn}
             onSignOut={signOut}
             onUpdateProfile={async input => { if (!token) return; await updateProfile(token, input); await refreshPrivate(token); }}
+            onSetConsent={async (purpose, granted) => { if (!token) return; await setProfileConsent(token, { purpose, granted, policyVersion: "privacy-2026-09-16-v1" }); await refreshPrivate(token); }}
             onUploadAvatar={async (base64, mimeType) => { if (!token) return; await uploadProfileAvatar(token, { base64, mimeType }); await refreshPrivate(token); }}
             onCollection={openCollection}
             navigate={navigate}
@@ -987,7 +993,11 @@ function Header({
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.realmText}>Name & Profil bearbeiten</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.realmText}>Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>PROFIL & EINSTELLUNGEN</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("private"); }}><Text style={styles.realmText}>Privatbereich & Profil bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("habitats"); }}><Text style={styles.realmText}>Meine Anlagen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("progress"); }}><Text style={styles.realmText}>Punkte & Fortschritt</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("privacy"); }}><Text style={styles.realmText}>Datenschutz & Freigaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("preferences"); }}><Text style={styles.realmText}>Sprache & Einheiten</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>Weitere Werkzeuge</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.realmText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
@@ -2786,6 +2796,7 @@ function ProfileScreen({
   token,
   account,
   habitats,
+  consents,
   visibleKinds,
   menuTarget,
   onToggleVisibleKind,
@@ -2794,6 +2805,7 @@ function ProfileScreen({
   onSignIn,
   onSignOut,
   onUpdateProfile,
+  onSetConsent,
   onUploadAvatar,
   onCollection,
   navigate,
@@ -2802,6 +2814,7 @@ function ProfileScreen({
   token: string | null;
   account: Account | null;
   habitats: Habitat[];
+  consents: ProfileConsent[];
   visibleKinds: Array<"plant" | "aquarium" | "terrarium">;
   menuTarget: ProfileMenuTarget;
   onToggleVisibleKind: (kind: "plant" | "aquarium" | "terrarium") => void;
@@ -2809,7 +2822,8 @@ function ProfileScreen({
   error: string | null;
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
-  onUpdateProfile: (input: { name?: string | null; bio?: string | null }) => Promise<void>;
+  onUpdateProfile: (input: { name?: string | null; bio?: string | null; locale?: "de" | "en"; unitSystem?: "metric" | "imperial" }) => Promise<void>;
+  onSetConsent: (purpose: ProfileConsent["purpose"], granted: boolean) => Promise<void>;
   onUploadAvatar: (base64: string, mimeType: string) => Promise<void>;
   onCollection: (realm: Realm) => void;
   navigate: (screen: Screen) => void;
@@ -2834,6 +2848,8 @@ function ProfileScreen({
     catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Profil konnte nicht gespeichert werden."); }
     finally { setProfileSaving(false); }
   };
+  const consentGranted = (purpose: ProfileConsent["purpose"]) => Boolean(consents.find(item => item.purpose === purpose)?.granted);
+  const toggleConsent = (purpose: ProfileConsent["purpose"]) => { void onSetConsent(purpose, !consentGranted(purpose)); };
   const chooseNativeAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setProfileMessage("Zugriff auf die Galerie wurde nicht freigegeben."); return; }
@@ -2860,10 +2876,12 @@ function ProfileScreen({
     <Page refresh={refreshOwnPosts} refreshing={ownPostsRefreshing}>
       {menuTarget !== "open" ? <View style={[styles.profileTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
-        <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "ANLAGEN ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
-        <Text style={styles.miniCopy}>{menuTarget === "display" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
+        <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
+        <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
-        {menuTarget === "edit" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
+        {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
+        {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
+        {menuTarget === "edit" || menuTarget === "private" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
           {menuTarget === "avatar" ? <SecondaryButton tone={tone} label="PROFILBILD AUS GALERIE WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /> : null}
           {menuTarget === "edit" ? <><TextInput value={draftName} onChangeText={setDraftName} placeholder="Anzeigename" placeholderTextColor={c.muted} style={styles.profileInput} maxLength={160} /><TextInput value={draftBio} onChangeText={setDraftBio} placeholder="Bio" placeholderTextColor={c.muted} style={[styles.profileInput, styles.profileBioInput]} multiline maxLength={2000} /><PrimaryButton tone={tone} label={profileSaving ? "SPEICHERN…" : "PROFIL SPEICHERN"} icon="save-outline" onPress={() => void saveNativeProfile()} disabled={profileSaving} /><SecondaryButton tone={tone} label="PROFILBILD WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /></> : null}
           {profileMessage ? <Text style={styles.miniCopy}>{profileMessage}</Text> : null}
@@ -4522,6 +4540,9 @@ const styles = StyleSheet.create({
   profilePostRow: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.16)", backgroundColor: "rgba(0,0,0,.14)", gap: 4 },
   profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
   profileEditPanel: { gap: 8 },
+  profileConsentPanel: { gap: 4, marginTop: 4 },
+  profileConsentRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, paddingVertical: 6 },
+  profilePreferencesPanel: { gap: 8, marginTop: 4 },
   profileInput: { minHeight: 42, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", borderRadius: 9, paddingHorizontal: 11, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   profileBioInput: { minHeight: 86, paddingTop: 10, textAlignVertical: "top" },
   profileDisplayPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 6 },

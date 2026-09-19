@@ -1436,3 +1436,9 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-settings-page.profile-section-privacy #profile-consents { display: grid; }
 .profile-settings-page.profile-section-preferences #profile-preferences { display: grid; }
 .profile-settings-page.profile-section-tools #profile-tools { display: grid; }
+
+.profile-auth-landing { min-height: 52vh; display: grid; align-content: center; }
+.profile-auth-landing .state-panel { max-width: 620px; margin: 0 auto; }
+.profile-auth-cta { animation: profile-auth-pulse 2.4s ease-in-out infinite; }
+@keyframes profile-auth-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(199,243,91,0); } 50% { box-shadow: 0 0 0 7px rgba(199,243,91,.13), 0 0 24px rgba(199,243,91,.15); } }
+@media (prefers-reduced-motion: reduce) { .profile-auth-cta { animation: none; } }

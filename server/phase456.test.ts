@@ -51,3 +51,23 @@ describe("profile three-line menu routes", () => {
     expect(styles).toContain("profile-section-tools #profile-tools { display: grid; }");
   });
 });
+
+
+describe("private profile boundary and native menu parity", () => {
+  it("keeps privacy, language and tools out of the web profile home", () => {
+    const source = read("../client/src/pages/ProfileHome.tsx");
+    expect(source).toContain("DEIN BEREICH WARTET AUF DICH");
+    expect(source).toContain("profile-auth-cta");
+    expect(source).not.toContain("Datenschutz & Freigaben <ChevronRight");
+    expect(source).not.toContain("Privatsphäre, Sprache und Sicherheit");
+  });
+
+  it("exposes the same three-line menu destinations in Native", () => {
+    const source = read("../mobile-natur/App.tsx");
+    for (const label of ["Privatbereich & Profil bearbeiten", "Meine Anlagen", "Punkte & Fortschritt", "Datenschutz & Freigaben", "Sprache & Einheiten", "Weitere Werkzeuge"]) {
+      expect(source).toContain(label);
+    }
+    expect(source).toContain("profileConsentPanel");
+    expect(source).toContain("profilePreferencesPanel");
+  });
+});
