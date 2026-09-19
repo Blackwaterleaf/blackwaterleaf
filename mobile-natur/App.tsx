@@ -631,6 +631,7 @@ function NaturApp() {
         tone={tone}
         account={account}
         onSearch={() => navigate("search")}
+        onMarketplace={() => navigate("marketplace")}
         onNotifications={notificationInfo}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
         onProfileTarget={target => {
@@ -973,6 +974,7 @@ function Header({
   tone,
   account,
   onSearch,
+  onMarketplace,
   onNotifications,
   onCare,
   onProfileTarget,
@@ -980,6 +982,7 @@ function Header({
   tone: Tone;
   account: Account | null;
   onSearch: () => void;
+  onMarketplace: () => void;
   onNotifications: () => void;
   onCare: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
@@ -1008,6 +1011,12 @@ function Header({
           color={tone.accent}
           label="Suche"
           onPress={onSearch}
+        />
+        <HeaderAction
+          icon="storefront-outline"
+          color={c.aqua}
+          label="Marktplatz"
+          onPress={onMarketplace}
         />
         <HeaderAction
           icon="notifications-outline"
@@ -3978,14 +3987,14 @@ const styles = StyleSheet.create({
   body: { flex: 1, position: "relative" },
   header: {
     minHeight: 70,
-    paddingHorizontal: 17,
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderBottomWidth: 1,
     backgroundColor: "#020A05",
   },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 9, flex: 1, marginLeft: 3 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 7, flex: 1, marginLeft: 2, minWidth: 0 },
   brandMark: {
     width: 38,
     height: 38,
@@ -3995,7 +4004,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#050807",
   },
   brandImage: { width: "100%", height: "100%" },
-  brand: { color: c.text, fontSize: 14, fontWeight: "900", letterSpacing: 1.2, paddingLeft: 1 },
+  brand: { color: c.text, fontSize: 12.5, fontWeight: "900", letterSpacing: 1.05, paddingLeft: 1 },
   technical: {
     fontSize: 7,
     fontWeight: "900",
@@ -4003,14 +4012,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
     paddingLeft: 1,
   },
-  headerActions: { flexDirection: "row", gap: 7 },
+  headerActions: { flexDirection: "row", gap: 4 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
   nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
   nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
   headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: "rgba(199,243,91,.25)",
     alignItems: "center",

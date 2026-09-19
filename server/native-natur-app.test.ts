@@ -111,6 +111,13 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain('account?.role !== "admin"');
   });
 
+  it("keeps the marketplace reachable without adding a sixth bottom tab", () => {
+    expect(app).toContain('onMarketplace={() => navigate("marketplace")}');
+    expect(app).toContain('icon="storefront-outline"');
+    expect(app).toContain('label="Marktplatz"');
+    expect(app).toContain('screen === "marketplace"');
+  });
+
   it("connects native KI and community actions only through existing protected server contracts", () => {
     for (const procedure of ["assistant.chat", "assistant.plantIdentify", "assistant.aquariumAnalyze", "assistant.submitPlantCorrection", "community.createDraft", "community.uploadDraftImage", "community.publish", "profile.consents"]) expect(api).toContain(procedure);
     expect(app).toContain("ai_processing");
