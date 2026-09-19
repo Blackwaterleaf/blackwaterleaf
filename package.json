@@ -10,7 +10,8 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "node scripts/guard-db-push.mjs"
+    "db:push": "node scripts/guard-db-push.mjs",
+    "db:baseline:verify": "node scripts/verify-migration-baseline.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1133.0",
