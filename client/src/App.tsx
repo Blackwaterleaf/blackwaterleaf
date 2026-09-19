@@ -22,6 +22,10 @@ import MarketplaceProduct from "./pages/MarketplaceProduct";
 import MerchantMarketplace from "./pages/MerchantMarketplace";
 import Notifications from "./pages/Notifications";
 import CareToday from "./pages/CareToday";
+import Search from "./pages/Search";
+import PlantTaxon from "./pages/PlantTaxon";
+import PublicProfile from "./pages/PublicProfile";
+import SavedItems from "./pages/SavedItems";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -46,11 +50,15 @@ function Router() {
           <Switch>
         <Route path={"/"} component={Home} />
         <Route path={"/explore"} component={Explore} />
+        <Route path={"/search"} component={Search} />
         <Route path={"/community"} component={Community} />
         <Route path={"/notifications"} component={Notifications} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
+        <Route path={"/member/:id"} component={PublicProfile} />
+        <Route path={"/plant/:id"} component={PlantTaxon} />
+        <Route path={"/saved"} component={SavedItems} />
         <Route path={"/ranking"} component={Ranking} />
         <Route path={"/profile-mockup"} component={ProfileMockup} />
         <Route path={"/profile-mockup/settings"} component={ProfileSettingsMockup} />

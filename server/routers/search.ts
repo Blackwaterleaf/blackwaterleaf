@@ -1,0 +1,163 @@
+import { TRPCError } from "@trpc/server";
+import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
+import { z } from "zod";
+import { communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
+import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
+import { publicProcedure, router, staffProcedure } from "../_core/trpc";
+import { getDb } from "../db";
+
+const searchKindSchema = z.enum(["all", "plant", "knowledge", "profile", "community", "product"]);
+const taxaRecordSchema = z.object({
+  sourceRecordId: z.string().trim().min(1).max(160),
+  scientificName: z.string().trim().min(1).max(240),
+  acceptedScientificName: z.string().trim().max(240).nullable().optional(),
+  rank: z.string().trim().max(48).nullable().optional(),
+  family: z.string().trim().max(160).nullable().optional(),
+  genus: z.string().trim().max(160).nullable().optional(),
+  commonNames: z.array(z.string().trim().min(1).max(160)).max(50).default([]),
+  synonyms: z.array(z.string().trim().min(1).max(240)).max(100).default([]),
+  summary: z.string().trim().max(10_000).nullable().optional(),
+  careProfile: z.record(z.string(), z.unknown()).nullable().optional(),
+  imageUrl: z.string().url().max(1_000).nullable().optional(),
+  evidenceState: evidenceStateSchema.default("confirmed"),
+});
+
+async function requireDatabase() {
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
+  return db;
+}
+
+function cursorValue(cursor: string | undefined) {
+  if (!cursor) return undefined;
+  const value = Number(cursor);
+  if (!Number.isSafeInteger(value) || value <= 0) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_search_cursor" });
+  return value;
+}
+
+export const searchRouter = router({
+  unified: publicProcedure
+    .input(z.object({
+      q: z.string().trim().min(1).max(120),
+      kind: searchKindSchema.default("all"),
+      locale: localeSchema.default("de"),
+      realm: observationRealmSchema.optional(),
+      cursor: z.string().optional(),
+      limit: z.number().int().min(1).max(30).default(12),
+    }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const match = `%${input.q}%`;
+      const cursor = cursorValue(input.cursor);
+      const wants = (kind: z.infer<typeof searchKindSchema>) => input.kind === "all" || input.kind === kind;
+      const result = { taxa: [] as Array<Record<string, unknown>>, knowledge: [] as Array<Record<string, unknown>>, profiles: [] as Array<Record<string, unknown>>, community: [] as Array<Record<string, unknown>>, products: [] as Array<Record<string, unknown>>, nextCursor: null as string | null };
+
+      if (wants("plant")) {
+        const rows = await db.select({
+          id: plantTaxa.id,
+          scientificName: plantTaxa.scientificName,
+          acceptedScientificName: plantTaxa.acceptedScientificName,
+          rank: plantTaxa.rank,
+          family: plantTaxa.family,
+          genus: plantTaxa.genus,
+          commonNames: plantTaxa.commonNames,
+          summary: plantTaxa.summary,
+          imageUrl: plantTaxa.imageUrl,
+          evidenceState: plantTaxa.evidenceState,
+        }).from(plantTaxa).where(and(
+          eq(plantTaxa.status, "published"),
+          cursor ? lt(plantTaxa.id, cursor) : undefined,
+          or(
+            like(plantTaxa.scientificName, match),
+            like(plantTaxa.acceptedScientificName, match),
+            like(plantTaxa.family, match),
+            like(plantTaxa.genus, match),
+            like(plantTaxa.summary, match),
+            sql`JSON_SEARCH(${plantTaxa.commonNames}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${plantTaxa.synonyms}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+          ),
+        )).orderBy(desc(plantTaxa.id)).limit(input.limit);
+        result.taxa = rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
+        if (rows.length === input.limit) result.nextCursor = String(rows[rows.length - 1].id);
+      }
+
+      if (wants("knowledge")) {
+        const rows = await db.select({ id: knowledgeArticles.id, slug: knowledgeArticles.slug, title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, realm: knowledgeArticles.realm, evidenceState: knowledgeArticles.evidenceState }).from(knowledgeArticles).where(and(
+          eq(knowledgeArticles.isPublished, true),
+          eq(knowledgeArticles.locale, input.locale),
+          input.realm ? eq(knowledgeArticles.realm, input.realm) : undefined,
+          or(like(knowledgeArticles.title, match), like(knowledgeArticles.excerpt, match), like(knowledgeArticles.content, match)),
+        )).orderBy(desc(knowledgeArticles.updatedAt)).limit(input.limit);
+        result.knowledge = rows.map(row => ({ ...row, type: "knowledge" as const, id: String(row.id) }));
+      }
+
+      if (wants("profile")) {
+        const rows = await db.select({ id: users.id, name: users.name, username: users.username, bio: users.bio, avatarUrl: users.avatarUrl }).from(users).where(and(
+          eq(users.status, "active"),
+          eq(users.profileVisibility, "public"),
+          or(like(users.name, match), like(users.username, match), like(users.bio, match)),
+        )).orderBy(desc(users.updatedAt)).limit(input.limit);
+        result.profiles = rows.map(row => ({ ...row, type: "profile" as const, id: String(row.id) }));
+      }
+
+      if (wants("community")) {
+        const rows = await db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, userId: communityPosts.userId, createdAt: communityPosts.createdAt }).from(communityPosts).where(and(
+          eq(communityPosts.status, "published"),
+          eq(communityPosts.visibility, "public"),
+          input.realm ? eq(communityPosts.realm, input.realm) : undefined,
+          like(communityPosts.content, match),
+        )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
+        result.community = rows.map(row => ({ ...row, type: "community" as const, id: String(row.id) }));
+      }
+
+      if (wants("product")) {
+        const rows = await db.select({ id: partnerProducts.id, title: partnerProducts.title, description: partnerProducts.description, priceLabel: partnerProducts.priceLabel, destinationUrl: partnerProducts.destinationUrl, partnerName: partnerProfiles.displayName }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(
+          eq(partnerProducts.status, "active"),
+          eq(partnerProfiles.status, "approved"),
+          or(like(partnerProducts.title, match), like(partnerProducts.description, match), like(partnerProducts.marketplaceCategory, match), like(partnerProducts.productType, match)),
+        )).orderBy(desc(partnerProducts.updatedAt)).limit(input.limit);
+        result.products = rows.map(row => ({ ...row, type: "product" as const, id: String(row.id) }));
+      }
+
+      return result;
+    }),
+
+  plantById: publicProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const rows = await db.select().from(plantTaxa).where(and(eq(plantTaxa.id, input.id), eq(plantTaxa.status, "published"))).limit(1);
+      return rows[0] ?? null;
+    }),
+
+  importValidatedTaxa: staffProcedure
+    .input(z.object({
+      source: z.string().trim().min(1).max(96),
+      sourceVersion: z.string().trim().min(1).max(96),
+      records: z.array(taxaRecordSchema).min(1).max(5_000),
+      publish: z.boolean().default(false),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await requireDatabase();
+      for (const record of input.records) {
+        await db.insert(plantTaxa).values({
+          source: input.source,
+          sourceVersion: input.sourceVersion,
+          sourceRecordId: record.sourceRecordId,
+          scientificName: record.scientificName,
+          acceptedScientificName: record.acceptedScientificName ?? null,
+          rank: record.rank ?? null,
+          family: record.family ?? null,
+          genus: record.genus ?? null,
+          commonNames: record.commonNames,
+          synonyms: record.synonyms,
+          summary: record.summary ?? null,
+          careProfile: record.careProfile ?? null,
+          imageUrl: record.imageUrl ?? null,
+          evidenceState: record.evidenceState,
+          status: input.publish ? "published" : "draft",
+        }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+      }
+      return { imported: input.records.length, source: input.source, sourceVersion: input.sourceVersion, status: input.publish ? "published" : "draft" } as const;
+    }),
+});

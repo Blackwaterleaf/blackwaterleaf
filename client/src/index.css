@@ -1350,3 +1350,74 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .care-journal-entry span { color: #c7f35b; font-size: .75rem; }
 .care-journal-entry p { margin: 0; color: #d9e9db; white-space: pre-wrap; }
 @media (max-width: 720px) { .care-grid { grid-template-columns: 1fr; } .care-panel { padding: 14px; border-radius: 18px; } .care-task__copy strong { font-size: .9rem; } }
+
+
+/* Phase 3–5: compact catalog and social surfaces */
+.search-page, .plant-taxon-page, .public-profile-page, .saved-page { display: grid; gap: 18px; max-width: 980px; margin: 0 auto; }
+.search-hero { display: grid; gap: 10px; padding: clamp(20px, 4vw, 34px); }
+.search-hero h1, .saved-intro h1, .plant-taxon-hero h1, .public-profile-hero h1 { margin: 0; color: #f5fff2; font: 400 clamp(2.7rem, 8vw, 5.2rem)/.88 "Bebas Neue", sans-serif; letter-spacing: .035em; }
+.search-hero p, .saved-intro p, .plant-taxon-hero p, .public-profile-hero p { margin: 0; color: #c8ddca; line-height: 1.55; }
+.search-input-wrap { display: flex; align-items: center; gap: 11px; min-height: 54px; margin-top: 9px; padding: 0 16px; color: #b8fb8d; border: 1px solid rgba(169,250,126,.48); border-radius: 14px; background: rgba(3,20,9,.72); box-shadow: inset 0 1px rgba(255,255,255,.06), 0 14px 30px rgba(0,0,0,.16); }
+.search-input-wrap input { width: 100%; min-width: 0; border: 0; outline: 0; color: #f1fff3; background: transparent; font: 600 .9rem/1.2 "Inter", sans-serif; }
+.search-input-wrap input::placeholder { color: #8eaa91; }
+.search-tabs { display: flex; gap: 7px; overflow-x: auto; padding: 2px; scrollbar-width: thin; }
+.search-tabs button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; color: #b7cdb9; border: 1px solid rgba(150,224,161,.18); border-radius: 999px; background: rgba(9,34,17,.66); font: 800 .62rem/1 "JetBrains Mono", monospace; letter-spacing: .04em; white-space: nowrap; transition: transform 160ms cubic-bezier(.23,1,.32,1), background 160ms ease, color 160ms ease; }
+.search-tabs button:hover { color: #e8ffe0; border-color: rgba(174,251,133,.45); }
+.search-tabs button:active { transform: scale(.97); }
+.search-tabs button.is-active { color: #08200f; border-color: #b6fb86; background: linear-gradient(135deg, #b6fb86, #58dda3); }
+.search-results { display: grid; gap: 26px; }
+.search-group { display: grid; gap: 10px; }
+.search-group .section-heading { margin-bottom: 0; }
+.search-group .section-heading h2 { max-width: 70vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(1.6rem, 5vw, 2.45rem); }
+.search-result-list, .saved-list { display: grid; gap: 8px; }
+.search-result-card, .saved-row { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 13px; color: #effff1; border: 1px solid rgba(150,235,164,.18); border-radius: 15px; background: linear-gradient(135deg, rgba(19,54,28,.72), rgba(5,24,12,.88)); box-shadow: 0 10px 24px rgba(0,0,0,.16); text-decoration: none; transition: transform 160ms cubic-bezier(.23,1,.32,1), border-color 160ms ease; }
+.search-result-card:hover, .saved-row:hover { transform: translateY(-2px); border-color: rgba(177,255,132,.55); }
+.search-result-card > span:not(.search-result-icon), .saved-row > span:not(.search-result-icon) { display: grid; min-width: 0; flex: 1; gap: 4px; }
+.search-result-card strong, .saved-row strong { overflow: hidden; color: #f2fff2; font-size: .86rem; text-overflow: ellipsis; white-space: nowrap; }
+.search-result-card small, .saved-row small { overflow: hidden; color: #b8cfbb; font-size: .7rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.search-result-card em, .saved-row em { display: inline-flex; align-items: center; gap: 4px; color: #aaf381; font: 700 .57rem/1 "JetBrains Mono", monospace; font-style: normal; text-transform: uppercase; letter-spacing: .05em; }
+.search-result-icon { display: grid; place-items: center; flex: 0 0 auto; width: 38px; height: 38px; color: #c8f98d; border: 1px solid rgba(169,248,121,.29); border-radius: 12px; background: rgba(100,214,114,.12); }
+.search-result-icon--plant { color: #b7ff83; background: rgba(106,210,96,.16); }
+.page-back-link { display: inline-flex; align-items: center; gap: 7px; width: fit-content; color: #c4f59b; font: 800 .66rem/1 "JetBrains Mono", monospace; text-decoration: none; letter-spacing: .05em; }
+.page-back-link:hover { color: #efffdc; text-decoration: underline; }
+.plant-taxon-hero, .public-profile-hero { display: grid; grid-template-columns: minmax(110px, 180px) minmax(0, 1fr); align-items: center; gap: 20px; padding: 18px; }
+.plant-taxon-hero > img, .plant-taxon-placeholder { width: 100%; aspect-ratio: 1; object-fit: cover; border: 1px solid rgba(173,252,136,.36); border-radius: 16px; background: radial-gradient(circle at 35% 28%, rgba(185,255,132,.3), rgba(6,44,21,.88)); }
+.plant-taxon-placeholder { display: grid; place-items: center; color: #b6fb86; }
+.plant-taxon-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 14px; }
+.plant-taxon-badges > span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; color: #c7e5c6; border: 1px solid rgba(166,248,135,.25); border-radius: 999px; background: rgba(7,38,17,.64); font: 700 .56rem/1 "JetBrains Mono", monospace; text-transform: uppercase; }
+.plant-taxon-content { display: grid; gap: 13px; padding: 20px; }
+.plant-taxon-content p { margin: 0; color: #d4e9d5; line-height: 1.65; }
+.taxon-meta { display: grid; gap: 5px; padding-top: 12px; border-top: 1px solid rgba(157,240,170,.13); }
+.taxon-meta strong { color: #adfa7e; font: 800 .6rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.taxon-meta span { color: #c5ddc7; font-size: .78rem; line-height: 1.45; }
+.public-profile-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.public-profile-hero { grid-template-columns: 86px minmax(0, 1fr) auto; }
+.public-profile-avatar { display: grid; place-items: center; width: 86px; height: 86px; overflow: hidden; color: #d6ffb0; border: 1px solid rgba(201,255,159,.44); border-radius: 50%; background: radial-gradient(circle at 35% 28%, rgba(187,255,132,.35), rgba(7,42,20,.88)); }
+.public-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.public-profile-copy { min-width: 0; }
+.public-profile-copy h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.public-profile-bio { margin-top: 9px; color: #d5e9d6; font-size: .82rem; line-height: 1.55; }
+.public-profile-stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 16px; }
+.public-profile-stats > div { display: grid; place-items: center; gap: 4px; border-right: 1px solid rgba(157,240,170,.13); }
+.public-profile-stats > div:last-child { border-right: 0; }
+.public-profile-stats strong { display: flex; align-items: center; min-height: 24px; color: #eaffd7; font: 800 1.2rem/1 "JetBrains Mono", monospace; }
+.public-profile-stats small { color: #9bb99e; font: 700 .55rem/1 "JetBrains Mono", monospace; letter-spacing: .07em; }
+.public-profile-note, .saved-intro { display: flex; align-items: flex-start; gap: 15px; padding: 20px; }
+.public-profile-note h2 { margin: 7px 0; color: #ecffe8; font: 400 2rem/.9 "Bebas Neue", sans-serif; letter-spacing: .03em; }
+.public-profile-note p { margin: 0; color: #bfd7c1; font-size: .8rem; line-height: 1.58; }
+.saved-intro { align-items: center; color: #bdf98b; }
+.saved-intro > div { display: grid; gap: 5px; }
+.saved-intro h1 { font-size: clamp(2.5rem, 8vw, 4.8rem); }
+.saved-row { padding: 12px; }
+@media (max-width: 640px) { .plant-taxon-hero, .public-profile-hero { grid-template-columns: 1fr; } .plant-taxon-hero > img, .plant-taxon-placeholder { width: min(180px, 48vw); } .public-profile-avatar { width: 74px; height: 74px; } .public-profile-hero .primary-action, .public-profile-hero .secondary-action { width: 100%; } .public-profile-note h2 { font-size: 1.7rem; } }
+
+.ranking-challenges { display: grid; gap: 11px; }
+.challenge-list { display: grid; gap: 9px; }
+.challenge-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; padding: 15px; }
+.challenge-card h3 { margin: 8px 0 5px; color: #efffeb; font-size: 1rem; }
+.challenge-card p { margin: 0 0 7px; color: #c0d8c2; font-size: .78rem; line-height: 1.45; }
+.challenge-card small { color: #9fba9f; font-size: .64rem; line-height: 1.4; }
+.challenge-card__action { display: grid; align-content: center; justify-items: end; gap: 5px; min-width: 90px; }
+.challenge-card__action > strong { color: #c8ff91; font: 800 1.2rem/1 "JetBrains Mono", monospace; }
+.challenge-card__action > small { text-align: right; font: 700 .53rem/1.2 "JetBrains Mono", monospace; letter-spacing: .06em; }
+@media (max-width: 560px) { .challenge-card { grid-template-columns: 1fr; } .challenge-card__action { justify-items: start; } .challenge-card__action > small { text-align: left; } }

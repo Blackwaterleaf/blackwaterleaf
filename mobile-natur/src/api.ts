@@ -426,3 +426,35 @@ export const careUpdateTask = (token: string, input: { taskId: number; status: C
   trpcPost<CareTask>("care.updateTask", input, token);
 export const careAddJournal = (token: string, input: { note: string; habitatId?: number | null; taskId?: number | null }) =>
   trpcPost<CareJournalEntry>("care.addJournal", input, token);
+
+
+export type UnifiedSearchResult = {
+  taxa: Array<{ id: string; type: "plant"; scientificName: string; acceptedScientificName: string | null; family: string | null; rank: string | null; summary: string | null; evidenceState: string; imageUrl: string | null }>;
+  knowledge: Array<{ id: string; type: "knowledge"; title: string; excerpt: string; realm: string | null; evidenceState: string }>;
+  profiles: Array<{ id: string; type: "profile"; name: string | null; username: string | null; bio: string | null; avatarUrl: string | null }>;
+  community: Array<{ id: string; type: "community"; content: string; realm: string | null; userId: number; createdAt: string }>;
+  products: Array<{ id: string; type: "product"; title: string; description: string | null; priceLabel: string | null; destinationUrl: string; partnerName: string | null }>;
+  nextCursor: string | null;
+};
+export type PublicProfile = Account & { location?: string | null; profileVisibility?: string; socialLinks?: Record<string, string | null> };
+export type SocialRelationship = { followers: number; following: number; isFollowing: boolean };
+export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "product" | "profile"; targetId: number; createdAt: string };
+export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; evidenceState: string; status: string };
+export type Challenge = { id: number; title: string; description: string; realm: "botany" | "aquarium" | "terrarium" | null; ruleText: string; startsAt: string; endsAt: string; rewardPoints: number };
+export type ChallengeProgress = { challengeId: number; title: string; realm: string | null; progress: number; status: "joined" | "completed" | "withdrawn"; endsAt: string };
+export const unifiedSearch = (query: string, kind: "all" | "plant" | "knowledge" | "profile" | "community" | "product" = "all") => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18 });
+export const publicPlantTaxon = (id: number) => trpcGet<PublicPlantTaxon | null>("search.plantById", { id });
+export const publicProfile = (id: number) => trpcGet<PublicProfile | null>("profile.publicById", { id });
+export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);
+export const followProfile = (token: string, id: number) => trpcPost<{ following: true }>("social.follow", { id }, token);
+export const unfollowProfile = (token: string, id: number) => trpcPost<{ following: false }>("social.unfollow", { id }, token);
+export const savedItems = (token: string) => trpcGet<SavedItem[]>("social.saved", undefined, token);
+export const saveItem = (token: string, input: { targetType: SavedItem["targetType"]; targetId: number }) => trpcPost<{ saved: true }>("social.save", input, token);
+export const unsaveItem = (token: string, input: { targetType: SavedItem["targetType"]; targetId: number }) => trpcPost<{ saved: false }>("social.unsave", input, token);
+export const publishedChallenges = () => trpcGet<Challenge[]>("challenges.listPublished", {});
+export const myChallenges = (token: string) => trpcGet<ChallengeProgress[]>("challenges.myProgress", undefined, token);
+export const joinChallenge = (token: string, challengeId: number) => trpcPost<{ joined: true }>("challenges.join", { challengeId }, token);
+export type ExperienceSummary = { status: "ready" | "pending_migration"; totalXp: number; level: number; nextLevelXp: number; recentEvents: Array<{ id: number; points: number; eventType: string; createdAt: string }> };
+export type LeaderboardRow = { rank: number; userId: string; name: string; totalXp: number };
+export const gamificationSummary = (token: string) => trpcGet<ExperienceSummary>("gamification.summary", undefined, token);
+export const gamificationLeaderboard = (token: string) => trpcGet<LeaderboardRow[]>("gamification.leaderboard", undefined, token);

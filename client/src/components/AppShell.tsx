@@ -104,7 +104,7 @@ export function AppShell({ children }: PropsWithChildren) {
           })}
         </nav>
         <div className="top-actions">
-          <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
+          <Link href="/search" className="icon-button" aria-label="Suche öffnen"><Search size={18} /></Link>
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
           <Link href="/notifications" className="icon-button notification-button" aria-label="Benachrichtigungen">
             <Bell size={18} />
@@ -119,6 +119,7 @@ export function AppShell({ children }: PropsWithChildren) {
               <Link href="/profile/private">Privatbereich & Profil bearbeiten</Link>
               <Link href="/profile/habitats">Meine Anlagen</Link>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>
+              <Link href="/saved">Gespeichert</Link>
               <Link href="/profile/privacy">Datenschutz & Freigaben</Link>
               <Link href="/profile/preferences">Sprache & Einheiten</Link>
               <Link href="/profile/tools">Weitere Werkzeuge</Link>

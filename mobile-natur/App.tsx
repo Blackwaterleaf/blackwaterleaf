@@ -69,6 +69,20 @@ import {
   uploadProfileAvatar,
   submitPlantCorrection,
   updateCommunityPost,
+  unifiedSearch,
+  publicPlantTaxon,
+  publicProfile,
+  socialRelationship,
+  followProfile,
+  unfollowProfile,
+  savedItems,
+  saveItem,
+  unsaveItem,
+  publishedChallenges,
+  myChallenges,
+  joinChallenge,
+  gamificationSummary,
+  gamificationLeaderboard,
   type Account,
   type AssistantReply,
   type CommunityPost,
@@ -84,6 +98,15 @@ import {
   type OutdoorWeather,
   type PlatformAvailability,
   type ProfileConsent,
+  type UnifiedSearchResult,
+  type PublicPlantTaxon,
+  type PublicProfile,
+  type SocialRelationship,
+  type SavedItem,
+  type Challenge,
+  type ChallengeProgress,
+  type ExperienceSummary,
+  type LeaderboardRow,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -141,6 +164,10 @@ type Screen =
   | "collection"
   | "builder"
   | "search"
+  | "publicProfile"
+  | "taxon"
+  | "saved"
+  | "ranking"
   | "notifications"
   | "care";
 type BottomTab =
@@ -308,6 +335,38 @@ const TONES: Record<Screen, Tone> = {
     label: "SUCHE",
     active: "explore",
   },
+  publicProfile: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "ÖFFENTLICHES PROFIL",
+    active: "explore",
+  },
+  taxon: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "PFLANZENKATALOG",
+    active: "explore",
+  },
+  saved: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "GESPEICHERT",
+    active: "profile",
+  },
+  ranking: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "RANKING & CHALLENGES",
+    active: "profile",
+  },
   notifications: {
     accent: c.botany,
     surface: c.botanySurface,
@@ -357,6 +416,8 @@ function NaturApp() {
   const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
   const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
   const [profileMenuTarget, setProfileMenuTarget] = useState<ProfileMenuTarget>("open");
+  const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<number | null>(null);
+  const [selectedTaxonId, setSelectedTaxonId] = useState<number | null>(null);
 
   const tone =
     screen === "collection"
@@ -847,8 +908,14 @@ function NaturApp() {
             error={error}
             refresh={loadScreen}
             navigate={navigate}
+            onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
+            onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
           />
         )}
+        {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} /> : null}
+        {screen === "taxon" && selectedTaxonId ? <TaxonScreen tone={TONES.taxon} token={token} taxonId={selectedTaxonId} onBack={() => navigate("search")} /> : null}
+        {screen === "saved" ? <SavedScreen tone={TONES.saved} token={token} onBack={() => navigate("profile")} onSignIn={signIn} navigate={navigate} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} /> : null}
+        {screen === "ranking" ? <RankingScreen tone={TONES.ranking} token={token} onBack={() => navigate("profile")} onSignIn={signIn} /> : null}
       </View>
       <BottomNavigation
         active={tone.active}
@@ -2841,7 +2908,7 @@ function ProfileScreen({
         overline="PRIVAT / DEIN KONTO"
         title="DEINE ANLAGEN"
       />
-      <View style={[styles.profileDisplayPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+      <View style={[styles.profileDisplayPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}> 
         <Text style={[styles.chip, { color: tone.accent }]}>ANZEIGEN</Text>
         <Text style={styles.miniCopy}>Wähle, welche Anlagearten in deinem Profil erscheinen.</Text>
         <View style={styles.profileDisplayRow}>
@@ -2850,6 +2917,10 @@ function ProfileScreen({
             return <Pressable key={kind} onPress={() => onToggleVisibleKind(kind)} style={[styles.profileDisplayChoice, { borderColor: selected ? tone.accent : `${tone.accent}33`, backgroundColor: selected ? `${tone.accent}1c` : 'rgba(0,0,0,.14)' }]}><Ionicons name={icon} size={16} color={tone.accent} /><Text style={[styles.realmText, selected && { color: c.text }]}>{label}</Text><Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={tone.accent} /></Pressable>;
           })}
         </View>
+      </View>
+      <View style={styles.inlineButtons}>
+        <SecondaryButton tone={tone} label="RANKING & CHALLENGES" icon="trophy-outline" onPress={() => navigate("ranking")} />
+        <SecondaryButton tone={tone} label="GESPEICHERT" icon="bookmark-outline" onPress={() => navigate("saved")} />
       </View>
       <ActionGrid
         tone={tone}
@@ -3012,104 +3083,66 @@ function BuilderScreen({
   );
 }
 
-function SearchScreen({
-  tone,
-  products,
-  articles,
-  state,
-  error,
-  refresh,
-  navigate,
-}: {
-  tone: Tone;
-  products: MarketplaceProduct[];
-  articles: KnowledgeArticle[];
-  state: State;
-  error: string | null;
-  refresh: () => Promise<void>;
-  navigate: (screen: Screen) => void;
-}) {
+function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void }) {
   const [term, setTerm] = useState("");
-  const normalized = term.trim().toLowerCase();
-  const matchingProducts = normalized
-    ? products
-        .filter(item =>
-          `${item.title} ${item.description ?? ""} ${item.marketplaceCategory ?? ""}`
-            .toLowerCase()
-            .includes(normalized)
-        )
-        .slice(0, 8)
-    : [];
-  const matchingArticles = normalized
-    ? articles
-        .filter(item =>
-          `${item.title} ${item.excerpt}`.toLowerCase().includes(normalized)
-        )
-        .slice(0, 8)
-    : [];
-  return (
-    <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
-        tone={tone}
-        eyebrow="BLACKWATERLEAF"
-        title="SUCHE"
-        subtitle="Durchsuche veröffentlichte Wissensinhalte und aktuelle Partnerangebote."
-        icon="search-outline"
-      />
-      <TextInput
-        style={[styles.searchInput, { borderColor: `${tone.accent}66` }]}
-        value={term}
-        onChangeText={setTerm}
-        placeholder="Suche nach Pflanzen, Produkten oder Wissen …"
-        placeholderTextColor={c.muted}
-        autoCapitalize="none"
-      />
-      {state === "loading" ? (
-        <Loading tone={tone} />
-      ) : state === "error" ? (
-        <ErrorNotice text={error ?? "Suche konnte nicht geladen werden."} />
-      ) : !normalized ? (
-        <StatusPanel
-          tone={tone}
-          icon="search-outline"
-          code="SUCHE / BEREIT"
-          title="WONACH SUCHST DU?"
-          text="Gib mindestens ein Wort ein. Es werden nur echte veröffentlichte Inhalte und Partnerangebote durchsucht."
-        />
-      ) : !matchingProducts.length && !matchingArticles.length ? (
-        <StatusPanel
-          tone={tone}
-          icon="search-outline"
-          code="SUCHE / LEER"
-          title="KEINE PASSENDEN TREFFER"
-          text="Für diesen Begriff wurden keine veröffentlichten Inhalte oder Angebote gefunden."
-        />
-      ) : (
-        <View style={styles.stack}>
-          {matchingProducts.map(product => (
-            <ProductCard
-              key={`p-${product.id}`}
-              tone={TONES.marketplace}
-              product={product}
-            />
-          ))}
-          {matchingArticles.map(article => (
-            <KnowledgeCard
-              key={`a-${article.id}`}
-              tone={tone}
-              article={article}
-            />
-          ))}
-          <SecondaryButton
-            tone={tone}
-            label="WELTEN ENTDECKEN"
-            icon="compass-outline"
-            onPress={() => navigate("explore")}
-          />
-        </View>
-      )}
-    </Page>
-  );
+  const [results, setResults] = useState<UnifiedSearchResult | null>(null);
+  const [remoteState, setRemoteState] = useState<State>("ready");
+  const normalized = term.trim();
+  useEffect(() => {
+    if (normalized.length < 2) { setResults(null); setRemoteState("ready"); return; }
+    let active = true;
+    setRemoteState("loading");
+    const timer = setTimeout(() => { void unifiedSearch(normalized).then(value => { if (active) { setResults(value); setRemoteState("ready"); } }).catch(() => { if (active) setRemoteState("error"); }); }, 220);
+    return () => { active = false; clearTimeout(timer); };
+  }, [normalized]);
+  const total = results ? results.taxa.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
+  const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
+  const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
+  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ReferenceHero tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={setTerm} placeholder="Pflanze, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}</View>}</Page>;
+}
+
+function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void> }) {
+  const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [relationship, setRelationship] = useState<SocialRelationship | null>(null);
+  const [state, setState] = useState<State>("loading");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { let active = true; setState("loading"); void Promise.all([publicProfile(profileId), socialRelationship(token, profileId)]).then(([nextProfile, nextRelationship]) => { if (active) { setProfile(nextProfile); setRelationship(nextRelationship); setState(nextProfile ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [profileId, token]);
+  const toggleFollow = async () => { if (!token) { await onSignIn(); return; } setBusy(true); try { if (relationship?.isFollowing) await unfollowProfile(token, profileId); else await followProfile(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.heroTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
+}
+
+function TaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void }) {
+  const [taxon, setTaxon] = useState<PublicPlantTaxon | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [state, setState] = useState<State>("loading");
+  useEffect(() => { let active = true; void publicPlantTaxon(taxonId).then(next => { if (active) { setTaxon(next); setState(next ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [taxonId]);
+  useEffect(() => { if (!token) return; void savedItems(token).then(rows => setSaved(rows.some(item => item.targetType === "plant_taxon" && item.targetId === taxonId))).catch(() => undefined); }, [token, taxonId]);
+  const toggleSave = async () => { if (!token || !taxon) return; try { if (saved) await unsaveItem(token, { targetType: "plant_taxon", targetId: taxonId }); else await saveItem(token, { targetType: "plant_taxon", targetId: taxonId }); setSaved(current => !current); } catch (cause) { Alert.alert("Speichern nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text>{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
+}
+
+function SavedScreen({ tone, token, onBack, onSignIn, navigate, onOpenProfile, onOpenTaxon }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void }) {
+  const [items, setItems] = useState<SavedItem[]>([]);
+  const [state, setState] = useState<State>(token ? "loading" : "ready");
+  useEffect(() => { if (!token) return; setState("loading"); void savedItems(token).then(next => { setItems(next); setState("ready"); }).catch(() => setState("error")); }, [token]);
+  const open = (item: SavedItem) => { if (item.targetType === "profile") onOpenProfile(item.targetId); else if (item.targetType === "plant_taxon") onOpenTaxon(item.targetId); else if (item.targetType === "knowledge") navigate("knowledge"); else if (item.targetType === "post") navigate("community"); else navigate("marketplace"); };
+  const label: Record<SavedItem["targetType"], string> = { post: "COMMUNITY-BEITRAG", knowledge: "WISSENSARTIKEL", plant_taxon: "PFLANZENTAXON", product: "MARKTPLATZ-PRODUKT", profile: "PROFIL" };
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="DEIN MERKRAUM BLEIBT PRIVAT." text="Melde dich an, um gespeicherte öffentliche Inhalte geräteübergreifend wiederzufinden." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Gespeicherte Inhalte konnten nicht geladen werden." /> : !items.length ? <StatusPanel tone={tone} icon="bookmark-outline" code="MERKLISTE / LEER" title="NOCH NICHTS GESPEICHERT" text="Markiere Pflanzen, Profile, Beiträge oder Wissen, um sie hier wiederzufinden." /> : <View style={styles.stack}>{items.map(item => <Pressable key={item.id} onPress={() => open(item)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name="bookmark-outline" size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle}>{label[item.targetType]}</Text><Text style={styles.miniCopy}>Öffentlicher Datensatz · #{item.targetId}</Text><Text style={[styles.chip, { color: tone.accent }]}>{new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>)}</View>}</Page>;
+}
+
+function RankingScreen({ tone, token, onBack, onSignIn }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void> }) {
+  const [summary, setSummary] = useState<ExperienceSummary | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [progress, setProgress] = useState<ChallengeProgress[]>([]);
+  const [state, setState] = useState<State>(token ? "loading" : "ready");
+  useEffect(() => { let active = true; if (!token) return; void Promise.all([gamificationSummary(token), gamificationLeaderboard(token), publishedChallenges(), myChallenges(token)]).then(([nextSummary, nextLeaderboard, nextChallenges, nextProgress]) => { if (active) { setSummary(nextSummary); setLeaderboard(nextLeaderboard); setChallenges(nextChallenges); setProgress(nextProgress); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [token]);
+  const join = async (id: number) => { if (!token) return; try { await joinChallenge(token, id); setProgress(await myChallenges(token)); } catch (cause) { Alert.alert("Challenge nicht verfügbar", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="RANKING BLEIBT PRIVAT." text="Melde dich an, um deinen serverseitig berechneten Score und freigegebene Challenges zu sehen." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Rankingdaten konnten nicht geladen werden." /> : <><View style={[styles.rankingScoreCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>COMMUNITY · XP · FORTSCHRITT</Text><Text style={styles.heroTitle}>LEVEL {summary?.level ?? "—"}</Text><Text style={styles.copy}>{summary?.totalXp ?? "—"} XP GESAMT · SERVER-VERIFIZIERT</Text></View><SectionLabel tone={tone} overline="QUALITÄTSGEPRÜFTE EVENTS" title="CHALLENGES" />{!challenges.length ? <StatusPanel tone={tone} icon="trophy-outline" code="CHALLENGES / LEER" title="AKTUELL KEINE VERÖFFENTLICHT" text="Neue Challenges erscheinen erst nach Admin-Freigabe." /> : <View style={styles.stack}>{challenges.map(challenge => { const joined = progress.find(item => item.challengeId === challenge.id); return <View key={challenge.id} style={[styles.challengeCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{challenge.realm ?? "ALLE BEREICHE"}</Text><Text style={styles.cardTitle}>{challenge.title}</Text><Text style={styles.miniCopy}>{challenge.description}</Text>{joined ? <Text style={[styles.chip, { color: tone.accent }]}>{joined.progress}% · {joined.status === "completed" ? "ABGESCHLOSSEN" : "TEILGENOMMEN"}</Text> : <SecondaryButton tone={tone} label="TEILNEHMEN" icon="add-circle-outline" onPress={() => void join(challenge.id)} />}</View>; })}</View>}<SectionLabel tone={tone} overline="ÖFFENTLICH · XP" title="BESTENLISTE" />{leaderboard.length ? <View style={styles.stack}>{leaderboard.slice(0, 10).map(row => <View key={row.userId} style={[styles.leaderboardRow, { borderColor: `${tone.accent}33`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{row.rank}</Text><Text style={styles.cardTitle}>{row.name}</Text><Text style={styles.miniCopy}>{row.totalXp} XP</Text></View>)}</View> : <Text style={styles.miniCopy}>Noch keine öffentliche XP-Bestenliste vorhanden.</Text>}</>}</Page>;
+}
+
+function Stat({ label, value, tone }: { label: string; value: string; tone: Tone }) {
+  return <View style={styles.stat}><Text style={[styles.statValue, { color: tone.accent }]}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>;
 }
 
 function ReferenceHero({
@@ -4595,5 +4628,20 @@ const styles = StyleSheet.create({
   careInputLarge: { minHeight: 88, paddingTop: 11, textAlignVertical: "top" },
   careJournal: { paddingTop: 9, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.14)", gap: 3 },
   disabled: { opacity: 0.48 },
+  searchResultCard: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
+  searchResultIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  searchResultCopy: { flex: 1, gap: 3 },
+  publicProfileCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 8 },
+  publicProfileCopy: { gap: 4 },
+  publicAvatar: { width: 82, height: 82, borderRadius: 41, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  publicStats: { flexDirection: "row", justifyContent: "space-around", padding: 14, borderRadius: 14, borderWidth: 1 },
+  stat: { alignItems: "center", gap: 4 },
+  statValue: { fontSize: 16, fontWeight: "900" },
+  statLabel: { color: c.muted, fontSize: 8, fontWeight: "800" },
+  taxonCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 8 },
+  taxonImage: { width: "100%", height: 180, borderRadius: 13, borderWidth: 1, borderColor: "rgba(199,243,91,.3)" },
+  rankingScoreCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
+  challengeCard: { padding: 14, borderRadius: 15, borderWidth: 1, gap: 7 },
+  leaderboardRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 12, borderWidth: 1 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });

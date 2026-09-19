@@ -1,0 +1,31 @@
+import { ArrowLeft, CheckCircle2, Leaf, Save, ShieldCheck } from "lucide-react";
+import { Link, useRoute } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { StatePanel } from "@/components/StatePanel";
+import { useAuth } from "@/_core/hooks/useAuth";
+
+export default function PlantTaxon() {
+  const [, params] = useRoute("/plant/:id");
+  const id = Number(params?.id);
+  const auth = useAuth();
+  const plant = trpc.search.plantById.useQuery({ id }, { enabled: Number.isSafeInteger(id) && id > 0, retry: false });
+  const save = trpc.social.save.useMutation();
+  const unsave = trpc.social.unsave.useMutation();
+  const saved = trpc.social.saved.useQuery(undefined, { enabled: auth.isAuthenticated });
+  if (plant.isLoading) return <div className="reference-page"><StatePanel code="PLANT/LOAD" state="loading" title="PFLANZE WIRD GELADEN" body="Der veröffentlichte Taxon-Datensatz wird abgerufen …" /></div>;
+  if (plant.isError || !plant.data) return <div className="reference-page"><StatePanel code="PLANT/EMPTY" state="empty" title="PFLANZE NICHT GEFUNDEN" body="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /></div>;
+  const item = plant.data;
+  const commonNames = Array.isArray(item.commonNames) ? item.commonNames.map(String) : [];
+  const synonyms = Array.isArray(item.synonyms) ? item.synonyms.map(String) : [];
+  const isSaved = saved.data?.some(row => row.targetType === "plant_taxon" && row.targetId === item.id);
+  const toggleSave = () => {
+    if (!auth.isAuthenticated) return;
+    const input = { targetType: "plant_taxon" as const, targetId: item.id };
+    (isSaved ? unsave : save).mutate(input, { onSuccess: () => void saved.refetch() });
+  };
+  return <div className="reference-page plant-taxon-page">
+    <Link className="page-back-link" href="/explore"><ArrowLeft size={16} />Suche & Entdecken</Link>
+    <section className="plant-taxon-hero glass-panel">{item.imageUrl ? <img src={item.imageUrl} alt={item.scientificName} /> : <div className="plant-taxon-placeholder"><Leaf size={46} /></div>}<div><span className="eyebrow">VALIDIERTER PFLANZENKATALOG</span><h1>{item.scientificName}</h1><p>{item.acceptedScientificName && item.acceptedScientificName !== item.scientificName ? `Akzeptierter Name: ${item.acceptedScientificName}` : item.family ?? "Taxon-Datensatz"}</p><div className="plant-taxon-badges"><span><ShieldCheck size={13} />{item.evidenceState}</span>{item.rank ? <span>{item.rank}</span> : null}{auth.isAuthenticated ? <button type="button" className="secondary-action" onClick={toggleSave} disabled={save.isPending || unsave.isPending}><Save size={14} />{isSaved ? "GESPEICHERT" : "SPEICHERN"}</button> : null}</div></div></section>
+    <section className="plant-taxon-content glass-panel"><div className="section-heading"><div><span className="eyebrow">DATENBASIS</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
+  </div>;
+}

@@ -525,6 +525,120 @@ export const knowledgeArticles = mysqlTable(
   ],
 );
 
+/** Source-traceable public organism catalogue. Records are imported from a validated source; no seed data is created here. */
+export const plantTaxa = mysqlTable(
+  "plant_taxa",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    source: varchar("source", { length: 96 }).notNull(),
+    sourceVersion: varchar("sourceVersion", { length: 96 }).notNull(),
+    sourceRecordId: varchar("sourceRecordId", { length: 160 }).notNull(),
+    scientificName: varchar("scientificName", { length: 240 }).notNull(),
+    acceptedScientificName: varchar("acceptedScientificName", { length: 240 }),
+    rank: varchar("rank", { length: 48 }),
+    family: varchar("family", { length: 160 }),
+    genus: varchar("genus", { length: 160 }),
+    commonNames: json("commonNames").notNull(),
+    synonyms: json("synonyms").notNull(),
+    summary: text("summary"),
+    careProfile: json("careProfile"),
+    imageUrl: varchar("imageUrl", { length: 1_000 }),
+    evidenceState: mysqlEnum("evidenceState", ["confirmed", "contextual", "unverified", "conflicting", "insufficient"]).default("confirmed").notNull(),
+    status: mysqlEnum("status", ["draft", "published", "retired"]).default("draft").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("plant_taxa_source_record_unique").on(table.source, table.sourceVersion, table.sourceRecordId),
+    index("plant_taxa_scientific_name_idx").on(table.scientificName),
+    index("plant_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+  ],
+);
+
+/** Server-synchronised following relationship; private accounts never leak through public search. */
+export const userFollows = mysqlTable(
+  "user_follows",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    followerId: int("followerId").notNull().references(() => users.id),
+    followingId: int("followingId").notNull().references(() => users.id),
+    status: mysqlEnum("status", ["active", "removed"]).default("active").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_follows_pair_unique").on(table.followerId, table.followingId),
+    index("user_follows_following_status_idx").on(table.followingId, table.status, table.createdAt),
+  ],
+);
+
+/** A server-side block relationship used by feeds, search and notifications. */
+export const userBlocks = mysqlTable(
+  "user_blocks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    blockerId: int("blockerId").notNull().references(() => users.id),
+    blockedId: int("blockedId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_blocks_pair_unique").on(table.blockerId, table.blockedId),
+    index("user_blocks_blocked_idx").on(table.blockedId, table.createdAt),
+  ],
+);
+
+/** Account-synchronised saves for public records, never private records. */
+export const savedItems = mysqlTable(
+  "saved_items",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    targetType: mysqlEnum("targetType", ["post", "knowledge", "plant_taxon", "product", "profile"]).notNull(),
+    targetId: int("targetId").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("saved_items_user_target_unique").on(table.userId, table.targetType, table.targetId),
+    index("saved_items_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
+/** Published, auditable challenges. Progress is derived from valid server events only. */
+export const challenges = mysqlTable(
+  "challenges",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    title: varchar("title", { length: 180 }).notNull(),
+    description: text("description").notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    ruleText: text("ruleText").notNull(),
+    startsAt: timestamp("startsAt").notNull(),
+    endsAt: timestamp("endsAt").notNull(),
+    rewardPoints: int("rewardPoints").default(0).notNull(),
+    status: mysqlEnum("status", ["draft", "published", "closed"]).default("draft").notNull(),
+    createdByUserId: int("createdByUserId").notNull().references(() => users.id),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("challenges_status_window_idx").on(table.status, table.startsAt, table.endsAt)],
+);
+
+export const challengeProgress = mysqlTable(
+  "challenge_progress",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    challengeId: int("challengeId").notNull().references(() => challenges.id, { onDelete: "cascade" }),
+    userId: int("userId").notNull().references(() => users.id),
+    progress: int("progress").default(0).notNull(),
+    status: mysqlEnum("status", ["joined", "completed", "withdrawn"]).default("joined").notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("challenge_progress_pair_unique").on(table.challengeId, table.userId),
+    index("challenge_progress_user_status_idx").on(table.userId, table.status, table.updatedAt),
+  ],
+);
+
 export const postLikes = mysqlTable(
   "post_likes",
   {

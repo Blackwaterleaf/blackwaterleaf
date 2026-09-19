@@ -169,6 +169,13 @@
       "when": 1789801851985,
       "tag": "0023_chunky_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1789802464923,
+      "tag": "0024_optimal_starbolt",
+      "breakpoints": true
     }
   ]
 }
