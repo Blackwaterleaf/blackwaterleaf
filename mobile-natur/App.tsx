@@ -2339,12 +2339,13 @@ function PostScreen({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
+  const [showOwnPosts, setShowOwnPosts] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
   useEffect(() => {
-    if (!token) return;
+    if (!token || !showOwnPosts) return;
     void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
-  }, [token]);
+  }, [token, showOwnPosts]);
   const save = async () => {
     if (!token || !content.trim() || saving) return;
     setSaving(true);
@@ -2364,7 +2365,7 @@ function PostScreen({
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       setContent("");
       setPublishNow(false);
-      setOwnPosts(await myCommunityPosts(token));
+      if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
       setStatus(
         publishNow
           ? "Beitrag öffentlich veröffentlicht."
@@ -2395,7 +2396,7 @@ function PostScreen({
       await updateCommunityPost(token, { postId: editingPostId, content: content.trim(), realm, visibility: editVisibility });
       setEditingPostId(null);
       setContent("");
-      setOwnPosts(await myCommunityPosts(token));
+      if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
       setStatus("Beitrag aktualisiert.");
     } catch (cause) {
       setStatus(cause instanceof Error ? cause.message : "Der Beitrag konnte nicht aktualisiert werden.");
@@ -2434,7 +2435,8 @@ function PostScreen({
             Es werden keine Beispielbeiträge erstellt. Dein Entwurf bleibt
             privat, bis du die Veröffentlichung ausdrücklich aktivierst.
           </Text>
-          {ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
+          {token ? <SecondaryButton tone={tone} label={showOwnPosts ? "EIGENE BEITRÄGE AUSBLENDEN" : "EIGENE BEITRÄGE VERWALTEN"} icon={showOwnPosts ? "chevron-up-outline" : "create-outline"} onPress={() => setShowOwnPosts(value => !value)} /> : null}
+          {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
           {editingPostId !== null ? <Text style={[styles.chip, { color: tone.accent }]}>BEITRAG BEARBEITEN · {editVisibility === "public" ? "ÖFFENTLICH" : "PRIVAT"}</Text> : null}
           <LabeledInput
             tone={tone}
