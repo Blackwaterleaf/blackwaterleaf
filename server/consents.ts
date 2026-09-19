@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { userConsentCurrent, userConsentEvents, userConsents } from "../drizzle/schema";
+import { userConsentCurrent, userConsentEvents, userConsents, users } from "../drizzle/schema";
 import type { z } from "zod";
 import { consentPurposeSchema } from "../shared/blackwaterleaf-contract-v1";
 import { getDb } from "./db";
@@ -81,7 +81,8 @@ export async function recordCurrentConsent(
         },
       });
 
-    await tx.insert(userConsentEvents).values({
+    await tx
+      .insert(userConsentEvents).values({
       userId: input.userId,
       purpose: input.purpose,
       policyVersion: input.policyVersion,
@@ -89,5 +90,9 @@ export async function recordCurrentConsent(
       eventType: "member_update",
       occurredAt: now,
     });
+
+    if (input.purpose === "profile_publication" && !input.granted) {
+      await tx.update(users).set({ profileVisibility: "private" }).where(eq(users.id, input.userId));
+    }
   });
 }

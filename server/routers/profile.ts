@@ -56,7 +56,7 @@ async function serializeProfile(user: typeof users.$inferSelect, includePrivate:
     status: user.status,
     avatarUrl,
     bio: user.bio,
-    location: user.location,
+    location: includePrivate ? user.location : null,
     profileVisibility: user.profileVisibility,
     locale: user.locale,
     unitSystem: user.unitSystem,
@@ -137,11 +137,18 @@ export const profileRouter = router({
 
   publicPosts: publicProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
     const db = await requireDatabase();
-    return db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt }).from(communityPosts).where(and(
-      eq(communityPosts.userId, input.userId),
-      eq(communityPosts.status, "published"),
-      eq(communityPosts.visibility, "public"),
-    )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
+    return db
+      .select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt })
+      .from(communityPosts)
+      .innerJoin(users, eq(communityPosts.userId, users.id))
+      .where(and(
+        eq(communityPosts.userId, input.userId),
+        eq(users.status, "active"),
+        eq(communityPosts.status, "published"),
+        eq(communityPosts.visibility, "public"),
+      ))
+      .orderBy(desc(communityPosts.createdAt))
+      .limit(input.limit);
   }),
 
   update: protectedProcedure
