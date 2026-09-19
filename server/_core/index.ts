@@ -8,6 +8,7 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { getDb } from "../db";
+import { acceptMediaState, authorizeMediaTransport, redirectMemberToMediaPlayer } from "../selfHostedLiveMedia";
 import { serveStatic, setupVite } from "./vite";
 import {
   aiRateLimiter,
@@ -52,6 +53,11 @@ async function startServer() {
   app.use(express.json({ limit: "12mb" }));
   app.use(express.urlencoded({ limit: "12mb", extended: true }));
   registerStorageProxy(app);
+  // Called only by the separately deployed IONOS media stack. Both routes require
+  // the server-side media-control secret and never expose ingest credentials.
+  app.post("/api/live-media/auth", authorizeMediaTransport);
+  app.post("/api/live-media/session/:sessionId/state", acceptMediaState);
+  app.get("/api/live-media/session/:sessionId/watch", redirectMemberToMediaPlayer);
   app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
   app.use([

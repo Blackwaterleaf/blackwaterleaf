@@ -1,0 +1,9 @@
+{
+  "name": "blackwaterleaf-live-gateway",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": {
+    "hls.js": "^1.6.15"
+  }
+}

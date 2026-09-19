@@ -283,3 +283,10 @@ Beitragskarten folgen der Reihenfolge **Autor und Zeit → Bereich/Sichtbarkeit 
 ### 19.10 Live Hub und Fachvorträge
 
 Der Live Hub ist ein angemeldeter Kontextweg aus der Community. Er trennt **Community Live** und **Fachvorträge** sichtbar und inhaltlich. Fachvorträge dürfen nur von aktivem Staff angelegt werden und müssen eine dokumentierte Qualifikationsangabe führen. Sitzungen zeigen ausschließlich die servergesicherten Zustände geplant, live, beendet oder abgebrochen. Für aktive Sitzungen kann Staff eine validierte **YouTube-Live-Video-ID** oder einen **Twitch-Kanal** hinterlegen; der Player bleibt direkt im Hub sichtbar und bietet zusätzlich einen transparenten Anbieterlink. Beliebige iframe-URLs, Stream-Keys und Zugangsdaten sind verboten. Ohne freigegebene Anbieterreferenz gibt es kein Platzhaltervideo. Der Chat wird nur während einer aktiven Sitzung geöffnet, ist konto-gebunden, unterliegt einer engen Nachrichtenrate und filtert blockierte Konten.
+
+
+### 19.11 Eigenes Live-Control-Deck und IONOS-Wiedergabe
+
+**Eigenes Live ist ein gleichwertiger Videoweg.** Im Staff-Planer steht neben YouTube Live und Twitch der Weg **BLACKWATERLEAF / IONOS**. Seine Darstellung folgt dem Observatory-System: ein kompakter, dokumentierter Zustandsbereich erzeugt Einspielpfad und einmal sichtbaren Schlüssel; Sitzungsdetail und Live-Hub zeigen die Wiedergabe ausschließlich innerhalb einer angemeldeten Mitgliederansicht. Ein Schlüssel darf weder dauerhaft im UI noch im Klartext in der Datenbank erscheinen.
+
+Die visuelle Sprache trennt klar zwischen drei Zuständen: *einrichten* (Control Deck und Schlüssel), *live* (echte, geschützte Wiedergabe) und *nicht verfügbar* (keine Videofiktion). Die eigene IONOS-Quelle erhält den türkisfarbenen technischen Akzent des Observatory-Systems; externe Anbieter bleiben als vorhandene, sekundäre Quellen sichtbar.

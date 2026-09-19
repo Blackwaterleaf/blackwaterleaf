@@ -1,0 +1,14 @@
+{
+  email {$BWL_TLS_EMAIL}
+}
+
+{$BWL_MEDIA_DOMAIN} {
+  encode zstd gzip
+  header {
+    -Server
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  }
+  reverse_proxy gateway:8080
+}

@@ -1,0 +1,41 @@
+logLevel: info
+logDestinations: [stdout]
+
+# Only OBS/Stream Deck publish attempts are delegated to BlackWaterLeaf.
+# HLS is private behind the local gateway and is never exposed on the IONOS host.
+authMethod: http
+authHTTPAddress: "__BWL_APP_ORIGIN__/api/live-media/auth?secret=__BWL_MEDIA_CONTROL_SECRET__"
+authHTTPExclude:
+  - action: read
+  - action: playback
+  - action: api
+  - action: metrics
+  - action: pprof
+
+rtsp: false
+rtmp: true
+rtmpEncryption: strict
+rtmpsAddress: :1936
+rtmpServerKey: /tls/privkey.pem
+rtmpServerCert: /tls/fullchain.pem
+srt: false
+hls: true
+hlsAddress: :8888
+hlsAllowOrigins: ["http://gateway:8080"]
+hlsAlwaysRemux: true
+webrtc: false
+api: false
+metrics: false
+pprof: false
+playback: false
+
+pathDefaults:
+  source: publisher
+  overridePublisher: false
+
+paths:
+  "~^bwl-live-v1-[0-9]+-[a-z0-9_-]{12,32}$":
+    runOnOnline: >-
+      /bin/sh -c 'session_id=$(printf "%s" "$MTX_PATH" | cut -d- -f4); curl --fail --silent --show-error --retry 3 -X POST "__BWL_APP_ORIGIN__/api/live-media/session/${session_id}/state?secret=__BWL_MEDIA_CONTROL_SECRET__" -H "content-type: application/json" --data "{\"state\":\"online\",\"path\":\"$MTX_PATH\"}"'
+    runOnOffline: >-
+      /bin/sh -c 'session_id=$(printf "%s" "$MTX_PATH" | cut -d- -f4); curl --fail --silent --show-error --retry 3 -X POST "__BWL_APP_ORIGIN__/api/live-media/session/${session_id}/state?secret=__BWL_MEDIA_CONTROL_SECRET__" -H "content-type: application/json" --data "{\"state\":\"offline\",\"path\":\"$MTX_PATH\"}"'

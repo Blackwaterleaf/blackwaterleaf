@@ -770,6 +770,9 @@ export const liveSessions = mysqlTable(
     presenterName: varchar("presenterName", { length: 160 }).notNull(),
     presenterCredential: varchar("presenterCredential", { length: 160 }),
     streamUrl: varchar("streamUrl", { length: 1_000 }),
+    /** SHA-256 digest only; the one-time own-media ingest key is never stored in cleartext. */
+    selfHostedIngestKeyHash: varchar("selfHostedIngestKeyHash", { length: 128 }),
+    selfHostedKeyVersion: int("selfHostedKeyVersion").default(0).notNull(),
     status: mysqlEnum("status", ["scheduled", "live", "ended", "cancelled"]).default("scheduled").notNull(),
     startsAt: timestamp("startsAt").notNull(),
     endsAt: timestamp("endsAt"),
