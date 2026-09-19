@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { StatePanel } from "@/components/StatePanel";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
-import { Camera, ChevronRight, Fish, Leaf, LogIn, RefreshCw, Settings, Trophy, UserRound, Box } from "lucide-react";
+import { Camera, ChevronRight, Fish, Leaf, LogIn, Settings, Trophy, UserRound, Box } from "lucide-react";
 import { Link } from "wouter";
 
 const habitatChoices = [
@@ -37,7 +37,7 @@ export default function ProfileHome() {
 
     <section className="profile-reference-habitats"><div className="profile-reference-title"><div><span className="eyebrow">PRIVATE SAMMLUNG</span><h2>MEINE ANLAGEN & WERTE</h2><p>Privat · Wähle direkt deinen Bereich</p></div><Link href="/profile/habitats" aria-label="Alle Anlagen öffnen"><ChevronRight size={22} /></Link></div><div className="profile-habitat-choice-grid">{habitatChoices.map(({ key, label, note, icon: Icon, className }) => <Link key={key} href={`/profile/habitats?kind=${key}`} className={`profile-habitat-card ${className}`}><Icon size={22} /><span><strong>{label}</strong><small>{note}</small></span><ChevronRight size={17} /></Link>)}</div></section>
 
-    <section className="profile-reference-posts glass-panel"><div className="profile-reference-title"><div><span className="eyebrow">MEIN BEREICH</span><h2>EIGENE BEITRÄGE</h2></div><div className="profile-reference-post-actions"><button type="button" className="secondary-action" onClick={() => void posts.refetch()} disabled={posts.isFetching}><RefreshCw size={14} className={posts.isFetching ? "action-spinner" : undefined} />{posts.isFetching ? "AKTUALISIERE …" : "AKTUALISIEREN"}</button><Link className="secondary-action" href="/community?compose=1"><Camera size={14} />POST</Link></div></div>{posts.isLoading ? <p className="form-status">Beiträge werden geladen …</p> : !posts.data?.length ? <p className="reference-list-empty">Noch keine eigenen Beiträge.</p> : <div className="profile-reference-post-list">{posts.data.slice(0, 6).map(post => <article key={post.id}><div><strong>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</strong><p>{post.content}</p><small>{new Date(post.updatedAt).toLocaleString(locale)}</small></div><Link href="/community"><ChevronRight size={15} /></Link></article>)}</div>}</section>
+    <section className="profile-reference-posts glass-panel"><div className="profile-reference-title"><div><span className="eyebrow">MEIN BEREICH</span><h2>EIGENE BEITRÄGE</h2></div><div className="profile-reference-post-actions"><Link className="secondary-action" href="/community?compose=1"><Camera size={14} />POST</Link></div></div>{posts.isLoading ? <p className="form-status">Beiträge werden geladen …</p> : !posts.data?.length ? <p className="reference-list-empty">Noch keine eigenen Beiträge.</p> : <div className="profile-reference-post-list">{posts.data.slice(0, 6).map(post => <article key={post.id}><div><strong>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</strong><p>{post.content}</p><small>{new Date(post.updatedAt).toLocaleString(locale)}</small></div><Link href="/community"><ChevronRight size={15} /></Link></article>)}</div>}</section>
 
   </div>;
 }
