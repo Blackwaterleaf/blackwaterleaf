@@ -55,6 +55,7 @@ export function ReferenceActionGrid({ tone, actions, heading = "DEINE AUSWAHL" }
             {action.unavailable ? <span className="reference-action__status">KÜNFTIG</span> : null}
           </>;
           if (action.href) return <Link key={action.title} href={action.href} className="reference-action">{card}</Link>;
+          if (action.unavailable) return <button key={action.title} type="button" className="reference-action reference-action--unavailable" disabled aria-disabled="true">{card}</button>;
           return <button key={action.title} type="button" className="reference-action" onClick={() => action.onActivate?.()}>{card}</button>;
         })}
       </div>

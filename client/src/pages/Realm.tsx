@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n";
 import { readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
+import NotFound from "@/pages/NotFound";
 import { BookOpen, Bot, Camera, Fish, Leaf, LibraryBig, Plus, Save, ShieldCheck, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { useParams } from "wouter";
@@ -21,15 +22,15 @@ function newClientId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-${Date
 
 function actionsFor(realm: keyof typeof REALMS): ReferenceAction[] {
   if (realm === "botany") return [
-    { title: "Meine Pflanzen", note: "Private Sammlung öffnen", icon: LibraryBig, image: WORLD_ASSETS.botany, href: "/profile#habitats" },
-    { title: "Pflanze hinzufügen", note: "Anlage privat anlegen", icon: Plus, image: REFERENCE_ASSETS.botany, href: "/profile#habitats" },
+    { title: "Meine Pflanzen", note: "Private Sammlung öffnen", icon: LibraryBig, image: WORLD_ASSETS.botany, href: "/profile/settings#habitats" },
+    { title: "Pflanze hinzufügen", note: "Anlage privat anlegen", icon: Plus, image: REFERENCE_ASSETS.botany, href: "/profile/settings#habitats" },
     { title: "Pflanze bestimmen", note: "Bildbestimmung wird vorbereitet", icon: Leaf, image: REFERENCE_ASSETS.ai, unavailable: true },
     { title: "Pflegewissen", note: "Quellenwissen öffnen", icon: BookOpen, image: WORLD_ASSETS.terrarium, href: "/knowledge" },
   ];
   if (realm === "aquarium") return [
-    { title: "Meine Aquarien", note: "Becken privat verwalten", icon: Fish, image: WORLD_ASSETS.aquarium, href: "/profile#habitats" },
-    { title: "Aquarium hinzufügen", note: "Neues Becken anlegen", icon: Plus, image: REFERENCE_ASSETS.aquarium, href: "/profile#habitats" },
-    { title: "Wasserwerte", note: "Private Messwerte öffnen", icon: LibraryBig, image: REFERENCE_ASSETS.aquarium, href: "/profile#habitats" },
+    { title: "Meine Aquarien", note: "Becken privat verwalten", icon: Fish, image: WORLD_ASSETS.aquarium, href: "/profile/settings#habitats" },
+    { title: "Aquarium hinzufügen", note: "Neues Becken anlegen", icon: Plus, image: REFERENCE_ASSETS.aquarium, href: "/profile/settings#habitats" },
+    { title: "Wasserwerte", note: "Private Messwerte öffnen", icon: LibraryBig, image: REFERENCE_ASSETS.aquarium, href: "/profile/settings#habitats" },
     { title: "KI zur Aquaristik", note: "Allgemeine Frage stellen", icon: Bot, image: REFERENCE_ASSETS.ai, href: "/assistant" },
   ];
   return [
@@ -42,7 +43,9 @@ function actionsFor(realm: keyof typeof REALMS): ReferenceAction[] {
 
 export default function Realm() {
   const params = useParams<{ realm: string }>();
-  const realmKey = (params.realm in REALMS ? params.realm : "botany") as keyof typeof REALMS;
+  const invalidRealm = !(params.realm in REALMS);
+  const realmKey = params.realm as keyof typeof REALMS;
+  if (invalidRealm) return <NotFound />;
   const realm = REALMS[realmKey];
   const auth = useAuth();
   const { locale, t } = useI18n();

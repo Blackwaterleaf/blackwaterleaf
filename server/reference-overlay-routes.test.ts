@@ -17,6 +17,18 @@ describe("reference-overlay routes", () => {
     for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'Foto auswählen oder aufnehmen']) expect(flows).toContain(token);
   });
 
+  it("ends unknown realm and flow parameters in the 404 surface instead of redirecting", () => {
+    const realm = page("Realm.tsx");
+    const flows = page("FlowDestination.tsx");
+    for (const source of [realm, flows]) {
+      expect(source).toContain('import NotFound from "@/pages/NotFound"');
+      expect(source).toContain('if (invalid');
+      expect(source).toContain('return <NotFound />');
+    }
+    expect(realm).toContain('href: "/profile/settings#habitats"');
+    expect(flows).toContain('href: "/profile/settings#habitats"');
+  });
+
   it("uses the binding five-target mobile navigation with the marketplace", () => {
     expect(shell).toContain('href: "/"'); expect(shell).toContain('href: "/explore"'); expect(shell).toContain('href: "/marketplace"'); expect(shell).toContain('href: "/community"'); expect(shell).toContain('href: "/profile"');
     expect(shell).not.toContain('href: "/assistant"');
@@ -26,6 +38,9 @@ describe("reference-overlay routes", () => {
   it("provides one reusable design language for the hero, choice cards and truthful empty states", () => {
     for (const token of ['ReferenceHero', 'ReferenceActionGrid', 'ReferenceEmptyState', 'reference-tone--${tone}']) expect(overlay).toContain(token);
     for (const token of ['.reference-hero', '.reference-action-grid', '.reference-empty-state', '--reference-botany', '--reference-aquarium', '--reference-terrarium', '--reference-ai']) expect(styles).toContain(token);
+    expect(overlay).toContain('reference-action--unavailable');
+    expect(overlay).toContain('disabled aria-disabled="true"');
+    expect(styles).toContain('.reference-action--unavailable');
   });
 
   it("recomposes every supplied target area to reusable reference components", () => {

@@ -203,6 +203,7 @@ export type HabitatCopy = {
   sectionMeta: string;
   intro: string;
   loading: string;
+  loadFailed: string;
   empty: string;
   noValues: string;
   addHabitat: string;
@@ -228,6 +229,7 @@ const habitatDe: HabitatCopy = {
   sectionMeta: "Privat · Aquarien, Pflanzen & Terrarien",
   intro: "Lege deine Anlagen strukturiert an. Diese Angaben bleiben nur in deinem Konto und erscheinen nicht in deinem öffentlichen Profil oder der Community.",
   loading: "Anlagen werden geladen …",
+  loadFailed: "Anlagen konnten nicht geladen werden. Es werden keine leeren Datenbestände angezeigt.",
   empty: "Noch keine Anlage angelegt. Wähle oben einen Bereich aus.",
   noValues: "Noch keine Werte hinterlegt",
   addHabitat: "Anlage hinzufügen",
@@ -274,6 +276,7 @@ const habitatEn: HabitatCopy = {
   sectionMeta: "Private · aquariums, plants & terrariums",
   intro: "Create structured records for your habitats. These details remain in your account and never appear on your public profile or in the community.",
   loading: "Loading habitats …",
+  loadFailed: "Habitats could not be loaded. No empty data set is shown instead.",
   empty: "No habitat has been created yet. Choose an area above.",
   noValues: "No values recorded yet",
   addHabitat: "Add habitat",

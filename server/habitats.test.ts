@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { summarizeHabitat } from "../client/src/components/HabitatProfiles";
 import { habitatText } from "../client/src/i18n";
@@ -89,5 +91,13 @@ describe("private habitat profile contracts", () => {
   it("preserves contractually valid zero values in the private UI summary", () => {
     expect(summarizeHabitat({ kind: "aquarium", details: { volumeLiters: 240, temperatureC: 0, ph: 0 } }, habitatText("de"))).toBe("240 L · 0 °C · pH 0");
     expect(summarizeHabitat({ kind: "terrarium", details: { humidityPercent: 0, dayTemperatureC: 0 } }, habitatText("de"))).toBe("0 % LF · 0 °C");
+  });
+
+  it("opens the private habitat target and distinguishes load errors from an empty inventory", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "../client/src/components/HabitatProfiles.tsx"), "utf8");
+    expect(source).toContain('id="habitats"');
+    expect(source).toContain('habitats.isError');
+    expect(source).toContain('copy.loadFailed');
+    expect(source).toContain('!habitats.isLoading && !habitats.isError ? <p className="habitat-empty">');
   });
 });
