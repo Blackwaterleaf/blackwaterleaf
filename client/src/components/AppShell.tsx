@@ -1,4 +1,4 @@
-import { Bell, Compass, Home, Menu, Ruler, Search, ShoppingBag, UserRound, UsersRound } from "lucide-react";
+import { Bell, Camera, Compass, Home, Map, Menu, Ruler, Search, ShoppingBag, UserRound, UsersRound, BookOpen } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -17,6 +17,14 @@ const navigation = [
 ];
 
 const adminBuilderNavigation = { href: "/habitat-builder", label: "tabs.builder" as const, icon: Ruler };
+
+const portalNavigation = [
+  { href: "/explore", label: "Entdecken", icon: Compass },
+  { href: "/explore#map", label: "Karte", icon: Map },
+  { href: "/flow/foto", label: "Erfassen", icon: Camera },
+  { href: "/search", label: "Katalog", icon: BookOpen },
+  { href: "/profile", label: "Profil", icon: UserRound },
+] as const;
 
 function isReferenceNavigationActive(location: string, href: string) {
   if (href === "/") {
@@ -107,8 +115,9 @@ export function AppShell({ children }: PropsWithChildren) {
       <header className="top-shell">
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
           <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="" /></span>
-          <span className="brand-name">BLACKWATERLEAF</span>
+          <span className="brand-copy"><span className="brand-name">BLACKWATERLEAF</span><small>B: WATER OBSERVATORY PORTAL</small></span>
         </Link>
+        <Link href="/search" className="portal-search-trigger" aria-label="Globale Suche öffnen"><Search size={17} /><span>Arten, Orte, Beobachtungen, Tags suchen …</span><kbd>⌘ K</kbd></Link>
         <nav className="desktop-navigation" aria-label="Hauptnavigation">
           {navigation.map(item => {
             const active = isReferenceNavigationActive(location, item.href);
@@ -139,6 +148,16 @@ export function AppShell({ children }: PropsWithChildren) {
           </details>
         </div>
       </header>
+      <aside className="portal-sidebar" aria-label="Portalnavigation">
+        <div className="portal-sidebar__nav">
+          {portalNavigation.map(item => {
+            const Icon = item.icon;
+            const active = item.href === "/explore#map" ? location.startsWith("/explore") : isReferenceNavigationActive(location, item.href === "/search" ? "/explore" : item.href);
+            return <Link key={item.href} href={item.href} className={active ? "active" : ""}><Icon size={19} /><span>{item.label}</span></Link>;
+          })}
+        </div>
+        <div className="portal-sidebar__status"><i />Online<span>Letzte Synchronisierung<br />vor 2 Min.</span></div>
+      </aside>
       <ConnectionStateBanner />
       <AnalyticsTracker />
       <main className={`app-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>

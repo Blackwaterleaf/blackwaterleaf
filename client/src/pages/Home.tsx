@@ -29,8 +29,8 @@ export default function Home() {
   }, [pageTitle]);
 
   const copy = locale === "de"
-    ? { welcome: "Dein Raum für lebendige Welten", overview: "Dein Überblick", status: "Aktueller Stand", values: "Werte im Blick", partner: "Ausgewählt & transparent" }
-    : { welcome: "Your place for living worlds", overview: "Your overview", status: "Current status", values: "Values at a glance", partner: "Selected & transparent" };
+    ? { welcome: "Das aquatische Observatorium", overview: "Portale", status: "Aktueller Stand", values: "Werte im Blick", partner: "Ausgewählt & transparent" }
+    : { welcome: "The aquatic observatory", overview: "Portals", status: "Current status", values: "Values at a glance", partner: "Selected & transparent" };
 
   return (
     <div className={`home-stack weather-effect--${weatherEffect}`}>
@@ -41,8 +41,8 @@ export default function Home() {
         <span className="hero-light" aria-hidden="true" />
         <div className="hero-copy">
           <p className="eyebrow">{copy.welcome}</p>
-          <h1 className="glitch-title" data-text={t("home.hero.title")}>{t("home.hero.title")}</h1>
-          <p>{t("home.hero.body")}</p>
+          <h1 className="glitch-title" data-text={locale === "de" ? "GEWÄSSER. ARTEN. SCHUTZ." : "WATERS. SPECIES. PROTECTION."}>{locale === "de" ? "GEWÄSSER. ARTEN. SCHUTZ." : "WATERS. SPECIES. PROTECTION."}</h1>
+          <p>{locale === "de" ? "BlackWaterLeaf verbindet Menschen, Daten und Orte, um lebendige Süßwasserwelten zu verstehen und zu schützen." : "BlackWaterLeaf connects people, data and places to understand and protect living freshwater worlds."}</p>
           <div className="hero-actions">
             <Link href="/explore" className="primary-action">{t("home.hero.action")}<ArrowRight size={16} /></Link>
             <Link href="/profile" className="hero-text-link">{locale === "de" ? "Mein Bereich" : "My area"}</Link>
@@ -52,6 +52,17 @@ export default function Home() {
       </section>
 
       <section className="home-areas">
+        <section className="portal-quick-grid" aria-label={locale === "de" ? "BlackWaterLeaf Portale" : "BlackWaterLeaf portals"}>
+          <Link className="portal-quick-card" href="/botanik" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}><span><strong>Botanik</strong><small>{locale === "de" ? "Wasserpflanzen & Wissen" : "Aquatic plants & knowledge"}</small></span></Link>
+          <Link className="portal-quick-card" href="/aquaristik" style={{ backgroundImage: `url(${WORLD_ASSETS.aquarium})` }}><span><strong>Aquaristik</strong><small>{locale === "de" ? "Fische & Wirbellose" : "Fish & invertebrates"}</small></span></Link>
+          <Link className="portal-quick-card" href="/terraristik" style={{ backgroundImage: `url(${WORLD_ASSETS.terrarium})` }}><span><strong>Terraristik</strong><small>{locale === "de" ? "Reptilien & Amphibien" : "Reptiles & amphibians"}</small></span></Link>
+        </section>
+        <section className="observatory-panel glass-panel">
+          <span className="eyebrow">{locale === "de" ? "Karte & Liste · synchronisiert" : "Map & list · synchronized"}</span>
+          <h2>{locale === "de" ? "Beobachten. Einordnen. Teilen." : "Observe. Classify. Share."}</h2>
+          <p>{locale === "de" ? "Katalog, Community, KI-Bestimmung und Quellen bleiben in einem klaren Portal verbunden. Private Anlagen und exakte Standorte bleiben geschützt." : "Catalog, community, AI identification and sources stay connected in one clear portal. Private habitats and exact locations remain protected."}</p>
+          <div className="hero-actions"><Link href="/search" className="primary-action">{locale === "de" ? "Katalog öffnen" : "Open catalog"}<ArrowRight size={16} /></Link><Link href="/community" className="secondary-action">Community</Link><Link href="/marketplace" className="secondary-action">Marktplatz</Link></div>
+        </section>
         <div className="section-heading section-heading--airy">
           <div><span className="eyebrow">{copy.overview}</span><h2>{t("home.worlds.title")}</h2></div>
           <Link href="/explore" className="section-link">{locale === "de" ? "Alle Bereiche" : "All areas"}<ArrowRight size={15} /></Link>

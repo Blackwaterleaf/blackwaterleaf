@@ -1456,3 +1456,43 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .reference-hero--continuous .reference-hero__copy { min-height: inherit; justify-content: flex-end; }
 .community-edit--focused { margin: 12px 0; padding: 14px; border: 1px solid rgba(141,245,174,.30); border-radius: 16px; background: linear-gradient(145deg, rgba(18,66,35,.78), rgba(5,25,14,.94)); }
 @media (max-width: 560px) { .reference-hero--continuous { min-height: 208px; } }
+
+
+/* Observatory Portal V2: shared desktop/mobile shell */
+.brand-copy { display: grid; gap: 3px; min-width: 0; }
+.brand-copy small { color: #b9fb7f; font: 800 .44rem/1 "JetBrains Mono", monospace; letter-spacing: .14em; white-space: nowrap; }
+.portal-search-trigger { display: none; align-items: center; gap: 10px; width: min(42vw, 560px); min-height: 40px; padding: 0 13px; color: #bcd1c2; border: 1px solid rgba(142,238,178,.28); border-radius: 8px; background: rgba(7,30,17,.76); text-decoration: none; font-size: .73rem; }
+.portal-search-trigger:hover { border-color: rgba(177,255,125,.72); color: #efffea; }
+.portal-search-trigger kbd { margin-left: auto; padding: 3px 6px; color: #baf987; border: 1px solid rgba(172,255,126,.22); border-radius: 4px; font: 700 .56rem "JetBrains Mono", monospace; }
+.portal-sidebar { display: none; position: fixed; top: 70px; bottom: 0; left: 0; z-index: 12; width: 158px; padding: 16px 9px; border-right: 1px solid rgba(126,238,164,.18); background: linear-gradient(180deg, rgba(3,20,11,.94), rgba(2,12,7,.88)); }
+.portal-sidebar__nav { display: grid; gap: 7px; }
+.portal-sidebar__nav a { display: flex; align-items: center; gap: 12px; min-height: 43px; padding: 0 12px; color: #c7dac9; border: 1px solid transparent; border-radius: 10px; text-decoration: none; font-size: .76rem; font-weight: 700; }
+.portal-sidebar__nav a:hover, .portal-sidebar__nav a.active { color: #b9fb7f; border-color: rgba(158,252,118,.35); background: rgba(113,218,106,.1); }
+.portal-sidebar__nav a.active { box-shadow: inset -3px 0 #b9fb7f; }
+.portal-sidebar__status { position: absolute; bottom: 22px; left: 17px; color: #aafb72; font: 700 .65rem/1.45 "JetBrains Mono", monospace; }
+.portal-sidebar__status i { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #5cff86; box-shadow: 0 0 10px #5cff86; }
+.portal-sidebar__status span { display: block; margin-top: 6px; color: #8eac93; font-size: .51rem; font-weight: 500; }
+.portal-quick-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.portal-quick-card { position: relative; min-height: 102px; overflow: hidden; display: flex; align-items: flex-end; padding: 14px; color: #efffeb; border: 1px solid rgba(143,244,166,.34); border-radius: 15px; background-size: cover; background-position: center; text-decoration: none; }
+.portal-quick-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,8,4,.08), rgba(0,10,5,.9)); }
+.portal-quick-card > span { position: relative; z-index: 1; display: grid; gap: 3px; }
+.portal-quick-card strong { font: 400 1.35rem/.9 "Bebas Neue", sans-serif; letter-spacing: .04em; }
+.portal-quick-card small { color: #b7d0bb; font-size: .62rem; }
+.observatory-panel { display: grid; gap: 12px; padding: 16px; }
+.observatory-panel h2 { margin: 0; color: #efffeb; font: 400 clamp(1.7rem, 5vw, 2.8rem)/.9 "Bebas Neue", sans-serif; letter-spacing: .03em; }
+.observatory-panel p { margin: 0; color: #bcd2bf; font-size: .78rem; line-height: 1.5; }
+@media (min-width: 980px) {
+  .top-shell { padding-left: 20px; padding-right: 20px; }
+  .portal-search-trigger { display: flex; }
+  .portal-sidebar { display: block; }
+  .desktop-navigation { display: none; }
+  .app-content { width: min(calc(100% - 158px), 1400px); margin-left: 158px; padding: 24px 24px 60px; }
+  .bottom-navigation { display: none !important; }
+  .connection-banner { margin-left: 158px; }
+}
+@media (max-width: 640px) {
+  .brand-name { font-size: 1.08rem; }
+  .brand-copy small { font-size: .37rem; }
+  .portal-quick-grid { grid-template-columns: 1fr; }
+  .portal-quick-card { min-height: 84px; }
+}
