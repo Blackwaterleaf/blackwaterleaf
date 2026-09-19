@@ -37,3 +37,17 @@ describe("Phase 4–6 retention, quality and SEO contracts", () => {
     expect(source).toContain('rel="canonical"');
   });
 });
+
+
+describe("profile three-line menu routes", () => {
+  it("links every settings choice to its own route and reveals that route", () => {
+    const shell = read("../client/src/components/AppShell.tsx");
+    const styles = read("../client/src/index.css");
+    for (const route of ["/profile/private", "/profile/habitats", "/profile/progress", "/profile/privacy", "/profile/preferences", "/profile/tools"]) {
+      expect(shell).toContain(`href=\"${route}\"`);
+    }
+    expect(styles).toContain("profile-section-privacy #profile-consents { display: grid; }");
+    expect(styles).toContain("profile-section-preferences #profile-preferences { display: grid; }");
+    expect(styles).toContain("profile-section-tools #profile-tools { display: grid; }");
+  });
+});

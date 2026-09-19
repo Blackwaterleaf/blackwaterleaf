@@ -1429,3 +1429,10 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .public-profile-post small { color: #9fbaa1; font: 700 .58rem/1 "JetBrains Mono", monospace; }
 .rotate-180 { transform: rotate(180deg); }
 .search-load-more { justify-self: center; min-width: 200px; }
+
+/* Three-line menu routes: each route reveals only its own settings surface. */
+.profile-settings-page.profile-section-private #profile-edit { display: grid; }
+.profile-settings-page.profile-section-habitats #habitats { display: block; }
+.profile-settings-page.profile-section-privacy #profile-consents { display: grid; }
+.profile-settings-page.profile-section-preferences #profile-preferences { display: grid; }
+.profile-settings-page.profile-section-tools #profile-tools { display: grid; }
