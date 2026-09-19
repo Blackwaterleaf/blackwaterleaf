@@ -1007,18 +1007,18 @@ function Header({
           onPress={() => setMenuOpen(current => !current)}
         />
       </View>
-      {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}>
+      {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: "#07170d" }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.realmText}>Profil öffnen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.realmText}>Name & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.realmText}>Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("private"); }}><Text style={styles.realmText}>Privatbereich & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("habitats"); }}><Text style={styles.realmText}>Meine Anlagen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("progress"); }}><Text style={styles.realmText}>Punkte & Fortschritt</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("privacy"); }}><Text style={styles.realmText}>Datenschutz & Freigaben</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("preferences"); }}><Text style={styles.realmText}>Sprache & Einheiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>Weitere Werkzeuge</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.realmText}>Heute · Pflegeaufgaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.nativeProfileMenuText}>Name & Profil bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.nativeProfileMenuText}>Profilbild bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("private"); }}><Text style={styles.nativeProfileMenuText}>Privatbereich & Profil bearbeiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("habitats"); }}><Text style={styles.nativeProfileMenuText}>Meine Anlagen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("progress"); }}><Text style={styles.nativeProfileMenuText}>Punkte & Fortschritt</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("privacy"); }}><Text style={styles.nativeProfileMenuText}>Datenschutz & Freigaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("preferences"); }}><Text style={styles.nativeProfileMenuText}>Sprache & Einheiten</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.nativeProfileMenuText}>Weitere Werkzeuge</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -2575,35 +2575,7 @@ function KnowledgeScreen({
         subtitle="Es erscheinen ausschließlich serverseitig veröffentlichte Inhalte mit Quellen."
         icon="book-outline"
       />
-      <ActionGrid
-        tone={tone}
-        actions={[
-          {
-            title: "Quellen",
-            note: "Quellenbelegte Inhalte",
-            icon: "link-outline",
-            image: ASSETS.botany,
-            unavailable: true,
-            onPress: () =>
-              Alert.alert(
-                "Quellen werden geladen",
-                "Die veröffentlichten Quellen werden direkt unter den Referenzkarten angezeigt."
-              ),
-          },
-          {
-            title: "Naturwissen",
-            note: "Veröffentlichte Artikel",
-            icon: "book-outline",
-            image: ASSETS.terrarium,
-            unavailable: true,
-            onPress: () =>
-              Alert.alert(
-                "Naturwissen wird geladen",
-                "Die veröffentlichten Wissenseinträge werden direkt unter den Referenzkarten angezeigt."
-              ),
-          },
-        ]}
-      />
+      <Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHTE QUELLEN</Text>
       {state === "loading" ? (
         <Loading tone={tone} />
       ) : state === "error" ? (
@@ -4013,8 +3985,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerActions: { flexDirection: "row", gap: 7 },
-  nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 205, padding: 10, borderRadius: 12, borderWidth: 1, gap: 6 },
-  nativeProfileMenuItem: { minHeight: 34, paddingHorizontal: 9, justifyContent: "center", borderRadius: 8, backgroundColor: "rgba(0,0,0,.18)" },
+  nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
+  nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
+  nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
   headerAction: {
     width: 34,
     height: 34,
@@ -4540,7 +4513,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 4,
   },
-  realmText: { fontSize: 8, fontWeight: "900", textAlign: "center" },
+  realmText: { color: c.text, fontSize: 8, fontWeight: "900", textAlign: "center" },
   switchRow: {
     padding: 12,
     borderRadius: 11,
