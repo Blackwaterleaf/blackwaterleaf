@@ -1,12 +1,12 @@
 # BlackWaterLeaf Studio – Architektur-Gap-Report
 
 **Stand:** 19. September 2026  
-**Geprüfter lokaler Commit:** `f3ca705` – *Add agent safety gateway and loop protections*  
+**Geprüfter lokaler Stand:** nach `f3ca705`, inklusive Queue-, Policy-, Artefakt-, Kimi- und Execution-Plane-Verträgen
 **Status:** Research- und Repository-Audit
 
 ## 1. Kurzfazit
 
-BlackWaterLeaf Studio ist aktuell eine **Control Plane mit Planungsassistent**, aber noch keine vollständige Agentenplattform. Vorhanden sind die Web-Oberfläche, Manus-OAuth, Workspace-Rollen, Tasks, Schritte, Nachrichten, Freigabe-Daten, Push-Grundlagen, Evidence-Export und ein serverseitiger LLM-Planungspfad. Der entscheidende Ausführungsteil fehlt: Es gibt keinen echten Sandbox-Worker, keinen Tool-Executor, keine dauerhafte Queue, keinen Secret-Broker und keinen Kimi-/Moonshot-Provider.
+BlackWaterLeaf Studio ist aktuell eine **Control Plane mit Manus-gestütztem Planungs- und Queue-Worker**, aber noch keine vollständige Agentenplattform. Vorhanden sind die Web-Oberfläche, Manus-OAuth, Workspace-Rollen, Tasks, Schritte, Nachrichten, Freigabe-Daten, Push-Grundlagen, Evidence-Export, eine persistente Queue mit Leasing/Retry/Dead-Letter-Grundlagen, ein Kill-Switch-Pfad, eine Policy Engine, workspace-isolierte Artefakte, ein serverseitiger Kimi-Providervertrag und ein Sandbox-Spezifikationsvertrag. Der entscheidende Ausführungsteil fehlt weiterhin: Es gibt keinen verifizierten isolierten Sandbox-Worker, keinen vollständigen Tool-Executor, keinen Secret-Broker und keinen erzwungenen Egress-Proxy.
 
 Das Zielbild sollte hybrid sein. Die bestehende Web-App bleibt Control Plane für Identität, Workspaces, Aufträge, Policies, Freigaben und Evidenz. Eine getrennte Execution Plane provisioniert pro Task eine kurzlebige MicroVM oder dedizierte VM. Kimi liefert Modellintelligenz; Kimi ersetzt weder die Sicherheitsgrenze noch den Worker. Manus-ähnliche Sandbox-Funktionen müssen technisch nachgewiesen werden, nicht nur über UI-Statuskarten.
 
@@ -26,13 +26,15 @@ Das konfigurierte Remote `https://github.com/Blackwaterleaf/blackwaterleaf-studi
 | Workspaces | Workspace-Mitgliedschaften und Rollenprüfung vorhanden |
 | Tasks | Task-, Step-, Message- und Statusmodell vorhanden |
 | Safety | Laufzeit-, Schritt-, Tool- und Wiederholungslimits; Prompt-Injection-Prüfung; Planvalidierung |
-| Reliability | Atomarer Run-Claim und sichtbarer Kill-Switch vorbereitet |
+| Reliability | Persistente Run-Queue, atomarer Claim, Leasing, Retry/Dead-Letter-Grundlagen und sichtbarer Kill-Switch |
 | Approvals | Freigabe-Datensatz, Rollenprüfung, Ablaufzeit und Push-Grundlage vorhanden |
+| Policy/Provider | Deny-by-default Policy Engine, Sandbox-Preflight, Kimi-Gateway als sicheres Opt-in |
+| Artefakte | Workspace-isolierter Upload, Größenlimit, SHA-256-Hash und Metadatenliste |
 | Evidence | Evidence-Pack und SHA-256-verknüpfte Audit-Ereignisse vorhanden |
 | Mobile | Expo-Grundclient, Push-Registrierung und Approval-Grundlagen vorhanden |
 | Tests | `pnpm check` erfolgreich; 6 Vitest-Tests erfolgreich; Produktionsbuild erfolgreich |
 
-Diese Funktionen bilden eine gute Grundlage. Sie beweisen jedoch noch keine tatsächliche Datei-, Code-, Browser- oder Netzwerkausführung.
+Diese Funktionen bilden eine gute Grundlage. Sie beweisen jedoch noch keine tatsächliche Datei-, Code-, Browser- oder Netzwerkausführung. Der Manus-Control-Plane-Worker kann Runs planen und Provider-Ergebnisse verarbeiten; er ist absichtlich nicht gleichbedeutend mit einer Sandbox, die generierten Code ausführt.
 
 ## 4. Was definitiv noch fehlt: P0-Must-haves
 
@@ -52,7 +54,7 @@ Die Sandbox braucht mindestens:
 
 ### 4.2 Dauerhafte Run-Orchestrierung
 
-Der aktuelle `runAgent`-Pfad läuft synchron im HTTP-Request. `queued` ist bisher nur ein Statuswert. Benötigt werden eine Run-Tabelle, Queue, Job-Leasing, Idempotency-Key, Retry/Backoff, Dead-Letter-Zustand, Checkpoints, Resume, Ablaufverarbeitung und ein aktives Abort-/Kill-Signal.
+Der aktuelle `runAgent`-Pfad legt einen persistenten Run in einer Queue an. Leasing, Retry/Dead-Letter-Grundlagen, Status-Polling und ein aktiver Abbruchpfad sind vorhanden. Für Produktionsreife fehlen weiterhin echte Checkpoints/Resume-Semantik, Worker-Recovery-Tests, eine belastbare Idempotency-Garantie über alle Seiteneffekte und ein extern durchgesetztes Abort-Signal für einen isolierten Ausführungsprozess.
 
 Ein Cancel-Flag allein stoppt keinen bereits laufenden Provider- oder Worker-Prozess. Ein Produktionslauf darf erst als erfolgreich gelten, wenn Worker, Tests und Artefakte erfolgreich verifiziert wurden.
 
@@ -121,17 +123,17 @@ Eine native Mobile-App ist ebenfalls kein Blocker für Enterprise. Mobile Freiga
 
 Alle UI- und Marketingtexte müssen eindeutig sagen: **Control Plane und Planungsassistent; Sandbox noch nicht aktiviert.** Der aktuelle blockierte Worker darf nicht als erfolgreicher Agentenlauf erscheinen. Sensible lokale Konfiguration prüfen und gegebenenfalls rotieren.
 
-### Phase 1 – Belastbare Control Plane
+### Phase 1 – Belastbare Control Plane (weitgehend umgesetzt)
 
-Run-/Job-Modell, Queue, Leasing, Idempotenz, Retry, Dead Letter, Checkpoints, Resume, aktive Cancel-/Kill-Signale, transaktionales Audit und echte Health Checks implementieren.
+Run-/Job-Modell, Queue, Leasing, Retry, Dead Letter, Status-Polling und aktive Cancel-/Kill-Signale sind umgesetzt. Offen bleiben echte Checkpoints/Resume, vollständige Seiteneffekt-Idempotenz, Recovery-Tests und echte Health-/Worker-Metriken.
 
 ### Phase 2 – Sichere Sandbox-MVP
 
 Worker-Adapter, Execution Coordinator, MicroVM/dedizierte VM, Egress-Proxy, Ressourcenlimits, Cleanup und technische Negativtests implementieren. Erst nach dem Abnahmetor darf Codeausführung als Produktfunktion bezeichnet werden.
 
-### Phase 3 – Policy, Tools, Secrets und Artefakte
+### Phase 3 – Policy, Tools, Secrets und Artefakte (Verträge umgesetzt, Executor offen)
 
-Policy Engine, Capability-Manifeste, Tool Registry, Secret-Broker, Artefaktbibliothek, Upload-Prüfung, Hashes, Retention und parametergebundene Approvals ergänzen.
+Policy Engine, Capability-Manifeste, Sandbox-Preflight, Kimi-Providervertrag, Artefaktbibliothek, Upload-Größenprüfung, Hashes und workspace-isolierte Listen sind vorbereitet. Offen bleiben die tatsächliche Tool Registry, der Secret-Broker, Malware-/Content-Scan, Retention und die Durchsetzung am Ausführungs-Executor.
 
 ### Phase 4 – Kimi-Gateway
 
