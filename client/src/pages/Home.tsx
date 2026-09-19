@@ -6,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
+import ProjectBuilder from "@/pages/ProjectBuilder";
 import {
   Activity,
   ArrowUpRight,
   Bot,
   CheckCircle2,
+  Code2,
   ChevronRight,
   CircleDashed,
   Clock3,
@@ -47,6 +49,7 @@ type AgentRunResult = {
 };
 const navItems: NavItem[] = [
   { label: "Arbeitsraum", icon: LayoutDashboard, key: "workspace" },
+  { label: "App Builder", icon: Code2, key: "builder" },
   { label: "Aufträge", icon: FolderKanban, key: "tasks" },
   { label: "Bibliothek", icon: FileKey2, key: "library" },
   { label: "Integrationen", icon: PlugZap, key: "integrations" },
@@ -198,7 +201,7 @@ export default function Home() {
       <div className="studio-main">
         <header className="studio-topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button><div><div className="studio-small-label">{active === "workspace" ? "ARBEITSRAUM" : navItems.find(item => item.key === active)?.label.toUpperCase()}</div><h2>{active === "workspace" ? "Guten Morgen, {name}".replace("{name}", user.name?.split(" ")[0] || "Studio") : navItems.find(item => item.key === active)?.label}</h2></div><div className="topbar-actions"><div className="connection-pill"><span className="status-dot" /> Control API online</div><Button className="studio-primary-button" onClick={() => setComposerOpen(true)}><Plus size={16} /> Neuer Auftrag</Button></div></header>
         <main className="studio-content">
-          {active === "workspace" ? <>
+          {active === "builder" ? <ProjectBuilder /> : active === "workspace" ? <>
             {runAgent.isPending || lastRunResult ? <AgentExecutionPanel running={runAgent.isPending || lastRunResult?.status === "running"} queued={lastRunResult?.status === "queued"} result={lastRunResult} approvalDecision={approvalDecision} onOpenApproval={() => setApprovalOpen(true)} onCancel={() => { if (queuedRunId) cancelRun.mutate({ runId: queuedRunId }); else if (runningTaskId) cancelTask.mutate({ taskId: runningTaskId }); }} cancelPending={cancelTask.isPending || cancelRun.isPending} /> : null}
             <section className="hero-grid"><div className="hero-panel"><div className="hero-kicker"><span className="hero-kicker-dot" /> KONTROLLIERTE AGENTENARBEIT</div><h1>Vom Ziel zum<br /><span>klaren Ergebnis.</span></h1><p>Formuliere ein Ziel. Gib nur den nötigen Kontext frei. Verfolge jeden Schritt.</p><Button className="studio-light-button" onClick={() => setComposerOpen(true)}>Arbeitsauftrag starten <ArrowUpRight size={16} /></Button><div className="hero-grid-lines" /></div><div className="hero-signal-panel"><div className="signal-orbit orbit-one" /><div className="signal-orbit orbit-two" /><div className="signal-core"><Bot size={22} /></div><div className="signal-caption"><span className="status-dot" /> Agent Control Plane<div>isolated worker <strong>not configured</strong></div></div></div></section>
             <section className="metric-grid"><Metric label="Aktive Aufträge" value={stats.active} hint="aus echten Statusereignissen" icon={Activity} accent="mint" /><Metric label="Abgeschlossen" value={stats.completed} hint="mit Ergebniszuordnung" icon={CheckCircle2} accent="blue" /><Metric label="Freigaben" value={stats.approvals} hint="wartend auf Entscheidung" icon={ShieldCheck} accent="violet" /></section>

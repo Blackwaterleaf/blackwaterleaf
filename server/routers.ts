@@ -87,6 +87,106 @@ export const appRouter = router({
         return workspace;
       }),
 
+    projects: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      return db.listWorkspaceProjects(membership.workspace.id);
+    }),
+
+    createProject: protectedProcedure
+      .input(z.object({ name: z.string().trim().min(2).max(160), target: z.enum(["web", "web_native"]), brief: z.string().trim().min(20).max(12000), targetUsers: z.string().trim().min(3).max(2000), platforms: z.string().trim().min(2).max(500), dataSensitivity: z.enum(["public", "internal", "confidential", "regulated"]), integrations: z.string().trim().max(2000), deliveryScope: z.string().trim().min(3).max(3000), budgetCents: z.number().int().min(0).max(100000000) }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const project = await db.createStudioProject({ workspaceId: membership.workspace.id, createdBy: ctx.user.id, ...input });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.created", metadata: { projectId: project.id, target: input.target } });
+        return project;
+      }),
+
+    projectWorkspace: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        return { project, brief: await db.getProjectBrief(project.id), plan: await db.getLatestProjectPlan(project.id), files: await db.listProjectFiles(project.id), changes: await db.listProjectChanges(project.id), environments: await db.listProjectEnvironments(project.id), environmentApproval: await db.getEnvironmentApproval(project.id, "preview") };
+      }),
+
+    saveProjectFile: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), path: z.string().trim().min(1).max(500), content: z.string().max(300000) }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        if (input.path.startsWith("/") || input.path.split("/").includes("..") || input.path.includes("\\")) throw new TRPCError({ code: "BAD_REQUEST", message: "Project paths must stay inside the workspace." });
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        const saved = await db.upsertProjectFile({ projectId: project.id, path: input.path, content: input.content, updatedBy: ctx.user.id });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.file.saved", metadata: { projectId: project.id, path: input.path, contentHash: saved.contentHash, version: saved.version } });
+        return saved;
+      }),
+
+    readProjectFile: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), path: z.string().trim().min(1).max(500) }))
+      .query(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        const file = await db.getProjectFile(project.id, input.path);
+        if (!file) throw new TRPCError({ code: "NOT_FOUND", message: "Project file not found." });
+        return file;
+      }),
+
+    createDraftPatch: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive(), summary: z.string().trim().min(3).max(500), patch: z.string().min(1).max(500000) }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        const changeId = await db.createProjectChange({ projectId: project.id, createdBy: ctx.user.id, kind: "draft_patch", summary: input.summary, patch: input.patch });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.patch.created", metadata: { projectId: project.id, changeId } });
+        return { changeId, status: "draft" as const };
+      }),
+
+    requestPreview: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        await db.updateProjectEnvironment(project.id, "preview", { status: "awaiting_approval", buildSha: `draft-${Date.now().toString(36)}`, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) });
+        const approvalId = await db.createEnvironmentApproval({ projectId: project.id, environment: "preview", requestedBy: ctx.user.id, expiresAt: new Date(Date.now() + 30 * 60 * 1000) });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.preview.requested", metadata: { projectId: project.id, approvalId, execution: "not_configured" } });
+        return { status: "awaiting_approval" as const, approvalId, execution: "not_configured" as const };
+      }),
+
+    decideEnvironmentApproval: protectedProcedure
+      .input(z.object({ approvalId: z.number().int().positive(), projectId: z.number().int().positive(), decision: z.enum(["approved", "denied"]), reason: z.string().max(1000).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, reviewerRoles);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        await db.decideEnvironmentApproval(input.approvalId, ctx.user.id, input.decision, input.reason);
+        await db.updateProjectEnvironment(project.id, "preview", { status: input.decision === "approved" ? "ready" : "blocked", approvedBy: input.decision === "approved" ? ctx.user.id : null });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: `project.preview.${input.decision}`, metadata: { projectId: project.id, approvalId: input.approvalId } });
+        return { success: true as const };
+      }),
+
+    promoteProjectToStaging: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, reviewerRoles);
+        const project = await db.getProjectForWorkspace(input.projectId, membership.workspace.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND", message: "Project is outside this workspace." });
+        const approval = await db.getEnvironmentApproval(project.id, "preview");
+        if (!approval || approval.status !== "approved") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Preview approval is required before staging promotion." });
+        await db.updateProjectEnvironment(project.id, "staging", { status: "blocked" });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.staging.requested", metadata: { projectId: project.id, execution: "not_configured" } });
+        return { status: "blocked" as const, execution: "not_configured" as const };
+      }),
+
     createTask: protectedProcedure
       .input(z.object({ title: z.string().trim().min(2).max(255), goal: z.string().trim().min(10).max(10000), priority: z.enum(["low", "medium", "high"]).default("medium") }))
       .mutation(async ({ ctx, input }) => {

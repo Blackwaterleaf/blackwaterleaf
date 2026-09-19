@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { and, desc, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
@@ -8,6 +9,13 @@ import {
   approvalRequests,
   artifacts,
   auditEvents,
+  projectChanges,
+  projectEnvironments,
+  projectFiles,
+  projectBriefs,
+  projectPlans,
+  projectEnvironmentApprovals,
+  studioProjects,
   sandboxSessions,
   taskMessages,
   taskSteps,
@@ -132,6 +140,108 @@ export async function createWorkspace(userId: number, name: string) {
   const workspaceId = Number(result[0].insertId);
   await db.insert(workspaceMemberships).values({ workspaceId, userId, role: "owner", grantedBy: userId });
   return { id: workspaceId, name };
+}
+
+function projectSlug(name: string) {
+  return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 160) || "studio-project";
+}
+
+export async function createStudioProject(input: { workspaceId: number; createdBy: number; name: string; target: "web" | "web_native"; brief: string; targetUsers: string; platforms: string; dataSensitivity: "public" | "internal" | "confidential" | "regulated"; integrations: string; deliveryScope: string; budgetCents: number }) {
+  const db = await requireDb();
+  const slug = `${projectSlug(input.name)}-${Date.now().toString(36)}`;
+  const result = await db.insert(studioProjects).values({ workspaceId: input.workspaceId, createdBy: input.createdBy, name: input.name, target: input.target, brief: input.brief, slug, status: "active", defaultBranch: "main" });
+  const projectId = Number(result[0].insertId);
+  await db.insert(projectBriefs).values({ projectId, targetUsers: input.targetUsers, platforms: input.platforms, dataSensitivity: input.dataSensitivity, integrations: input.integrations, deliveryScope: input.deliveryScope, budgetCents: input.budgetCents });
+  await db.insert(projectPlans).values({ projectId, requirements: input.brief, architecture: input.target === "web_native" ? "Web client plus separate Expo/React Native client with shared contracts." : "Responsive web client with managed backend services.", testPlan: "Typecheck, unit tests, build, preview smoke tests, then bounded browser E2E.", risks: input.dataSensitivity === "regulated" ? "Regulated data requires explicit compliance and residency review." : "Sandbox execution and external integrations remain approval-gated.", estimatedBudgetCents: input.budgetCents });
+  await db.insert(projectEnvironments).values([
+    { projectId, environment: "preview", status: "not_ready" },
+    { projectId, environment: "staging", status: "blocked" },
+  ]);
+  return { id: projectId, slug };
+}
+
+export async function listWorkspaceProjects(workspaceId: number) {
+  const db = await requireDb();
+  return db.select().from(studioProjects).where(eq(studioProjects.workspaceId, workspaceId)).orderBy(desc(studioProjects.updatedAt));
+}
+
+export async function getProjectBrief(projectId: number) {
+  const db = await requireDb();
+  const rows = await db.select().from(projectBriefs).where(eq(projectBriefs.projectId, projectId)).limit(1);
+  return rows[0];
+}
+
+export async function getLatestProjectPlan(projectId: number) {
+  const db = await requireDb();
+  const rows = await db.select().from(projectPlans).where(eq(projectPlans.projectId, projectId)).orderBy(desc(projectPlans.version)).limit(1);
+  return rows[0];
+}
+
+export async function createEnvironmentApproval(input: { projectId: number; environment: "preview" | "staging"; requestedBy: number; expiresAt: Date }) {
+  const db = await requireDb();
+  const result = await db.insert(projectEnvironmentApprovals).values({ ...input, status: "pending" });
+  return Number(result[0].insertId);
+}
+
+export async function getEnvironmentApproval(projectId: number, environment: "preview" | "staging") {
+  const db = await requireDb();
+  const rows = await db.select().from(projectEnvironmentApprovals).where(and(eq(projectEnvironmentApprovals.projectId, projectId), eq(projectEnvironmentApprovals.environment, environment))).orderBy(desc(projectEnvironmentApprovals.createdAt)).limit(1);
+  return rows[0];
+}
+
+export async function decideEnvironmentApproval(id: number, decidedBy: number, status: "approved" | "denied", reason?: string) {
+  const db = await requireDb();
+  await db.update(projectEnvironmentApprovals).set({ status, decidedBy, reason, decidedAt: new Date() }).where(and(eq(projectEnvironmentApprovals.id, id), eq(projectEnvironmentApprovals.status, "pending")));
+}
+
+export async function getProjectForWorkspace(projectId: number, workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select().from(studioProjects).where(and(eq(studioProjects.id, projectId), eq(studioProjects.workspaceId, workspaceId))).limit(1);
+  return rows[0];
+}
+
+export async function listProjectFiles(projectId: number) {
+  const db = await requireDb();
+  return db.select({ id: projectFiles.id, path: projectFiles.path, contentHash: projectFiles.contentHash, version: projectFiles.version, updatedBy: projectFiles.updatedBy, updatedAt: projectFiles.updatedAt }).from(projectFiles).where(eq(projectFiles.projectId, projectId)).orderBy(projectFiles.path);
+}
+
+export async function getProjectFile(projectId: number, path: string) {
+  const db = await requireDb();
+  const rows = await db.select().from(projectFiles).where(and(eq(projectFiles.projectId, projectId), eq(projectFiles.path, path))).limit(1);
+  return rows[0];
+}
+
+export async function upsertProjectFile(input: { projectId: number; path: string; content: string; updatedBy: number }) {
+  const db = await requireDb();
+  const contentHash = createHash("sha256").update(input.content).digest("hex");
+  const current = await getProjectFile(input.projectId, input.path);
+  if (current) {
+    await db.update(projectFiles).set({ content: input.content, contentHash, version: current.version + 1, updatedBy: input.updatedBy }).where(eq(projectFiles.id, current.id));
+    return { id: current.id, version: current.version + 1, contentHash };
+  }
+  const result = await db.insert(projectFiles).values({ ...input, contentHash, version: 1 });
+  return { id: Number(result[0].insertId), version: 1, contentHash };
+}
+
+export async function createProjectChange(input: { projectId: number; createdBy: number; kind: "draft_patch" | "commit" | "revert"; summary: string; patch: string }) {
+  const db = await requireDb();
+  const result = await db.insert(projectChanges).values({ ...input, status: "draft" });
+  return Number(result[0].insertId);
+}
+
+export async function listProjectChanges(projectId: number) {
+  const db = await requireDb();
+  return db.select().from(projectChanges).where(eq(projectChanges.projectId, projectId)).orderBy(desc(projectChanges.createdAt)).limit(50);
+}
+
+export async function listProjectEnvironments(projectId: number) {
+  const db = await requireDb();
+  return db.select().from(projectEnvironments).where(eq(projectEnvironments.projectId, projectId)).orderBy(projectEnvironments.environment);
+}
+
+export async function updateProjectEnvironment(projectId: number, environment: "preview" | "staging", values: Partial<typeof projectEnvironments.$inferInsert>) {
+  const db = await requireDb();
+  await db.update(projectEnvironments).set(values).where(and(eq(projectEnvironments.projectId, projectId), eq(projectEnvironments.environment, environment)));
 }
 
 export async function listWorkspaceTasks(workspaceId: number) {

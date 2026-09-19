@@ -39,6 +39,95 @@ export const workspaces = mysqlTable("studio_workspaces", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+export const studioProjects = mysqlTable("studio_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  workspaceId: int("workspaceId").notNull(),
+  createdBy: int("createdBy").notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  slug: varchar("slug", { length: 180 }).notNull(),
+  target: mysqlEnum("target", ["web", "web_native"]).notNull(),
+  status: mysqlEnum("status", ["draft", "active", "archived"]).default("draft").notNull(),
+  brief: text("brief").notNull(),
+  defaultBranch: varchar("defaultBranch", { length: 120 }).default("main").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const projectBriefs = mysqlTable("studio_project_briefs", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull().unique(),
+  targetUsers: text("targetUsers").notNull(),
+  platforms: text("platforms").notNull(),
+  dataSensitivity: mysqlEnum("dataSensitivity", ["public", "internal", "confidential", "regulated"]).notNull(),
+  integrations: text("integrations").notNull(),
+  deliveryScope: text("deliveryScope").notNull(),
+  budgetCents: int("budgetCents").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const projectPlans = mysqlTable("studio_project_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  version: int("version").default(1).notNull(),
+  status: mysqlEnum("status", ["draft", "approved", "superseded"]).default("draft").notNull(),
+  requirements: text("requirements").notNull(),
+  architecture: text("architecture").notNull(),
+  testPlan: text("testPlan").notNull(),
+  risks: text("risks").notNull(),
+  estimatedBudgetCents: int("estimatedBudgetCents").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const projectFiles = mysqlTable("studio_project_files", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  path: varchar("path", { length: 500 }).notNull(),
+  content: text("content").notNull(),
+  contentHash: varchar("contentHash", { length: 64 }).notNull(),
+  version: int("version").default(1).notNull(),
+  updatedBy: int("updatedBy").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const projectChanges = mysqlTable("studio_project_changes", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  createdBy: int("createdBy").notNull(),
+  kind: mysqlEnum("kind", ["draft_patch", "commit", "revert"]).notNull(),
+  summary: varchar("summary", { length: 500 }).notNull(),
+  patch: text("patch").notNull(),
+  status: mysqlEnum("status", ["draft", "approved", "applied", "rejected"]).default("draft").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const projectEnvironments = mysqlTable("studio_project_environments", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  environment: mysqlEnum("environment", ["preview", "staging"]).notNull(),
+  status: mysqlEnum("status", ["not_ready", "awaiting_approval", "ready", "expired", "blocked"]).default("not_ready").notNull(),
+  buildSha: varchar("buildSha", { length: 64 }),
+  previewUrl: varchar("previewUrl", { length: 500 }),
+  expiresAt: timestamp("expiresAt"),
+  approvedBy: int("approvedBy"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const projectEnvironmentApprovals = mysqlTable("studio_project_environment_approvals", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  environment: mysqlEnum("environment", ["preview", "staging"]).notNull(),
+  requestedBy: int("requestedBy").notNull(),
+  decidedBy: int("decidedBy"),
+  status: mysqlEnum("status", ["pending", "approved", "denied", "expired"]).default("pending").notNull(),
+  reason: text("reason"),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  decidedAt: timestamp("decidedAt"),
+});
+
 export const workspaceMemberships = mysqlTable("studio_workspace_memberships", {
   id: int("id").autoincrement().primaryKey(),
   workspaceId: int("workspaceId").notNull(),
@@ -209,6 +298,13 @@ export const contextGrants = mysqlTable("studio_context_grants", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Workspace = typeof workspaces.$inferSelect;
+export type StudioProject = typeof studioProjects.$inferSelect;
+export type ProjectBrief = typeof projectBriefs.$inferSelect;
+export type ProjectPlan = typeof projectPlans.$inferSelect;
+export type ProjectFile = typeof projectFiles.$inferSelect;
+export type ProjectChange = typeof projectChanges.$inferSelect;
+export type ProjectEnvironment = typeof projectEnvironments.$inferSelect;
+export type ProjectEnvironmentApproval = typeof projectEnvironmentApprovals.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
 export type AgentRun = typeof agentRuns.$inferSelect;
 export type TaskStep = typeof taskSteps.$inferSelect;
