@@ -1,7 +1,6 @@
 import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
-import { Bell, Bot, Camera, Droplets, FileText, Fish, Leaf, Map, Radio, Send, Upload, UsersRound, Video } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Bell, Bot, Camera, Droplets, FileText, Fish, Leaf, Map, Radio, Send, UsersRound, Video } from "lucide-react";
 import { Link, useParams } from "wouter";
 
 type FlowId = "live" | "foto" | "beitrag";
@@ -20,8 +19,8 @@ const FLOW_SPECS: Record<FlowId, FlowSpec> = {
   foto: {
     tone: "botany", image: REFERENCE_ASSETS.botany, eyebrow: "MOMENT FESTHALTEN", title: "FOTO", subtitle: "Wähle einen echten Bildausschnitt und ordne ihn danach deiner Welt zu.", icon: Camera,
     actions: [
-      { title: "Als Pflanzenfoto", note: "Beobachtung in Botanik erfassen", icon: Leaf, image: WORLD_ASSETS.botany, href: "/world/botany#capture" },
-      { title: "Als Aquariumfoto", note: "Beobachtung im Becken erfassen", icon: Fish, image: WORLD_ASSETS.aquarium, href: "/world/aquarium#capture" },
+      { title: "Als Pflanzenfoto", note: "Beobachtung in Botanik erfassen", icon: Leaf, image: WORLD_ASSETS.botany, href: "/botanik#capture" },
+      { title: "Als Aquariumfoto", note: "Beobachtung im Becken erfassen", icon: Fish, image: WORLD_ASSETS.aquarium, href: "/aquaristik#capture" },
       { title: "Mit KI bestimmen", note: "Bildbestimmung wird vorbereitet", icon: Bot, image: REFERENCE_ASSETS.ai, unavailable: true },
       { title: "Zum Feed", note: "Beitrag sicher verfassen", icon: UsersRound, image: WORLD_ASSETS.terrarium, href: "/community?compose=1" },
     ],
@@ -37,22 +36,6 @@ const FLOW_SPECS: Record<FlowId, FlowSpec> = {
   },
 };
 
-function PhotoCapture() {
-  const [preview, setPreview] = useState<string | null>(null);
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
-  return (
-    <section className="reference-capture" aria-label="Foto auswählen oder aufnehmen">
-      {preview ? <img src={preview} alt="Lokale Vorschau des ausgewählten Fotos" /> : <div className="reference-capture__placeholder"><Camera size={38} /><span>Dein Bildausschnitt bleibt zunächst nur in diesem Browser.</span></div>}
-      <label className="reference-capture__button"><Upload size={17} /> FOTO AUSWÄHLEN ODER AUFNEHMEN<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={event => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        setPreview(current => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(file); });
-        event.target.value = "";
-      }} /></label>
-    </section>
-  );
-}
-
 export default function FlowDestination() {
   const params = useParams<{ flow: string }>();
   const flow = (params.flow in FLOW_SPECS ? params.flow : "live") as FlowId;
@@ -62,7 +45,7 @@ export default function FlowDestination() {
       <ReferenceHero {...spec} />
       <ReferenceActionGrid tone={spec.tone} actions={spec.actions} />
       {flow === "live" ? <ReferenceEmptyState tone="aquarium" code="LIVE-VERBINDUNG" title="NOCH NICHT VERBUNDEN" body="Smartgeräte, Kamera und automatische Benachrichtigungen werden erst nach einer echten, widerrufbaren Verbindung aktiviert." /> : null}
-      {flow === "foto" ? <PhotoCapture /> : null}
+      {flow === "foto" ? <ReferenceEmptyState tone="botany" code="PHOTO / SECURE_CAPTURE" title="BEREICH ZUERST WÄHLEN" body="Wähle Botanik, Aquaristik oder den Community-Feed. Das Bild wird erst im angemeldeten Zielbereich sicher ausgewählt und gespeichert – eine lokale Vorschau gilt nicht als Erfassung." /> : null}
     </div>
   );
 }

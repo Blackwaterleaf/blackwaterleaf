@@ -178,3 +178,12 @@ Web und Native verwenden dieselben deutschen Begriffe und dieselben serverseitig
 Botanik, Aquaristik und Terraristik verwenden dieselbe kompakte Informationsarchitektur: Bereichsheader, **Karte & Liste**, danach der fachliche Katalog. Die Akzentfarbe bleibt pro Bereich konstant: Portalgrün für Botanik, Aqua für Aquaristik und Gold für Terraristik. Die Kartenfläche darf keine erfundenen Pins oder Orte darstellen. Solange eine Beobachtung keine zulässige öffentliche Ortsangabe besitzt, wird ausschließlich der ehrliche Schutzstatus angezeigt; exakte private Standorte werden niemals ausgegeben.
 
 Katalogkarten dürfen ein Bild nur als verifiziertes Taxonbild präsentieren, wenn Bild-URL, stabile Quellseite, Lizenz und Attribution vorhanden sind. Fehlt eine dieser Angaben, zeigt die Karte eine neutrale fachliche Platzhalterfläche und den Status **Bildprüfung ausstehend**. Nutzerbilder bleiben davon getrennt und werden nie als wissenschaftliches Katalogbild wiederverwendet.
+
+
+## 13. Wissenschaftliche Katalogquellen und Bildwahrheit
+
+BlackWaterLeaf verwendet **keine Inhalte, Bilder oder Bildprovenienzen von Wikipedia oder Wikimedia Commons**. Beide Quellen sind für den öffentlichen Taxon-Katalog ausgeschlossen. Ein Katalogdatensatz wird nur veröffentlicht, wenn seine Taxonomie, Verbreitungsangabe und gegebenenfalls sein Bild einer freigegebenen Fachquelle zugeordnet werden können.
+
+Die zulässigen Katalogquellen sind zurzeit **Plants of the World Online von Kew Science**, **FishBase**, **GBIF**, die **Biodiversity Heritage Library** und **JSTOR Global Plants**. Ein Bild benötigt immer eine nachprüfbare Artzuordnung, eine Quellen-Seite, eine Lizenz- oder Nutzungsangabe, eine Attribution und einen Prüfzeitpunkt. Fehlt einer dieser Nachweise, zeigt die Anwendung bewusst den Zustand „Bildnachweis offen“ statt eines Ersatzbildes.
+
+Fundort- und Verbreitungskarten verwenden ausschließlich veröffentlichte, quellengebundene Angaben aus dem Taxondatensatz. Sie stellen keine private Beobachtungsposition dar und dürfen weder genaue Koordinaten noch geschätzte Fundorte erfinden. Taxa aus noch nicht belegten manuellen Importen bleiben als Entwurf zur Fachprüfung erhalten und erscheinen nicht öffentlich.

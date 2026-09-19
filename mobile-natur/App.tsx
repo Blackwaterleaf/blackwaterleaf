@@ -3,7 +3,6 @@ import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import {
   useCallback,
@@ -63,7 +62,6 @@ import {
   markNotificationsRead,
   myCommunityPosts,
   notificationFeed,
-  outdoorWeather,
   platformAvailability,
   privateHabitats,
   privateObservations,
@@ -106,7 +104,6 @@ import {
   type Observation,
   type OwnCommunityPost,
   type NativeNotification,
-  type OutdoorWeather,
   type PlatformAvailability,
   type ProfileConsent,
   type UnifiedSearchResult,
@@ -147,7 +144,6 @@ const c = {
   botany: "#C7F35B",
   aqua: "#28D8FF",
   gold: "#E1D661",
-  ai: "#C36BFF",
   market: "#D9AD69",
   champagne: "#F3D59C",
   text: "#F3FFF5",
@@ -156,7 +152,6 @@ const c = {
   botanySurface: "#061b0d",
   aquariumSurface: "#04303e",
   terrariumSurface: "#3e3812",
-  aiSurface: "#301648",
   marketSurface: "#432f14",
 };
 
@@ -297,9 +292,9 @@ const TONES: Record<Screen, Tone> = {
     active: "home",
   },
   assistant: {
-    accent: c.ai,
-    surface: c.aiSurface,
-    panel: "#1e1134",
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
     image: ASSETS.ai,
     label: "BLACKWATERLEAF KI",
     active: "capture",
@@ -446,8 +441,6 @@ function NaturApp() {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
-  const [weather, setWeather] = useState<OutdoorWeather | null>(null);
-  const [weatherError, setWeatherError] = useState<string | null>(null);
   const [state, setState] = useState<State>("loading");
   const [error, setError] = useState<string | null>(null);
   const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
@@ -611,31 +604,6 @@ function NaturApp() {
     [signIn, token]
   );
 
-  const requestWeather = useCallback(async () => {
-    setWeatherError(null);
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (permission.status !== "granted") {
-      setWeatherError(
-        "Standortfreigabe nicht erteilt. Es werden keine Wetterwerte gezeigt."
-      );
-      return;
-    }
-    try {
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      setWeather(
-        await outdoorWeather(
-          position.coords.latitude,
-          position.coords.longitude,
-          token,
-        )
-      );
-    } catch {
-      setWeatherError("Außenwetter derzeit nicht verfügbar.");
-    }
-  }, [token]);
-
   const notificationInfo = useCallback(() => {
     if (token) navigate("notifications");
     else void signIn();
@@ -678,12 +646,9 @@ function NaturApp() {
           <Home
             platform={platform}
             habitats={habitats}
-            weather={weather}
-            weatherError={weatherError}
             state={state}
             error={error}
             refresh={loadScreen}
-            requestWeather={requestWeather}
             navigate={navigate}
           />
         )}
@@ -1099,88 +1064,20 @@ function HeaderAction({
 function Home({
   platform,
   habitats,
-  weather,
-  weatherError,
   state,
   error,
   refresh,
-  requestWeather,
   navigate,
 }: {
   platform: PlatformAvailability | null;
   habitats: Habitat[];
-  weather: OutdoorWeather | null;
-  weatherError: string | null;
   state: State;
   error: string | null;
   refresh: () => Promise<void>;
-  requestWeather: () => Promise<void>;
   navigate: (screen: Screen) => void;
 }) {
-  const aquarium = habitats.find(item => item.kind === "aquarium");
-  const waterTemp = numberValue(aquarium?.details.temperatureC, "°C");
-  const ph = numberValue(aquarium?.details.ph, "");
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <View style={styles.sensorRail}>
-        <Sensor
-          color={c.aqua}
-          icon="thermometer-outline"
-          label="Wassertemperatur"
-          value={waterTemp}
-          note={
-            aquarium
-              ? waterTemp === "—"
-                ? "nicht eingetragen"
-                : "privates Aquarium"
-              : "Aquarium eintragen"
-          }
-        />
-        <Sensor
-          color={c.aqua}
-          icon="flask-outline"
-          label="pH-Wert"
-          value={ph}
-          note={
-            aquarium
-              ? ph === "—"
-                ? "nicht eingetragen"
-                : "privates Aquarium"
-              : "pH privat eintragen"
-          }
-        />
-        <Sensor
-          color={c.botany}
-          icon="water-outline"
-          label="Außenluftfeuchte"
-          value={weather ? `${weather.humidityPercent} %` : "—"}
-          note={weather ? "Open-Meteo" : "Standort nötig"}
-        />
-        <Sensor
-          color={c.botany}
-          icon="partly-sunny-outline"
-          label="Außentemperatur"
-          value={weather ? `${weather.temperatureC} °C` : "—"}
-          note={weather?.condition ?? "Wetter nicht geladen"}
-        />
-      </View>
-      <Pressable
-        style={({ pressed }) => [
-          styles.weatherButton,
-          pressed && styles.pressed,
-        ]}
-        onPress={() => void requestWeather()}
-      >
-        <Ionicons name="location-outline" size={17} color={c.botany} />
-        <Text style={styles.weatherButtonText}>
-          {weather
-            ? `${weather.condition} · Wetter aktualisieren`
-            : "AUSSENWETTER AKTIVIEREN"}
-        </Text>
-      </Pressable>
-      {weatherError ? (
-        <Text style={styles.sensorError}>{weatherError}</Text>
-      ) : null}
       <HomeHero tone={TONES.home} navigate={navigate} />
       {state === "error" ? (
         <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
@@ -1227,9 +1124,9 @@ function HomeHero({
         <View style={[styles.heroIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
           <Ionicons name="leaf-outline" size={24} color={tone.accent} />
         </View>
-        <Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN RAUM FÜR LEBENDIGE WELTEN</Text>
-        <Text style={styles.heroTitle}>NATUR IST KUNST.</Text>
-        <Text style={styles.heroText}>Beobachte, verbinde und gestalte deine BlackWaterLeaf-Welt in deinem Tempo.</Text>
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>UNSER OBSERVATORIUM</Text>
+        <Text style={styles.heroTitle}>WASSER VERBINDET.</Text>
+        <Text style={styles.heroText}>Forschen, entdecken und schützen – mit verlässlichen Daten, geschützten Orten und lebendiger Natur.</Text>
         <View style={styles.homeHeroActions}>
           <PrimaryButton tone={tone} label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
           <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
@@ -4039,7 +3936,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     backgroundColor: "#020A05",
   },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 9, flex: 1 },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 9, flex: 1, marginLeft: 3 },
   brandMark: {
     width: 38,
     height: 38,
@@ -4049,12 +3946,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#050807",
   },
   brandImage: { width: "100%", height: "100%" },
-  brand: { color: c.text, fontSize: 14, fontWeight: "900", letterSpacing: 1.2 },
+  brand: { color: c.text, fontSize: 14, fontWeight: "900", letterSpacing: 1.2, paddingLeft: 1 },
   technical: {
     fontSize: 7,
     fontWeight: "900",
     letterSpacing: 1.35,
     marginTop: 2,
+    paddingLeft: 1,
   },
   headerActions: { flexDirection: "row", gap: 7 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },

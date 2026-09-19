@@ -123,7 +123,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("referenceCardCompact");
     expect(app).toContain('onPress: () => chooseTool("plant")');
     expect(app).toContain("FOTO 1 AUSWÄHLEN");
-    expect(app).toContain('onPress={() => void requestWeather()}');
+    expect(app).not.toContain('onPress={() => void requestWeather()}');
+    expect(app).not.toContain('expo-location');
     expect(app).toContain('title="DEINE BEREICHE"');
     expect(app).toContain('label="WELT ENTDECKEN"');
     expect(app).toContain('accessibilityLabel="Pflanzenbild wird von der KI analysiert"');

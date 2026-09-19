@@ -1,20 +1,9 @@
 import { useState } from "react";
-import { ArrowRight, BookOpen, CheckCircle2, Fish, Leaf, List, Map, MapPin, Search, ShieldCheck, Sprout, WifiOff } from "lucide-react";
+import { ArrowRight, BookOpen, Fish, Leaf, List, Map, MapPin, Search, ShieldCheck, Sprout, WifiOff } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
-
-type CatalogRecord = {
-  id: string;
-  scientificName: string;
-  acceptedScientificName?: string | null;
-  commonNames?: string[] | null;
-  family?: string | null;
-  summary?: string | null;
-  imageUrl?: string | null;
-  evidenceState?: string | null;
-};
 
 type RealmFilter = "all" | "botany" | "aquarium" | "terrarium";
 type ViewMode = "map" | "list";
@@ -31,10 +20,7 @@ export default function Explore() {
   const { locale } = useI18n();
   const [realm, setRealm] = useState<RealmFilter>("all");
   const [view, setView] = useState<ViewMode>("map");
-  const catalog = trpc.search.unified.useQuery({ q: "Channa", kind: "all", locale, limit: 3 }, { retry: false });
   const observations = trpc.observations.publicFeed.useQuery({ realm: realm === "all" ? undefined : realm, limit: 20 }, { retry: false });
-  const records = [ ...(catalog.data?.aquarium ?? []), ...(catalog.data?.taxa ?? []) ] as CatalogRecord[];
-  const featured = records[0];
   const title = locale === "de" ? "WASSER VERBINDET." : "WATER CONNECTS.";
   const intro = locale === "de" ? "FORSCHEN · ENTDECKEN · SCHÜTZEN" : "RESEARCH · DISCOVER · PROTECT";
   const observationRows = observations.data ?? [];
@@ -70,21 +56,21 @@ export default function Explore() {
           <div className="observatory-view-toggle" role="group" aria-label="Ansicht"><button type="button" className={view === "map" ? "active" : ""} aria-pressed={view === "map"} onClick={() => setView("map")}><Map size={15} /> Karte</button><button type="button" className={view === "list" ? "active" : ""} aria-pressed={view === "list"} onClick={() => setView("list")}><List size={15} /> Liste</button></div>
         </div>
         <div className={`observatory-observation-grid observatory-observation-grid--${view}`}>
-          <div className="observatory-map-panel" style={{ backgroundImage: observationRows.length && view === "map" ? `url(${WORLD_ASSETS.aquarium})` : undefined }}>
-            {observationRows.length ? <><span className="observatory-map-caption">{locale === "de" ? "Geschützte Orte · genaue Positionen privat" : "Protected places · exact positions private"}</span><span className="observatory-map-data-badge"><MapPin size={15} /> {observationRows.length} freigegebene Beobachtung{observationRows.length === 1 ? "" : "en"}</span></> : <div className="observatory-map-empty"><MapPin size={26} /><strong>Keine Kartenpunkte freigegeben</strong><small>Es werden keine Pins dargestellt, solange keine öffentliche Beobachtung mit zulässiger Ortsangabe vorliegt.</small></div>}
+          <div className="observatory-map-panel">
+            {observationBusy ? <div className="observatory-map-empty"><MapPin size={26} /><strong>Beobachtungen werden synchronisiert</strong><small>Öffentliche Orte werden erst nach erfolgreicher Prüfung angezeigt.</small></div> : observations.isError ? <div className="observatory-map-empty"><WifiOff size={26} /><strong>Karte derzeit nicht verfügbar</strong><small>Die Verbindung konnte nicht hergestellt werden. Bitte erneut versuchen.</small><button type="button" className="secondary-action" onClick={() => void observations.refetch()}>ERNEUT VERSUCHEN</button></div> : observationRows.length ? <><span className="observatory-map-caption">{locale === "de" ? "Geschützte Orte · genaue Positionen privat" : "Protected places · exact positions private"}</span><span className="observatory-map-data-badge"><MapPin size={15} /> {observationRows.length} freigegebene Beobachtung{observationRows.length === 1 ? "" : "en"}</span></> : <div className="observatory-map-empty"><MapPin size={26} /><strong>Keine Kartenpunkte freigegeben</strong><small>Es werden keine Pins dargestellt, solange keine öffentliche Beobachtung mit zulässiger Ortsangabe vorliegt.</small></div>}
           </div>
           <div className="observatory-catalog-list"><div className="observatory-list-heading"><span>BEOBACHTUNGEN · {realmLabels[realm].toUpperCase()}</span><Link href="/search">KATALOG öffnen <ArrowRight size={14} /></Link></div>{observationBusy ? <p className="observatory-inline-state">Beobachtungen werden synchronisiert …</p> : observations.isError ? <p className="observatory-inline-state">Beobachtungen derzeit nicht erreichbar. Die Katalogsuche bleibt nutzbar.</p> : observationRows.length ? observationRows.map(row => <div key={row.id} className="observatory-observation-item"><span className="observatory-observation-item__icon">{row.realm === "aquarium" ? <Fish size={20} /> : row.realm === "terrarium" ? <Sprout size={20} /> : <Leaf size={20} />}</span><span><strong>{row.scientificName ?? row.subject ?? "Unbestimmte Beobachtung"}</strong><small>{realmLabels[row.realm as RealmFilter] ?? row.realm} · {row.evidenceState === "confirmed" ? "bestätigt" : "Nachweis wird geprüft"}</small></span><span className="observatory-observation-item__state">{row.visibility === "public" ? "öffentlich" : "geschützt"}</span></div>) : <p className="observatory-inline-state">Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</p>}</div>
         </div>
       </section>
 
-      <section className="observatory-feature-card">
-        {featured?.imageUrl ? <img src={featured.imageUrl} alt="" /> : <div className="observatory-feature-card__visual" style={{ backgroundImage: `url(${REFERENCE_ASSETS.aquarium})` }} />}
-        <div><span className="eyebrow">KATALOG · ARTEN</span><h2>{featured?.acceptedScientificName ?? featured?.scientificName ?? "Channa"}</h2><p>{featured?.family ? `Familie: ${featured.family}` : "Fachlich eingeordnete Süßwasserarten"}</p><span className="observatory-verified"><CheckCircle2 size={15} /> Wissenschaftlich geprüft</span></div>
-        {featured ? <Link href={featured.family ? `/aquarium-fish/${featured.id}` : `/plant/${featured.id}`} aria-label="Katalogeintrag öffnen"><ArrowRight size={22} /></Link> : null}
+      <section className="observatory-feature-card observatory-feature-card--catalog">
+        <div className="observatory-feature-card__visual" aria-hidden="true"><BookOpen size={34} /></div>
+        <div><span className="eyebrow">KATALOG · ARTEN</span><h2>{locale === "de" ? "VALIDIERTE ARTEN SUCHEN" : "SEARCH VALIDATED SPECIES"}</h2><p>{locale === "de" ? "Öffne die Suche für veröffentlichte Taxa mit transparentem Nachweisstatus." : "Open search for published taxa with a transparent evidence status."}</p></div>
+        <Link href="/search" aria-label="Katalogsuche öffnen"><ArrowRight size={22} /></Link>
       </section>
 
       <section className="observatory-evidence-panel"><div><BookOpen size={22} /><span><strong>QUELLEN &amp; BELEGE</strong><small>Fachliteratur, Beobachtungen, Fotos und Community</small></span></div><Link href="/knowledge"><ShieldCheck size={18} /> Quellen öffnen <ArrowRight size={15} /></Link></section>
-      <section className="observatory-offline-panel"><WifiOff size={21} /><span><strong>Offline-Bereitschaft</strong><small>Neue Daten werden synchronisiert, sobald eine Verbindung besteht.</small></span><span className="observatory-offline-panel__ring" /></section>
+      <section className="observatory-offline-panel"><WifiOff size={21} /><span><strong>Offline-Hinweis</strong><small>Eine Offline-Synchronisierung wird nur angezeigt, wenn sie technisch aktiv ist.</small></span></section>
     </div>
   );
 }

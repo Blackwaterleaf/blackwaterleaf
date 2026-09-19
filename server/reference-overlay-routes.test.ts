@@ -14,7 +14,7 @@ describe("reference-overlay routes", () => {
   it("registers the three reachable reference destination flows", () => {
     expect(app).toContain('path={"/flow/:flow"}');
     const flows = page("FlowDestination.tsx");
-    for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'Foto auswählen oder aufnehmen']) expect(flows).toContain(token);
+    for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'BEREICH ZUERST WÄHLEN', '/botanik#capture', '/aquaristik#capture']) expect(flows).toContain(token);
   });
 
   it("routes legacy menu names to real destinations and never renders a dead-end fallback", () => {

@@ -26,7 +26,7 @@ describe("AP-21 shared realm map and catalogue surface", () => {
   it("keeps the three realm accents inside the approved palette", () => {
     expect(css).toContain("--realm-accent:#b9fb7f");
     expect(css).toContain("--realm-accent:#40d9ff");
-    expect(css).toContain("--realm-accent:#e7b969");
+    expect(css).toContain("--realm-accent: #e0c75f");
     expect(css).not.toContain("--realm-accent:#bf8fff");
   });
 });

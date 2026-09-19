@@ -69,14 +69,14 @@ export default function Home() {
       </section>
 
       <section className="home-moment">
-        <div className="section-heading"><div><span className="eyebrow">{t("home.feed.eyebrow")}</span><h2>{t("home.feed.title")}</h2></div><span className="connection-pill"><i />{platform.data?.community === "available" ? "BEREIT" : t("common.notConnected")}</span></div>
+        <div className="section-heading"><div><span className="eyebrow">{t("home.feed.eyebrow")}</span><h2>{t("home.feed.title")}</h2></div><span className="connection-pill"><i />{community.isSuccess && !community.isFetching && platform.data?.community === "available" ? "BEREIT" : community.isLoading || community.isFetching ? "SYNC …" : t("common.notConnected")}</span></div>
         {community.isLoading ? (
           <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} />
         ) : community.isError ? (
           <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={t("home.feed.emptyBody")} />
         ) : community.data?.[0] ? (
           <article className="featured-moment glass-panel">
-            <div className="moment-copy"><span className="eyebrow">{locale === "de" ? "Echter Naturmoment" : "Real nature moment"}</span><h3>{community.data[0].author.name ?? community.data[0].author.username ?? "BlackWaterLeaf"}</h3><p>{community.data[0].content}</p></div>
+            <div className="moment-copy"><span className="eyebrow">{locale === "de" ? "Echter Naturmoment" : "Real nature moment"}</span><h3>{community.data[0].author.name ?? community.data[0].author.username ?? (locale === "de" ? "Community-Beitrag" : "Community post")}</h3><p>{community.data[0].content}</p></div>
             {community.data[0].media[0] ? <img src={community.data[0].media[0].accessUrl} alt="" /> : null}
           </article>
         ) : (

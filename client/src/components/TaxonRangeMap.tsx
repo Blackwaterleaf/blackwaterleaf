@@ -1,4 +1,5 @@
 import { Globe2, MapPin, ShieldCheck } from "lucide-react";
+import { officialTaxonSource } from "@shared/taxon-source-policy";
 
 type TaxonRangeMapProps = {
   realm: "botany" | "aquarium" | "terrarium";
@@ -22,6 +23,9 @@ function extractHabitat(summary?: string | null) {
 export function TaxonRangeMap({ realm, summary, source, sourceUrl }: TaxonRangeMapProps) {
   const copy = realmCopy[realm];
   const habitat = extractHabitat(summary);
+  const officialSource = officialTaxonSource(source);
+  const verifiedSourceUrl = officialSource?.homepageUrl ?? sourceUrl ?? null;
+  const verifiedSourceLabel = officialSource?.label ?? source ?? "Katalogquelle";
   return (
     <section className={`taxon-range-map taxon-range-map--${realm}`} aria-labelledby="taxon-range-heading">
       <div className="taxon-range-map__heading">
@@ -36,7 +40,7 @@ export function TaxonRangeMap({ realm, summary, source, sourceUrl }: TaxonRangeM
       </div>
       <div className="taxon-range-map__meta">
         <span><ShieldCheck size={14} /> {habitat ? "Quellengebunden · keine exakten Privatkoordinaten" : "Keine Schätzung · keine erfundenen Fundorte"}</span>
-        {sourceUrl ? <a href={sourceUrl} target="_blank" rel="noreferrer">Quelle: {source ?? "Katalogquelle"}</a> : <small>Die Angabe wird erst nach fachlicher Prüfung veröffentlicht.</small>}
+        {verifiedSourceUrl ? <a href={verifiedSourceUrl} target="_blank" rel="noreferrer">Quelle: {verifiedSourceLabel}</a> : <small>Die Angabe wird erst nach fachlicher Prüfung veröffentlicht.</small>}
       </div>
     </section>
   );

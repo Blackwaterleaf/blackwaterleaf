@@ -1675,3 +1675,30 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .taxon-range-map__visual::before { content: ""; position: absolute; inset: 14% 8%; opacity: .72; border: 1px solid color-mix(in srgb, var(--range-accent) 28%, transparent); border-radius: 44% 56% 45% 55%; transform: rotate(-14deg); }.taxon-range-map__visual::after { content: ""; position: absolute; inset: 33% 25% 10% 48%; opacity: .5; border: 1px solid color-mix(in srgb, var(--range-accent) 24%, transparent); border-radius: 55% 45% 64% 36%; transform: rotate(24deg); }
 .taxon-range-map__contour { position: absolute; z-index: 1; border: 1px dashed color-mix(in srgb, var(--range-accent) 40%, transparent); border-radius: 50%; }.taxon-range-map__contour--one { width: 190px; height: 100px; transform: rotate(-18deg); }.taxon-range-map__contour--two { width: 260px; height: 145px; opacity: .48; transform: rotate(12deg); }.taxon-range-map__pin { position: relative; z-index: 2; display: grid; place-items: center; width: 58px; height: 58px; color: var(--range-accent); border: 1px solid color-mix(in srgb, var(--range-accent) 72%, transparent); border-radius: 50%; background: rgba(2,18,13,.82); box-shadow: 0 0 0 9px color-mix(in srgb, var(--range-accent) 10%, transparent), 0 0 28px color-mix(in srgb, var(--range-accent) 34%, transparent); }.taxon-range-map__caption { position: absolute; right: 14px; bottom: 12px; left: 14px; z-index: 2; color: #d5f3d9; font: 700 .62rem/1.35 "JetBrains Mono", monospace; letter-spacing: .08em; text-align: center; text-transform: uppercase; }.taxon-range-map__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #bad3c0; font-size: .69rem; line-height: 1.45; }.taxon-range-map__meta span { display: inline-flex; align-items: center; gap: 6px; }.taxon-range-map__meta svg { flex: none; color: var(--range-accent); }.taxon-range-map__meta a { color: var(--range-accent); text-decoration: none; }.taxon-range-map__meta a:hover { text-decoration: underline; }.taxon-range-map__meta small { color: #9fbaaa; }
 @media (max-width: 640px) { .taxon-range-map { padding: 13px; border-radius: 16px; }.taxon-range-map__visual { min-height: 185px; }.taxon-range-map__meta { align-items: flex-start; flex-direction: column; gap: 5px; }.taxon-range-map__caption { font-size: .55rem; } }
+
+
+/* Evidence-first map cards: no decorative map geometry when no public location data exists. */
+.realm-observation-surface--terrarium { --realm-accent: #e0c75f; }
+.realm-map-panel--state::before, .realm-map-panel--state::after { display: none; }
+.realm-map-panel--state { align-content: center; justify-items: start; }
+.realm-map-panel--state .secondary-action { position: relative; z-index: 1; margin-top: 4px; }
+
+/* Reference hero height is intentionally consistent across all portal and capture routes. */
+.reference-hero { min-height: clamp(210px, 38vw, 260px); }
+@media (min-width: 760px) { .reference-hero { min-height: 244px; } }
+@media (min-width: 1120px) { .reference-hero { min-height: 260px; } }
+@media (max-width: 390px) { .reference-hero { min-height: 210px; } }
+
+/* Marketplace is a portal surface, not an Aquaristik or live-water screen. */
+.marketplace-hub .marketplace-hub-shop__open,
+.marketplace-hub .marketplace-hub__shop-grid .marketplace-hub-shop--loading,
+.marketplace-hub .marketplace-hub__categories span { --market-accent: var(--portal-lime); }
+
+/* Marketplace hub uses the shared Observatory portal tone; cyan remains reserved for water and live data. */
+.marketplace-hub .marketplace-hub-shop { border-color: rgba(185,251,127,.34); background: linear-gradient(145deg, rgba(14,48,24,.86), rgba(4,22,19,.96)); }
+.marketplace-hub .marketplace-hub-shop:hover { border-color: rgba(185,251,127,.72); }
+.marketplace-hub .marketplace-hub-shop__brand { color: #b9fb7f; border-color: rgba(185,251,127,.5); background: rgba(185,251,127,.1); }
+.marketplace-hub .marketplace-hub-shop__type { color: #b9fb7f; }
+.marketplace-hub .marketplace-hub-shop__categories span { color: #e4ffd5; border-color: rgba(185,251,127,.26); background: rgba(185,251,127,.08); }
+.marketplace-hub .marketplace-hub-shop__open { color: #071208; border-color: #b9fb7f; background: #b9fb7f; }
+.marketplace-hub .marketplace-hub-shop--loading div { background: rgba(185,251,127,.2); }
