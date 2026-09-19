@@ -1,6 +1,6 @@
 # BlackWaterLeaf visual-reference review
 
-> **Status:** Historische Zwischenprüfung. Dieses Dokument beschreibt die erste Übernahme der allgemeinen Markenstimmung, nicht die vollständige Screen-parität. Ab 16. September 2026 gelten das [Designregelwerk V2](DESIGN_RULEBOOK_V2_REFERENCE_OVERLAY.md) und das [Design-Übergabeprotokoll](DESIGN_HANDOFF_PROTOCOL_2026-09-16.md) als verbindliche Grundlage. Bei Konflikten haben die elf Screens der bereitgestellten Design-ZIP Vorrang.
+> **Status:** Historische Zwischenprüfung. Dieses Dokument beschreibt die erste Übernahme der allgemeinen Markenstimmung und ist keine aktive Designquelle. Verbindlich ist ausschließlich das [BlackWaterLeaf Observatory Screen Design Book](BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md). Bei Konflikten gelten die bereitgestellten Desktop-/Mobile-Screenshots und dieses neue Designbuch.
 
 **Reference:** user-supplied BlackWaterLeaf mobile layout screenshot, reviewed 16 September 2026.
 

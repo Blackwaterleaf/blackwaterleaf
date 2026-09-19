@@ -8,7 +8,7 @@
 
 Die Prüfung bestätigt, dass das aktuelle Projekt die **allgemeine Markenstimmung** bereits teilweise trägt: dunkles Tannengrün, Glasflächen, Blattmarke, mehrere Bereichsfarben, Bottom Navigation, echte Datenzustände und ein zentraler Blatt-Launcher sind vorhanden. Die App erfüllt jedoch noch **keine vollständige 1:1-Übernahme** der gelieferten Zielscreen-Serie.
 
-Die wesentlichen Abweichungen sind strukturell, nicht nur dekorativ. Mehrere Seiten verwenden weiterhin generische Hero-/Formular- oder Dashboard-Kompositionen. Die Referenz verlangt stattdessen pro Bereich einen eigenen bildgestützten Hero, die feste Sensorzone, exakt definierte Bildkarten, eine vierteilige Navigation und eine bereichsspezifische Icon-/Farbsemantik. Darüber hinaus fehlen die Zielseiten für Live, Foto und Beitrag vollständig. Diese Differenzen wurden im verbindlichen [Designregelwerk V2](DESIGN_RULEBOOK_V2_REFERENCE_OVERLAY.md) geregelt.
+Die wesentlichen Abweichungen sind strukturell, nicht nur dekorativ. Die alleinige Referenz ist jetzt das screenshot-basierte [BlackWaterLeaf Observatory Screen Design Book](BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md). Frühere Overlay- und Mischlayout-Regeln sind verworfen.
 
 > **Freigabestatus:** Die ZIP ist ab sofort die verbindliche visuelle Blaupause. Die vorhandene App bleibt verbindlich für Daten, Rechte, Einwilligungen und reale Funktionen. Eine visuell ähnliche Seite ohne korrekten Daten- und Zustandsvertrag gilt nicht als abgenommen.
 
@@ -91,7 +91,7 @@ Die folgende Vorgehensweise ist ausgeschlossen: Referenzwerte als Mock-Daten ein
 
 ## Übergabe an die nächste Implementierungsphase
 
-Die Umsetzung beginnt mit dem Lesen von `DESIGN_RULEBOOK_V2_REFERENCE_OVERLAY.md`, den elf Screenbildern und der aktuellen Route-/Datenstruktur. Änderungen werden in kleinen, prüfbaren Gruppen umgesetzt. Jede Gruppe erhält einen visuellen Vorher-/Nachher-Vergleich gegen genau einen Referenzscreen und einen Test der zugehörigen echten Funktion.
+Die Umsetzung beginnt mit dem Lesen von `BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md`, den Desktop-/Mobile-Referenzscreens und der aktuellen Route-/Datenstruktur. Änderungen werden in kleinen, prüfbaren Gruppen umgesetzt. Jede Gruppe erhält einen visuellen Vorher-/Nachher-Vergleich gegen genau einen Referenzscreen und einen Test der zugehörigen echten Funktion.
 
 Die Design-ZIP bleibt bei jeder Umsetzung verfügbar und wird nicht nur als Stimmungsvorlage, sondern **Icon für Icon, Farbe für Farbe, Wahlbereich für Wahlbereich und Seite für Seite** als Abnahmereferenz verwendet.
 
@@ -99,6 +99,6 @@ Die Design-ZIP bleibt bei jeder Umsetzung verfügbar und wird nicht nur als Stim
 
 [1]: ../../blackwaterleaf-design-handoff/BlackwaterLeaf-Design-Handoff/README.md "BlackwaterLeaf Design-Übergabepaket"
 [2]: ../../blackwaterleaf-design-handoff/BlackwaterLeaf-Design-Handoff/docs/INTERACTIVE_PAGE_SCREENS.md "BlackwaterLeaf Grafische Zielseiten"
-[3]: DESIGN_RULEBOOK_V2_REFERENCE_OVERLAY.md "BlackWaterLeaf Designregelwerk V2 Reference Overlay"
+[3]: BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md "BlackWaterLeaf Observatory Screen Design Book"
 [4]: ../client/src/App.tsx "Aktuelle BlackWaterLeaf-Routen"
 [5]: ../client/src/components/AppShell.tsx "Aktuelle globale Navigation"

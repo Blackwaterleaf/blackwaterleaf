@@ -8,7 +8,7 @@ const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 const webShell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
 const native = readFileSync(resolve(root, "mobile-natur/App.tsx"), "utf8");
-const rulebook = readFileSync(resolve(root, "docs/BLACKWATERLEAF_PORTAL_DESIGN_RULES_V2.md"), "utf8");
+const rulebook = readFileSync(resolve(root, "docs/BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md"), "utf8");
 
 describe("cross-platform BlackWaterLeaf brand parity", () => {
   it("maps calendar seasons without using weather data", () => {
@@ -35,9 +35,9 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
   });
 
   it("records the confirmed visual contract in the binding rulebook", () => {
-    expect(rulebook).toContain("Observatory-Portal-Referenz ist ab sofort die einzige gültige Designquelle");
-    expect(rulebook).toContain("kein Mischdesign");
+    expect(rulebook).toContain("einzige aktive Designquelle");
+    expect(rulebook).toContain("Mischlayouts");
     expect(rulebook).toContain("Aqua-Cyan");
-    expect(rulebook).toContain("Keine Fake-Daten");
+    expect(rulebook).toContain("Beispielinhalte aus Mockups dürfen nicht als Fake-Daten");
   });
 });
