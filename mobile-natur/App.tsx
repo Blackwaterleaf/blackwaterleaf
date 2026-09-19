@@ -422,6 +422,7 @@ function NaturApp() {
   const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
+  const [experience, setExperience] = useState<ExperienceSummary | null>(null);
   const [weather, setWeather] = useState<OutdoorWeather | null>(null);
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [state, setState] = useState<State>("loading");
@@ -453,17 +454,20 @@ function NaturApp() {
         setAccount(null);
         setHabitats([]);
         setConsents([]);
+        setExperience(null);
         return;
       }
       try {
-        const [me, mine, permissions] = await Promise.all([
+        const [me, mine, permissions, summary] = await Promise.all([
           currentAccount(sessionToken),
           privateHabitats(sessionToken),
           profileConsents(sessionToken),
+          gamificationSummary(sessionToken),
         ]);
         setAccount(me);
         setHabitats(mine);
         setConsents(permissions);
+        setExperience(summary);
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -885,6 +889,7 @@ function NaturApp() {
             account={account}
             habitats={habitats}
             consents={consents}
+            experience={experience}
             visibleKinds={visibleKinds}
             menuTarget={profileMenuTarget}
             onToggleVisibleKind={kind => setVisibleKinds(current => current.includes(kind) ? current.length > 1 ? current.filter(value => value !== kind) : current : [...current, kind])}
@@ -2811,6 +2816,7 @@ function ProfileScreen({
   account,
   habitats,
   consents,
+  experience,
   visibleKinds,
   menuTarget,
   onToggleVisibleKind,
@@ -2829,6 +2835,7 @@ function ProfileScreen({
   account: Account | null;
   habitats: Habitat[];
   consents: ProfileConsent[];
+  experience: ExperienceSummary | null;
   visibleKinds: Array<"plant" | "aquarium" | "terrarium">;
   menuTarget: ProfileMenuTarget;
   onToggleVisibleKind: (kind: "plant" | "aquarium" | "terrarium") => void;
@@ -2901,94 +2908,40 @@ function ProfileScreen({
           {profileMessage ? <Text style={styles.miniCopy}>{profileMessage}</Text> : null}
         </View> : null}
       </View> : null}
-      <View
-        style={[
-          styles.profileFocus,
-          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
-        ]}
-      >
-        <Text style={[styles.chip, { color: tone.accent }]}>DEIN KONTO</Text>
-        <Text style={styles.heroTitle}>IDENTITÄT BLEIBT VERIFIZIERT.</Text>
-        <Text style={styles.copy}>
-          {account?.name ?? account?.username ?? "Konto wird geladen"}
-        </Text>
-        <Text style={styles.copy}>
-          {account?.email ?? "E-Mail nicht verfügbar"} ·{" "}
-          {account?.role ?? "Rolle wird geprüft"}
-        </Text>
-        <SecondaryButton
-          tone={tone}
-          label="ABMELDEN"
-          icon="log-out-outline"
-          onPress={() => void onSignOut()}
-        />
-      </View>
-      {state === "error" ? (
-        <ErrorNotice
-          text={error ?? "Private Daten konnten nicht geladen werden."}
-        />
-      ) : null}
-      <SectionLabel
-        tone={tone}
-        overline="PRIVAT / DEIN KONTO"
-        title="EIGENE BEITRÄGE"
-      />
-      <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
-        {ownPosts.length ? ownPosts.slice(0, 12).map(post => <View key={post.id} style={styles.profilePostRow}><Text style={[styles.chip, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "OHNE BEREICH"}</Text><Text style={styles.realmText}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></View>) : <Text style={styles.miniCopy}>Noch keine eigenen Beiträge. Öffne Community, um deinen ersten Naturmoment zu erstellen.</Text>}
-        <SecondaryButton tone={tone} label="BEITRAG ERSTELLEN" icon="create-outline" onPress={() => navigate("post")} />
-      </View>
-      <SectionLabel
-        tone={tone}
-        overline="PRIVAT / DEIN KONTO"
-        title="DEINE ANLAGEN"
-      />
-      <View style={[styles.profileDisplayPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}> 
-        <Text style={[styles.chip, { color: tone.accent }]}>ANZEIGEN</Text>
-        <Text style={styles.miniCopy}>Wähle, welche Anlagearten in deinem Profil erscheinen.</Text>
-        <View style={styles.profileDisplayRow}>
-          {([['plant', 'Pflanzen', 'leaf-outline'], ['aquarium', 'Aquarium', 'water-outline'], ['terrarium', 'Terraristik', 'bug-outline']] as const).map(([kind, label, icon]) => {
-            const selected = visibleKinds.includes(kind);
-            return <Pressable key={kind} onPress={() => onToggleVisibleKind(kind)} style={[styles.profileDisplayChoice, { borderColor: selected ? tone.accent : `${tone.accent}33`, backgroundColor: selected ? `${tone.accent}1c` : 'rgba(0,0,0,.14)' }]}><Ionicons name={icon} size={16} color={tone.accent} /><Text style={[styles.realmText, selected && { color: c.text }]}>{label}</Text><Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={16} color={tone.accent} /></Pressable>;
-          })}
+      <View style={[styles.profileReferenceIdentity, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
+        <View style={[styles.profileReferenceAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}>
+          {account?.avatarUrl ? <Image source={{ uri: account.avatarUrl }} style={styles.profileReferenceAvatarImage} /> : <Ionicons name="person-outline" size={27} color={tone.accent} />}
+        </View>
+        <View style={styles.profileReferenceIdentityCopy}>
+          <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · PROFIL</Text>
+          <Text style={styles.profileReferenceName}>{account?.name ?? account?.username ?? "BlackWaterLeaf"}</Text>
+          <Text style={styles.miniCopy}>{account?.email ?? "@" + (account?.username ?? "blackwaterleaf")}</Text>
+        </View>
+        <Pressable accessibilityLabel="Profil bearbeiten" onPress={() => navigate("profile")} style={[styles.profileReferenceMore, { borderColor: `${tone.accent}55` }]}>
+          <Text style={[styles.profileReferenceMoreText, { color: tone.accent }]}>•••</Text>
+        </Pressable>
+        <View style={styles.profileReferenceStats}>
+          <View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View>
+          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View>
+          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View>
         </View>
       </View>
-      <View style={styles.inlineButtons}>
-        <SecondaryButton tone={tone} label="RANKING & CHALLENGES" icon="trophy-outline" onPress={() => navigate("ranking")} />
-        <SecondaryButton tone={tone} label="GESPEICHERT" icon="bookmark-outline" onPress={() => navigate("saved")} />
+      <SectionLabel tone={tone} overline="PRIVATE SAMMLUNG" title="MEINE ANLAGEN & WERTE" />
+      <Text style={styles.profileReferenceSubline}>Privat · Wähle direkt deinen Bereich</Text>
+      <View style={styles.profileHabitatChoiceGridNative}>
+        {([['plant', 'Botanik', 'Pflanzen-Anlagen', 'leaf-outline', 'botany'], ['aquarium', 'Aquaristik', 'Aquarien & Wasserwerte', 'fish-outline', 'aquarium'], ['terrarium', 'Terraristik', 'Terrarien & Pflege', 'bug-outline', 'terrarium']] as const).filter(([kind]) => visibleKinds.includes(kind)).map(([kind, label, note, icon, realm]) => (
+          <Pressable key={kind} onPress={() => onCollection(realm)} style={({ pressed }) => [styles.profileHabitatChoiceNative, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}>
+            <View style={[styles.profileHabitatChoiceIcon, { backgroundColor: `${tone.accent}16`, borderColor: `${tone.accent}44` }]}><Ionicons name={icon} size={19} color={tone.accent} /></View>
+            <View style={styles.profileHabitatChoiceCopy}><Text style={styles.cardTitle}>{label}</Text><Text style={styles.miniCopy}>{note}</Text></View>
+            <Ionicons name="chevron-forward" size={17} color={tone.accent} />
+          </Pressable>
+        ))}
       </View>
-      <ActionGrid
-        tone={tone}
-        actions={([
-          {
-            title: "Pflanzen",
-            note: `${habitats.filter(item => item.kind === "plant").length} private Anlagen`,
-            icon: "leaf-outline",
-            image: ASSETS.botany,
-            onPress: () => onCollection("botany"),
-          },
-          {
-            title: "Aquarien",
-            note: `${habitats.filter(item => item.kind === "aquarium").length} private Anlagen`,
-            icon: "fish-outline",
-            image: ASSETS.aquarium,
-            onPress: () => onCollection("aquarium"),
-          },
-          {
-            title: "Terrarien",
-            note: `${habitats.filter(item => item.kind === "terrarium").length} private Anlagen`,
-            icon: "leaf-outline",
-            image: ASSETS.terrarium,
-            onPress: () => onCollection("terrarium"),
-          },
-          {
-            title: "Freigaben",
-            note: "KI und Medien kontrollieren",
-            icon: "shield-checkmark-outline",
-            image: ASSETS.ai,
-            onPress: () => navigate("assistant"),
-          },
-        ] as Action[]).filter(action => action.title === "Pflanzen" ? visibleKinds.includes("plant") : action.title === "Aquarien" ? visibleKinds.includes("aquarium") : action.title === "Terrarien" ? visibleKinds.includes("terrarium") : false)}
-      />
+      <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>MEIN BEREICH</Text><Text style={styles.sectionTitle}>EIGENE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label={ownPostsRefreshing ? "AKTUALISIERE …" : "AKTUALISIEREN"} icon="refresh-outline" onPress={() => void refreshOwnPosts()} disabled={ownPostsRefreshing} /><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
+        {ownPosts.length ? <View style={styles.stack}>{ownPosts.slice(0, 6).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={[styles.profilePostRow, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "OHNE BEREICH"}</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View> : <Text style={styles.miniCopy}>Noch keine eigenen Beiträge.</Text>}
+      </View>
+      <SecondaryButton tone={tone} label="ABMELDEN" icon="log-out-outline" onPress={() => void onSignOut()} />
     </Page>
   );
 }
@@ -4696,5 +4649,23 @@ const styles = StyleSheet.create({
   rankingScoreCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
   challengeCard: { padding: 14, borderRadius: 15, borderWidth: 1, gap: 7 },
   leaderboardRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 12, borderWidth: 1 },
+  profileReferenceIdentity: { position: "relative", minHeight: 132, padding: 14, borderRadius: 18, borderWidth: 1, flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  profileReferenceAvatar: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  profileReferenceAvatarImage: { width: "100%", height: "100%" },
+  profileReferenceIdentityCopy: { flex: 1, gap: 3, paddingTop: 1 },
+  profileReferenceName: { color: c.text, fontSize: 22, lineHeight: 25, fontWeight: "900", letterSpacing: 0.2 },
+  profileReferenceMore: { width: 34, height: 30, borderRadius: 9, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  profileReferenceMoreText: { fontSize: 18, fontWeight: "900", lineHeight: 19 },
+  profileReferenceStats: { position: "absolute", left: 14, right: 14, bottom: 10, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.14)", paddingTop: 8 },
+  profileReferenceStat: { minWidth: 70, alignItems: "center", gap: 1 },
+  profileReferenceStatValue: { color: c.text, fontSize: 14, fontWeight: "900" },
+  profileReferenceStatLabel: { color: c.muted, fontSize: 7, fontWeight: "900", letterSpacing: 0.8 },
+  profileReferenceSubline: { color: c.muted, fontSize: 10, marginTop: -4, marginBottom: 8 },
+  profileHabitatChoiceGridNative: { gap: 8 },
+  profileHabitatChoiceNative: { minHeight: 62, padding: 10, borderRadius: 14, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 9 },
+  profileHabitatChoiceIcon: { width: 36, height: 36, borderRadius: 11, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  profileHabitatChoiceCopy: { flex: 1, gap: 2 },
+  profileReferencePostsPanel: { padding: 12, borderRadius: 16, borderWidth: 1, gap: 9, marginTop: 14 },
+  profileReferencePostsHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });
