@@ -21,8 +21,9 @@ describe("AP-19 Observatory quality contract", () => {
   });
 
   it("keeps Native core controls touchable and compact", () => {
-    expect(native).toContain("width: 44,");
-    expect(native).toContain("height: 44,");
+    expect(native).toContain("width: 40,");
+    expect(native).toContain("height: 40,");
+    expect(native).toContain("hitSlop={4}");
     expect(native).toContain("homeHero: { minHeight: 250 }");
     expect(native).toContain("minHeight: 48,");
   });

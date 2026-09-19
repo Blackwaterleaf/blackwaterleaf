@@ -1,0 +1,1478 @@
+{
+  "generatedAt": "2026-09-19T16:58:40.445Z",
+  "purpose": "Input inventory for CC0/CC-BY quality-photo discovery only.",
+  "plants": [
+    {
+      "id": 1,
+      "scientificName": "Pogostemon helferi",
+      "source": "POWO",
+      "sourceRecordId": "Pogostemon helferi"
+    },
+    {
+      "id": 2,
+      "scientificName": "Hygrophila pinnatifida",
+      "source": "POWO",
+      "sourceRecordId": "Hygrophila pinnatifida"
+    },
+    {
+      "id": 3,
+      "scientificName": "Bolbitis heudelotii",
+      "source": "POWO",
+      "sourceRecordId": "Bolbitis heudelotii"
+    },
+    {
+      "id": 4,
+      "scientificName": "Vallisneria spiralis",
+      "source": "POWO",
+      "sourceRecordId": "Vallisneria spiralis"
+    },
+    {
+      "id": 5,
+      "scientificName": "Monstera siltepecana",
+      "source": "POWO",
+      "sourceRecordId": "Monstera siltepecana"
+    },
+    {
+      "id": 6,
+      "scientificName": "Monstera standleyana",
+      "source": "POWO",
+      "sourceRecordId": "Monstera standleyana"
+    },
+    {
+      "id": 7,
+      "scientificName": "Monstera dubia",
+      "source": "POWO",
+      "sourceRecordId": "Monstera dubia"
+    },
+    {
+      "id": 8,
+      "scientificName": "Monstera pinnatipartita",
+      "source": "POWO",
+      "sourceRecordId": "Monstera pinnatipartita"
+    },
+    {
+      "id": 10,
+      "scientificName": "Anubias barteri",
+      "source": "POWO",
+      "sourceRecordId": "Anubias barteri"
+    },
+    {
+      "id": 11,
+      "scientificName": "Anubias barteri",
+      "source": "POWO",
+      "sourceRecordId": "Anubias barteri:Nana"
+    },
+    {
+      "id": 13,
+      "scientificName": "Cryptocoryne wendtii",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne wendtii"
+    },
+    {
+      "id": 14,
+      "scientificName": "Cryptocoryne parva",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne parva"
+    },
+    {
+      "id": 15,
+      "scientificName": "Cryptocoryne balansae",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne balansae"
+    },
+    {
+      "id": 16,
+      "scientificName": "Cryptocoryne undulata",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne undulata"
+    },
+    {
+      "id": 17,
+      "scientificName": "Microsorum pteropus",
+      "source": "POWO",
+      "sourceRecordId": "Microsorum pteropus"
+    },
+    {
+      "id": 18,
+      "scientificName": "Taxiphyllum barbieri",
+      "source": "POWO",
+      "sourceRecordId": "Taxiphyllum barbieri"
+    },
+    {
+      "id": 19,
+      "scientificName": "Vesicularia dubyana",
+      "source": "POWO",
+      "sourceRecordId": "Vesicularia dubyana"
+    },
+    {
+      "id": 20,
+      "scientificName": "Hemianthus callitrichoides",
+      "source": "POWO",
+      "sourceRecordId": "Hemianthus callitrichoides"
+    },
+    {
+      "id": 21,
+      "scientificName": "Eleocharis acicularis",
+      "source": "POWO",
+      "sourceRecordId": "Eleocharis acicularis"
+    },
+    {
+      "id": 22,
+      "scientificName": "Rotala rotundifolia",
+      "source": "POWO",
+      "sourceRecordId": "Rotala rotundifolia"
+    },
+    {
+      "id": 23,
+      "scientificName": "Ludwigia repens",
+      "source": "POWO",
+      "sourceRecordId": "Ludwigia repens"
+    },
+    {
+      "id": 24,
+      "scientificName": "Alternanthera reineckii",
+      "source": "POWO",
+      "sourceRecordId": "Alternanthera reineckii"
+    },
+    {
+      "id": 27,
+      "scientificName": "Alocasia watsoniana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia watsoniana"
+    },
+    {
+      "id": 28,
+      "scientificName": "Alocasia odora",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia odora"
+    },
+    {
+      "id": 29,
+      "scientificName": "Alocasia clypeolata",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia clypeolata"
+    },
+    {
+      "id": 30,
+      "scientificName": "Alocasia reversa",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reversa"
+    },
+    {
+      "id": 31,
+      "scientificName": "Alocasia reginae",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reginae"
+    },
+    {
+      "id": 32,
+      "scientificName": "Alocasia princeps",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia princeps"
+    },
+    {
+      "id": 33,
+      "scientificName": "Alocasia portei",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia portei"
+    },
+    {
+      "id": 34,
+      "scientificName": "Alocasia brancifolia",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia brancifolia"
+    },
+    {
+      "id": 35,
+      "scientificName": "Philodendron gloriosum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron gloriosum"
+    },
+    {
+      "id": 36,
+      "scientificName": "Philodendron melanochrysum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron melanochrysum"
+    },
+    {
+      "id": 37,
+      "scientificName": "Philodendron verrucosum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron verrucosum"
+    },
+    {
+      "id": 45,
+      "scientificName": "Alocasia baginda",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia baginda:Dragon Scale"
+    },
+    {
+      "id": 46,
+      "scientificName": "Alocasia baginda",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia baginda:Silver Dragon"
+    },
+    {
+      "id": 47,
+      "scientificName": "Alocasia zebrina",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia zebrina"
+    },
+    {
+      "id": 48,
+      "scientificName": "Alocasia amazonica",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia amazonica:Polly"
+    },
+    {
+      "id": 49,
+      "scientificName": "Alocasia macrorrhizos",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia macrorrhizos"
+    },
+    {
+      "id": 50,
+      "scientificName": "Alocasia longiloba",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia longiloba"
+    },
+    {
+      "id": 51,
+      "scientificName": "Alocasia cuprea",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia cuprea"
+    },
+    {
+      "id": 52,
+      "scientificName": "Alocasia reginula",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reginula:Black Velvet"
+    },
+    {
+      "id": 54,
+      "scientificName": "Alocasia micholitziana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia micholitziana:Frydek"
+    },
+    {
+      "id": 55,
+      "scientificName": "Alocasia wentii",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia wentii"
+    },
+    {
+      "id": 56,
+      "scientificName": "Alocasia lauterbachiana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia lauterbachiana"
+    },
+    {
+      "id": 57,
+      "scientificName": "Alocasia sanderiana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia sanderiana"
+    },
+    {
+      "id": 58,
+      "scientificName": "Alocasia melo",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia melo"
+    },
+    {
+      "id": 59,
+      "scientificName": "Alocasia scalprum",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia scalprum"
+    },
+    {
+      "id": 60,
+      "scientificName": "Alocasia sinuata",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia sinuata"
+    },
+    {
+      "id": 61,
+      "scientificName": "Alocasia nebula",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia nebula"
+    },
+    {
+      "id": 62,
+      "scientificName": "Alocasia azlanii",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia azlanii"
+    },
+    {
+      "id": 63,
+      "scientificName": "Alocasia infernalis",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia infernalis"
+    },
+    {
+      "id": 64,
+      "scientificName": "Alocasia heterophylla",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia heterophylla"
+    },
+    {
+      "id": 66,
+      "scientificName": "Philodendron hederaceum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hederaceum:Micans"
+    },
+    {
+      "id": 67,
+      "scientificName": "Philodendron hederaceum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hederaceum"
+    },
+    {
+      "id": 68,
+      "scientificName": "Philodendron hastatum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hastatum"
+    },
+    {
+      "id": 69,
+      "scientificName": "Philodendron mamei",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron mamei"
+    },
+    {
+      "id": 70,
+      "scientificName": "Philodendron plowmanii",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron plowmanii"
+    },
+    {
+      "id": 71,
+      "scientificName": "Philodendron pastazanum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron pastazanum"
+    },
+    {
+      "id": 72,
+      "scientificName": "Philodendron gigas",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron gigas"
+    },
+    {
+      "id": 73,
+      "scientificName": "Philodendron squamiferum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron squamiferum"
+    },
+    {
+      "id": 74,
+      "scientificName": "Philodendron billietiae",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron billietiae"
+    },
+    {
+      "id": 75,
+      "scientificName": "Philodendron atabapoense",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron atabapoense"
+    },
+    {
+      "id": 76,
+      "scientificName": "Philodendron spiritus sancti",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron spiritus sancti"
+    },
+    {
+      "id": 79,
+      "scientificName": "Monstera deliciosa",
+      "source": "POWO",
+      "sourceRecordId": "Monstera deliciosa"
+    },
+    {
+      "id": 82,
+      "scientificName": "Monstera adansonii",
+      "source": "POWO",
+      "sourceRecordId": "Monstera adansonii"
+    },
+    {
+      "id": 84,
+      "scientificName": "Monstera obliqua",
+      "source": "POWO",
+      "sourceRecordId": "Monstera obliqua"
+    },
+    {
+      "id": 30001,
+      "scientificName": "Anthurium clarinervium",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872501"
+    },
+    {
+      "id": 30002,
+      "scientificName": "Anthurium crystallinum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872232"
+    },
+    {
+      "id": 30003,
+      "scientificName": "Anthurium magnificum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872520"
+    },
+    {
+      "id": 30004,
+      "scientificName": "Anthurium warocqueanum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873559"
+    },
+    {
+      "id": 30005,
+      "scientificName": "Anthurium forgetii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873656"
+    },
+    {
+      "id": 30006,
+      "scientificName": "Anthurium regale",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873074"
+    },
+    {
+      "id": 30007,
+      "scientificName": "Anthurium luxurians",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872804"
+    },
+    {
+      "id": 30008,
+      "scientificName": "Anthurium veitchii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873417"
+    },
+    {
+      "id": 30009,
+      "scientificName": "Anthurium bakeri",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:4933146"
+    },
+    {
+      "id": 30010,
+      "scientificName": "Anthurium andraeanum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872695"
+    },
+    {
+      "id": 30011,
+      "scientificName": "Anthurium pedatoradiatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873561"
+    },
+    {
+      "id": 30012,
+      "scientificName": "Anthurium radicans",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872788"
+    },
+    {
+      "id": 30013,
+      "scientificName": "Anthurium gracile",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2872811"
+    },
+    {
+      "id": 30014,
+      "scientificName": "Philodendron bipennifolium",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870800"
+    },
+    {
+      "id": 30015,
+      "scientificName": "Philodendron camposportoanum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871001"
+    },
+    {
+      "id": 30016,
+      "scientificName": "Philodendron elegans",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870777"
+    },
+    {
+      "id": 30017,
+      "scientificName": "Philodendron imbe",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:3604785"
+    },
+    {
+      "id": 30018,
+      "scientificName": "Philodendron lacerum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870848"
+    },
+    {
+      "id": 30019,
+      "scientificName": "Philodendron mayoi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871293"
+    },
+    {
+      "id": 30020,
+      "scientificName": "Philodendron rugosum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870871"
+    },
+    {
+      "id": 30021,
+      "scientificName": "Philodendron sagittifolium",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870829"
+    },
+    {
+      "id": 30022,
+      "scientificName": "Philodendron sodiroi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:3604333"
+    },
+    {
+      "id": 30023,
+      "scientificName": "Philodendron subhastatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871285"
+    },
+    {
+      "id": 30024,
+      "scientificName": "Philodendron tortum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2870881"
+    },
+    {
+      "id": 30025,
+      "scientificName": "Monstera acacoyaguensis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868133"
+    },
+    {
+      "id": 30026,
+      "scientificName": "Monstera lechleriana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868201"
+    },
+    {
+      "id": 30027,
+      "scientificName": "Monstera subpinnata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868129"
+    },
+    {
+      "id": 30028,
+      "scientificName": "Monstera tenuis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868236"
+    },
+    {
+      "id": 30029,
+      "scientificName": "Epipremnum aureum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868323"
+    },
+    {
+      "id": 30030,
+      "scientificName": "Epipremnum amplissimum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868312"
+    },
+    {
+      "id": 30031,
+      "scientificName": "Epipremnum giganteum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868332"
+    },
+    {
+      "id": 30032,
+      "scientificName": "Epipremnum pinnatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868272"
+    },
+    {
+      "id": 30033,
+      "scientificName": "Scindapsus pictus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873745"
+    },
+    {
+      "id": 30034,
+      "scientificName": "Scindapsus treubii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873707"
+    },
+    {
+      "id": 30035,
+      "scientificName": "Scindapsus officinalis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873716"
+    },
+    {
+      "id": 30036,
+      "scientificName": "Scindapsus perakensis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2873742"
+    },
+    {
+      "id": 30037,
+      "scientificName": "Syngonium podophyllum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867866"
+    },
+    {
+      "id": 30038,
+      "scientificName": "Syngonium chiapense",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867846"
+    },
+    {
+      "id": 30039,
+      "scientificName": "Syngonium erythrophyllum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867864"
+    },
+    {
+      "id": 30040,
+      "scientificName": "Syngonium macrophyllum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867859"
+    },
+    {
+      "id": 30041,
+      "scientificName": "Syngonium wendlandii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867865"
+    },
+    {
+      "id": 30042,
+      "scientificName": "Syngonium angustatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2867888"
+    },
+    {
+      "id": 30043,
+      "scientificName": "Aglaonema commutatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866467"
+    },
+    {
+      "id": 30044,
+      "scientificName": "Aglaonema costatum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866357"
+    },
+    {
+      "id": 30045,
+      "scientificName": "Aglaonema modestum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866488"
+    },
+    {
+      "id": 30046,
+      "scientificName": "Aglaonema pictum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866460"
+    },
+    {
+      "id": 30047,
+      "scientificName": "Aglaonema rotundum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866492"
+    },
+    {
+      "id": 30048,
+      "scientificName": "Aglaonema simplex",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2866378"
+    },
+    {
+      "id": 30049,
+      "scientificName": "Zamioculcas zamiifolia",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869014"
+    },
+    {
+      "id": 30050,
+      "scientificName": "Spathiphyllum wallisii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869680"
+    },
+    {
+      "id": 30051,
+      "scientificName": "Dieffenbachia seguine",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869345"
+    },
+    {
+      "id": 30052,
+      "scientificName": "Caladium bicolor",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2868390"
+    },
+    {
+      "id": 30053,
+      "scientificName": "Colocasia esculenta",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5330776"
+    },
+    {
+      "id": 30054,
+      "scientificName": "Xanthosoma sagittifolium",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5330901"
+    },
+    {
+      "id": 30055,
+      "scientificName": "Anubias afzelii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871881"
+    },
+    {
+      "id": 30056,
+      "scientificName": "Anubias gigantea",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871898"
+    },
+    {
+      "id": 30057,
+      "scientificName": "Anubias gilletii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871891"
+    },
+    {
+      "id": 30058,
+      "scientificName": "Anubias gracilis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871890"
+    },
+    {
+      "id": 30059,
+      "scientificName": "Anubias hastifolia",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871883"
+    },
+    {
+      "id": 30060,
+      "scientificName": "Anubias heterophylla",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871892"
+    },
+    {
+      "id": 30061,
+      "scientificName": "Anubias pynaertii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2871882"
+    },
+    {
+      "id": 30062,
+      "scientificName": "Bucephalandra motleyana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869475"
+    },
+    {
+      "id": 30063,
+      "scientificName": "Bucephalandra pygmaea",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:9524399"
+    },
+    {
+      "id": 30064,
+      "scientificName": "Bucephalandra kishii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:9273930"
+    },
+    {
+      "id": 30065,
+      "scientificName": "Cryptocoryne affinis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869235"
+    },
+    {
+      "id": 30066,
+      "scientificName": "Cryptocoryne beckettii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869244"
+    },
+    {
+      "id": 30067,
+      "scientificName": "Cryptocoryne ciliata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7551029"
+    },
+    {
+      "id": 30068,
+      "scientificName": "Cryptocoryne cordata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869147"
+    },
+    {
+      "id": 30069,
+      "scientificName": "Cryptocoryne crispatula",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869246"
+    },
+    {
+      "id": 30070,
+      "scientificName": "Cryptocoryne nurii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869262"
+    },
+    {
+      "id": 30071,
+      "scientificName": "Cryptocoryne pontederiifolia",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869266"
+    },
+    {
+      "id": 30072,
+      "scientificName": "Cryptocoryne usteriana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2869135"
+    },
+    {
+      "id": 30073,
+      "scientificName": "Echinodorus palaefolius",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7327440"
+    },
+    {
+      "id": 30074,
+      "scientificName": "Hygrophila corymbosa",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5415353"
+    },
+    {
+      "id": 30075,
+      "scientificName": "Hygrophila difformis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7549085"
+    },
+    {
+      "id": 30076,
+      "scientificName": "Hygrophila polysperma",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5415355"
+    },
+    {
+      "id": 30077,
+      "scientificName": "Limnophila aquatica",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7471513"
+    },
+    {
+      "id": 30078,
+      "scientificName": "Limnophila aromatica",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5415005"
+    },
+    {
+      "id": 30079,
+      "scientificName": "Limnophila sessiliflora",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5415001"
+    },
+    {
+      "id": 30080,
+      "scientificName": "Vallisneria americana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2865501"
+    },
+    {
+      "id": 30081,
+      "scientificName": "Vallisneria nana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2865496"
+    },
+    {
+      "id": 30082,
+      "scientificName": "Ludwigia palustris",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5421025"
+    },
+    {
+      "id": 30083,
+      "scientificName": "Ludwigia arcuata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5421037"
+    },
+    {
+      "id": 30084,
+      "scientificName": "Ludwigia glandulosa",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5421019"
+    },
+    {
+      "id": 30085,
+      "scientificName": "Ludwigia inclinata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:8521477"
+    },
+    {
+      "id": 30086,
+      "scientificName": "Bacopa caroliniana",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:3171189"
+    },
+    {
+      "id": 30087,
+      "scientificName": "Bacopa monnieri",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:3171169"
+    },
+    {
+      "id": 30088,
+      "scientificName": "Ceratophyllum demersum",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2882398"
+    },
+    {
+      "id": 30089,
+      "scientificName": "Staurogyne repens",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:3773480"
+    },
+    {
+      "id": 30090,
+      "scientificName": "Marsilea hirsuta",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5274865"
+    }
+  ],
+  "aquarium": [
+    {
+      "id": 1,
+      "scientificName": "Channa andrao",
+      "source": "FishBase",
+      "sourceRecordId": "Channa andrao"
+    },
+    {
+      "id": 2,
+      "scientificName": "Channa asiatica",
+      "source": "FishBase",
+      "sourceRecordId": "Channa asiatica"
+    },
+    {
+      "id": 3,
+      "scientificName": "Channa aurantimaculata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa aurantimaculata"
+    },
+    {
+      "id": 4,
+      "scientificName": "Channa barca",
+      "source": "FishBase",
+      "sourceRecordId": "Channa barca"
+    },
+    {
+      "id": 5,
+      "scientificName": "Channa bleheri",
+      "source": "FishBase",
+      "sourceRecordId": "Channa bleheri"
+    },
+    {
+      "id": 6,
+      "scientificName": "Channa diplogramma",
+      "source": "FishBase",
+      "sourceRecordId": "Channa diplogramma"
+    },
+    {
+      "id": 7,
+      "scientificName": "Channa gachua",
+      "source": "FishBase",
+      "sourceRecordId": "Channa gachua"
+    },
+    {
+      "id": 8,
+      "scientificName": "Channa limbata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa limbata"
+    },
+    {
+      "id": 9,
+      "scientificName": "Channa lucius",
+      "source": "FishBase",
+      "sourceRecordId": "Channa lucius"
+    },
+    {
+      "id": 10,
+      "scientificName": "Channa marulioides",
+      "source": "FishBase",
+      "sourceRecordId": "Channa marulioides"
+    },
+    {
+      "id": 11,
+      "scientificName": "Channa micropeltes",
+      "source": "FishBase",
+      "sourceRecordId": "Channa micropeltes"
+    },
+    {
+      "id": 12,
+      "scientificName": "Channa ornatipinnis",
+      "source": "FishBase",
+      "sourceRecordId": "Channa ornatipinnis"
+    },
+    {
+      "id": 13,
+      "scientificName": "Channa pulchra",
+      "source": "FishBase",
+      "sourceRecordId": "Channa pulchra"
+    },
+    {
+      "id": 14,
+      "scientificName": "Channa stewartii",
+      "source": "FishBase",
+      "sourceRecordId": "Channa stewartii"
+    },
+    {
+      "id": 15,
+      "scientificName": "Channa striata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa striata"
+    },
+    {
+      "id": 30001,
+      "scientificName": "Paracheirodon axelrodi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2353911"
+    },
+    {
+      "id": 30002,
+      "scientificName": "Paracheirodon innesi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2353909"
+    },
+    {
+      "id": 30003,
+      "scientificName": "Paracheirodon simulans",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2353914"
+    },
+    {
+      "id": 30004,
+      "scientificName": "Hyphessobrycon amandae",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354525"
+    },
+    {
+      "id": 30005,
+      "scientificName": "Hyphessobrycon bentosi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354507"
+    },
+    {
+      "id": 30006,
+      "scientificName": "Hyphessobrycon eques",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354612"
+    },
+    {
+      "id": 30007,
+      "scientificName": "Hyphessobrycon erythrostigma",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354681"
+    },
+    {
+      "id": 30008,
+      "scientificName": "Hyphessobrycon flammeus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354538"
+    },
+    {
+      "id": 30009,
+      "scientificName": "Hyphessobrycon herbertaxelrodi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354640"
+    },
+    {
+      "id": 30010,
+      "scientificName": "Hyphessobrycon megalopterus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354646"
+    },
+    {
+      "id": 30011,
+      "scientificName": "Hyphessobrycon pulchripinnis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354601"
+    },
+    {
+      "id": 30012,
+      "scientificName": "Hyphessobrycon rosaceus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354579"
+    },
+    {
+      "id": 30013,
+      "scientificName": "Hyphessobrycon sweglesi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354560"
+    },
+    {
+      "id": 30014,
+      "scientificName": "Hemigrammus bleheri",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354371"
+    },
+    {
+      "id": 30015,
+      "scientificName": "Hemigrammus erythrozonus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354398"
+    },
+    {
+      "id": 30016,
+      "scientificName": "Hemigrammus ocellifer",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2354330"
+    },
+    {
+      "id": 30017,
+      "scientificName": "Nannostomus beckfordi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2355627"
+    },
+    {
+      "id": 30018,
+      "scientificName": "Nannostomus eques",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2355643"
+    },
+    {
+      "id": 30019,
+      "scientificName": "Nannostomus marginatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2355640"
+    },
+    {
+      "id": 30020,
+      "scientificName": "Nannostomus mortenthaleri",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2355649"
+    },
+    {
+      "id": 30021,
+      "scientificName": "Otocinclus macrospilus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2340471"
+    },
+    {
+      "id": 30022,
+      "scientificName": "Otocinclus vittatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2340460"
+    },
+    {
+      "id": 30023,
+      "scientificName": "Corydoras aeneus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342606"
+    },
+    {
+      "id": 30024,
+      "scientificName": "Corydoras adolfoi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342782"
+    },
+    {
+      "id": 30025,
+      "scientificName": "Corydoras arcuatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342688"
+    },
+    {
+      "id": 30026,
+      "scientificName": "Corydoras panda",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342738"
+    },
+    {
+      "id": 30027,
+      "scientificName": "Corydoras paleatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342720"
+    },
+    {
+      "id": 30028,
+      "scientificName": "Corydoras pygmaeus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342634"
+    },
+    {
+      "id": 30029,
+      "scientificName": "Corydoras sterbai",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342679"
+    },
+    {
+      "id": 30030,
+      "scientificName": "Corydoras trilineatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342746"
+    },
+    {
+      "id": 30031,
+      "scientificName": "Corydoras hastatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342685"
+    },
+    {
+      "id": 30032,
+      "scientificName": "Corydoras habrosus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342708"
+    },
+    {
+      "id": 30033,
+      "scientificName": "Corydoras julii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342734"
+    },
+    {
+      "id": 30034,
+      "scientificName": "Corydoras schwartzi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2342755"
+    },
+    {
+      "id": 30035,
+      "scientificName": "Betta splendens",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2393998"
+    },
+    {
+      "id": 30036,
+      "scientificName": "Betta imbellis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394051"
+    },
+    {
+      "id": 30037,
+      "scientificName": "Betta smaragdina",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394055"
+    },
+    {
+      "id": 30038,
+      "scientificName": "Betta mahachaiensis",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7193203"
+    },
+    {
+      "id": 30039,
+      "scientificName": "Betta macrostoma",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394042"
+    },
+    {
+      "id": 30040,
+      "scientificName": "Betta channoides",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394056"
+    },
+    {
+      "id": 30041,
+      "scientificName": "Betta albimarginata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394012"
+    },
+    {
+      "id": 30042,
+      "scientificName": "Trichogaster lalius",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5211200"
+    },
+    {
+      "id": 30043,
+      "scientificName": "Trichogaster chuna",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5211191"
+    },
+    {
+      "id": 30044,
+      "scientificName": "Trichopodus leerii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:7623402"
+    },
+    {
+      "id": 30045,
+      "scientificName": "Trichopodus trichopterus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5211169"
+    },
+    {
+      "id": 30046,
+      "scientificName": "Sphaerichthys osphromenoides",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2394132"
+    },
+    {
+      "id": 30047,
+      "scientificName": "Boraras brigittae",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2366587"
+    },
+    {
+      "id": 30048,
+      "scientificName": "Boraras maculatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2366590"
+    },
+    {
+      "id": 30049,
+      "scientificName": "Boraras merah",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2366584"
+    },
+    {
+      "id": 30050,
+      "scientificName": "Boraras urophthalmoides",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2366593"
+    },
+    {
+      "id": 30051,
+      "scientificName": "Trigonostigma heteromorpha",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2367610"
+    },
+    {
+      "id": 30052,
+      "scientificName": "Trigonostigma espei",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2367616"
+    },
+    {
+      "id": 30053,
+      "scientificName": "Trigonostigma hengeli",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2367614"
+    },
+    {
+      "id": 30054,
+      "scientificName": "Danio margaritatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2362708"
+    },
+    {
+      "id": 30055,
+      "scientificName": "Danio rerio",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:9797255"
+    },
+    {
+      "id": 30056,
+      "scientificName": "Danio choprae",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2362712"
+    },
+    {
+      "id": 30057,
+      "scientificName": "Pelvicachromis pulcher",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2372929"
+    },
+    {
+      "id": 30058,
+      "scientificName": "Mikrogeophagus ramirezi",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2373104"
+    },
+    {
+      "id": 30059,
+      "scientificName": "Mikrogeophagus altispinosus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2373109"
+    },
+    {
+      "id": 30060,
+      "scientificName": "Apistogramma cacatuoides",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371275"
+    },
+    {
+      "id": 30061,
+      "scientificName": "Apistogramma agassizii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371326"
+    },
+    {
+      "id": 30062,
+      "scientificName": "Apistogramma borellii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371268"
+    },
+    {
+      "id": 30063,
+      "scientificName": "Apistogramma macmasteri",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371262"
+    },
+    {
+      "id": 30064,
+      "scientificName": "Apistogramma trifasciata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371310"
+    },
+    {
+      "id": 30065,
+      "scientificName": "Apistogramma viejita",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2371304"
+    },
+    {
+      "id": 30066,
+      "scientificName": "Pterophyllum scalare",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5208518"
+    },
+    {
+      "id": 30067,
+      "scientificName": "Poecilia reticulata",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2350050"
+    },
+    {
+      "id": 30068,
+      "scientificName": "Poecilia wingei",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5203789"
+    },
+    {
+      "id": 30069,
+      "scientificName": "Poecilia sphenops",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5203748"
+    },
+    {
+      "id": 30070,
+      "scientificName": "Poecilia velifera",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:5203757"
+    },
+    {
+      "id": 30071,
+      "scientificName": "Xiphophorus hellerii",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:8246728"
+    },
+    {
+      "id": 30072,
+      "scientificName": "Xiphophorus maculatus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2350164"
+    },
+    {
+      "id": 30073,
+      "scientificName": "Farlowella acus",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2340437"
+    },
+    {
+      "id": 30074,
+      "scientificName": "Hypancistrus zebra",
+      "source": "GBIF",
+      "sourceRecordId": "GBIF:2339299"
+    }
+  ]
+}

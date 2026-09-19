@@ -3,7 +3,7 @@ import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, officialTaxonSource } from "../../shared/taxon-source-policy";
+import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, isStoredCatalogueTaxonImage, isVerifiedOpenCatalogueMediaSource, officialTaxonSource } from "../../shared/taxon-source-policy";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 
@@ -25,7 +25,7 @@ const taxaRecordSchema = z.object({
   synonyms: z.array(z.string().trim().min(1).max(240)).max(100).default([]),
   summary: z.string().trim().max(10_000).nullable().optional(),
   careProfile: z.record(z.string(), z.unknown()).nullable().optional(),
-  imageUrl: z.string().url().max(1_000).nullable().optional(),
+  imageUrl: z.string().max(1_000).refine(value => value.startsWith("/manus-storage/") || z.string().url().safeParse(value).success, "invalid_image_url").nullable().optional(),
   imageSourceUrl: z.string().url().max(1_000).nullable().optional(),
   imageLicense: z.string().trim().max(128).nullable().optional(),
   imageAttribution: z.string().trim().max(2_000).nullable().optional(),
@@ -52,7 +52,13 @@ function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof
     if (!configuredSource || !record.imageUrl || !record.imageSourceUrl) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "official_taxon_source_required" });
     }
-    if (!isOfficialTaxonSourceUrl(record.imageSourceUrl) || !belongsToOfficialMediaSource(source, record.imageUrl) || !belongsToOfficialSource(source, record.imageSourceUrl)) {
+    const verifiedOpenCataloguePhoto = isStoredCatalogueTaxonImage(record.imageUrl)
+      && isVerifiedOpenCatalogueMediaSource(record.imageSourceUrl)
+      && record.imageAttribution?.includes("iNaturalist photo #");
+    const officialSourcePhoto = isOfficialTaxonSourceUrl(record.imageSourceUrl)
+      && belongsToOfficialMediaSource(source, record.imageUrl)
+      && belongsToOfficialSource(source, record.imageSourceUrl);
+    if (!verifiedOpenCataloguePhoto && !officialSourcePhoto) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_media_source" });
     }
     if (publish && !isCommerciallyReusableCatalogImageLicense(record.imageLicense)) {

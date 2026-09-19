@@ -18,6 +18,14 @@ const PUBLIC_DESIGN_ASSETS = new Set([
   "terrarium-reference_c4e109d3.jpg",
 ]);
 
+/**
+ * Curated catalogue images are public reference material, never user uploads.
+ * Their filenames are allocated only by the verified taxon-media importer.
+ */
+function isPublicCatalogueTaxonImage(key: string) {
+  return /^catalog\/taxa\/(?:plant|aquarium)\/\d+\/inat-\d+_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(key);
+}
+
 export function registerStorageProxy(app: Express) {
   app.get("/manus-storage/*", async (req, res) => {
     const key = (req.params as Record<string, string>)[0];
@@ -26,7 +34,7 @@ export function registerStorageProxy(app: Express) {
       return;
     }
 
-    if (!PUBLIC_DESIGN_ASSETS.has(key)) {
+    if (!PUBLIC_DESIGN_ASSETS.has(key) && !isPublicCatalogueTaxonImage(key)) {
       res.status(403).send("Object authorization required");
       return;
     }

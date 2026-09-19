@@ -7,6 +7,8 @@ import {
   isCommerciallyReusableCatalogImageLicense,
   isDisallowedCatalogSource,
   isOfficialTaxonSourceUrl,
+  isStoredCatalogueTaxonImage,
+  isVerifiedOpenCatalogueMediaSource,
   officialTaxonSource,
 } from "../shared/taxon-source-policy";
 
@@ -44,8 +46,16 @@ describe("scientific taxon source policy", () => {
     expect(belongsToOfficialMediaSource("GBIF", "https://www.gbif.org/occurrence/123")).toBe(false);
   });
 
+  it("permits only verified iNaturalist evidence pages and locally stored catalogue images", () => {
+    expect(isVerifiedOpenCatalogueMediaSource("https://www.inaturalist.org/observations/206135019")).toBe(true);
+    expect(isVerifiedOpenCatalogueMediaSource("https://inaturalist-open-data.s3.amazonaws.com/photos/364557527/original.jpg")).toBe(false);
+    expect(isStoredCatalogueTaxonImage("/manus-storage/catalog/taxa/plant/30001/inat-364557527_a1b2c3d4.jpg")).toBe(true);
+    expect(isStoredCatalogueTaxonImage("/manus-storage/users/1/avatar_a1b2c3d4.jpg")).toBe(false);
+  });
+
   it("allows only explicit commercially reusable media licenses", () => {
     expect(isCommerciallyReusableCatalogImageLicense("CC BY 4.0")).toBe(true);
+    expect(isCommerciallyReusableCatalogImageLicense("CC BY")).toBe(true);
     expect(isCommerciallyReusableCatalogImageLicense("https://creativecommons.org/publicdomain/zero/1.0/")).toBe(true);
     expect(isCommerciallyReusableCatalogImageLicense("CC-BY-NC 4.0")).toBe(false);
     expect(isCommerciallyReusableCatalogImageLicense("all rights reserved")).toBe(false);

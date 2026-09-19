@@ -45,9 +45,11 @@ function stripJpegMetadata(buffer: Buffer): Buffer {
     const segmentLength = buffer.readUInt16BE(offset + 2);
     const segmentEnd = offset + 2 + segmentLength;
     if (segmentEnd > buffer.length) return buffer;
-    // Keep JFIF/JFXX application headers; remove EXIF, XMP, ICC and comments.
-    const keep = marker === 0xe0;
-    if (keep) output.push(buffer.subarray(offset, segmentEnd));
+    // Retain all image-bearing JPEG segments (DQT, DHT, SOF, SOS, etc.) and
+    // discard only application metadata plus comments. Earlier logic kept only
+    // APP0, which also removed indispensable frame/quantization segments.
+    const removableMetadata = (marker >= 0xe1 && marker <= 0xef) || marker === 0xfe;
+    if (!removableMetadata) output.push(buffer.subarray(offset, segmentEnd));
     offset = segmentEnd;
   }
   return Buffer.concat(output);
