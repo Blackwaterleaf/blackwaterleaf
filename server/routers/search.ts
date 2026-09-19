@@ -10,6 +10,12 @@ import { getDb } from "../db";
 const searchKindSchema = z.enum(["all", "plant", "aquarium", "knowledge", "profile", "community", "product"]);
 const taxaRecordSchema = z.object({
   sourceRecordId: z.string().trim().min(1).max(160),
+  sourceRecordUrl: z.string().url().max(1_000).nullable().optional(),
+  sourceLicense: z.string().trim().max(128).nullable().optional(),
+  sourceCitation: z.string().trim().max(10_000).nullable().optional(),
+  sourceRetrievedAt: z.coerce.date().nullable().optional(),
+  taxonomicStatus: z.string().trim().max(48).nullable().optional(),
+  matchConfidence: z.number().int().min(0).max(100).nullable().optional(),
   scientificName: z.string().trim().min(1).max(240),
   acceptedScientificName: z.string().trim().max(240).nullable().optional(),
   rank: z.string().trim().max(48).nullable().optional(),
@@ -36,6 +42,12 @@ function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof
     throw new TRPCError({ code: "PRECONDITION_FAILED", message: "official_taxon_source_required" });
   }
   for (const record of records) {
+    if (publish && (!record.sourceRecordUrl || !record.sourceLicense || !record.sourceCitation || !record.sourceRetrievedAt)) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "taxon_source_provenance_required" });
+    }
+    if (record.sourceRecordUrl && (!configuredSource || !isOfficialTaxonSourceUrl(record.sourceRecordUrl) || !belongsToOfficialSource(source, record.sourceRecordUrl))) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_taxon_source" });
+    }
     if (!record.imageUrl && !record.imageSourceUrl) continue;
     if (!configuredSource || !record.imageUrl || !record.imageSourceUrl) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "official_taxon_source_required" });
@@ -254,7 +266,7 @@ export const searchRouter = router({
     }))
     .mutation(async ({ input }) => {
       assertApprovedMediaSource(input.source, input.records, input.publish);
-      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
+      if (input.publish && input.records.some(record => (record.imageUrl || record.imageSourceUrl || record.imageLicense || record.imageAttribution) && (!record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
       }
       const db = await requireDatabase();
@@ -263,6 +275,12 @@ export const searchRouter = router({
           source: input.source,
           sourceVersion: input.sourceVersion,
           sourceRecordId: record.sourceRecordId,
+          sourceRecordUrl: record.sourceRecordUrl ?? null,
+          sourceLicense: record.sourceLicense ?? null,
+          sourceCitation: record.sourceCitation ?? null,
+          sourceRetrievedAt: record.sourceRetrievedAt ?? null,
+          taxonomicStatus: record.taxonomicStatus ?? null,
+          matchConfidence: record.matchConfidence ?? null,
           scientificName: record.scientificName,
           acceptedScientificName: record.acceptedScientificName ?? null,
           rank: record.rank ?? null,
@@ -293,7 +311,7 @@ export const searchRouter = router({
     }))
     .mutation(async ({ input }) => {
       assertApprovedMediaSource(input.source, input.records, input.publish);
-      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
+      if (input.publish && input.records.some(record => (record.imageUrl || record.imageSourceUrl || record.imageLicense || record.imageAttribution) && (!record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
       }
       const db = await requireDatabase();
@@ -302,6 +320,12 @@ export const searchRouter = router({
           source: input.source,
           sourceVersion: input.sourceVersion,
           sourceRecordId: record.sourceRecordId,
+          sourceRecordUrl: record.sourceRecordUrl ?? null,
+          sourceLicense: record.sourceLicense ?? null,
+          sourceCitation: record.sourceCitation ?? null,
+          sourceRetrievedAt: record.sourceRetrievedAt ?? null,
+          taxonomicStatus: record.taxonomicStatus ?? null,
+          matchConfidence: record.matchConfidence ?? null,
           scientificName: record.scientificName,
           acceptedScientificName: record.acceptedScientificName ?? null,
           rank: record.rank ?? null,

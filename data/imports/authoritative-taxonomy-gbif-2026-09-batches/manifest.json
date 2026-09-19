@@ -1,0 +1,47 @@
+{
+  "generatedAt": "2026-09-19T16:40:50.110Z",
+  "source": "GBIF Backbone Taxonomy",
+  "sourceVersion": "gbif-backbone-2026-09",
+  "skippedExistingScientificNames": {
+    "plants": 18,
+    "freshwaterFish": 0
+  },
+  "preparedRecords": {
+    "plants": 90,
+    "freshwaterFish": 74
+  },
+  "batches": [
+    {
+      "catalog": "plant_taxa",
+      "file": "plant_taxa-batch-01.sql",
+      "records": 30
+    },
+    {
+      "catalog": "plant_taxa",
+      "file": "plant_taxa-batch-02.sql",
+      "records": 30
+    },
+    {
+      "catalog": "plant_taxa",
+      "file": "plant_taxa-batch-03.sql",
+      "records": 30
+    },
+    {
+      "catalog": "aquarium_taxa",
+      "file": "aquarium_taxa-batch-01.sql",
+      "records": 30
+    },
+    {
+      "catalog": "aquarium_taxa",
+      "file": "aquarium_taxa-batch-02.sql",
+      "records": 30
+    },
+    {
+      "catalog": "aquarium_taxa",
+      "file": "aquarium_taxa-batch-03.sql",
+      "records": 14
+    }
+  ],
+  "idempotency": "Unique key source + sourceVersion + sourceRecordId with ON DUPLICATE KEY UPDATE; legacy scientific names are excluded before batch generation.",
+  "imagePolicy": "No image values are included. Text-only scientific records are published with full source provenance."
+}

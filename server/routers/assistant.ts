@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, like, or } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, assistantUsage, notifications, privateHabitats, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
@@ -44,6 +44,16 @@ type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned" };
 
 type RequestReservation = { db: Database; usageId: number };
+type CatalogReference = {
+  scientificName: string;
+  acceptedScientificName: string | null;
+  family: string | null;
+  source: string;
+  sourceRecordUrl: string | null;
+  sourceCitation: string | null;
+  taxonomicStatus: string | null;
+  matchConfidence: number | null;
+};
 
 function responseText(content: string | unknown[]) {
   if (typeof content === "string") return content.trim();
@@ -52,6 +62,96 @@ function responseText(content: string | unknown[]) {
     .filter(Boolean)
     .join("\n")
     .trim();
+}
+
+function catalogReferenceFrom(row: CatalogReference): CatalogReference {
+  return {
+    scientificName: row.scientificName,
+    acceptedScientificName: row.acceptedScientificName,
+    family: row.family,
+    source: row.source,
+    sourceRecordUrl: row.sourceRecordUrl,
+    sourceCitation: row.sourceCitation,
+    taxonomicStatus: row.taxonomicStatus,
+    matchConfidence: row.matchConfidence,
+  };
+}
+
+export function formatCatalogReferences(references: CatalogReference[]) {
+  if (!references.length) return "Kein exakter, veröffentlichter Katalogeintrag wurde zu dieser Anfrage gefunden.";
+  return references.map(reference => {
+    const accepted = reference.acceptedScientificName && reference.acceptedScientificName !== reference.scientificName
+      ? `; akzeptierter Name: ${reference.acceptedScientificName}`
+      : "";
+    const confidence = reference.matchConfidence === null ? "" : `; Abgleich: ${reference.matchConfidence} %`;
+    const source = reference.sourceRecordUrl ? `; Fachquelle: ${reference.sourceRecordUrl}` : `; Fachquelle: ${reference.source}`;
+    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${accepted}${confidence}${source}`;
+  }).join("\n");
+}
+
+function queryTerms(query: string) {
+  const stopWords = new Set(["bitte", "kann", "können", "dieser", "dieses", "einer", "einem", "eine", "einen", "über", "mehr", "mein", "meine", "hilfe", "welche", "welcher", "welches", "wurde", "werden", "haben", "brauche"]);
+  return Array.from(new Set((query.toLocaleLowerCase("de").match(/[A-Za-zÀ-ÖØ-öø-ÿ]{3,}/g) ?? []).filter(term => !stopWords.has(term)))).slice(0, 6);
+}
+
+async function catalogContextForQuery(db: Database, query: string) {
+  const terms = queryTerms(query);
+  if (!terms.length) return null;
+  const plantConditions = terms.flatMap(term => [
+    like(plantTaxa.scientificName, `%${term}%`),
+    like(plantTaxa.acceptedScientificName, `%${term}%`),
+    like(plantTaxa.family, `%${term}%`),
+  ]);
+  const aquariumConditions = terms.flatMap(term => [
+    like(aquariumTaxa.scientificName, `%${term}%`),
+    like(aquariumTaxa.acceptedScientificName, `%${term}%`),
+    like(aquariumTaxa.family, `%${term}%`),
+  ]);
+  const [plants, aquarium] = await Promise.all([
+    db.select({
+      scientificName: plantTaxa.scientificName,
+      acceptedScientificName: plantTaxa.acceptedScientificName,
+      family: plantTaxa.family,
+      source: plantTaxa.source,
+      sourceRecordUrl: plantTaxa.sourceRecordUrl,
+      sourceCitation: plantTaxa.sourceCitation,
+      taxonomicStatus: plantTaxa.taxonomicStatus,
+      matchConfidence: plantTaxa.matchConfidence,
+    }).from(plantTaxa).where(and(eq(plantTaxa.status, "published"), or(...plantConditions))).limit(4),
+    db.select({
+      scientificName: aquariumTaxa.scientificName,
+      acceptedScientificName: aquariumTaxa.acceptedScientificName,
+      family: aquariumTaxa.family,
+      source: aquariumTaxa.source,
+      sourceRecordUrl: aquariumTaxa.sourceRecordUrl,
+      sourceCitation: aquariumTaxa.sourceCitation,
+      taxonomicStatus: aquariumTaxa.taxonomicStatus,
+      matchConfidence: aquariumTaxa.matchConfidence,
+    }).from(aquariumTaxa).where(and(eq(aquariumTaxa.status, "published"), or(...aquariumConditions))).limit(4),
+  ]);
+  const references = [...plants, ...aquarium].map(catalogReferenceFrom).slice(0, 6);
+  return references.length
+    ? `Veröffentlichter BlackWaterLeaf-Katalogabgleich. Diese Zeilen sind quellengebundene Fachdaten; nutze sie nur als Abgleich und behaupte keine darüber hinausgehenden Details:\n${formatCatalogReferences(references)}`
+    : null;
+}
+
+async function catalogReferencesForCandidates(db: Database, candidates: PlantIdentificationResult["candidates"]) {
+  const names = Array.from(new Set(candidates.map(candidate => candidate.scientificName.trim()).filter(Boolean))).slice(0, 3);
+  if (!names.length) return [];
+  const rows = await db.select({
+    scientificName: plantTaxa.scientificName,
+    acceptedScientificName: plantTaxa.acceptedScientificName,
+    family: plantTaxa.family,
+    source: plantTaxa.source,
+    sourceRecordUrl: plantTaxa.sourceRecordUrl,
+    sourceCitation: plantTaxa.sourceCitation,
+    taxonomicStatus: plantTaxa.taxonomicStatus,
+    matchConfidence: plantTaxa.matchConfidence,
+  }).from(plantTaxa).where(and(
+    eq(plantTaxa.status, "published"),
+    or(inArray(plantTaxa.scientificName, names), inArray(plantTaxa.acceptedScientificName, names)),
+  )).limit(3);
+  return rows.map(catalogReferenceFrom);
 }
 
 async function requireDatabase() {
@@ -139,7 +239,14 @@ export const assistantRouter = router({
   chat: protectedProcedure.input(chatInput).mutation(async ({ ctx, input }) => {
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, input.realm, input.message.length + input.history.reduce((sum, item) => sum + item.content.length, 0));
     const contextLabel = input.realm ? `Der Kontextbereich ist ${input.realm}.` : "Kein Bereich wurde ausgewählt.";
-    return generateAnswer(reservation, ctx.user.id, [{ role: "system", content: safetySystemPrompt }, { role: "system", content: contextLabel }, ...input.history.slice(-6).map(message => ({ role: message.role, content: message.content })), { role: "user", content: input.message }]);
+    const catalogContext = await catalogContextForQuery(reservation.db, input.message);
+    return generateAnswer(reservation, ctx.user.id, [
+      { role: "system", content: safetySystemPrompt },
+      { role: "system", content: contextLabel },
+      ...(catalogContext ? [{ role: "system" as const, content: catalogContext }] : []),
+      ...input.history.slice(-6).map(message => ({ role: message.role, content: message.content })),
+      { role: "user", content: input.message },
+    ]);
   }),
 
   plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
@@ -161,19 +268,21 @@ export const assistantRouter = router({
     }
     let result: PlantIdentificationResult;
     try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
+    const catalogReferences = await catalogReferencesForCandidates(reservation.db, result.candidates);
     const plantNetValidation = await validateWithPlantNetImages(
       images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
       result.candidates[0]?.scientificName ?? "",
     );
     const answer = [
       formatPlantIdentification(result),
+      `**BlackWaterLeaf-Katalogabgleich**\n${formatCatalogReferences(catalogReferences)}`,
       plantNetValidation
         ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
         : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
     ].join("\n\n");
     const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage);
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
-    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {

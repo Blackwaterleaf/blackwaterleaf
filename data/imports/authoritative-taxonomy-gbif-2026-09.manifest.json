@@ -1,0 +1,224 @@
+{
+  "generatedAt": "2026-09-19T16:38:29.911Z",
+  "input": "data/imports/authoritative-taxonomy-targets-2026-09.json",
+  "source": "GBIF Backbone Taxonomy",
+  "sourceVersion": "gbif-backbone-2026-09",
+  "acceptanceRule": "EXACT + ACCEPTED + SPECIES + canonical name equality + confidence >= 95",
+  "plants": {
+    "requested": 120,
+    "accepted": 108,
+    "rejected": [
+      {
+        "target": {
+          "scientificName": "Anthurium vittarifolium",
+          "category": "aroid"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Anthurium vittariifolium",
+          "rank": "SPECIES",
+          "status": "ACCEPTED",
+          "matchType": "FUZZY",
+          "confidence": 98
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Philodendron josebuono",
+          "category": "philodendron"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Philodendron",
+          "rank": "GENUS",
+          "status": "ACCEPTED",
+          "matchType": "HIGHERRANK",
+          "confidence": 95
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Philodendron plowmanii",
+          "category": "philodendron"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Philodendron plowmanii",
+          "rank": "SPECIES",
+          "status": "DOUBTFUL",
+          "matchType": "EXACT",
+          "confidence": 99
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Syngonium rayii",
+          "category": "aroid"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Syngonium",
+          "rank": "GENUS",
+          "status": "ACCEPTED",
+          "matchType": "HIGHERRANK",
+          "confidence": 95
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Cryptocoryne lutea",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Cryptocoryne lutea",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Echinodorus cordifolius",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Echinodorus cordifolius",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Echinodorus grandiflorus",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Echinodorus grandiflorus",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Echinodorus horizontalis",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Echinodorus horizontalis",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Echinodorus quadricostatus",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Echinodorus quadricostatus",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Vallisneria gigantea",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Vallisneria gigantea",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Microsorum pteropus",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Microsorum pteropus",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Taxiphyllum barbieri",
+          "category": "aquatic"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Taxiphyllum barbieri",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      }
+    ]
+  },
+  "freshwaterFish": {
+    "requested": 76,
+    "accepted": 74,
+    "rejected": [
+      {
+        "target": {
+          "scientificName": "Otocinclus affinis",
+          "category": "catfish"
+        },
+        "accepted": false,
+        "reason": "not_exact_accepted_species",
+        "match": {
+          "canonicalName": "Otocinclus affinis",
+          "rank": "SPECIES",
+          "status": "SYNONYM",
+          "matchType": "EXACT",
+          "confidence": 100
+        }
+      },
+      {
+        "target": {
+          "scientificName": "Symphysodon aequifasciatus",
+          "category": "cichlid"
+        },
+        "accepted": false,
+        "reason": "request_failed",
+        "error": "fetch failed"
+      }
+    ]
+  },
+  "imagePolicy": "No images are imported by this resolver. Images require separate source, license, attribution and rights verification."
+}

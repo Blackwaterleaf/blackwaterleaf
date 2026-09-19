@@ -1,0 +1,22 @@
+{
+  "mode": "import",
+  "importedAt": "2026-09-19T16:44:13.070Z",
+  "input": "data/imports/authoritative-taxonomy-gbif-2026-09.import.json",
+  "source": "GBIF Backbone Taxonomy",
+  "sourceVersion": "gbif-backbone-2026-09",
+  "sourceLicense": "CC BY 4.0",
+  "sourceCitation": "GBIF Backbone Taxonomy, DOI: 10.15468/39omei, CC BY 4.0",
+  "plants": {
+    "requested": 90,
+    "create": 90,
+    "update": 0,
+    "skippedExistingName": []
+  },
+  "freshwaterFish": {
+    "requested": 74,
+    "create": 74,
+    "update": 0,
+    "skippedExistingName": []
+  },
+  "imagePolicy": "No images imported; every image field remains null."
+}
