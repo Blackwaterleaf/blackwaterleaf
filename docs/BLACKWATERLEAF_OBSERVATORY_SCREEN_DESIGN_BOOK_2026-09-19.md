@@ -290,3 +290,10 @@ Der Live Hub ist ein angemeldeter Kontextweg aus der Community. Er trennt **Comm
 **Eigenes Live ist ein gleichwertiger Videoweg.** Im Staff-Planer steht neben YouTube Live und Twitch der Weg **BLACKWATERLEAF / IONOS**. Seine Darstellung folgt dem Observatory-System: ein kompakter, dokumentierter Zustandsbereich erzeugt Einspielpfad und einmal sichtbaren Schlüssel; Sitzungsdetail und Live-Hub zeigen die Wiedergabe ausschließlich innerhalb einer angemeldeten Mitgliederansicht. Ein Schlüssel darf weder dauerhaft im UI noch im Klartext in der Datenbank erscheinen.
 
 Die visuelle Sprache trennt klar zwischen drei Zuständen: *einrichten* (Control Deck und Schlüssel), *live* (echte, geschützte Wiedergabe) und *nicht verfügbar* (keine Videofiktion). Die eigene IONOS-Quelle erhält den türkisfarbenen technischen Akzent des Observatory-Systems; externe Anbieter bleiben als vorhandene, sekundäre Quellen sichtbar.
+
+
+### 19.12 Live-Control-Deck: Status und aktuelle Zuschauende
+
+Die Sitzungsansicht zeigt für verantwortlichen Staff ein kompaktes **Control Deck** direkt unter dem Kontextkopf. Es verdichtet drei reale Zustände in gleich große Observatory-Metriken: **Live-Status**, **aktuelle Zuschauende** und **Chat-Status**. Ein roter Punkt markiert ausschließlich eine tatsächlich als `live` geführte Sitzung; geplante und beendete Zustände bleiben eindeutig von einer aktiven Übertragung unterscheidbar. Die Live-Karten im Hub zeigen bei aktiven Sitzungen dieselbe Zuschauerzahl.
+
+Die Zuschauerzahl ist keine Reichweiten- oder Aufrufmetrik. Sie zählt ausschließlich aktive, angemeldete Mitglieder mit einem höchstens 45 Sekunden alten Sitzungs-Heartbeat; Host-Konten werden nicht einbezogen. Für nicht aktive Sitzungen wird der Wert als `0` ausgegeben. Die Oberfläche benennt dies sichtbar als **aktive Mitglieder**, damit keine präzise Zuschauer- oder Analysebehauptung über vergangene Aufrufe entsteht.

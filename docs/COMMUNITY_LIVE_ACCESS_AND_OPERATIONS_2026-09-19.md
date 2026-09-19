@@ -20,9 +20,11 @@ Der Live Hub trennt zwei Sitzungsarten: **Community Live** für moderierten Aust
 | Chat | Nur während einer aktiven Sitzung | Konto-gebunden, sichtbar moderiert, maximal sechs Nachrichten pro Minute |
 | Beziehungsschutz | Gegenseitige Blockierung wirkt sofort | Feed, Kommentare und Chat filtern blockierte Konten |
 
-## Video-Übertragung
+## Video-Übertragung und aktuelle Zuschauende
 
-BlackWaterLeaf betreibt in dieser Ausbaustufe keinen eigenen Video-Transcoder und zeichnet keine Streams auf. Verantwortlicher Staff wählt bei einer Sitzung **YouTube Live** oder **Twitch** und hinterlegt nur eine Video-ID beziehungsweise einen Kanalnamen oder die entsprechende öffentliche Anbieter-URL. Der Hub normalisiert diese Eingabe auf einen erlaubten Anbieter und spielt die Übertragung direkt in einem responsiven iframe ab. Twitch erhält dabei stets den aktuellen BlackWaterLeaf-Hostname als erforderlichen `parent`-Parameter. Stream-Keys, OAuth-Zugangsdaten und beliebige iframe-URLs werden nicht akzeptiert oder gespeichert. Für ein eigenes Transcoding, Zuschauerzahlen aus einer Anbieter-API oder automatisierte Sitzungsstarts wäre anschließend eine getrennte, verbindliche Anbieter- und Moderationsentscheidung erforderlich.
+Verantwortlicher Staff kann **YouTube Live**, **Twitch** oder den vorbereiteten eigenen **BlackWaterLeaf/IONOS**-Weg verwenden. Externe Quellen werden auf erlaubte Anbieterreferenzen normalisiert; die eigene IONOS-Quelle erzeugt stattdessen einen einmal sichtbaren, nur gehasht gespeicherten Einspielschlüssel. Stream-Keys, OAuth-Zugangsdaten und beliebige iframe-URLs werden nicht als allgemeine Eingabe akzeptiert oder gespeichert. YouTube- und Twitch-Wiedergabe erfolgt direkt im responsiven Player; Twitch erhält stets den aktuellen BlackWaterLeaf-Hostname als erforderlichen `parent`-Parameter.
+
+Das Staff-Control-Deck zeigt den Datenbankstatus der Sitzung, Quelle, Chat-Zustand und **aktuelle Zuschauende**. Die Zahl zählt keine Views und keine Reichweite: Ausschließlich angemeldete Mitglieder, die während einer aktiven Sitzung innerhalb von 45 Sekunden einen geschützten Präsenz-Heartbeat abgeben, werden gezählt. Host-Konten bleiben ausgeschlossen; bei geplantem, beendetem oder abgebrochenem Status lautet die Zahl `0`. Der Server bereinigt abgelaufene Präsenzdatensätze bei jedem Heartbeat. Damit bleibt die Anzeige datensparsam, kurzlebig und ohne Verhaltensprofil über eine Sitzung hinaus.
 
 ## Verifizierte Partnerdaten
 

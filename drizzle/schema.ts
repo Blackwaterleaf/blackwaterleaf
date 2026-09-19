@@ -785,6 +785,21 @@ export const liveSessions = mysqlTable(
   ],
 );
 
+/** Short-lived member presence used only for current live audience counts. */
+export const liveSessionViewers = mysqlTable(
+  "live_session_viewers",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    sessionId: int("sessionId").notNull().references(() => liveSessions.id, { onDelete: "cascade" }),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    lastSeenAt: timestamp("lastSeenAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("live_session_viewers_session_user_unique").on(table.sessionId, table.userId),
+    index("live_session_viewers_session_seen_idx").on(table.sessionId, table.lastSeenAt),
+  ],
+);
+
 /** Moderated authenticated chat attached to a single live session. */
 export const liveSessionMessages = mysqlTable(
   "live_session_messages",

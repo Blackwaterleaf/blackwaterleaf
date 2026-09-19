@@ -3,7 +3,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, CalendarClock, Radio, ShieldCheck, UsersRound, UserRoundCheck } from "lucide-react";
+import { ArrowRight, CalendarClock, Eye, Radio, ShieldCheck, UsersRound, UserRoundCheck } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -97,6 +97,6 @@ export default function LiveHub() {
   </div>;
 }
 
-function LiveGroup({ label, sessions, empty }: { label: string; sessions: Array<{ id: string; track: Track; title: string; description: string; realm: string | null; presenterName: string; presenterCredential: string | null; status: string; startsAt: string; stream: { provider: "youtube" | "twitch" | "self_hosted"; identifier: string; canonicalUrl: string } | null }>; empty: string }) {
-  return <section className="live-hub-group"><div className="live-hub-group__heading"><span className="eyebrow">{label}</span><span>{sessions.length}</span></div>{sessions.length ? <div className="live-session-grid">{sessions.map(session => <Link key={session.id} href={`/live/${session.id}`} className={`live-session-card is-${session.status}`}><span className="live-session-card__status"><i />{session.status === "live" ? "LIVE" : session.status === "scheduled" ? "GEPLANT" : "BEENDET"}</span><span className="live-session-card__track">{labelFor(session.track)}</span><h2>{session.title}</h2><p>{session.description}</p><footer><span>{session.presenterName}{session.presenterCredential ? ` · ${session.presenterCredential}` : ""}</span><time>{new Date(session.startsAt).toLocaleString("de-DE")}</time><ArrowRight size={16} /></footer></Link>)}</div> : <div className="live-hub-empty"><Radio size={18} /><p>{empty}</p></div>}</section>;
+function LiveGroup({ label, sessions, empty }: { label: string; sessions: Array<{ id: string; track: Track; title: string; description: string; realm: string | null; presenterName: string; presenterCredential: string | null; status: string; viewerCount: number; startsAt: string; stream: { provider: "youtube" | "twitch" | "self_hosted"; identifier: string; canonicalUrl: string } | null }>; empty: string }) {
+  return <section className="live-hub-group"><div className="live-hub-group__heading"><span className="eyebrow">{label}</span><span>{sessions.length}</span></div>{sessions.length ? <div className="live-session-grid">{sessions.map(session => <Link key={session.id} href={`/live/${session.id}`} className={`live-session-card is-${session.status}`}><span className="live-session-card__status"><i />{session.status === "live" ? "LIVE" : session.status === "scheduled" ? "GEPLANT" : "BEENDET"}</span><span className="live-session-card__track">{labelFor(session.track)}</span><h2>{session.title}</h2><p>{session.description}</p><footer><span>{session.presenterName}{session.presenterCredential ? ` · ${session.presenterCredential}` : ""}</span>{session.status === "live" ? <span className="live-session-card__viewers"><Eye size={14} /> {session.viewerCount} ZUSCHAUENDE</span> : null}<time>{new Date(session.startsAt).toLocaleString("de-DE")}</time><ArrowRight size={16} /></footer></Link>)}</div> : <div className="live-hub-empty"><Radio size={18} /><p>{empty}</p></div>}</section>;
 }

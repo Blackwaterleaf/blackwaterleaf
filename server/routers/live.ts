@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, gt, notInArray, or } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, lt, ne, notInArray, or } from "drizzle-orm";
 import { z } from "zod";
-import { liveSessionMessages, liveSessions, userBlocks, users } from "../../drizzle/schema";
+import { liveSessionMessages, liveSessions, liveSessionViewers, userBlocks, users } from "../../drizzle/schema";
 import { LIVE_STREAM_PROVIDERS, parseStoredLiveStream, resolveLiveStreamReference, type LiveStreamReference } from "../../shared/live-stream-embed";
 import { createIngestKey, createSelfHostedStreamPath, hashIngestKey } from "../../shared/self-hosted-live";
 import { protectedProcedure, router, staffProcedure } from "../_core/trpc";
@@ -12,6 +12,7 @@ import { selfHostedMediaCapabilities } from "../selfHostedLiveMedia";
 const realmSchema = z.enum(["botany", "aquarium", "terrarium"]);
 const trackSchema = z.enum(["community", "expert"]);
 const statusSchema = z.enum(["scheduled", "live", "ended", "cancelled"]);
+const VIEWER_PRESENCE_TTL_MS = 45_000;
 const streamInputSchema = z.object({
   provider: z.enum(LIVE_STREAM_PROVIDERS),
   source: z.string().trim().min(1).max(1_000),
@@ -41,7 +42,17 @@ async function blockedUserIds(db: Awaited<ReturnType<typeof requireDatabase>>, v
   return rows.map(row => row.blockerId === viewerId ? row.blockedId : row.blockerId);
 }
 
-function asSession(row: { session: typeof liveSessions.$inferSelect; host: typeof users.$inferSelect }) {
+function livePresenceThreshold() {
+  return new Date(Date.now() - VIEWER_PRESENCE_TTL_MS);
+}
+
+async function viewerCounts(db: Awaited<ReturnType<typeof requireDatabase>>, sessionIds: number[]) {
+  if (!sessionIds.length) return new Map<number, number>();
+  const rows = await db.select({ sessionId: liveSessionViewers.sessionId, value: count() }).from(liveSessionViewers).innerJoin(liveSessions, eq(liveSessionViewers.sessionId, liveSessions.id)).where(and(inArray(liveSessionViewers.sessionId, sessionIds), gt(liveSessionViewers.lastSeenAt, livePresenceThreshold()), ne(liveSessionViewers.userId, liveSessions.hostUserId))).groupBy(liveSessionViewers.sessionId);
+  return new Map(rows.map(row => [row.sessionId, Number(row.value)]));
+}
+
+function asSession(row: { session: typeof liveSessions.$inferSelect; host: typeof users.$inferSelect }, viewerCount = 0) {
   const stream = parseStoredLiveStream(row.session.streamUrl);
   return {
     id: String(row.session.id),
@@ -53,6 +64,7 @@ function asSession(row: { session: typeof liveSessions.$inferSelect; host: typeo
     presenterCredential: row.session.track === "expert" ? row.session.presenterCredential : null,
     stream: stream ? { provider: stream.provider, identifier: stream.identifier, canonicalUrl: stream.canonicalUrl } : null,
     status: row.session.status,
+    viewerCount: row.session.status === "live" ? viewerCount : 0,
     startsAt: row.session.startsAt.toISOString(),
     endsAt: row.session.endsAt?.toISOString() ?? null,
     host: {
@@ -79,12 +91,27 @@ export const liveRouter = router({
     const db = await requireDatabase();
     const blockedIds = await blockedUserIds(db, ctx.user.id);
     const rows = await db.select({ session: liveSessions, host: users }).from(liveSessions).innerJoin(users, eq(liveSessions.hostUserId, users.id)).where(and(eq(users.status, "active"), ...(input.track ? [eq(liveSessions.track, input.track)] : []), ...(blockedIds.length ? [notInArray(liveSessions.hostUserId, blockedIds)] : []))).orderBy(desc(liveSessions.status), desc(liveSessions.startsAt)).limit(input.limit);
-    return rows.filter(row => row.session.status !== "cancelled").map(asSession);
+    const visible = rows.filter(row => row.session.status !== "cancelled");
+    const counts = await viewerCounts(db, visible.filter(row => row.session.status === "live").map(row => row.session.id));
+    return visible.map(row => asSession(row, counts.get(row.session.id) ?? 0));
   }),
 
   byId: protectedProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ ctx, input }) => {
     const db = await requireDatabase();
-    return asSession(await readableSession(db, ctx.user.id, input.id));
+    const row = await readableSession(db, ctx.user.id, input.id);
+    const counts = await viewerCounts(db, row.session.status === "live" ? [row.session.id] : []);
+    return asSession(row, counts.get(row.session.id) ?? 0);
+  }),
+
+  viewerPresence: protectedProcedure.input(z.object({ sessionId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const row = await readableSession(db, ctx.user.id, input.sessionId);
+    if (row.session.status !== "live") return { active: false, viewerCount: 0, expiresAt: null } as const;
+    const now = new Date();
+    await db.insert(liveSessionViewers).values({ sessionId: row.session.id, userId: ctx.user.id, lastSeenAt: now }).onDuplicateKeyUpdate({ set: { lastSeenAt: now } });
+    await db.delete(liveSessionViewers).where(lt(liveSessionViewers.lastSeenAt, livePresenceThreshold()));
+    const counts = await viewerCounts(db, [row.session.id]);
+    return { active: true, viewerCount: counts.get(row.session.id) ?? 0, expiresAt: new Date(Date.now() + VIEWER_PRESENCE_TTL_MS).toISOString() } as const;
   }),
 
   messages: protectedProcedure.input(z.object({ sessionId: z.number().int().positive(), limit: z.number().int().min(1).max(200).default(100) })).query(async ({ ctx, input }) => {
