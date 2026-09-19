@@ -1813,3 +1813,13 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .live-session-stage__viewers svg, .live-session-card__viewers svg { color: #8ff6ec; }
 .live-session-card__viewers { font: 800 .5rem/1 "JetBrains Mono", monospace; letter-spacing: .045em; }
 @media (max-width: 680px) { .live-control-telemetry__heading { align-items: stretch; flex-direction: column; } .live-control-telemetry__state { align-self: flex-start; } .live-control-telemetry__metrics { grid-template-columns: 1fr; } .live-session-stage__top { align-items: flex-start; flex-wrap: wrap; } }
+
+.live-control-telemetry__actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 13px; border-top: 1px solid rgba(139, 234, 184, .18); }
+.live-control-telemetry__actions > div:first-child { min-width: 0; }
+.live-control-telemetry__actions p { max-width: 520px; margin: 5px 0 0; color: var(--obs-muted); font-size: .67rem; line-height: 1.45; }
+.live-control-telemetry__buttons { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.live-control-telemetry__buttons .primary-action, .live-control-telemetry__buttons .secondary-action { min-height: 39px; padding-inline: 11px; font-size: .57rem; }
+.live-control-telemetry__stop { color: #ffdce2; border-color: rgba(255, 108, 132, .5); background: rgba(96, 18, 35, .42); }
+.live-control-telemetry__stop:hover { border-color: rgba(255, 135, 152, .8); background: rgba(126, 23, 46, .5); }
+.is-spinning { animation: rotate 1s linear infinite; }
+@media (max-width: 780px) { .live-control-telemetry__actions { align-items: stretch; flex-direction: column; } .live-control-telemetry__buttons { justify-content: stretch; } .live-control-telemetry__buttons button { flex: 1 1 170px; } }

@@ -297,3 +297,8 @@ Die visuelle Sprache trennt klar zwischen drei Zuständen: *einrichten* (Control
 Die Sitzungsansicht zeigt für verantwortlichen Staff ein kompaktes **Control Deck** direkt unter dem Kontextkopf. Es verdichtet drei reale Zustände in gleich große Observatory-Metriken: **Live-Status**, **aktuelle Zuschauende** und **Chat-Status**. Ein roter Punkt markiert ausschließlich eine tatsächlich als `live` geführte Sitzung; geplante und beendete Zustände bleiben eindeutig von einer aktiven Übertragung unterscheidbar. Die Live-Karten im Hub zeigen bei aktiven Sitzungen dieselbe Zuschauerzahl.
 
 Die Zuschauerzahl ist keine Reichweiten- oder Aufrufmetrik. Sie zählt ausschließlich aktive, angemeldete Mitglieder mit einem höchstens 45 Sekunden alten Sitzungs-Heartbeat; Host-Konten werden nicht einbezogen. Für nicht aktive Sitzungen wird der Wert als `0` ausgegeben. Die Oberfläche benennt dies sichtbar als **aktive Mitglieder**, damit keine präzise Zuschauer- oder Analysebehauptung über vergangene Aufrufe entsteht.
+
+
+### 19.13 Stream-Deck-Aktionen
+
+Staff sieht die drei direkten Aktionen **Stream starten**, **Stream beenden** und – nur bei einer eigenen IONOS-Quelle – **Schlüssel rotieren** als zusammenhängende Kontrollgruppe im Control Deck, nicht verstreut im Seitenkopf. Start trägt den Lime-Akzent, Ende den kontrollierten Warnrot-Akzent; Rotation bleibt eine sekundäre technische Aktion mit Refresh-Symbol. Deaktivierte Aktionen erklären keinen falschen Übertragungsstatus, sondern sind nur verfügbar, wenn ihr serverseitiger Vorzustand erfüllt ist. Laufende Aktionen ersetzen ihren Text durch einen klaren Vorgangsstatus.

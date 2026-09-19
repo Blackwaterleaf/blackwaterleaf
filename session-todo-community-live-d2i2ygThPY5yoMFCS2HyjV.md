@@ -27,3 +27,12 @@ The only image in the shared homepage shell now carries the descriptive alternat
 - [x] Web-Control-Deck und Live-Hub-Karten um eindeutigen Status, Quelle, Chat-Zustand und aktuelle Zuschauende ergänzt.
 - [x] Vollständige Tests, Web-/Native-Build und visuelle Abnahme ausführen.
 - [x] Finalen Checkpoint sichern.
+
+
+## Stream-Deck-Aktionen
+
+- [x] Start-, Ende- und IONOS-Schlüsselrotationsaktion im Staff-Control-Deck gebündelt.
+- [x] Serverregel ergänzt: Ohne konfigurierte Streamquelle kann keine Sitzung als live markiert werden.
+- [x] Regressionstest und Betriebs-/Designdokumentation ergänzt.
+- [x] Vollständige Tests und Builds durchführen.
+- [ ] Checkpoint sichern.

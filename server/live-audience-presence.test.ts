@@ -31,4 +31,14 @@ describe("live audience telemetry", () => {
     expect(styles).toContain(".live-control-telemetry");
     expect(styles).toContain(".live-control-telemetry__metrics");
   });
+
+  it("places audited start, stop and key rotation controls in the Stream Deck", () => {
+    const session = read("client/src/pages/LiveSession.tsx");
+    const router = read("server/routers/live.ts");
+    const styles = read("client/src/index.css");
+    for (const token of ["STREAM STARTEN", "STREAM BEENDEN", "SCHLÜSSEL ROTIEREN", "status: \"live\"", "status: \"ended\"", "rotate.mutate({ sessionId: id })"]) expect(session).toContain(token);
+    expect(router).toContain('message: "live_stream_source_required"');
+    expect(styles).toContain(".live-control-telemetry__actions");
+    expect(styles).toContain(".live-control-telemetry__stop");
+  });
 });

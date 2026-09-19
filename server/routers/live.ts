@@ -154,9 +154,10 @@ export const liveRouter = router({
   update: staffProcedure.input(z.object({ id: z.number().int().positive(), stream: streamInputSchema.nullable().optional(), status: statusSchema.optional(), endsAt: z.coerce.date().nullable().optional() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     if (input.stream?.provider === "self_hosted") throw new TRPCError({ code: "BAD_REQUEST", message: "self_hosted_stream_requires_control_deck" });
-    const [session] = await db.select({ id: liveSessions.id, startsAt: liveSessions.startsAt }).from(liveSessions).where(eq(liveSessions.id, input.id)).limit(1);
+    const [session] = await db.select({ id: liveSessions.id, startsAt: liveSessions.startsAt, streamUrl: liveSessions.streamUrl }).from(liveSessions).where(eq(liveSessions.id, input.id)).limit(1);
     if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "live_session_not_found" });
     if (input.endsAt && input.endsAt <= session.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "live_end_must_follow_start" });
+    if (input.status === "live" && !session.streamUrl) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "live_stream_source_required" });
     const stream = input.stream === undefined ? undefined : resolveStream(input.stream);
     await db.update(liveSessions).set({ ...(input.stream !== undefined ? { streamUrl: stream?.canonicalUrl ?? null } : {}), ...(input.status ? { status: input.status } : {}), ...(input.endsAt !== undefined ? { endsAt: input.endsAt } : {}) }).where(eq(liveSessions.id, input.id));
     await appendAuditEntry({ actorId: ctx.user.id, action: "live_session_updated", targetType: "live_session", targetId: input.id, payload: { status: input.status ?? null, streamProvider: stream?.provider ?? null, streamChanged: input.stream !== undefined, endChanged: input.endsAt !== undefined } });

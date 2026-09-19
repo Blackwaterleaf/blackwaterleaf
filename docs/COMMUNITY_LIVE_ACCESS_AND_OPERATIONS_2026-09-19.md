@@ -29,3 +29,8 @@ Das Staff-Control-Deck zeigt den Datenbankstatus der Sitzung, Quelle, Chat-Zusta
 ## Verifizierte Partnerdaten
 
 Der Partner **Kiemen-Kumpel** ist im aktiven Projektbestand als freigegebener Partner hinterlegt. Die Prüfung am 19. September 2026 ergab **105 aktive Produkte** mit der Zieladresse `https://kiemen-kumpel.de/`. Diese Commerce-Daten bleiben von den geschützten Community-Daten getrennt und folgen weiter den bestehenden Kennzeichnungs- und Freigaberegeln.
+
+
+## Stream-Deck-Control-Panel
+
+Die drei Staff-Aktionen **Stream starten**, **Stream beenden** und **Schlüssel rotieren** liegen gebündelt im Control Deck der Sitzungsdetailansicht. Start ist nur bei einer konfigurierten Streamquelle aktiv; der Server lehnt einen `live`-Status ohne Quelle ab. Beenden setzt serverseitig Ende und Status der Sitzung, schließt dadurch Chat und Wiedergabe im Mitglieder-Hub. Die Schlüsselrotation erscheint ausschließlich für die eigene BlackWaterLeaf/IONOS-Quelle; sie macht den vorherigen Schlüssel unmittelbar ungültig, erzeugt einen neuen gehashten Schlüssel und protokolliert die Aktion im Audit-Ledger. Alle Schaltflächen sind auf aktive Staff-Rollen beschränkt und zeigen laufende Vorgänge statt eines irreführenden Erfolgssignals an.

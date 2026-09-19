@@ -4,7 +4,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { liveStreamEmbedSrc } from "@shared/live-stream-embed";
-import { Activity, ArrowLeft, Eye, ExternalLink, KeyRound, MessageCircle, Radio, Send, ShieldCheck, UsersRound } from "lucide-react";
+import { Activity, ArrowLeft, Eye, ExternalLink, KeyRound, MessageCircle, Play, Radio, RefreshCw, Send, ShieldCheck, Square, UsersRound } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useRoute } from "wouter";
 
@@ -29,7 +29,7 @@ export default function LiveSession() {
   const capabilities = trpc.live.capabilities.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const viewerPresence = trpc.live.viewerPresence.useMutation();
   const send = trpc.live.sendMessage.useMutation({ onSuccess: async () => { setContent(""); await messages.refetch(); }, onError: error => setStatus(error.message) });
-  const update = trpc.live.update.useMutation({ onSuccess: async () => { await Promise.all([session.refetch(), utils.live.list.invalidate()]); }, onError: error => setStatus(error.message) });
+  const update = trpc.live.update.useMutation({ onSuccess: async () => { setStatus("Sitzungsstatus wurde aktualisiert."); await Promise.all([session.refetch(), utils.live.list.invalidate()]); }, onError: error => setStatus(error.message) });
   const rotate = trpc.live.rotateSelfHostedKey.useMutation({ onSuccess: result => { setIngest(result); setStatus("Der vorherige Einspielschlüssel wurde sofort ungültig. Kopiere den neuen Schlüssel jetzt in OBS oder dein Stream Deck."); }, onError: error => setStatus(error.message) });
   const canManage = auth.user?.role === "admin" || auth.user?.role === "moderator";
   const submit = (event: FormEvent) => { event.preventDefault(); const value = content.trim(); if (value) send.mutate({ sessionId: id, content: value }); };
@@ -63,10 +63,11 @@ export default function LiveSession() {
 
   return <div className="observatory-route observatory-route--botany live-session-page">
     <Link href="/live" className="page-back-link"><ArrowLeft size={16} />ZUM LIVE-HUB</Link>
-    <ObservatoryContextHeader tone="botany" eyebrow={item.track === "expert" ? "FACHVORTRAG · STAFF-ANGELEGT" : "COMMUNITY LIVE · MODERIERT"} title={item.title} subtitle={item.description} icon={Radio} badge={item.status === "live" ? "LIVE" : item.status === "scheduled" ? "GEPLANT" : "BEENDET"} children={canManage ? <><button type="button" className="secondary-action" disabled={update.isPending || item.status === "live"} onClick={() => update.mutate({ id, status: "live" })}>LIVE STARTEN</button><button type="button" className="secondary-action" disabled={update.isPending || item.status === "ended"} onClick={() => update.mutate({ id, status: "ended", endsAt: new Date() })}>BEENDEN</button>{isSelfHosted ? <button type="button" className="secondary-action" disabled={rotate.isPending || item.status === "ended" || item.status === "cancelled"} onClick={() => rotate.mutate({ sessionId: id })}><KeyRound size={15} />SCHLÜSSEL ROTIEREN</button> : null}</> : undefined} />
+    <ObservatoryContextHeader tone="botany" eyebrow={item.track === "expert" ? "FACHVORTRAG · STAFF-ANGELEGT" : "COMMUNITY LIVE · MODERIERT"} title={item.title} subtitle={item.description} icon={Radio} badge={item.status === "live" ? "LIVE" : item.status === "scheduled" ? "GEPLANT" : "BEENDET"} />
     {canManage ? <section className="live-control-telemetry observatory-data-panel" aria-label="Live-Control-Deck Status">
       <div className="live-control-telemetry__heading"><div><span className="eyebrow">CONTROL DECK · ECHTZEIT</span><h2>ÜBERTRAGUNGSSTATUS</h2></div><span className={`live-control-telemetry__state is-${item.status}`}><i />{streamStatus}</span></div>
       <div className="live-control-telemetry__metrics"><div><Activity size={18} /><span>LIVE-STATUS</span><strong>{item.status === "live" ? "ONLINE" : item.status === "scheduled" ? "GEPLANT" : "OFFLINE"}</strong><small>{sourceStatus}</small></div><div><Eye size={18} /><span>ZUSCHAUENDE</span><strong aria-live="polite">{item.viewerCount}</strong><small>aktive Mitglieder · 45 Sek.</small></div><div><Radio size={18} /><span>CHAT</span><strong>{item.status === "live" ? "GEÖFFNET" : "GESCHLOSSEN"}</strong><small>moderiert · Mitglieder</small></div></div>
+      <div className="live-control-telemetry__actions" aria-label="Stream-Steuerung"><div><span className="eyebrow">SENDUNG STEUERN</span><p>Änderungen werden serverseitig protokolliert und sofort im Mitglieder-Hub aktualisiert.</p></div><div className="live-control-telemetry__buttons"><button type="button" className="primary-action" disabled={update.isPending || item.status === "live" || item.status === "ended" || item.status === "cancelled" || !item.stream} onClick={() => update.mutate({ id, status: "live" })}><Play size={15} />{update.isPending ? "WIRD GESTARTET …" : "STREAM STARTEN"}</button><button type="button" className="secondary-action live-control-telemetry__stop" disabled={update.isPending || item.status !== "live"} onClick={() => update.mutate({ id, status: "ended", endsAt: new Date() })}><Square size={15} />{update.isPending ? "WIRD BEENDET …" : "STREAM BEENDEN"}</button>{isSelfHosted ? <button type="button" className="secondary-action" disabled={rotate.isPending || item.status === "ended" || item.status === "cancelled"} onClick={() => rotate.mutate({ sessionId: id })}><RefreshCw size={15} className={rotate.isPending ? "is-spinning" : undefined} />{rotate.isPending ? "SCHLÜSSEL WIRD ERNEUERT …" : "SCHLÜSSEL ROTIEREN"}</button> : null}</div></div>
     </section> : null}
     <section className="live-session-layout">
       <article className="live-session-stage observatory-data-panel">
