@@ -15,6 +15,19 @@ import { Link } from "wouter";
 type AssistantTool = "chat" | "plant" | "aquarium";
 const AI_MAINTENANCE = false;
 function requestId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
+type PlantIdentification = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
+
+function confidenceLabel(value: PlantIdentification["confidence"]) { return value === "high" ? "HOHE SICHERHEIT" : value === "moderate" ? "MITTLERE SICHERHEIT" : "NIEDRIGE SICHERHEIT"; }
+function PlantResultCards({ result, plantNetValidation }: { result: PlantIdentification; plantNetValidation?: { exactMatch: boolean; sameGenus: boolean; topSpecies: string; topScore: number } | null }) {
+  return <div className="assistant-result-cards">
+    <section className="assistant-result-summary"><div><p className="eyebrow">VORLÄUFIGE EINORDNUNG</p><h3>{result.candidates[0]?.scientificName ?? "Noch keine belastbare Art"}</h3><span className={`assistant-confidence assistant-confidence--${result.confidence}`}><ShieldCheck size={14} />{confidenceLabel(result.confidence)}</span></div><p>{result.summary}</p></section>
+    <div className="assistant-result-grid"><section className="assistant-result-card"><h4><Sprout size={16} />MÖGLICHE KANDIDATEN</h4>{result.candidates.length ? <ol>{result.candidates.map(candidate => <li key={`${candidate.scientificName}-${candidate.commonName}`}><span><strong>{candidate.commonName}</strong><small><em>{candidate.scientificName}</em> · {candidate.reason}</small></span><b>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</b></li>)}</ol> : <p>Keine belastbare Kandidatenliste möglich.</p>}</section>
+      <section className="assistant-result-card"><h4><ScanSearch size={16} />ERKENNBARE MERKMALE</h4><div className="assistant-feature-chips">{result.observedFeatures.length ? result.observedFeatures.map(feature => <span key={feature}>{feature}</span>) : <p>Keine ausreichenden Merkmale sicher erkennbar.</p>}</div></section>
+      <section className="assistant-result-card assistant-result-card--images"><h4><Camera size={16} />WEITERE BILDER</h4><p>{result.needsMoreImages ? result.followUpQuestion || "Bitte fotografiere eine weitere relevante Einzelansicht." : "Für diese vorläufige Einordnung werden aktuell keine weiteren Bilder benötigt."}</p>{result.needsMoreImages ? <span className="assistant-result-hint">Gesamtansicht oder Blattunterseite</span> : null}</section>
+      <section className="assistant-result-card assistant-result-card--verification"><h4><ShieldCheck size={16} />UNABHÄNGIGE PRÜFUNG</h4>{plantNetValidation ? <p>{plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Gattung bestätigt · ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %)` : `Abweichende Prüfung · ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %)`}</p> : <p>Für dieses Bild war keine zweite API-Prüfung verfügbar.</p>}</section></div>
+    {result.safetyNotes.length ? <section className="assistant-result-note"><strong>SICHERHEITSHINWEISE</strong><p>{result.safetyNotes.join(" · ")}</p></section> : null}
+  </div>;
+}
 
 function PlantCorrectionForm({ originalAnswer, assistantUsageId }: { originalAnswer: string; assistantUsageId: number }) {
   const [correctedName, setCorrectedName] = useState("");
@@ -55,6 +68,8 @@ export default function Assistant() {
   const [plantPreviews, setPlantPreviews] = useState<string[]>([]);
   const [plantNote, setPlantNote] = useState("");
   const [plantAnswer, setPlantAnswer] = useState<string | null>(null);
+  const [plantIdentification, setPlantIdentification] = useState<PlantIdentification | null>(null);
+  const [plantNetValidation, setPlantNetValidation] = useState<{ exactMatch: boolean; sameGenus: boolean; topSpecies: string; topScore: number } | null>(null);
   const [plantOriginalAnswer, setPlantOriginalAnswer] = useState<string | null>(null);
   const [plantAssistantUsageId, setPlantAssistantUsageId] = useState<number | null>(null);
   const [plantNeedsMoreImages, setPlantNeedsMoreImages] = useState(false);
@@ -75,7 +90,7 @@ export default function Assistant() {
     onError: mutationError => setError(mutationError.message),
   });
   const plantIdentify = trpc.assistant.plantIdentify.useMutation({
-    onSuccess: async response => { setPlantOriginalAnswer(response.answer); setPlantAssistantUsageId(response.assistantUsageId); setPlantAnswer(`${response.answer}\n\n_${response.disclaimer}_`); setPlantNeedsMoreImages(response.needsMoreImages); setPlantRequestedImages(response.requestedAdditionalImages); await utils.gamification.summary.invalidate(); },
+    onSuccess: async response => { setPlantOriginalAnswer(response.answer); setPlantAssistantUsageId(response.assistantUsageId); setPlantAnswer(`${response.answer}\n\n_${response.disclaimer}_`); setPlantIdentification(response.identification); setPlantNetValidation(response.plantNetValidation); setPlantNeedsMoreImages(response.needsMoreImages); setPlantRequestedImages(response.requestedAdditionalImages); await utils.gamification.summary.invalidate(); },
     onError: mutationError => setError(mutationError.message),
   });
   const aquariumAnalyze = trpc.assistant.aquariumAnalyze.useMutation({
@@ -95,9 +110,9 @@ export default function Assistant() {
     if (!file) return;
     if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type) || file.size <= 0) { setError("Bitte wähle ein gültiges JPG-, PNG- oder WebP-Bild aus."); return; }
     if (plantFiles.length >= 3) return;
-    setError(null); setPlantAnswer(null); setPlantOriginalAnswer(null); setPlantAssistantUsageId(null); setPlantNeedsMoreImages(false); setPlantRequestedImages(0); setPlantFiles(current => [...current, file]); setPlantPreviews(current => [...current, URL.createObjectURL(file)]);
+    setError(null); setPlantAnswer(null); setPlantIdentification(null); setPlantNetValidation(null); setPlantOriginalAnswer(null); setPlantAssistantUsageId(null); setPlantNeedsMoreImages(false); setPlantRequestedImages(0); setPlantFiles(current => [...current, file]); setPlantPreviews(current => [...current, URL.createObjectURL(file)]);
   };
-  const resetPlantImages = () => { plantPreviews.forEach(URL.revokeObjectURL); setPlantFiles([]); setPlantPreviews([]); setPlantAnswer(null); setPlantOriginalAnswer(null); setPlantAssistantUsageId(null); setPlantNeedsMoreImages(false); setPlantRequestedImages(0); };
+  const resetPlantImages = () => { plantPreviews.forEach(URL.revokeObjectURL); setPlantFiles([]); setPlantPreviews([]); setPlantAnswer(null); setPlantIdentification(null); setPlantNetValidation(null); setPlantOriginalAnswer(null); setPlantAssistantUsageId(null); setPlantNeedsMoreImages(false); setPlantRequestedImages(0); };
   const identifyPlant = async () => {
     if (!available || !plantFiles[0] || plantIdentify.isPending) return;
     try { setError(null); const images = await Promise.all(plantFiles.map(file => readImageAsBase64(file, { forAnalysis: true }))); const [first, ...additionalImages] = images; plantIdentify.mutate({ clientRequestId: requestId(), imageBase64: first.base64, mimeType: first.mimeType as "image/jpeg" | "image/png" | "image/webp", additionalImages: additionalImages.map(image => ({ imageBase64: image.base64, mimeType: image.mimeType as "image/jpeg" | "image/png" | "image/webp" })), note: plantNote.trim() || undefined }); }
