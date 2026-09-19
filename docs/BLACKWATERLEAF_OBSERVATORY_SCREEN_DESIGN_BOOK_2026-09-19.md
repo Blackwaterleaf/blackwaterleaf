@@ -112,3 +112,5 @@ Vor jedem Checkpoint werden Desktop und Mobile für mindestens Entdecken, Karte,
 ## 11. Sicherheitsfortschritt des Enterprise-Plans
 
 AP-01 und AP-02 sind abgenommen. Der anonyme `/manus-storage/*`-Proxy darf ausschließlich die unveränderlichen, im Quellcode festgelegten Observatory-Designassets ausliefern. Dynamische Nutzer-, Habitat-, Beobachtungs-, Community- und Händlerbilder dürfen nicht über einen frei erratbaren Storage-Key ausgeliefert werden; ihre objektbezogene Autorisierung wird in AP-03 umgesetzt. Diese Sicherheitsregel darf nicht durch eine neue UI- oder CSS-Referenz umgangen werden.
+
+AP-04 bereinigt serverseitig vor der Speicherung JPEG-EXIF-/APP1-Metadaten, PNG-Text-, XMP-, EXIF- und physische Metadaten-Chunks sowie WebP-EXIF-/XMP-Chunks. Dadurch werden insbesondere GPS- und Geräteinformationen nicht als Bestandteil eines neu gespeicherten Bildes weitergegeben. Die Bildvalidierung und die Metadatenbereinigung bleiben getrennte, getestete Schritte.

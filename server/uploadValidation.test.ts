@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateImageUpload } from "./uploadValidation";
+import { stripImageMetadata, validateImageUpload } from "./uploadValidation";
 
 const MINIMAL_PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).toString("base64");
 const MINIMAL_JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString("base64");
@@ -22,5 +22,20 @@ describe("partner product image validation", () => {
     const tooLarge = Buffer.alloc(8 * 1024 * 1024 + 1, 0);
     tooLarge.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     expect(() => validateImageUpload(tooLarge.toString("base64"), "image/png")).toThrow("invalid_image_size");
+  });
+
+  it("removes JPEG EXIF application segments before storage", () => {
+    const jpegWithExif = Buffer.from([0xff, 0xd8, 0xff, 0xe1, 0x00, 0x08, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00, 0xff, 0xd9]);
+    const sanitized = stripImageMetadata(jpegWithExif, "image/jpeg");
+    expect(sanitized.includes(Buffer.from("Exif"))).toBe(false);
+    expect(sanitized.subarray(0, 2).equals(Buffer.from([0xff, 0xd8]))).toBe(true);
+  });
+
+  it("removes PNG text and physical-location metadata chunks", () => {
+    const chunk = Buffer.from([0x00, 0x00, 0x00, 0x04, 0x74, 0x45, 0x58, 0x74, 0x67, 0x70, 0x73, 0x00, 0, 0, 0, 0]);
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk, Buffer.from([0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0, 0, 0, 0])]);
+    const sanitized = stripImageMetadata(png, "image/png");
+    expect(sanitized.includes(Buffer.from("tEXt"))).toBe(false);
+    expect(sanitized.includes(Buffer.from("gps"))).toBe(false);
   });
 });

@@ -61,11 +61,12 @@ describe("isActiveAccountWithRole", () => {
 });
 
 describe("validateImageUpload", () => {
-  it("accepts a correctly signed PNG and preserves byte size", () => {
+  it("accepts a correctly signed PNG and returns the sanitized byte size", () => {
     const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
     const result = validateImageUpload(png.toString("base64"), "image/png");
     expect(result.extension).toBe("png");
-    expect(result.byteSize).toBe(png.length);
+    expect(result.byteSize).toBe(result.buffer.length);
+    expect(result.byteSize).toBeLessThanOrEqual(png.length);
   });
 
   it("rejects a declared image whose bytes have a different signature", () => {

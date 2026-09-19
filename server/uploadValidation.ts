@@ -26,6 +26,70 @@ function isAllowedImageMimeType(value: string): value is AllowedImageMimeType {
   return ALLOWED_IMAGE_MIME_TYPES.includes(value as AllowedImageMimeType);
 }
 
+function stripJpegMetadata(buffer: Buffer): Buffer {
+  const output: Buffer[] = [buffer.subarray(0, 2)];
+  let offset = 2;
+  while (offset < buffer.length) {
+    if (buffer[offset] !== 0xff) return buffer;
+    const marker = buffer[offset + 1];
+    if (marker === 0xda || marker === 0xd9) {
+      output.push(buffer.subarray(offset));
+      return Buffer.concat(output);
+    }
+    if (marker === 0x00 || (marker >= 0xd0 && marker <= 0xd7)) {
+      output.push(buffer.subarray(offset, offset + 2));
+      offset += 2;
+      continue;
+    }
+    if (offset + 4 > buffer.length) return buffer;
+    const segmentLength = buffer.readUInt16BE(offset + 2);
+    const segmentEnd = offset + 2 + segmentLength;
+    if (segmentEnd > buffer.length) return buffer;
+    // Keep JFIF/JFXX application headers; remove EXIF, XMP, ICC and comments.
+    const keep = marker === 0xe0;
+    if (keep) output.push(buffer.subarray(offset, segmentEnd));
+    offset = segmentEnd;
+  }
+  return Buffer.concat(output);
+}
+
+function stripPngMetadata(buffer: Buffer): Buffer {
+  const output: Buffer[] = [buffer.subarray(0, 8)];
+  let offset = 8;
+  const removable = new Set(["eXIf", "tEXt", "zTXt", "iTXt", "pHYs"]);
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.subarray(offset + 4, offset + 8).toString("ascii");
+    const end = offset + 12 + length;
+    if (end > buffer.length) return buffer;
+    if (!removable.has(type)) output.push(buffer.subarray(offset, end));
+    offset = end;
+    if (type === "IEND") break;
+  }
+  return Buffer.concat(output);
+}
+
+function stripWebpMetadata(buffer: Buffer): Buffer {
+  const output: Buffer[] = [buffer.subarray(0, 12)];
+  let offset = 12;
+  const removable = new Set(["EXIF", "XMP "]);
+  while (offset + 8 <= buffer.length) {
+    const type = buffer.subarray(offset, offset + 4).toString("ascii");
+    const size = buffer.readUInt32LE(offset + 4);
+    const end = offset + 8 + size + (size % 2);
+    if (end > buffer.length) return buffer;
+    if (!removable.has(type)) output.push(buffer.subarray(offset, end));
+    offset = end;
+  }
+  return Buffer.concat(output);
+}
+
+export function stripImageMetadata(buffer: Buffer, mimeType: AllowedImageMimeType): Buffer {
+  if (mimeType === "image/jpeg") return stripJpegMetadata(buffer);
+  if (mimeType === "image/png") return stripPngMetadata(buffer);
+  return stripWebpMetadata(buffer);
+}
+
 export function validateImageUpload(base64: string, mimeType: string) {
   if (!isAllowedImageMimeType(mimeType)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "unsupported_image_type" });
@@ -45,9 +109,10 @@ export function validateImageUpload(base64: string, mimeType: string) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "image_signature_mismatch" });
   }
 
+  const sanitizedBuffer = stripImageMetadata(buffer, mimeType);
   return {
-    buffer,
-    byteSize: buffer.length,
+    buffer: sanitizedBuffer,
+    byteSize: sanitizedBuffer.length,
     extension: extensions[mimeType],
     mimeType,
   } as const;
