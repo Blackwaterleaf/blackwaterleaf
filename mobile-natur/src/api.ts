@@ -442,7 +442,7 @@ export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_
 export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; evidenceState: string; status: string };
 export type Challenge = { id: number; title: string; description: string; realm: "botany" | "aquarium" | "terrarium" | null; ruleText: string; startsAt: string; endsAt: string; rewardPoints: number };
 export type ChallengeProgress = { challengeId: number; title: string; realm: string | null; progress: number; status: "joined" | "completed" | "withdrawn"; endsAt: string };
-export const unifiedSearch = (query: string, kind: "all" | "plant" | "knowledge" | "profile" | "community" | "product" = "all") => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18 });
+export const unifiedSearch = (query: string, kind: "all" | "plant" | "knowledge" | "profile" | "community" | "product" = "all", cursor?: string) => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18, cursor });
 export const publicPlantTaxon = (id: number) => trpcGet<PublicPlantTaxon | null>("search.plantById", { id });
 export const publicProfile = (id: number) => trpcGet<PublicProfile | null>("profile.publicById", { id });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);
