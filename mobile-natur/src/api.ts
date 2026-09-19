@@ -432,6 +432,7 @@ export const careAddJournal = (token: string, input: { note: string; habitatId?:
 
 export type UnifiedSearchResult = {
   taxa: Array<{ id: string; type: "plant"; scientificName: string; acceptedScientificName: string | null; family: string | null; rank: string | null; summary: string | null; evidenceState: string; imageUrl: string | null }>;
+  aquarium: Array<{ id: string; type: "aquarium"; scientificName: string; acceptedScientificName: string | null; family: string | null; rank: string | null; summary: string | null; evidenceState: string; imageUrl: string | null; commonNames: string[] }>;
   knowledge: Array<{ id: string; type: "knowledge"; title: string; excerpt: string; realm: string | null; evidenceState: string }>;
   profiles: Array<{ id: string; type: "profile"; name: string | null; username: string | null; bio: string | null; avatarUrl: string | null }>;
   community: Array<{ id: string; type: "community"; content: string; realm: string | null; userId: number; createdAt: string }>;
@@ -441,12 +442,14 @@ export type UnifiedSearchResult = {
 export type PublicProfile = Account & { location?: string | null; profileVisibility?: string; socialLinks?: Record<string, string | null> };
 export type SocialRelationship = { followers: number; following: number; isFollowing: boolean };
 export type PublicProfilePost = { id: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; updatedAt: string };
-export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "product" | "profile"; targetId: number; createdAt: string };
+export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "aquarium_taxon" | "product" | "profile"; targetId: number; createdAt: string };
 export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; evidenceState: string; status: string };
+export type PublicAquariumTaxon = PublicPlantTaxon;
 export type Challenge = { id: number; title: string; description: string; realm: "botany" | "aquarium" | "terrarium" | null; ruleText: string; startsAt: string; endsAt: string; rewardPoints: number };
 export type ChallengeProgress = { challengeId: number; title: string; realm: string | null; progress: number; status: "joined" | "completed" | "withdrawn"; endsAt: string };
-export const unifiedSearch = (query: string, kind: "all" | "plant" | "knowledge" | "profile" | "community" | "product" = "all", cursor?: string) => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18, cursor });
+export const unifiedSearch = (query: string, kind: "all" | "plant" | "aquarium" | "knowledge" | "profile" | "community" | "product" = "all", cursor?: string) => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18, cursor });
 export const publicPlantTaxon = (id: number) => trpcGet<PublicPlantTaxon | null>("search.plantById", { id });
+export const publicAquariumTaxon = (id: number) => trpcGet<PublicAquariumTaxon | null>("search.aquariumById", { id });
 export const publicProfile = (id: number) => trpcGet<PublicProfile | null>("profile.publicById", { id });
 export const publicProfilePosts = (id: number) => trpcGet<PublicProfilePost[]>("profile.publicPosts", { userId: id, limit: 12 });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);

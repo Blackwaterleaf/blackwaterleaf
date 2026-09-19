@@ -555,6 +555,36 @@ export const plantTaxa = mysqlTable(
   ],
 );
 
+/** Source-traceable public aquarium organism catalogue, kept separate from plant taxonomy. */
+export const aquariumTaxa = mysqlTable(
+  "aquarium_taxa",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    source: varchar("source", { length: 96 }).notNull(),
+    sourceVersion: varchar("sourceVersion", { length: 96 }).notNull(),
+    sourceRecordId: varchar("sourceRecordId", { length: 160 }).notNull(),
+    scientificName: varchar("scientificName", { length: 240 }).notNull(),
+    acceptedScientificName: varchar("acceptedScientificName", { length: 240 }),
+    rank: varchar("rank", { length: 48 }),
+    family: varchar("family", { length: 160 }),
+    genus: varchar("genus", { length: 160 }),
+    commonNames: json("commonNames").notNull(),
+    synonyms: json("synonyms").notNull(),
+    summary: text("summary"),
+    careProfile: json("careProfile"),
+    imageUrl: varchar("imageUrl", { length: 1_000 }),
+    evidenceState: mysqlEnum("evidenceState", ["confirmed", "contextual", "unverified", "conflicting", "insufficient"]).default("confirmed").notNull(),
+    status: mysqlEnum("status", ["draft", "published", "retired"]).default("draft").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("aquarium_taxa_source_record_unique").on(table.source, table.sourceVersion, table.sourceRecordId),
+    index("aquarium_taxa_scientific_name_idx").on(table.scientificName),
+    index("aquarium_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+  ],
+);
+
 /** Server-synchronised following relationship; private accounts never leak through public search. */
 export const userFollows = mysqlTable(
   "user_follows",
@@ -593,7 +623,7 @@ export const savedItems = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull().references(() => users.id),
-    targetType: mysqlEnum("targetType", ["post", "knowledge", "plant_taxon", "product", "profile"]).notNull(),
+    targetType: mysqlEnum("targetType", ["post", "knowledge", "plant_taxon", "aquarium_taxon", "product", "profile"]).notNull(),
     targetId: int("targetId").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },

@@ -1,13 +1,14 @@
-import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
+import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
 
-type SearchKind = "all" | "plant" | "knowledge" | "profile" | "community" | "product";
+type SearchKind = "all" | "plant" | "aquarium" | "knowledge" | "profile" | "community" | "product";
 const tabs: Array<{ key: SearchKind; label: string; icon: typeof Leaf }> = [
   { key: "all", label: "Alles", icon: SearchIcon },
   { key: "plant", label: "Pflanzen", icon: Leaf },
+  { key: "aquarium", label: "Aquaristik", icon: Fish },
   { key: "knowledge", label: "Wissen", icon: BookOpen },
   { key: "profile", label: "Profile", icon: UserRound },
   { key: "community", label: "Community", icon: MessageCircle },
@@ -16,7 +17,9 @@ const tabs: Array<{ key: SearchKind; label: string; icon: typeof Leaf }> = [
 
 function ResultCard({ type, item }: { type: SearchKind; item: Record<string, unknown> }) {
   const id = String(item.id);
+  const commonName = Array.isArray(item.commonNames) ? item.commonNames[0] : undefined;
   if (type === "plant") return <Link className="search-result-card" href={`/plant/${id}`}><span className="search-result-icon search-result-icon--plant"><Leaf size={19} /></span><span><strong>{String(item.scientificName)}</strong><small>{String(item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "confirmed")}</em></span><ArrowRight size={16} /></Link>;
+  if (type === "aquarium") return <Link className="search-result-card" href={`/aquarium-fish/${id}`}><span className="search-result-icon search-result-icon--aquarium"><Fish size={19} /></span><span><strong>{String(item.scientificName)}</strong><small>{String(commonName ?? item.family ?? "Validierter Aquaristik-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "confirmed")}</em></span><ArrowRight size={16} /></Link>;
   if (type === "knowledge") return <Link className="search-result-card" href="/knowledge"><span className="search-result-icon"><BookOpen size={19} /></span><span><strong>{String(item.title)}</strong><small>{String(item.excerpt ?? "")}</small><em>{String(item.realm ?? "Wissen")}</em></span><ArrowRight size={16} /></Link>;
   if (type === "profile") return <Link className="search-result-card" href={`/member/${id}`}><span className="search-result-icon"><UserRound size={19} /></span><span><strong>{String(item.name ?? item.username ?? "BlackWaterLeaf-Nutzer")}</strong><small>{item.username ? `@${String(item.username)}` : "Öffentliches Profil"}</small><em>Profil öffnen</em></span><ArrowRight size={16} /></Link>;
   if (type === "community") return <Link className="search-result-card" href={`/community?post=${id}`}><span className="search-result-icon"><MessageCircle size={19} /></span><span><strong>{String(item.realm ?? "Community")}</strong><small>{String(item.content)}</small><em>Öffentlicher Beitrag</em></span><ArrowRight size={16} /></Link>;
@@ -36,9 +39,9 @@ export default function Search() {
   useEffect(() => setCursor(undefined), [query, kind]);
   const search = trpc.search.unified.useQuery({ q: query, kind, locale: "de", limit: 18, cursor }, { enabled: query.length >= 2, retry: false, staleTime: 15_000 });
   const data = search.data;
-  const selected = kind === "plant" ? data?.taxa : kind === "knowledge" ? data?.knowledge : kind === "profile" ? data?.profiles : kind === "community" ? data?.community : kind === "product" ? data?.products : [];
+  const selected = kind === "plant" ? data?.taxa : kind === "aquarium" ? data?.aquarium : kind === "knowledge" ? data?.knowledge : kind === "profile" ? data?.profiles : kind === "community" ? data?.community : kind === "product" ? data?.products : [];
   const groups = kind === "all" ? [
-    ["plant", data?.taxa ?? []], ["knowledge", data?.knowledge ?? []], ["profile", data?.profiles ?? []], ["community", data?.community ?? []], ["product", data?.products ?? []],
+    ["plant", data?.taxa ?? []], ["aquarium", data?.aquarium ?? []], ["knowledge", data?.knowledge ?? []], ["profile", data?.profiles ?? []], ["community", data?.community ?? []], ["product", data?.products ?? []],
   ] as const : [[kind, selected ?? []] as const];
 
   return <div className="reference-page search-page">

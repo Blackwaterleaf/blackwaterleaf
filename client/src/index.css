@@ -1442,3 +1442,11 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .profile-auth-cta { animation: profile-auth-pulse 2.4s ease-in-out infinite; }
 @keyframes profile-auth-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(199,243,91,0); } 50% { box-shadow: 0 0 0 7px rgba(199,243,91,.13), 0 0 24px rgba(199,243,91,.15); } }
 @media (prefers-reduced-motion: reduce) { .profile-auth-cta { animation: none; } }
+
+
+/* Aquarium catalog detail: same compact geometry as plant taxonomy, aqua accent only. */
+.aquarium-taxon-page .plant-taxon-placeholder { background: linear-gradient(145deg, rgba(34, 139, 155, 0.28), rgba(11, 35, 44, 0.82)); }
+.search-result-icon--aquarium { color: #65d6d2; background: rgba(25, 126, 145, 0.16); border-color: rgba(101, 214, 210, 0.3); }
+.taxon-care-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.taxon-disclaimer { margin-top: 18px; color: var(--muted-foreground); font-size: 0.82rem; }
+@media (max-width: 620px) { .taxon-care-grid { grid-template-columns: 1fr; } }

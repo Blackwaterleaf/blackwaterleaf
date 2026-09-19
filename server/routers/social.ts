@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, savedItems, userBlocks, userFollows, users } from "../../drizzle/schema";
+import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, savedItems, userBlocks, userFollows, users } from "../../drizzle/schema";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 
-const targetTypeSchema = z.enum(["post", "knowledge", "plant_taxon", "product", "profile"]);
+const targetTypeSchema = z.enum(["post", "knowledge", "plant_taxon", "aquarium_taxon", "product", "profile"]);
 const idInput = z.object({ id: z.number().int().positive() });
 const targetInput = z.object({ targetType: targetTypeSchema, targetId: z.number().int().positive() });
 
@@ -25,6 +25,9 @@ async function assertPublicTarget(db: Awaited<ReturnType<typeof requireDatabase>
   } else if (targetType === "plant_taxon") {
     const row = await db.select({ id: plantTaxa.id }).from(plantTaxa).where(and(eq(plantTaxa.id, targetId), eq(plantTaxa.status, "published"))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "plant_taxon_not_found" });
+  } else if (targetType === "aquarium_taxon") {
+    const row = await db.select({ id: aquariumTaxa.id }).from(aquariumTaxa).where(and(eq(aquariumTaxa.id, targetId), eq(aquariumTaxa.status, "published"))).limit(1);
+    if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "aquarium_taxon_not_found" });
   } else if (targetType === "product") {
     const row = await db.select({ id: partnerProducts.id }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(eq(partnerProducts.id, targetId), eq(partnerProducts.status, "active"), eq(partnerProfiles.status, "approved"))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "product_not_found" });

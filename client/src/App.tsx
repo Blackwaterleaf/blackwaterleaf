@@ -24,6 +24,7 @@ import Notifications from "./pages/Notifications";
 import CareToday from "./pages/CareToday";
 import Search from "./pages/Search";
 import PlantTaxon from "./pages/PlantTaxon";
+import AquariumTaxon from "./pages/AquariumTaxon";
 import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
 import { lazy, Suspense } from "react";
@@ -58,6 +59,7 @@ function Router() {
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/member/:id"} component={PublicProfile} />
         <Route path={"/plant/:id"} component={PlantTaxon} />
+        <Route path={"/aquarium-fish/:id"} component={AquariumTaxon} />
         <Route path={"/saved"} component={SavedItems} />
         <Route path={"/ranking"} component={Ranking} />
         <Route path={"/profile-mockup"} component={ProfileMockup} />

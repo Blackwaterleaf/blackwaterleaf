@@ -1,0 +1,9 @@
+{
+  "source": "data/imports/legacy-seed-taxonomy.sql",
+  "importedRecords": 15,
+  "sourceNames": [
+    "FishBase"
+  ],
+  "category": "channa",
+  "batches": 1
+}

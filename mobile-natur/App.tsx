@@ -71,6 +71,7 @@ import {
   updateCommunityPost,
   unifiedSearch,
   publicPlantTaxon,
+  publicAquariumTaxon,
   publicProfile,
   publicProfilePosts,
   socialRelationship,
@@ -101,6 +102,7 @@ import {
   type ProfileConsent,
   type UnifiedSearchResult,
   type PublicPlantTaxon,
+  type PublicAquariumTaxon,
   type PublicProfile,
   type PublicProfilePost,
   type SocialRelationship,
@@ -168,6 +170,7 @@ type Screen =
   | "search"
   | "publicProfile"
   | "taxon"
+  | "aquariumTaxon"
   | "saved"
   | "ranking"
   | "notifications"
@@ -353,6 +356,14 @@ const TONES: Record<Screen, Tone> = {
     label: "PFLANZENKATALOG",
     active: "explore",
   },
+  aquariumTaxon: {
+    accent: c.aqua,
+    surface: c.aquariumSurface,
+    panel: "#032231",
+    image: ASSETS.aquarium,
+    label: "AQUARISTIK-KATALOG",
+    active: "explore",
+  },
   saved: {
     accent: c.botany,
     surface: c.botanySurface,
@@ -420,6 +431,7 @@ function NaturApp() {
   const [profileMenuTarget, setProfileMenuTarget] = useState<ProfileMenuTarget>("open");
   const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<number | null>(null);
   const [selectedTaxonId, setSelectedTaxonId] = useState<number | null>(null);
+  const [selectedAquariumTaxonId, setSelectedAquariumTaxonId] = useState<number | null>(null);
 
   const tone =
     screen === "collection"
@@ -918,11 +930,13 @@ function NaturApp() {
             navigate={navigate}
             onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
             onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
+            onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
           />
         )}
         {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} /> : null}
         {screen === "taxon" && selectedTaxonId ? <TaxonScreen tone={TONES.taxon} token={token} taxonId={selectedTaxonId} onBack={() => navigate("search")} /> : null}
-        {screen === "saved" ? <SavedScreen tone={TONES.saved} token={token} onBack={() => navigate("profile")} onSignIn={signIn} navigate={navigate} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} /> : null}
+        {screen === "aquariumTaxon" && selectedAquariumTaxonId ? <AquariumTaxonScreen tone={TONES.aquariumTaxon} token={token} taxonId={selectedAquariumTaxonId} onBack={() => navigate("search")} /> : null}
+        {screen === "saved" ? <SavedScreen tone={TONES.saved} token={token} onBack={() => navigate("profile")} onSignIn={signIn} navigate={navigate} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }} /> : null}
         {screen === "ranking" ? <RankingScreen tone={TONES.ranking} token={token} onBack={() => navigate("profile")} onSignIn={signIn} /> : null}
       </View>
       <BottomNavigation
@@ -3103,7 +3117,7 @@ function BuilderScreen({
   );
 }
 
-function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void }) {
+function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<UnifiedSearchResult | null>(null);
   const [remoteState, setRemoteState] = useState<State>("ready");
@@ -3116,10 +3130,10 @@ function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, on
     const timer = setTimeout(() => { void unifiedSearch(normalized, "all", cursor).then(value => { if (active) { setResults(value); setRemoteState("ready"); } }).catch(() => { if (active) setRemoteState("error"); }); }, 220);
     return () => { active = false; clearTimeout(timer); };
   }, [normalized, cursor]);
-  const total = results ? results.taxa.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
-  const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
-  const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
-  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ReferenceHero tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
+  const total = results ? results.taxa.length + results.aquarium.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
+  const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "aquarium") onOpenAquariumTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
+  const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "aquarium" ? "fish-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
+  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ReferenceHero tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
 }
 
 function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void> }) {
@@ -3143,12 +3157,25 @@ function TaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: stri
   return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text>{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
 }
 
-function SavedScreen({ tone, token, onBack, onSignIn, navigate, onOpenProfile, onOpenTaxon }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void }) {
+function AquariumTaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void }) {
+  const [taxon, setTaxon] = useState<PublicAquariumTaxon | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [state, setState] = useState<State>("loading");
+  useEffect(() => { let active = true; void publicAquariumTaxon(taxonId).then(next => { if (active) { setTaxon(next); setState(next ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [taxonId]);
+  useEffect(() => { if (!token) return; void savedItems(token).then(rows => setSaved(rows.some(item => item.targetType === "aquarium_taxon" && item.targetId === taxonId))).catch(() => undefined); }, [token, taxonId]);
+  const toggleSave = async () => { if (!token || !taxon) return; try { if (saved) await unsaveItem(token, { targetType: "aquarium_taxon", targetId: taxonId }); else await saveItem(token, { targetType: "aquarium_taxon", targetId: taxonId }); setSaved(current => !current); } catch (cause) { Alert.alert("Speichern nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
+  const profile = taxon?.careProfile && typeof taxon.careProfile === "object" ? taxon.careProfile : {};
+  const careLevel = typeof profile.careLevel === "string" ? profile.careLevel : null;
+  const water = typeof profile.water === "string" ? profile.water : null;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="fish-outline" code="AQUARIUM / NICHT VERÖFFENTLICHT" title="FISCH NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="fish-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER AQUARISTIK-KATALOG · CHANNA</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Aquaristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text>{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View>{careLevel || water ? <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>HALTUNGSHINWEISE</Text>{careLevel ? <Text style={styles.copy}>ANSPRUCH · {careLevel}</Text> : null}{water ? <Text style={styles.copy}>WASSER · {water}</Text> : null}<Text style={styles.miniCopy}>Katalogauszug – Haltung bitte individuell anhand von Größe, Herkunft und Verhalten prüfen.</Text></View> : null}</>}</Page>;
+}
+
+function SavedScreen({ tone, token, onBack, onSignIn, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
   const [items, setItems] = useState<SavedItem[]>([]);
   const [state, setState] = useState<State>(token ? "loading" : "ready");
   useEffect(() => { if (!token) return; setState("loading"); void savedItems(token).then(next => { setItems(next); setState("ready"); }).catch(() => setState("error")); }, [token]);
-  const open = (item: SavedItem) => { if (item.targetType === "profile") onOpenProfile(item.targetId); else if (item.targetType === "plant_taxon") onOpenTaxon(item.targetId); else if (item.targetType === "knowledge") navigate("knowledge"); else if (item.targetType === "post") navigate("community"); else navigate("marketplace"); };
-  const label: Record<SavedItem["targetType"], string> = { post: "COMMUNITY-BEITRAG", knowledge: "WISSENSARTIKEL", plant_taxon: "PFLANZENTAXON", product: "MARKTPLATZ-PRODUKT", profile: "PROFIL" };
+  const open = (item: SavedItem) => { if (item.targetType === "profile") onOpenProfile(item.targetId); else if (item.targetType === "plant_taxon") onOpenTaxon(item.targetId); else if (item.targetType === "aquarium_taxon") onOpenAquariumTaxon(item.targetId); else if (item.targetType === "knowledge") navigate("knowledge"); else if (item.targetType === "post") navigate("community"); else navigate("marketplace"); };
+  const label: Record<SavedItem["targetType"], string> = { post: "COMMUNITY-BEITRAG", knowledge: "WISSENSARTIKEL", plant_taxon: "PFLANZENTAXON", aquarium_taxon: "AQUARISTIK-TAXON", product: "MARKTPLATZ-PRODUKT", profile: "PROFIL" };
   return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="DEIN MERKRAUM BLEIBT PRIVAT." text="Melde dich an, um gespeicherte öffentliche Inhalte geräteübergreifend wiederzufinden." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Gespeicherte Inhalte konnten nicht geladen werden." /> : !items.length ? <StatusPanel tone={tone} icon="bookmark-outline" code="MERKLISTE / LEER" title="NOCH NICHTS GESPEICHERT" text="Markiere Pflanzen, Profile, Beiträge oder Wissen, um sie hier wiederzufinden." /> : <View style={styles.stack}>{items.map(item => <Pressable key={item.id} onPress={() => open(item)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name="bookmark-outline" size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle}>{label[item.targetType]}</Text><Text style={styles.miniCopy}>Öffentlicher Datensatz · #{item.targetId}</Text><Text style={[styles.chip, { color: tone.accent }]}>{new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>)}</View>}</Page>;
 }
 

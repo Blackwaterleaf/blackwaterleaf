@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
+import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 
-const searchKindSchema = z.enum(["all", "plant", "knowledge", "profile", "community", "product"]);
+const searchKindSchema = z.enum(["all", "plant", "aquarium", "knowledge", "profile", "community", "product"]);
 const taxaRecordSchema = z.object({
   sourceRecordId: z.string().trim().min(1).max(160),
   scientificName: z.string().trim().min(1).max(240),
@@ -50,7 +50,15 @@ export const searchRouter = router({
       const match = `%${input.q}%`;
       const cursor = cursorValue(input.cursor);
       const wants = (kind: z.infer<typeof searchKindSchema>) => input.kind === "all" || input.kind === kind;
-      const result = { taxa: [] as Array<Record<string, unknown>>, knowledge: [] as Array<Record<string, unknown>>, profiles: [] as Array<Record<string, unknown>>, community: [] as Array<Record<string, unknown>>, products: [] as Array<Record<string, unknown>>, nextCursor: null as string | null };
+      const result = {
+        taxa: [] as Array<Record<string, unknown>>,
+        aquarium: [] as Array<Record<string, unknown>>,
+        knowledge: [] as Array<Record<string, unknown>>,
+        profiles: [] as Array<Record<string, unknown>>,
+        community: [] as Array<Record<string, unknown>>,
+        products: [] as Array<Record<string, unknown>>,
+        nextCursor: null as string | null,
+      };
 
       if (wants("plant")) {
         const rows = await db.select({
@@ -78,6 +86,35 @@ export const searchRouter = router({
           ),
         )).orderBy(desc(plantTaxa.id)).limit(input.limit);
         result.taxa = rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
+        if (rows.length === input.limit) result.nextCursor = String(rows[rows.length - 1].id);
+      }
+
+      if (wants("aquarium")) {
+        const rows = await db.select({
+          id: aquariumTaxa.id,
+          scientificName: aquariumTaxa.scientificName,
+          acceptedScientificName: aquariumTaxa.acceptedScientificName,
+          rank: aquariumTaxa.rank,
+          family: aquariumTaxa.family,
+          genus: aquariumTaxa.genus,
+          commonNames: aquariumTaxa.commonNames,
+          summary: aquariumTaxa.summary,
+          imageUrl: aquariumTaxa.imageUrl,
+          evidenceState: aquariumTaxa.evidenceState,
+        }).from(aquariumTaxa).where(and(
+          eq(aquariumTaxa.status, "published"),
+          cursor ? lt(aquariumTaxa.id, cursor) : undefined,
+          or(
+            like(aquariumTaxa.scientificName, match),
+            like(aquariumTaxa.acceptedScientificName, match),
+            like(aquariumTaxa.family, match),
+            like(aquariumTaxa.genus, match),
+            like(aquariumTaxa.summary, match),
+            sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+          ),
+        )).orderBy(desc(aquariumTaxa.id)).limit(input.limit);
+        result.aquarium = rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
         if (rows.length === input.limit) result.nextCursor = String(rows[rows.length - 1].id);
       }
 
@@ -130,6 +167,14 @@ export const searchRouter = router({
       return rows[0] ?? null;
     }),
 
+  aquariumById: publicProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const rows = await db.select().from(aquariumTaxa).where(and(eq(aquariumTaxa.id, input.id), eq(aquariumTaxa.status, "published"))).limit(1);
+      return rows[0] ?? null;
+    }),
+
   importValidatedTaxa: staffProcedure
     .input(z.object({
       source: z.string().trim().min(1).max(96),
@@ -141,6 +186,37 @@ export const searchRouter = router({
       const db = await requireDatabase();
       for (const record of input.records) {
         await db.insert(plantTaxa).values({
+          source: input.source,
+          sourceVersion: input.sourceVersion,
+          sourceRecordId: record.sourceRecordId,
+          scientificName: record.scientificName,
+          acceptedScientificName: record.acceptedScientificName ?? null,
+          rank: record.rank ?? null,
+          family: record.family ?? null,
+          genus: record.genus ?? null,
+          commonNames: record.commonNames,
+          synonyms: record.synonyms,
+          summary: record.summary ?? null,
+          careProfile: record.careProfile ?? null,
+          imageUrl: record.imageUrl ?? null,
+          evidenceState: record.evidenceState,
+          status: input.publish ? "published" : "draft",
+        }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+      }
+      return { imported: input.records.length, source: input.source, sourceVersion: input.sourceVersion, status: input.publish ? "published" : "draft" } as const;
+    }),
+
+  importValidatedAquariumTaxa: staffProcedure
+    .input(z.object({
+      source: z.string().trim().min(1).max(96),
+      sourceVersion: z.string().trim().min(1).max(96),
+      records: z.array(taxaRecordSchema).min(1).max(5_000),
+      publish: z.boolean().default(false),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await requireDatabase();
+      for (const record of input.records) {
+        await db.insert(aquariumTaxa).values({
           source: input.source,
           sourceVersion: input.sourceVersion,
           sourceRecordId: record.sourceRecordId,
