@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "BlackWaterLeaf",
-    "slug": "blackwater-agent",
+    "slug": "bwl",
     "version": "1.0.17",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
       "versionCode": 17,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
-      ],
+      ]
     },
     "plugins": [
       "expo-secure-store",
@@ -54,9 +54,9 @@
       "apiOrigin": "https://blackwaterleaf.com",
       "nativePrivateFlows": "requires_registered_mobile_oauth",
       "eas": {
-        "projectId": "49fead16-1e34-463b-9b18-a9bc4e601808"
+        "projectId": "40ef1859-d5f9-484d-89e9-046333b708f4"
       }
     },
-    "owner": "blackwaterleaf"
+    "owner": "blackwaterleaf2s-team"
   }
 }
