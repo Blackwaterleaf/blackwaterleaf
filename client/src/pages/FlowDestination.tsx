@@ -1,10 +1,10 @@
-import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
+import { ObservatoryActionCluster, ObservatoryContextHeader, ObservatoryStateSurface, type ObservatoryAction, type ObservatoryTone } from "@/components/ObservatoryPrimitives";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { Bell, Bot, Camera, Droplets, FileText, Fish, Leaf, Map, Radio, Send, UsersRound, Video } from "lucide-react";
 import { Link, useParams } from "wouter";
 
 type FlowId = "live" | "foto" | "beitrag";
-type FlowSpec = { tone: ReferenceTone; image: string; eyebrow: string; title: string; subtitle: string; icon: typeof Camera; actions: ReferenceAction[] };
+type FlowSpec = { tone: ObservatoryTone; image: string; eyebrow: string; title: string; subtitle: string; icon: typeof Camera; actions: ObservatoryAction[] };
 
 const FLOW_SPECS: Record<FlowId, FlowSpec> = {
   live: {
@@ -41,11 +41,11 @@ export default function FlowDestination() {
   const flow = (params.flow in FLOW_SPECS ? params.flow : "live") as FlowId;
   const spec = FLOW_SPECS[flow];
   return (
-    <div className={`reference-page reference-page--${spec.tone}`}>
-      <ReferenceHero {...spec} />
-      <ReferenceActionGrid tone={spec.tone} actions={spec.actions} />
-      {flow === "live" ? <ReferenceEmptyState tone="aquarium" code="LIVE-VERBINDUNG" title="NOCH NICHT VERBUNDEN" body="Smartgeräte, Kamera und automatische Benachrichtigungen werden erst nach einer echten, widerrufbaren Verbindung aktiviert." /> : null}
-      {flow === "foto" ? <ReferenceEmptyState tone="botany" code="PHOTO / SECURE_CAPTURE" title="BEREICH ZUERST WÄHLEN" body="Wähle Botanik, Aquaristik oder den Community-Feed. Das Bild wird erst im angemeldeten Zielbereich sicher ausgewählt und gespeichert – eine lokale Vorschau gilt nicht als Erfassung." /> : null}
+    <div className={`observatory-route observatory-route--${spec.tone} capture-flow-page`}>
+      <ObservatoryContextHeader {...spec} />
+      <ObservatoryActionCluster tone={spec.tone} actions={spec.actions} heading="ERFASSUNGSWEGE" />
+      {flow === "live" ? <ObservatoryStateSurface tone="aquarium" code="LIVE-VERBINDUNG" title="NOCH NICHT VERBUNDEN" body="Smartgeräte, Kamera und automatische Benachrichtigungen werden erst nach einer echten, widerrufbaren Verbindung aktiviert." /> : null}
+      {flow === "foto" ? <ObservatoryStateSurface tone="botany" code="PHOTO / SECURE_CAPTURE" title="BEREICH ZUERST WÄHLEN" body="Wähle Botanik, Aquaristik oder den Community-Feed. Das Bild wird erst im angemeldeten Zielbereich sicher ausgewählt und gespeichert – eine lokale Vorschau gilt nicht als Erfassung." /> : null}
     </div>
   );
 }

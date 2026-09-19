@@ -1128,18 +1128,18 @@ function HomeHero({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.hero, styles.homeHero, { borderColor: `${tone.accent}99` }]}
-      imageStyle={styles.heroImage}
+      style={[styles.observatoryContextHeader, styles.homeContextHeader, { borderColor: `${tone.accent}99` }]}
+      imageStyle={styles.observatoryContextImage}
     >
-      <View style={styles.heroShade} />
-      <View style={styles.heroCopy}>
-        <View style={[styles.heroIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
+      <View style={styles.observatoryContextShade} />
+      <View style={styles.observatoryContextCopy}>
+        <View style={[styles.observatoryContextIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
           <Ionicons name="leaf-outline" size={24} color={tone.accent} />
         </View>
         <Text style={[styles.eyebrow, { color: tone.accent }]}>UNSER OBSERVATORIUM</Text>
-        <Text style={styles.heroTitle}>WASSER VERBINDET.</Text>
-        <Text style={styles.heroText}>Forschen, entdecken und schützen – mit verlässlichen Daten, geschützten Orten und lebendiger Natur.</Text>
-        <View style={styles.homeHeroActions}>
+        <Text style={styles.observatoryContextTitle}>WASSER VERBINDET.</Text>
+        <Text style={styles.observatoryContextText}>Forschen, entdecken und schützen – mit verlässlichen Daten, geschützten Orten und lebendiger Natur.</Text>
+        <View style={styles.homeContextActions}>
           <PrimaryButton tone={tone} label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
           <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
         </View>
@@ -1202,7 +1202,7 @@ function LiveHomeWorlds({
     <View style={styles.liveWorlds}>
       <View style={styles.grid}>
         {worlds.map(world => (
-          <ReferenceCard key={world.title} tone={tone} action={world} active={selected === world.title} />
+          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} />
         ))}
       </View>
       {selected ? (
@@ -1212,7 +1212,7 @@ function LiveHomeWorlds({
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
           </View>
           <View style={[styles.grid, styles.gridCompact]}>
-            {(choices[selected] ?? []).map(choice => <ReferenceCard key={choice.title} tone={selectedTone} action={choice} compact />)}
+            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact />)}
           </View>
         </View>
       ) : null}
@@ -1241,7 +1241,7 @@ function Explore({
   const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
   return (
     <Page refresh={refresh} refreshing={loading}>
-      <ReferenceHero tone={tone} eyebrow="KARTE & LISTE · SYNCHRONISIERT" title="BEOBACHTEN. EINORDNEN. TEILEN." subtitle="Freigegebene Beobachtungen werden für alle drei Fachbereiche gleich behandelt. Private Orte bleiben privat." icon="map-outline" />
+      <ObservatoryContextHeader tone={tone} eyebrow="KARTE & LISTE · SYNCHRONISIERT" title="BEOBACHTEN. EINORDNEN. TEILEN." subtitle="Freigegebene Beobachtungen werden für alle drei Fachbereiche gleich behandelt. Private Orte bleiben privat." icon="map-outline" />
       <View style={styles.explorePortalRow}>
         {[
           { label: "Botanik", screen: "botany" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.botany, color: TONES.botany.accent },
@@ -1253,11 +1253,11 @@ function Explore({
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>
         <View style={styles.exploreFilterRow}>{(Object.keys(realmLabels) as Array<keyof typeof realmLabels>).map(key => <Pressable key={key} onPress={() => setRealm(key)} accessibilityRole="button" accessibilityState={{ selected: realm === key }} style={[styles.exploreFilter, { borderColor: realm === key ? tone.accent : `${tone.accent}33`, backgroundColor: realm === key ? `${tone.accent}20` : "rgba(0,0,0,.18)" }]}><Text style={[styles.exploreFilterText, { color: realm === key ? tone.accent : c.muted }]}>{realmLabels[key]}</Text></Pressable>)}</View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
-        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{filtered.length ? "Beobachtungen vorhanden" : "Keine Kartenpunkte freigegeben"}</Text><Text style={styles.copy}>{filtered.length ? "Keine öffentlich zulässige Ortsangabe – es werden keine Pins simuliert." : "Private Daten bleiben geschützt."}</Text></View><Text style={styles.exploreMapCaption}>{filtered.length ? `${filtered.length} Beobachtung${filtered.length === 1 ? "" : "en"} · Ortsangaben geschützt` : "Geschützte Orte · genaue Positionen privat"}</Text></ImageBackground></View> : null}
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>Keine Kartenpunkte freigegeben</Text><Text style={styles.copy}>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten. Die Beobachtungsliste bleibt nutzbar.</Text></View><Text style={styles.exploreMapCaption}>Geschützte Orte · genaue Positionen privat</Text></ImageBackground></View> : null}
         {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
       </View>
       <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}><Text style={[styles.dividerText, { color: tone.accent }]}>WISSEN & EVIDENZ</Text></View>
-      <ReferenceCard tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
+      <ObservatoryActionRow tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
     </Page>
   );
 }
@@ -1283,7 +1283,7 @@ function WorldScreen({
   const visibleObservations = observations.filter(item => item.realm === realm);
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow={eyebrow}
         title={title}
@@ -1301,11 +1301,11 @@ function WorldScreen({
         overline="DEINE AUSWAHL"
         title="WÄHLE EINEN BEREICH"
       />
-      <ActionGrid tone={tone} actions={actions} />
+      <ObservatoryActionCluster tone={tone} actions={actions} />
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · SYNCHRONISIERT</Text><Text style={styles.cardTitle}>BEOBACHTEN. EINORDNEN. TEILEN.</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: tone.accent }]} /><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View></View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
-        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={realm === "aquarium" ? ASSETS.aquarium : realm === "terrarium" ? ASSETS.terrarium : ASSETS.botany} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{visibleObservations.length} freigegebene Beobachtungen</Text><Text style={styles.copy}>Geschützte Orte · genaue Positionen bleiben privat</Text></View><Text style={styles.exploreMapCaption}>Keine privaten Pins · nur zulässige Ortsangaben</Text></ImageBackground></View> : null}
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={realm === "aquarium" ? ASSETS.aquarium : realm === "terrarium" ? ASSETS.terrarium : ASSETS.botany} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>Keine Kartenpunkte freigegeben</Text><Text style={styles.copy}>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten.</Text></View><Text style={styles.exploreMapCaption}>Geschützte Orte · genaue Positionen privat</Text></ImageBackground></View> : null}
         {view === "list" || !visibleObservations.length ? <View style={styles.exploreObservationList}>{visibleObservations.length ? visibleObservations.slice(0, 5).map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={realm === "aquarium" ? "fish-outline" : "leaf-outline"} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>Öffentlich · Ortsangabe geschützt</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
       </View>
     </Page>
@@ -1651,7 +1651,7 @@ function AssistantScreen({
           </Pressable>
         </View>
       ) : (
-        <ReferenceHero
+        <ObservatoryContextHeader
           tone={tone}
           eyebrow="BLACKWATERLEAF KI"
           title="KI-ASSISTENT"
@@ -1659,7 +1659,7 @@ function AssistantScreen({
           icon="hardware-chip-outline"
         />
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         compact={selectionCollapsed}
         activeTitle={activeToolLabel}
@@ -2117,7 +2117,7 @@ function LiveScreen({
   const aquarium = habitats.find(item => item.kind === "aquarium");
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="LIVE-BEREICH"
         title="DEINE WELT LIVE"
@@ -2131,7 +2131,7 @@ function LiveScreen({
         title="NOCH NICHT VERBUNDEN"
         text="Es ist kein Smartgerät oder keine Kamera verbunden. BlackWaterLeaf zeigt keinen simulierten Live-Status."
       />
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         actions={[
           {
@@ -2210,7 +2210,7 @@ function PhotoScreen({
     );
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="MOMENT FESTHALTEN"
         title="FOTO"
@@ -2233,7 +2233,7 @@ function PhotoScreen({
           text="Kamera oder Mediathek werden erst im nächsten Schritt und nur nach deiner Auswahl geöffnet."
         />
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         actions={[
           {
@@ -2396,7 +2396,7 @@ function PostScreen({
   };
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="COMMUNITY / BEITRAG"
         title="TEILE DEINEN MOMENT."
@@ -2502,7 +2502,7 @@ function PostScreen({
           ) : null}
         </View>
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         actions={[
           {
@@ -2565,7 +2565,7 @@ function KnowledgeScreen({
 }) {
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="WISSEN & EVIDENZ"
         title="WISSEN BRAUCHT QUELLEN."
@@ -2632,7 +2632,7 @@ function MarketplaceScreen({
   }) : [];
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="MARKTPLATZ"
         title={selectedShop ? selectedShop.partnerName.toUpperCase() : "DEIN WEG. DEIN SHOP."}
@@ -2728,14 +2728,14 @@ function CommunityScreen({
 }) {
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="GEMEINSAM WACHSEN"
         title="COMMUNITY IN BEWEGUNG."
         subtitle="Echte Naturmomente von echten, aktiven Konten."
         icon="people-outline"
       />
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         actions={[
           {
@@ -2818,7 +2818,7 @@ function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh,
   const addTask = () => { if (!token || !selectedPlan || !taskTitle.trim()) return; void run(async () => { await careCreateTask(token, { planId: selectedPlan, title: taskTitle.trim(), dueAt: new Date().toISOString() }); setTaskTitle(""); }); };
   const addEntry = () => { if (!token || !journalText.trim()) return; void run(async () => { await careAddJournal(token, { note: journalText.trim() }); setJournalText(""); }); };
   return <Page refresh={refresh} refreshing={state === "loading"}>
-    <ReferenceHero tone={tone} eyebrow="PRIVATE CARE" title="HEUTE." subtitle="Eine klare Handlung nach der anderen. Pflege bleibt privat und nachvollziehbar." icon="leaf-outline" />
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVATE CARE" title="HEUTE." subtitle="Eine klare Handlung nach der anderen. Pflege bleibt privat und nachvollziehbar." icon="leaf-outline" />
     {!token ? <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Deine Pflegepläne und Notizen werden nur im eigenen Konto gespeichert." onSignIn={onSignIn} /> : null}
     {error ? <ErrorNotice text={error} /> : null}
     <View style={styles.careSectionHeader}><Text style={[styles.eyebrow, { color: tone.accent }]}>JETZT</Text><Text style={styles.sectionTitle}>OFFENE AUFGABEN</Text><Text style={styles.careCount}>{tasks.filter(task => task.status === "open" || task.status === "snoozed").length}</Text></View>
@@ -2836,7 +2836,7 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
     await refresh();
   };
   return <Page refresh={refresh} refreshing={state === "loading"}>
-    <ReferenceHero tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
     {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.postId) navigate("community"); await refresh(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
@@ -3073,7 +3073,7 @@ function BuilderScreen({
     );
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="ADMIN / HABITAT BUILDER"
         title="HABITAT PLANEN"
@@ -3118,7 +3118,7 @@ function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, on
   const total = results ? results.taxa.length + results.aquarium.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
   const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "aquarium") onOpenAquariumTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
   const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "aquarium" ? "fish-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
-  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ReferenceHero tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
+  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
 }
 
 function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void> }) {
@@ -3129,7 +3129,7 @@ function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { ton
   const [busy, setBusy] = useState(false);
   useEffect(() => { let active = true; setState("loading"); void Promise.all([publicProfile(profileId), socialRelationship(token, profileId), publicProfilePosts(profileId)]).then(([nextProfile, nextRelationship, nextPosts]) => { if (active) { setProfile(nextProfile); setRelationship(nextRelationship); setPosts(nextPosts); setState(nextProfile ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [profileId, token]);
   const toggleFollow = async () => { if (!token) { await onSignIn(); return; } setBusy(true); try { if (relationship?.isFollowing) await unfollowProfile(token, profileId); else await followProfile(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.heroTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.observatoryContextTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
 }
 
 function TaxonMediaAttribution({ taxon, tone }: { taxon: PublicPlantTaxon; tone: Tone }) {
@@ -3167,7 +3167,7 @@ function TaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: stri
   useEffect(() => { let active = true; void publicPlantTaxon(taxonId).then(next => { if (active) { setTaxon(next); setState(next ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [taxonId]);
   useEffect(() => { if (!token) return; void savedItems(token).then(rows => setSaved(rows.some(item => item.targetType === "plant_taxon" && item.targetId === taxonId))).catch(() => undefined); }, [token, taxonId]);
   const toggleSave = async () => { if (!token || !taxon) return; try { if (saved) await unsaveItem(token, { targetType: "plant_taxon", targetId: taxonId }); else await saveItem(token, { targetType: "plant_taxon", targetId: taxonId }); setSaved(current => !current); } catch (cause) { Alert.alert("Speichern nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="PFLANZE" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="PFLANZE" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.observatoryContextTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
 }
 
 function AquariumTaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void }) {
@@ -3180,7 +3180,7 @@ function AquariumTaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; tok
   const profile = taxon?.careProfile && typeof taxon.careProfile === "object" ? taxon.careProfile : {};
   const careLevel = typeof profile.careLevel === "string" ? profile.careLevel : null;
   const water = typeof profile.water === "string" ? profile.water : null;
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="fish-outline" code="AQUARIUM / NICHT VERÖFFENTLICHT" title="FISCH NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="FISCH" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="fish-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER AQUARISTIK-KATALOG · CHANNA</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Aquaristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View>{careLevel || water ? <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>HALTUNGSHINWEISE</Text>{careLevel ? <Text style={styles.copy}>ANSPRUCH · {careLevel}</Text> : null}{water ? <Text style={styles.copy}>WASSER · {water}</Text> : null}<Text style={styles.miniCopy}>Katalogauszug – Haltung bitte individuell anhand von Größe, Herkunft und Verhalten prüfen.</Text></View> : null}</>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="fish-outline" code="AQUARIUM / NICHT VERÖFFENTLICHT" title="FISCH NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="FISCH" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="fish-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER AQUARISTIK-KATALOG · CHANNA</Text><Text style={styles.observatoryContextTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Aquaristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View>{careLevel || water ? <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>HALTUNGSHINWEISE</Text>{careLevel ? <Text style={styles.copy}>ANSPRUCH · {careLevel}</Text> : null}{water ? <Text style={styles.copy}>WASSER · {water}</Text> : null}<Text style={styles.miniCopy}>Katalogauszug – Haltung bitte individuell anhand von Größe, Herkunft und Verhalten prüfen.</Text></View> : null}</>}</Page>;
 }
 
 function SavedScreen({ tone, token, onBack, onSignIn, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
@@ -3200,14 +3200,14 @@ function RankingScreen({ tone, token, onBack, onSignIn }: { tone: Tone; token: s
   const [state, setState] = useState<State>(token ? "loading" : "ready");
   useEffect(() => { let active = true; if (!token) return; void Promise.all([gamificationSummary(token), gamificationLeaderboard(token), publishedChallenges(), myChallenges(token)]).then(([nextSummary, nextLeaderboard, nextChallenges, nextProgress]) => { if (active) { setSummary(nextSummary); setLeaderboard(nextLeaderboard); setChallenges(nextChallenges); setProgress(nextProgress); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [token]);
   const join = async (id: number) => { if (!token) return; try { await joinChallenge(token, id); setProgress(await myChallenges(token)); } catch (cause) { Alert.alert("Challenge nicht verfügbar", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="RANKING BLEIBT PRIVAT." text="Melde dich an, um deinen serverseitig berechneten Score und freigegebene Challenges zu sehen." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Rankingdaten konnten nicht geladen werden." /> : <><View style={[styles.rankingScoreCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>COMMUNITY · XP · FORTSCHRITT</Text><Text style={styles.heroTitle}>LEVEL {summary?.level ?? "—"}</Text><Text style={styles.copy}>{summary?.totalXp ?? "—"} XP GESAMT · SERVER-VERIFIZIERT</Text></View><SectionLabel tone={tone} overline="QUALITÄTSGEPRÜFTE EVENTS" title="CHALLENGES" />{!challenges.length ? <StatusPanel tone={tone} icon="trophy-outline" code="CHALLENGES / LEER" title="AKTUELL KEINE VERÖFFENTLICHT" text="Neue Challenges erscheinen erst nach Admin-Freigabe." /> : <View style={styles.stack}>{challenges.map(challenge => { const joined = progress.find(item => item.challengeId === challenge.id); return <View key={challenge.id} style={[styles.challengeCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{challenge.realm ?? "ALLE BEREICHE"}</Text><Text style={styles.cardTitle}>{challenge.title}</Text><Text style={styles.miniCopy}>{challenge.description}</Text>{joined ? <Text style={[styles.chip, { color: tone.accent }]}>{joined.progress}% · {joined.status === "completed" ? "ABGESCHLOSSEN" : "TEILGENOMMEN"}</Text> : <SecondaryButton tone={tone} label="TEILNEHMEN" icon="add-circle-outline" onPress={() => void join(challenge.id)} />}</View>; })}</View>}<SectionLabel tone={tone} overline="ÖFFENTLICH · XP" title="BESTENLISTE" />{leaderboard.length ? <View style={styles.stack}>{leaderboard.slice(0, 10).map(row => <View key={row.userId} style={[styles.leaderboardRow, { borderColor: `${tone.accent}33`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{row.rank}</Text><Text style={styles.cardTitle}>{row.name}</Text><Text style={styles.miniCopy}>{row.totalXp} XP</Text></View>)}</View> : <Text style={styles.miniCopy}>Noch keine öffentliche XP-Bestenliste vorhanden.</Text>}</>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="RANKING BLEIBT PRIVAT." text="Melde dich an, um deinen serverseitig berechneten Score und freigegebene Challenges zu sehen." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Rankingdaten konnten nicht geladen werden." /> : <><View style={[styles.rankingScoreCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>COMMUNITY · XP · FORTSCHRITT</Text><Text style={styles.observatoryContextTitle}>LEVEL {summary?.level ?? "—"}</Text><Text style={styles.copy}>{summary?.totalXp ?? "—"} XP GESAMT · SERVER-VERIFIZIERT</Text></View><SectionLabel tone={tone} overline="QUALITÄTSGEPRÜFTE EVENTS" title="CHALLENGES" />{!challenges.length ? <StatusPanel tone={tone} icon="trophy-outline" code="CHALLENGES / LEER" title="AKTUELL KEINE VERÖFFENTLICHT" text="Neue Challenges erscheinen erst nach Admin-Freigabe." /> : <View style={styles.stack}>{challenges.map(challenge => { const joined = progress.find(item => item.challengeId === challenge.id); return <View key={challenge.id} style={[styles.challengeCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{challenge.realm ?? "ALLE BEREICHE"}</Text><Text style={styles.cardTitle}>{challenge.title}</Text><Text style={styles.miniCopy}>{challenge.description}</Text>{joined ? <Text style={[styles.chip, { color: tone.accent }]}>{joined.progress}% · {joined.status === "completed" ? "ABGESCHLOSSEN" : "TEILGENOMMEN"}</Text> : <SecondaryButton tone={tone} label="TEILNEHMEN" icon="add-circle-outline" onPress={() => void join(challenge.id)} />}</View>; })}</View>}<SectionLabel tone={tone} overline="ÖFFENTLICH · XP" title="BESTENLISTE" />{leaderboard.length ? <View style={styles.stack}>{leaderboard.slice(0, 10).map(row => <View key={row.userId} style={[styles.leaderboardRow, { borderColor: `${tone.accent}33`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{row.rank}</Text><Text style={styles.cardTitle}>{row.name}</Text><Text style={styles.miniCopy}>{row.totalXp} XP</Text></View>)}</View> : <Text style={styles.miniCopy}>Noch keine öffentliche XP-Bestenliste vorhanden.</Text>}</>}</Page>;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone: Tone }) {
   return <View style={styles.stat}><Text style={[styles.statValue, { color: tone.accent }]}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>;
 }
 
-function ReferenceHero({
+function ObservatoryContextHeader({
   tone,
   eyebrow,
   title,
@@ -3223,14 +3223,14 @@ function ReferenceHero({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.hero, { borderColor: `${tone.accent}99` }]}
-      imageStyle={styles.heroImage}
+      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99` }]}
+      imageStyle={styles.observatoryContextImage}
     >
-      <View style={styles.heroShade} />
-      <View style={styles.heroCopy}>
+      <View style={styles.observatoryContextShade} />
+      <View style={styles.observatoryContextCopy}>
         <View
           style={[
-            styles.heroIcon,
+            styles.observatoryContextIcon,
             {
               borderColor: `${tone.accent}99`,
               backgroundColor: `${tone.accent}18`,
@@ -3240,8 +3240,8 @@ function ReferenceHero({
           <Ionicons name={icon} size={24} color={tone.accent} />
         </View>
         <Text style={[styles.eyebrow, { color: tone.accent }]}>{eyebrow}</Text>
-        <Text style={styles.heroTitle}>{title}</Text>
-        <Text style={styles.heroText}>{subtitle}</Text>
+        <Text style={styles.observatoryContextTitle}>{title}</Text>
+        <Text style={styles.observatoryContextText}>{subtitle}</Text>
       </View>
     </ImageBackground>
   );
@@ -3266,7 +3266,7 @@ function SectionLabel({
   );
 }
 
-function ActionGrid({
+function ObservatoryActionCluster({
   tone,
   actions,
   compact = false,
@@ -3280,7 +3280,7 @@ function ActionGrid({
   return (
     <View style={[styles.grid, compact && styles.gridCompact]}>
       {actions.map(action => (
-        <ReferenceCard
+        <ObservatoryActionRow
           key={action.title}
           tone={tone}
           action={action}
@@ -3292,7 +3292,7 @@ function ActionGrid({
   );
 }
 
-function ReferenceCard({
+function ObservatoryActionRow({
   tone,
   action,
   compact = false,
@@ -3310,8 +3310,8 @@ function ReferenceCard({
       accessibilityLabel={`${action.title}: ${action.note}`}
       accessibilityState={{ selected: active }}
       style={({ pressed }) => [
-        styles.referenceCard,
-        compact && styles.referenceCardCompact,
+        styles.observatoryActionRow,
+        compact && styles.observatoryActionRowCompact,
         { borderColor: `${cardTone.accent}77`, backgroundColor: cardTone.panel },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
@@ -3321,22 +3321,11 @@ function ReferenceCard({
         action.onPress();
       }}
     >
-      <ImageBackground
-        source={action.image}
-        style={[styles.referenceImage, compact && styles.referenceImageCompact]}
-        imageStyle={styles.referenceImageInner}
-      >
-        <View style={styles.cardShade} />
-        <View
-          style={[
-            styles.referenceContent,
-            compact && styles.referenceContentCompact,
-          ]}
-        >
+      <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact]}>
           <View
             style={[
-              styles.cardIcon,
-              compact && styles.cardIconCompact,
+              styles.observatoryActionIcon,
+              compact && styles.observatoryActionIconCompact,
               {
                 borderColor: `${cardTone.accent}99`,
                 backgroundColor: `${cardTone.accent}16`,
@@ -3348,8 +3337,8 @@ function ReferenceCard({
           <View style={styles.flex}>
             <Text
               style={[
-                styles.referenceTitle,
-                compact && styles.referenceTitleCompact,
+                styles.observatoryActionTitle,
+                compact && styles.observatoryActionTitleCompact,
               ]}
               numberOfLines={2}
             >
@@ -3357,22 +3346,21 @@ function ReferenceCard({
             </Text>
             <Text
               style={[
-                styles.referenceNote,
-                compact && styles.referenceNoteCompact,
+                styles.observatoryActionNote,
+                compact && styles.observatoryActionNoteCompact,
               ]}
               numberOfLines={2}
             >
               {action.note}
             </Text>
             {action.unavailable ? (
-              <Text style={[styles.unavailableLabel, { color: cardTone.accent }]}>
+              <Text style={[styles.observatoryUnavailableLabel, { color: cardTone.accent }]}>
                 NOCH NICHT VERFÜGBAR
               </Text>
             ) : null}
           </View>
           <Ionicons name="chevron-forward" size={21} color={cardTone.accent} />
-        </View>
-      </ImageBackground>
+      </View>
     </Pressable>
   );
 }
@@ -4059,38 +4047,38 @@ const styles = StyleSheet.create({
   page: { padding: 16, paddingBottom: 118 },
   stack: { gap: 13 },
   flex: { flex: 1 },
-  hero: {
-    minHeight: 238,
+  observatoryContextHeader: {
+    minHeight: 148,
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: 16,
     overflow: "hidden",
-    justifyContent: "flex-end",
+    justifyContent: "center",
   },
-  homeHero: { minHeight: 250 },
-  heroImage: { borderRadius: 21 },
-  heroShade: {
+  homeContextHeader: { minHeight: 168 },
+  observatoryContextImage: { borderRadius: 15 },
+  observatoryContextShade: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 10, 5, .52)",
+    backgroundColor: "rgba(2, 12, 6, .68)",
   },
-  heroCopy: { padding: 19, gap: 7 },
-  heroIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  observatoryContextCopy: { padding: 16, gap: 6 },
+  observatoryContextIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
   },
   eyebrow: { fontSize: 9, letterSpacing: 1.45, fontWeight: "900" },
-  heroTitle: {
+  observatoryContextTitle: {
     color: c.text,
-    fontSize: 34,
-    lineHeight: 39,
+    fontSize: 24,
+    lineHeight: 28,
     fontWeight: "900",
-    letterSpacing: -0.8,
+    letterSpacing: -0.45,
   },
-  heroText: { color: c.text, fontSize: 14, lineHeight: 20, maxWidth: 330 },
+  observatoryContextText: { color: "#C3D5C5", fontSize: 12, lineHeight: 17, maxWidth: 330 },
   sectionLabel: { marginTop: 7, gap: 5 },
   sectionLabelCompact: { marginTop: 0 },
   homeAllAreas: {
@@ -4104,7 +4092,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
-  homeHeroActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  homeContextActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
   liveWorlds: { gap: 10 },
   inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9 },
   inlineChoiceHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
@@ -4127,70 +4115,61 @@ const styles = StyleSheet.create({
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   gridCompact: { gap: 7 },
-  referenceCard: {
-    width: "48.5%",
-    minHeight: 176,
-    borderRadius: 18,
+  observatoryActionRow: {
+    width: "100%",
+    minHeight: 66,
+    borderRadius: 10,
     borderWidth: 1,
     overflow: "hidden",
     backgroundColor: c.surface,
   },
-  referenceCardCompact: {
-    minHeight: 84,
-    borderRadius: 13,
+  observatoryActionRowCompact: {
+    minHeight: 58,
+    borderRadius: 9,
   },
-  referenceImage: { flex: 1, minHeight: 174, justifyContent: "flex-end" },
-  referenceImageCompact: { minHeight: 82 },
-  referenceImageInner: { borderRadius: 17 },
-  cardShade: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, .48)",
-  },
-  referenceContent: {
-    minHeight: 174,
-    padding: 13,
-    justifyContent: "flex-end",
-    gap: 7,
-  },
-  referenceContentCompact: {
-    minHeight: 82,
-    padding: 9,
+  observatoryActionContent: {
+    minHeight: 64,
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    gap: 9,
+  },
+  observatoryActionContentCompact: {
+    minHeight: 56,
+    padding: 8,
     gap: 7,
   },
-  cardIcon: {
-    width: 39,
-    height: 39,
-    borderRadius: 20,
+  observatoryActionIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 3,
-  },
-  cardIconCompact: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
     marginBottom: 0,
   },
-  referenceTitle: {
+  observatoryActionIconCompact: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    marginBottom: 0,
+  },
+  observatoryActionTitle: {
     color: c.text,
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 15,
     fontWeight: "900",
-    paddingRight: 8,
+    paddingRight: 2,
   },
-  referenceTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
-  referenceNote: {
+  observatoryActionTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
+  observatoryActionNote: {
     color: "#D4E1D6",
-    fontSize: 10,
-    lineHeight: 14,
-    paddingRight: 4,
+    fontSize: 9,
+    lineHeight: 12,
+    paddingRight: 2,
   },
-  referenceNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
-  unavailableLabel: {
+  observatoryActionNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
+  observatoryUnavailableLabel: {
     fontSize: 7,
     fontWeight: "900",
     letterSpacing: 0.65,

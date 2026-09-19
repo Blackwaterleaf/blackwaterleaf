@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 
 type SearchKind = "all" | "plant" | "aquarium" | "knowledge" | "profile" | "community" | "product";
 const tabs: Array<{ key: SearchKind; label: string; icon: typeof Leaf }> = [
@@ -45,8 +46,9 @@ export default function Search() {
   ] as const : [[kind, selected ?? []] as const];
 
   const canLoadMore = kind !== "all" && Boolean(data?.nextCursor);
-  return <div className="reference-page search-page">
-    <section className="search-hero glass-panel"><span className="eyebrow">BLACKWATERLEAF · KATALOG</span><h1>SUCHEN & ENTDECKEN</h1><p>Ein Einstieg für validierte Pflanzen, Wissen, Community, Profile und freigegebene Händler.</p><label className="search-input-wrap"><SearchIcon size={20} /><input value={draft} onChange={event => setDraft(event.target.value)} placeholder="Pflanze, Profil, Wissen oder Produkt suchen …" aria-label="Suche" autoFocus />{search.isFetching ? <Loader2 className="action-spinner" size={18} /> : null}</label></section>
+  return <div className="observatory-route observatory-route--botany search-page">
+    <ObservatoryContextHeader tone="botany" eyebrow="KATALOG · DURCHSUCHEN" title="SUCHEN & ENTDECKEN" subtitle="Veröffentlichte Taxa, Quellenwissen, Profile, Community und freigegebene Händler." icon={SearchIcon} badge="KATALOG" />
+    <section className="search-workspace observatory-data-panel"><label className="search-input-wrap"><SearchIcon size={20} /><input value={draft} onChange={event => setDraft(event.target.value)} placeholder="Pflanze, Profil, Wissen oder Produkt suchen …" aria-label="Suche" autoFocus />{search.isFetching ? <Loader2 className="action-spinner" size={18} /> : null}</label></section>
     <div className="search-tabs" role="tablist" aria-label="Suchbereiche">{tabs.map(({ key, label, icon: Icon }) => <button key={key} type="button" role="tab" aria-selected={kind === key} className={kind === key ? "is-active" : ""} onClick={() => setKind(key)}><Icon size={15} />{label}</button>)}</div>
     {!query ? <StatePanel code="SEARCH/READY" state="empty" title="BEREIT ZUM SUCHEN" body="Beginne mit einem Pflanzennamen oder einer Kategorie. Es werden nur veröffentlichte und freigegebene Datensätze angezeigt." /> : search.isLoading ? <StatePanel code="SEARCH/LOAD" state="loading" title="KATALOG WIRD DURCHSUCHT" body="Die Suchergebnisse werden aus den verbundenen Datenquellen geladen …" /> : search.isError ? <StatePanel code="SEARCH/ERROR" state="error" title="SUCHE NICHT VERFÜGBAR" body="Die Suche konnte gerade nicht geladen werden. Bitte versuche es erneut." action={<button type="button" className="secondary-action" onClick={() => void search.refetch()}>ERNEUT VERSUCHEN</button>} /> : !data || (kind !== "all" && !selected?.length) || (kind === "all" && !groups.some(([, rows]) => rows.length)) ? <StatePanel code="SEARCH/EMPTY" state="empty" title="KEIN ERGEBNIS" body="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <div className="search-results">{groups.map(([group, rows]) => rows.length ? <section key={group} className="search-group"><div className="section-heading"><div><span className="eyebrow">{tabs.find(tab => tab.key === group)?.label}</span><h2>{query}</h2></div><span className="system-chip">{rows.length} TREFFER</span></div><div className="search-result-list">{rows.map(item => <ResultCard key={`${group}-${String(item.id)}`} type={group as SearchKind} item={item} />)}</div></section> : null)}{canLoadMore ? <button type="button" className="primary-action search-load-more" disabled={search.isFetching} onClick={() => setCursor(data?.nextCursor ?? undefined)}>{search.isFetching ? "WEITERE TREFFER WERDEN GELADEN …" : "WEITERE TREFFER"}</button> : null}</div>}
   </div>;

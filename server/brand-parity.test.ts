@@ -18,26 +18,18 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
     expect(getBlackWaterLeafSeason(new Date("2026-12-01T12:00:00Z"))).toBe("winter");
   });
 
-  it("keeps the original mark and seasonal shell on the web", () => {
+  it("keeps the original mark, seasonal shell and Observatory palette on the web", () => {
     expect(webShell).toContain("getBlackWaterLeafSeason");
     expect(webShell).toContain('data-season={season}');
-    for (const token of ["season-spring", "season-summer", "season-autumn", "season-winter"]) expect(css).toContain(token);
-    expect(css).toContain("--reference-marketplace: #d9ad69");
+    for (const token of ["season-spring", "season-summer", "season-autumn", "season-winter", "--obs-lime", "--obs-aqua", "--obs-gold", ".observatory-route--marketplace"]) expect(css).toContain(token);
   });
 
   it("uses the dedicated marketplace tone on web and native", () => {
-    expect(marketplace).toContain('observatory-marketplace-page');
-    expect(marketplace).toContain('observatory-marketplace-hero');
-    expect(native).toContain('market: "#D9AD69"');
-    expect(native).toContain('screen === "marketplace"');
-    expect(native).toContain('label: "MARKTPLATZ"');
-    expect(native).toContain('accent: c.market');
+    for (const token of ['observatory-route--marketplace', "ObservatoryContextHeader", "MARKTPLATZ · BLACKWATERLEAF"]) expect(marketplace).toContain(token);
+    for (const token of ['market: "#D9AD69"', 'screen === "marketplace"', 'label: "MARKTPLATZ"', "accent: c.market"]) expect(native).toContain(token);
   });
 
   it("records the confirmed visual contract in the binding rulebook", () => {
-    expect(rulebook).toContain("einzige aktive Designquelle");
-    expect(rulebook).toContain("Mischlayouts");
-    expect(rulebook).toContain("Aqua-Cyan");
-    expect(rulebook).toContain("Beispielinhalte aus Mockups dürfen nicht als Fake-Daten");
+    for (const token of ["einzige aktive Designquelle", "Mischlayouts", "Aqua-Cyan", "Beispielinhalte aus Mockups dürfen nicht als Fake-Daten", "Umsetzungssperre und Migrationsstand"]) expect(rulebook).toContain(token);
   });
 });

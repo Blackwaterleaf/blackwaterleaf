@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { HabitatProfiles } from "@/components/HabitatProfiles";
 import { SmartDeviceDialog } from "@/components/SmartDeviceDialog";
 import { StatePanel } from "@/components/StatePanel";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
@@ -177,15 +178,16 @@ export default function Profile() {
 
   const section = location.startsWith("/profile/") ? location.split("/")[2] : "settings";
   return (
-    <div className={`reference-page reference-page--botany profile-page-only profile-settings-page profile-section-${section}`}>
+    <div className={`observatory-route observatory-route--botany profile-page-only profile-settings-page profile-section-${section}`}>
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
         <StatePanel code="PROFILE/LOAD" state="loading" title={t("common.loading")} body={t("profile.signedOut")} />
       ) : profile.isError || !profile.data ? (
         <StatePanel code="PROFILE/ERROR" state="error" title={t("common.error")} body={t("profile.signedOut")} />
       ) : (
         <>
-          <div className="profile-subpage-heading"><Link href="/profile">‹ Profil</Link><span className="eyebrow">BLACKWATERLEAF · PROFIL</span><h1>{section === "private" ? "PRIVATBEREICH" : section === "habitats" ? "MEINE ANLAGEN" : section === "progress" ? "PUNKTE & FORTSCHRITT" : section === "privacy" ? "DATENSCHUTZ & FREIGABEN" : section === "preferences" ? "SPRACHE & EINHEITEN" : section === "tools" ? "WEITERE WERKZEUGE" : "PROFIL EINSTELLUNGEN"}</h1><p>Nur die Funktionen dieses Bereichs werden hier angezeigt.</p></div>
-          <section className="profile-card glass-panel" id="progress">
+          <Link className="page-back-link" href="/profile">‹ Profil</Link>
+          <ObservatoryContextHeader tone="botany" eyebrow="BLACKWATERLEAF · PROFIL" title={section === "private" ? "PRIVATBEREICH" : section === "habitats" ? "MEINE ANLAGEN" : section === "progress" ? "PUNKTE & FORTSCHRITT" : section === "privacy" ? "DATENSCHUTZ & FREIGABEN" : section === "preferences" ? "SPRACHE & EINHEITEN" : section === "tools" ? "WEITERE WERKZEUGE" : "PROFIL EINSTELLUNGEN"} subtitle="Nur die Funktionen dieses Bereichs werden hier angezeigt." icon={UserRound} badge="PRIVAT" />
+          <section className="profile-card observatory-data-panel" id="progress">
             <div className="profile-identity">
               <div className="profile-avatar" id="profile-image">{profile.data.avatarUrl ? <img src={profile.data.avatarUrl} alt="" /> : <UserRound size={30} />}</div>
               <div><h2>{profile.data.name ?? profile.data.username ?? "BlackWaterLeaf"}</h2><p>{profile.data.email ?? ""}</p></div>
@@ -198,14 +200,14 @@ export default function Profile() {
             ) : <p className="form-status">{locale === "de" ? "Punkte werden geladen." : "Points are loading."}</p>}
           </section>
 
-          <details id="profile-privacy" className="profile-display-settings glass-panel">
+          <details id="profile-privacy" className="profile-display-settings observatory-data-panel">
             <summary><span>ANZEIGEN</span><small>Welche Anlagen sollen im Profil erscheinen?</small><b>+</b></summary>
             <div className="profile-display-settings__items">
               {([['plant', 'Pflanzen', Leaf], ['aquarium', 'Aquarium', null], ['terrarium', 'Terraristik', null]] as const).map(([kind, label, Icon]) => <button key={kind} type="button" className={visibleKinds.includes(kind) ? "is-selected" : ""} onClick={() => toggleVisibleKind(kind)}>{Icon ? <Icon size={15} /> : <span className="profile-display-settings__dot" />}<span>{label}</span><b>{visibleKinds.includes(kind) ? "✓" : "○"}</b></button>)}
             </div>
           </details>
 
-          <details id="profile-consents" className="account-section glass-panel profile-menu-only">
+          <details id="profile-consents" className="account-section observatory-data-panel profile-menu-only">
             <summary><span>DATENSCHUTZ & FREIGABEN</span><small>Du entscheidest über jede Freigabe</small></summary>
             <section className="profile-consent-list">
               <ConsentToggle label="Profil veröffentlichen" checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
@@ -222,7 +224,7 @@ export default function Profile() {
             </section>
           </details>
 
-          <details id="profile-edit" className="account-section glass-panel profile-menu-only">
+          <details id="profile-edit" className="account-section observatory-data-panel profile-menu-only">
             <summary><span>{locale === "de" ? "Profil bearbeiten" : "Edit profile"}</span><small>{locale === "de" ? "Anzeigename, Bio & Links" : "Name, bio & links"}</small></summary>
             <form className="profile-form" onSubmit={saveProfile}>
               <label id="profile-avatar" className={`secondary-action file-action ${uploadAvatar.isPending ? "action-loading" : ""}`}><>{uploadAvatar.isPending ? <Loader2 size={16} className="spin" /> : <Camera size={16} />}</>{uploadAvatar.isPending ? "BILD WIRD GESPEICHERT …" : locale === "de" ? "Profilbild ändern" : "Change profile image"}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={uploadAvatar.isPending} onChange={event => void changeAvatar(event.target.files?.[0])} /></label>
@@ -237,12 +239,12 @@ export default function Profile() {
 
           <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} defaultOpen={section === "settings" || section === "habitats"} /></section>
 
-          <details id="profile-tools" className="profile-secondary-tools account-section glass-panel">
+          <details id="profile-tools" className="profile-secondary-tools account-section observatory-data-panel">
             <summary><span>WEITERE WERKZEUGE</span><small>Nur bei Bedarf öffnen</small></summary>
             <div className="profile-secondary-tools__body">
               <Link className="secondary-action" href="/habitat-builder"><Ruler size={16} />HABITAT PLANEN</Link>
               <div className="profile-secondary-tools__smart"><span className="eyebrow">SMART-WERTE</span><span className="sr-only">Smart-Werte verbinden</span><SmartDeviceDialog /></div>
-              <section className="account-danger-zone glass-panel" aria-labelledby="account-close-title">
+              <section className="account-danger-zone observatory-data-panel" aria-labelledby="account-close-title">
                 <div><span className="eyebrow">KONTO</span><h2 id="account-close-title">Konto schließen</h2><p>Deine persönlichen Profildaten werden anonymisiert und der Zugang wird deaktiviert. Dieser Schritt kann nicht rückgängig gemacht werden.</p></div>
                 <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>
                 <button type="button" className={`danger-action ${closeAccount.isPending ? "action-loading" : ""}`} disabled={deleteConfirmation !== "LÖSCHEN" || closeAccount.isPending} onClick={() => void deleteAccount()}>{closeAccount.isPending ? <Loader2 size={16} className="spin" /> : <AlertTriangle size={16} />}{closeAccount.isPending ? "WIRD GESCHLOSSEN …" : "KONTO SCHLIESSEN"}</button>
@@ -250,7 +252,7 @@ export default function Profile() {
             </div>
           </details>
 
-          <details id="profile-preferences" className="profile-secondary-tools account-section glass-panel">
+          <details id="profile-preferences" className="profile-secondary-tools account-section observatory-data-panel">
             <summary><span>SPRACHE & EINHEITEN</span><small>Persönliche Darstellung</small></summary>
             <div className="profile-preferences-grid">
               <div><span className="eyebrow">SPRACHE</span><button type="button" className={locale === "de" ? "is-selected" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "is-selected" : ""} onClick={() => void changeLocale("en")}>English</button></div>
@@ -267,7 +269,7 @@ export default function Profile() {
 
 function ProfileAuthOverlay({ locale }: { locale: AppLocale }) {
   return (
-    <section className="profile-auth-overlay glass-panel" data-state="server-auth-required" role="status">
+    <section className="profile-auth-overlay observatory-state-surface" data-state="server-auth-required" role="status">
       <span className="profile-auth-overlay__orbit" aria-hidden="true"><LockKeyhole size={29} /></span>
       <p className="eyebrow">[AUTH / REQUIRED]</p>
       <h2>{locale === "de" ? "IDENTITÄT BLEIBT VERIFIZIERT" : "IDENTITY STAYS VERIFIED"}</h2>

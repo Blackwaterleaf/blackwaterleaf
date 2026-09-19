@@ -1,5 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
+import { ObservatoryActionCluster, ObservatoryContextHeader, ObservatoryStateSurface, type ObservatoryAction, type ObservatoryTone } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
@@ -11,9 +11,9 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useLocation, useParams } from "wouter";
 
 const REALMS = {
-  botany: { api: "botany" as const, tone: "botany" as ReferenceTone, eyebrow: "PFLANZEN WORLD", title: "BOTANIK", subtitle: "Deine Pflanzensammlung.", image: REFERENCE_ASSETS.botany, icon: Leaf },
-  aquarium: { api: "aquarium" as const, tone: "aquarium" as ReferenceTone, eyebrow: "AQUARISTIK", title: "AQUARISTIK", subtitle: "Becken, Wasserwerte, Unterwasserwelt.", image: REFERENCE_ASSETS.aquarium, icon: Fish },
-  terrarium: { api: "terrarium" as const, tone: "terrarium" as ReferenceTone, eyebrow: "TERRARISTIK", title: "TERRARISTIK", subtitle: "Regenwald im Kleinen.", image: REFERENCE_ASSETS.terrarium, icon: Sprout },
+  botany: { api: "botany" as const, tone: "botany" as ObservatoryTone, eyebrow: "PFLANZEN · FACHBEREICH", title: "BOTANIK", subtitle: "Pflanzen, Beobachtungen und quellengebundenes Wissen.", image: REFERENCE_ASSETS.botany, icon: Leaf },
+  aquarium: { api: "aquarium" as const, tone: "aquarium" as ObservatoryTone, eyebrow: "WASSER · FACHBEREICH", title: "AQUARISTIK", subtitle: "Becken, Werte, Beobachtungen und Artenwissen.", image: REFERENCE_ASSETS.aquarium, icon: Fish },
+  terrarium: { api: "terrarium" as const, tone: "terrarium" as ObservatoryTone, eyebrow: "LEBENSRAUM · FACHBEREICH", title: "TERRARISTIK", subtitle: "Terrarien, Beobachtungen und fachliche Einordnung.", image: REFERENCE_ASSETS.terrarium, icon: Sprout },
 };
 
 function newClientId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
@@ -21,7 +21,7 @@ function hasVerifiedCatalogImage(item: { imageUrl?: string | null; imageSourceUr
   return Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt);
 }
 
-function actionsFor(realm: keyof typeof REALMS): ReferenceAction[] {
+function actionsFor(realm: keyof typeof REALMS): ObservatoryAction[] {
   if (realm === "botany") return [
     { title: "Meine Pflanzen", note: "Private Sammlung öffnen", icon: LibraryBig, image: WORLD_ASSETS.botany, href: "/profile#habitats" },
     { title: "Pflanze hinzufügen", note: "Anlage privat anlegen", icon: Plus, image: REFERENCE_ASSETS.botany, href: "/profile#habitats" },
@@ -92,9 +92,9 @@ export default function Realm() {
   };
 
   return (
-    <div className={`reference-page reference-page--${realm.tone}`}>
-      <ReferenceHero tone={realm.tone} image={realm.image} eyebrow={realm.eyebrow} title={realm.title} subtitle={realm.subtitle} icon={realm.icon} />
-      <ReferenceActionGrid tone={realm.tone} actions={actionsFor(realmKey).map(action => (action.title === "Pflanze hinzufügen" || action.title === "Aquarium hinzufügen" || action.title === "Terrarium fotografieren") ? { ...action, href: undefined, targetId: "capture", onActivate: () => setCaptureOpen(true) } : action)} />
+    <div className={`observatory-route observatory-route--${realm.tone} realm-page`}>
+      <ObservatoryContextHeader tone={realm.tone} image={realm.image} eyebrow={realm.eyebrow} title={realm.title} subtitle={realm.subtitle} icon={realm.icon} />
+      <ObservatoryActionCluster tone={realm.tone} actions={actionsFor(realmKey).map(action => (action.title === "Pflanze hinzufügen" || action.title === "Aquarium hinzufügen" || action.title === "Terrarium fotografieren") ? { ...action, href: undefined, targetId: "capture", onActivate: () => setCaptureOpen(true) } : action)} />
       <section className={`realm-observation-surface realm-observation-surface--${realm.tone}`} aria-labelledby="realm-observation-heading">
         <div className="realm-observation-heading"><div><span className="eyebrow">KARTE &amp; LISTE · SYNCHRONISIERT</span><h2 id="realm-observation-heading">BEOBACHTEN. EINORDNEN. TEILEN.</h2></div><span className={`observatory-status observatory-status--${publicObservations.isError ? "error" : publicObservations.isLoading ? "loading" : "ready"}`}><i />{publicObservations.isError ? "NICHT VERFÜGBAR" : publicObservations.isLoading ? "SYNC …" : "BEREIT"}</span></div>
         <div className="realm-observation-toolbar"><div className="observatory-filter-pills" role="group" aria-label="Fachbereich auswählen">{([{ key: "botany", label: "Botanik" }, { key: "aquarium", label: "Aquaristik" }, { key: "terrarium", label: "Terraristik" }] as const).map(choice => <button type="button" key={choice.key} className={realmKey === choice.key ? "active" : ""} aria-pressed={realmKey === choice.key} onClick={() => setLocation(`/${choice.key === "botany" ? "botanik" : choice.key === "aquarium" ? "aquaristik" : "terraristik"}`)}>{choice.label}</button>)}</div><div className="observatory-view-toggle" role="group" aria-label="Ansicht"><button type="button" className={dataView === "map" ? "active" : ""} aria-pressed={dataView === "map"} onClick={() => setDataView("map")}><MapIcon size={15} /> Karte</button><button type="button" className={dataView === "list" ? "active" : ""} aria-pressed={dataView === "list"} onClick={() => setDataView("list")}><List size={15} /> Liste</button></div></div>
@@ -104,8 +104,8 @@ export default function Realm() {
         </div>
         <div className="realm-taxonomy-strip"><div className="realm-catalog-list__heading"><span>KATALOG · ARTEN</span><a href="/search"><span>ALLE ÖFFNEN</span><ArrowRight size={14} /></a></div><div className="realm-taxonomy-grid">{catalog.isLoading ? <p className="realm-inline-state">Katalog wird synchronisiert …</p> : catalog.isError ? <p className="realm-inline-state">Der Katalog ist derzeit nicht erreichbar. Bitte später erneut versuchen.</p> : catalog.data?.length ? catalog.data.slice(0, 4).map(item => <a className="realm-taxon-row" key={`${item.type}-${item.id}`} href={item.type === "aquarium" ? `/aquarium-fish/${item.id}` : `/plant/${item.id}`}>{hasVerifiedCatalogImage(item) ? <img src={item.imageUrl!} alt="" /> : <span className="realm-taxon-row__placeholder" aria-label="Bildnachweis offen">{item.type === "aquarium" ? <Fish size={20} /> : <Leaf size={20} />}</span>}<span><strong>{item.acceptedScientificName ?? item.scientificName}</strong><small>{hasVerifiedCatalogImage(item) ? item.family ?? "Katalogdaten" : "Bildnachweis offen"}</small></span><ArrowRight size={16} /></a>) : <p className="realm-inline-state">Für diesen Bereich sind noch keine veröffentlichten Katalogtaxa vorhanden.</p>}</div></div>
       </section>
-      {auth.loading ? <StatePanel code="AUTH/LOAD" state="loading" title={t("common.loading")} body="Dein geschützter Bereich wird geprüft …" /> : !auth.isAuthenticated ? <ReferenceEmptyState tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : captureOpen ? (
-        <form id="capture" className="observation-form glass-panel reference-after-actions" onSubmit={submitObservation}>
+      {auth.loading ? <StatePanel code="AUTH/LOAD" state="loading" title={t("common.loading")} body="Dein geschützter Bereich wird geprüft …" /> : !auth.isAuthenticated ? <ObservatoryStateSurface tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : captureOpen ? (
+        <form id="capture" className="observation-form observatory-form-panel" onSubmit={submitObservation}>
           <div className="form-heading"><div><span className="eyebrow">[PRIVATE_CAPTURE]</span><h2>{locale === "de" ? "BEOBACHTUNG ERFASSEN" : "CAPTURE OBSERVATION"}</h2></div><span className="system-chip">V1</span></div>
           <p>{locale === "de" ? "Erfasse nur, was du selbst beobachtest. Der Eintrag bleibt standardmäßig privat und ungeprüft." : "Record only what you observe. The entry stays private and unverified by default."}</p>
           <div className="form-grid">
@@ -121,8 +121,8 @@ export default function Realm() {
           <button type="submit" className="primary-action" disabled={createObservation.isPending || updateObservation.isPending || uploadImage.isPending}><Save size={16} />{createObservation.isPending ? t("common.loading") : locale === "de" ? "BEOBACHTUNG SPEICHERN" : "SAVE OBSERVATION"}</button>
           {status ? <p className="form-status" role="status">{status}</p> : null}
         </form>
-      ) : <p className="reference-action-hint"><strong>BEREIT / PRIVAT</strong><span>Wähle eine Karte, um eine Anlage oder Beobachtung direkt hier zu erfassen.</span></p>}
-      {auth.isAuthenticated && (observations.isLoading ? <StatePanel code="OBS/LOAD" state="loading" title={t("common.loading")} body={t("realm.empty")} /> : observations.isError ? <StatePanel code="OBS/ERROR" state="error" title={t("common.error")} body={t("realm.empty")} /> : !observations.data?.length ? <p className="reference-list-empty" data-state-code={`OBS / ${realm.api.toUpperCase()} / EMPTY`}>{t("realm.empty")}</p> : <div className="observation-grid">{observations.data.map(item => <article key={item.id} className="observation-card glass-panel">{item.media[0] ? <img className="observation-media" src={item.media[0].accessUrl} alt="" /> : null}<span className="evidence-chip">{item.evidenceState}</span><h2>{item.subject ?? realm.title}</h2>{item.scientificName ? <em>{item.scientificName}</em> : null}{item.note ? <p>{item.note}</p> : null}{item.metrics.map(metric => <div key={metric.key} className="metric-row"><span>{metric.key}</span><strong>{String(metric.value)}{metric.unit ? ` ${metric.unit}` : ""}</strong></div>)}<small>{item.visibility} · {new Date(item.updatedAt).toLocaleString(locale)}</small></article>)}</div>)}
+      ) : <p className="observatory-capture-hint"><strong>BEREIT / PRIVAT</strong><span>Wähle eine Aktion, um eine Anlage oder Beobachtung direkt hier zu erfassen.</span></p>}
+      {auth.isAuthenticated && (observations.isLoading ? <StatePanel code="OBS/LOAD" state="loading" title={t("common.loading")} body={t("realm.empty")} /> : observations.isError ? <StatePanel code="OBS/ERROR" state="error" title={t("common.error")} body={t("realm.empty")} /> : !observations.data?.length ? <p className="observatory-list-empty" data-state-code={`OBS / ${realm.api.toUpperCase()} / EMPTY`}>{t("realm.empty")}</p> : <div className="observation-grid">{observations.data.map(item => <article key={item.id} className="observation-card observatory-panel">{item.media[0] ? <img className="observation-media" src={item.media[0].accessUrl} alt="" /> : null}<span className="evidence-chip">{item.evidenceState}</span><h2>{item.subject ?? realm.title}</h2>{item.scientificName ? <em>{item.scientificName}</em> : null}{item.note ? <p>{item.note}</p> : null}{item.metrics.map(metric => <div key={metric.key} className="metric-row"><span>{metric.key}</span><strong>{String(metric.value)}{metric.unit ? ` ${metric.unit}` : ""}</strong></div>)}<small>{item.visibility} · {new Date(item.updatedAt).toLocaleString(locale)}</small></article>)}</div>)}
     </div>
   );
 }

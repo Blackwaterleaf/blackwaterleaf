@@ -1,50 +1,41 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
 const shell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
-const overlay = readFileSync(resolve(root, "client/src/components/ReferenceOverlay.tsx"), "utf8");
 const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
-
 function page(name: string) { return readFileSync(resolve(root, `client/src/pages/${name}`), "utf8"); }
 
-describe("reference-overlay routes", () => {
-  it("registers the three reachable reference destination flows", () => {
+describe("Observatory route migration", () => {
+  it("registers the three reachable capture destination flows", () => {
     expect(app).toContain('path={"/flow/:flow"}');
     const flows = page("FlowDestination.tsx");
-    for (const token of ['live:', 'foto:', 'beitrag:', 'ReferenceHero', 'ReferenceActionGrid', 'BEREICH ZUERST WÄHLEN', '/botanik#capture', '/aquaristik#capture']) expect(flows).toContain(token);
+    for (const token of ["live:", "foto:", "beitrag:", "ObservatoryContextHeader", "ObservatoryActionCluster", "BEREICH ZUERST WÄHLEN", "/botanik#capture", "/aquaristik#capture"]) expect(flows).toContain(token);
   });
 
-  it("routes legacy menu names to real destinations and never renders a dead-end fallback", () => {
-    for (const token of ['path={"/wissen"}', 'path={"/feed"}', 'path={"/community/feed"}', 'path={"/botanik"}', 'path={"/aquaristik"}', 'path={"/terraristik"}', 'path={"/shop"}', '<Route component={Home} />']) expect(app).toContain(token);
+  it("routes legacy menu aliases to real destinations and a clear recovery route", () => {
+    for (const token of ['path={"/wissen"}', 'path={"/feed"}', 'path={"/community/feed"}', 'path={"/botanik"}', 'path={"/aquaristik"}', 'path={"/terraristik"}', 'path={"/shop"}', "<Route component={NotFound} />"]) expect(app).toContain(token);
   });
 
-  it("uses the binding five-target portal navigation without contextual routes", () => {
-    expect(shell).toContain('href: "/explore"'); expect(shell).toContain('href: "/explore#map"'); expect(shell).toContain('href: "/flow/foto"'); expect(shell).toContain('href: "/search"'); expect(shell).toContain('href: "/profile"');
-    expect(shell).toContain('href="/marketplace"');
+  it("uses the binding five-target portal navigation without contextual AI routes", () => {
+    for (const token of ['href: "/explore"', 'href: "/explore#map"', 'href: "/flow/foto"', 'href: "/search"', 'href: "/profile"', 'href="/marketplace"']) expect(shell).toContain(token);
     expect(shell).not.toContain('href: "/assistant"');
-    expect(styles).toContain('grid-template-columns: repeat(5, 1fr)');
+    expect(styles).toContain("repeat(5, minmax(0, 1fr))");
   });
 
-  it("provides one reusable design language for the hero, choice cards and truthful empty states", () => {
-    for (const token of ['ReferenceHero', 'ReferenceActionGrid', 'ReferenceEmptyState', 'reference-tone--${tone}', 'reference-future-banner', 'SEID GESPANNT']) expect(overlay).toContain(token);
-    for (const token of ['.reference-hero', '.reference-action-grid', '.reference-empty-state', '--reference-botany', '--reference-aquarium', '--reference-terrarium', '--reference-ai']) expect(styles).toContain(token);
+  it("uses one reusable Observatory language and no retired overlay", () => {
+    expect(existsSync(resolve(root, "client/src/components/ReferenceOverlay.tsx"))).toBe(false);
+    for (const token of [".observatory-context-header", ".observatory-action-cluster", ".observatory-state-surface", ".observatory-route--aquarium", ".observatory-route--terrarium"]) expect(styles).toContain(token);
+    for (const retired of ["ReferenceHero", "ReferenceActionGrid", "ReferenceEmptyState", ".reference-hero", ".reference-action-grid", "--reference-"]) expect(styles).not.toContain(retired);
   });
 
-  it("keeps the canonical Observatory Explore surface independent from the retired overlay composition", () => {
-    const explore = page('Explore.tsx');
-    expect(explore).toContain('observatory-explore-page');
-    expect(explore).toContain('observatory-portal-grid');
-    expect(explore).toContain('observatory-observation-panel');
-    expect(explore).not.toContain('ReferenceHero');
-    const profile = page('Profile.tsx');
-    expect(profile).toContain('profile-page-only');
-    expect(profile).not.toContain('<LiveSensorStrip');
-    expect(profile).not.toContain('<ReferenceHero');
-    expect(styles).toContain('.observatory-explore-page');
-    expect(styles).toContain('.observatory-portal-card');
-    expect(styles).toContain('.observatory-feature-card');
+  it("keeps the canonical Explore surface independent and profile privacy focused", () => {
+    const explore = page("Explore.tsx");
+    for (const token of ["observatory-explore-page", "observatory-portal-grid", "observatory-observation-panel", "ObservatoryContextHeader"]) expect(explore).toContain(token);
+    const profile = page("Profile.tsx");
+    expect(profile).toContain("profile-page-only");
+    expect(profile).not.toContain("<LiveSensorStrip");
   });
 });

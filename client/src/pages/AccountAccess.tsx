@@ -1,4 +1,4 @@
-import { ReferenceHero } from "@/components/ReferenceOverlay";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { startLogin } from "@/const";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Link, useLocation } from "wouter";
@@ -105,14 +105,12 @@ export default function AccountAccess() {
   const showManusFallback = !isEmailReady;
 
   return (
-    <main className="account-access-page reference-page reference-page--botany">
-      <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow={headline.eyebrow} title={headline.title} subtitle={headline.body} icon={AccessIcon} badge="SICHERER ZUGANG" />
-      <section className="account-access-card glass-panel">
+    <main className="account-access-page observatory-route observatory-route--botany">
+      <ObservatoryContextHeader tone="botany" image={REFERENCE_ASSETS.botany} eyebrow={headline.eyebrow} title={headline.title} subtitle={headline.body} icon={AccessIcon} badge="SICHERER ZUGANG" />
+      <section className="account-access-card observatory-data-panel">
         <Link href="/" className="account-back"><ArrowLeft size={16} /> ZURÜCK ZU BLACKWATERLEAF</Link>
         <div className="account-access-mark"><Leaf size={24} /></div>
-        <p className="eyebrow">[{headline.eyebrow}]</p>
-        <h1 className="glitch-title" data-text={headline.title}>{headline.title}</h1>
-        <p className="account-access-intro">{headline.body}</p>
+        <p className="account-access-intro">Dein Zugang bleibt sicher, widerrufbar und unabhängig von öffentlichen Portalansichten.</p>
 
         {showManusFallback ? <div className="account-manus-fallback" role="status"><p>Die eigene E-Mail-Anmeldung wird gerade eingerichtet. Bis dahin kannst du BlackWaterLeaf sicher über dein Manus-Konto nutzen.</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
         {notice ? <p className="account-success" role="status"><CheckCircle2 size={17} />{notice}</p> : null}

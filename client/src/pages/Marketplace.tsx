@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { StatePanel } from "@/components/StatePanel";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { marketplaceCategoryLabel, type MarketplaceProduct } from "@/lib/marketplacePresentation";
@@ -28,12 +29,10 @@ export default function Marketplace() {
   }])).values());
 
   return (
-    <div className="observatory-marketplace-page marketplace-page marketplace-hub">
-      <header className="observatory-marketplace-hero marketplace-hub__hero" style={{ backgroundImage: `url(${REFERENCE_ASSETS.aquarium})` }}>
-        <div><span className="eyebrow">MARKTPLATZ · BLACKWATERLEAF</span><h1>DEIN WEG. DEIN SHOP.</h1><p>Wähle zuerst einen freigegebenen Händler. Danach öffnet sich sein eigener Bereich mit Kategorien, Produkten und transparenten Partnerinformationen.</p></div>
-      </header>
+    <div className="observatory-route observatory-route--marketplace marketplace-page marketplace-hub">
+      <ObservatoryContextHeader tone="marketplace" image={REFERENCE_ASSETS.aquarium} eyebrow="MARKTPLATZ · BLACKWATERLEAF" title="DEIN WEG. DEIN SHOP." subtitle="Wähle zuerst einen freigegebenen Händler. Danach öffnet sich sein eigener Bereich mit Kategorien, Produkten und transparenten Partnerinformationen." icon={Store} badge="PARTNERANGEBOTE" />
 
-      <section className="marketplace-hub__intro glass-panel">
+      <section className="marketplace-hub__intro observatory-data-panel">
         <div className="marketplace-hub__intro-icon"><Store size={22} /></div>
         <div><span className="eyebrow">[SHOPAUSWAHL]</span><h2>Welcher Händler passt zu dir?</h2><p>Keine vermischte Produktwand: Jeder Händler hat seinen eigenen Shopbereich. BlackWaterLeaf vermittelt nur und verkauft nicht selbst.</p></div>
       </section>
@@ -47,8 +46,8 @@ export default function Marketplace() {
         </article>)}</div>}
       </section>
 
-      <section className="marketplace-hub__trust glass-panel"><ShieldCheck size={22} /><div><strong>Transparent vermittelt</strong><p>Preis, Verfügbarkeit, Zahlung, Versand, Rückgabe und Support liegen beim jeweiligen Händler. Es gibt derzeit keinen BlackWaterLeaf-Checkout.</p></div></section>
-      {auth.loading ? <StatePanel code="MERCHANT/CHECK" state="loading" title="HÄNDLERZUGANG WIRD GEPRÜFT" body="Deine Berechtigung wird sicher geprüft." /> : !auth.isAuthenticated ? <StatePanel code="MERCHANT/LOCKED" state="locked" title="HÄNDLERBEREICH GESCHÜTZT" body="Melde dich an, um vorhandene Händlerprofile und Angebotsentwürfe zu verwalten." action={<button type="button" className="secondary-action" onClick={startLogin}>SICHER ANMELDEN</button>} /> : merchantProfiles.isError ? <StatePanel code="MERCHANT/RESTRICTED" state="locked" title="KEIN HÄNDLERZUGANG" body="Dieser Bereich ist nur für freigegebene Händlerrollen verfügbar." /> : merchantProfiles.data?.length ? <section className="marketplace-merchant-entry glass-panel"><div><span className="eyebrow">[HÄNDLERBEREICH]</span><h2>Eigene Angebote verwalten</h2><p>Produktentwürfe anlegen und zur Admin-Prüfung einreichen.</p></div><Link className="secondary-action" href="/marketplace/manage">HÄNDLERBEREICH ÖFFNEN</Link></section> : null}
+      <section className="marketplace-hub__trust observatory-data-panel"><ShieldCheck size={22} /><div><strong>Transparent vermittelt</strong><p>Preis, Verfügbarkeit, Zahlung, Versand, Rückgabe und Support liegen beim jeweiligen Händler. Es gibt derzeit keinen BlackWaterLeaf-Checkout.</p></div></section>
+      {auth.loading ? <StatePanel code="MERCHANT/CHECK" state="loading" title="HÄNDLERZUGANG WIRD GEPRÜFT" body="Deine Berechtigung wird sicher geprüft." /> : !auth.isAuthenticated ? <StatePanel code="MERCHANT/LOCKED" state="locked" title="HÄNDLERBEREICH GESCHÜTZT" body="Melde dich an, um vorhandene Händlerprofile und Angebotsentwürfe zu verwalten." action={<button type="button" className="secondary-action" onClick={startLogin}>SICHER ANMELDEN</button>} /> : merchantProfiles.isError ? <StatePanel code="MERCHANT/RESTRICTED" state="locked" title="KEIN HÄNDLERZUGANG" body="Dieser Bereich ist nur für freigegebene Händlerrollen verfügbar." /> : merchantProfiles.data?.length ? <section className="marketplace-merchant-entry observatory-data-panel"><div><span className="eyebrow">[HÄNDLERBEREICH]</span><h2>Eigene Angebote verwalten</h2><p>Produktentwürfe anlegen und zur Admin-Prüfung einreichen.</p></div><Link className="secondary-action" href="/marketplace/manage">HÄNDLERBEREICH ÖFFNEN</Link></section> : null}
       <section className="marketplace-hub__footer-note"><Leaf size={17} /><span>Wissenschaftliche Inhalte und Partnerangebote bleiben im Portal klar getrennt.</span><Link href="/knowledge">QUELLEN & WISSEN <ExternalLink size={14} /></Link></section>
     </div>
   );

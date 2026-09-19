@@ -1,9 +1,8 @@
-import { ReferenceHero } from "@/components/ReferenceOverlay";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { addMarketplaceProduct, readMarketplaceCart, writeMarketplaceCart } from "@/lib/marketplaceCart";
 import { marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
 import { trpc } from "@/lib/trpc";
-import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { ArrowLeft, ExternalLink, PackageOpen, Plus, ShieldCheck, ShoppingBag, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
@@ -68,14 +67,14 @@ export default function MarketplaceProduct() {
   const heroEyebrow = item ? `PARTNER-ANGEBOT · ${marketplaceCategoryLabel(item.marketplaceCategory).toUpperCase()}` : "MARKTPLATZ / STATUS";
 
   return (
-    <div className="marketplace-detail reference-page reference-page--aquarium">
-      <ReferenceHero
-        tone="aquarium"
+    <div className="observatory-route observatory-route--marketplace marketplace-detail">
+      <ObservatoryContextHeader
+        tone="marketplace"
         icon={ShoppingBag}
         eyebrow={heroEyebrow}
         title={heroTitle}
         subtitle={heroSubtitle}
-        image={activeImage?.imageUrl ?? REFERENCE_ASSETS.aquarium}
+        image={activeImage?.imageUrl}
         badge={item?.disclosureLabel ?? "PARTNER-ANGEBOT"}
       />
       <Link href="/marketplace" className="marketplace-back"><ArrowLeft size={16} />ZURÜCK ZUM MARKTPLATZ</Link>
@@ -90,7 +89,7 @@ export default function MarketplaceProduct() {
         />
       ) : item ? (
         <>
-          <section className="marketplace-product-panel glass-panel">
+          <section className="marketplace-product-panel observatory-data-panel">
             <div className="marketplace-product-gallery">
               <div className="marketplace-product-image">
                 {activeImage ? <img src={activeImage.imageUrl} alt={activeImage.altText ?? item.imageAltText ?? item.title} /> : <span><PackageOpen size={40} />Kein Produktbild verfügbar</span>}
@@ -122,7 +121,7 @@ export default function MarketplaceProduct() {
               {notice ? <p className="marketplace-detail-notice" role="status">{notice}</p> : null}
             </div>
           </section>
-          <section className="marketplace-legal glass-panel">
+          <section className="marketplace-legal observatory-data-panel">
             <ShieldCheck size={22} />
             <div>
               <strong>Direkt beim Partner kaufen</strong>

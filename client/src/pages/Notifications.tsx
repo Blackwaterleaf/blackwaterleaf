@@ -4,6 +4,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
+import { ObservatoryContextHeader, ObservatoryStateSurface } from "@/components/ObservatoryPrimitives";
 
 function notificationIcon(type: string) {
   if (type.includes("comment")) return MessageCircle;
@@ -31,14 +32,8 @@ export default function Notifications() {
 
   if (!auth.isAuthenticated) {
     return (
-      <div className="reference-page reference-page--botany notification-page">
-        <section className="reference-empty glass-panel" aria-labelledby="notification-login-title">
-          <Bell size={28} aria-hidden="true" />
-          <span className="eyebrow">NOTIFICATIONS / PRIVATE</span>
-          <h1 id="notification-login-title">Deine Benachrichtigungen</h1>
-          <p>Melde dich an, um Kommentare, Prüfhinweise und wichtige Ereignisse sicher zu sehen.</p>
-          <button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>
-        </section>
+      <div className="observatory-route observatory-route--botany notification-page">
+        <ObservatoryStateSurface tone="botany" code="NOTIFICATIONS / PRIVATE" title="DEINE BENACHRICHTIGUNGEN" body="Melde dich an, um Kommentare, Prüfhinweise und wichtige Ereignisse sicher zu sehen." action={<button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>} />
       </div>
     );
   }
@@ -46,36 +41,19 @@ export default function Notifications() {
   const markAllRead = () => markRead.mutate({});
 
   return (
-    <div className="reference-page reference-page--botany notification-page">
-      <header className="notification-page__header">
-        <div>
-          <span className="eyebrow">PRIVATE / BENACHRICHTIGUNGEN</span>
-          <h1>Benachrichtigungen</h1>
-          <p>Kommentare, Prüfhinweise und sichere Systemereignisse an einem Ort.</p>
-        </div>
-        <button type="button" className="secondary-action" onClick={markAllRead} disabled={markRead.isPending || !feed.data?.some(item => !item.isRead)}>
-          <CheckCheck size={16} /> ALLE GELESEN
-        </button>
-      </header>
+    <div className="observatory-route observatory-route--botany notification-page">
+      <ObservatoryContextHeader tone="botany" eyebrow="PRIVATE / BENACHRICHTIGUNGEN" title="BENACHRICHTIGUNGEN" subtitle="Kommentare, Prüfhinweise und sichere Systemereignisse an einem Ort." icon={Bell} badge={`${feed.data?.filter(item => !item.isRead).length ?? 0} UNGELESEN`} children={<button type="button" className="secondary-action" onClick={markAllRead} disabled={markRead.isPending || !feed.data?.some(item => !item.isRead)}><CheckCheck size={16} /> ALLE GELESEN</button>} />
 
       {feed.isLoading ? <StatePanel code="NOTIFICATIONS / CONNECT" state="loading" title="Benachrichtigungen werden geladen" body="Dein privater Feed wird sicher abgefragt." /> : null}
       {feed.isError ? <StatePanel code="NOTIFICATIONS / ERROR" state="error" title="Benachrichtigungen nicht verfügbar" body="Es werden keine Ersatzdaten angezeigt. Bitte versuche es erneut." /> : null}
-      {!feed.isLoading && !feed.isError && !feed.data?.length ? (
-        <section className="reference-empty glass-panel" aria-labelledby="notification-empty-title">
-          <Bell size={28} aria-hidden="true" />
-          <span className="eyebrow">NOTIFICATIONS / EMPTY</span>
-          <h2 id="notification-empty-title">Noch keine Benachrichtigungen</h2>
-          <p>Wenn jemand auf deine Beiträge antwortet oder eine Prüfung abgeschlossen wird, erscheint der Hinweis hier.</p>
-          <Link href="/community" className="primary-action">COMMUNITY ÖFFNEN</Link>
-        </section>
-      ) : null}
+      {!feed.isLoading && !feed.isError && !feed.data?.length ? <ObservatoryStateSurface tone="botany" code="NOTIFICATIONS / EMPTY" title="NOCH KEINE BENACHRICHTIGUNGEN" body="Wenn jemand auf deine Beiträge antwortet oder eine Prüfung abgeschlossen wird, erscheint der Hinweis hier." action={<Link href="/community" className="primary-action">COMMUNITY ÖFFNEN</Link>} /> : null}
       {!feed.isLoading && !feed.isError && feed.data?.length ? (
-        <section className="notification-list" aria-label="Private Benachrichtigungen">
+        <section className="notification-list observatory-data-panel" aria-label="Private Benachrichtigungen">
           {feed.data.map(item => {
             const Icon = notificationIcon(item.type);
             const target = notificationTarget(item.postId, item.commentId);
             return (
-              <article key={item.id} className={`notification-card glass-panel ${item.isRead ? "is-read" : "is-unread"}`}>
+              <article key={item.id} className={`notification-card ${item.isRead ? "is-read" : "is-unread"}`}>
                 <button
                   type="button"
                   className="notification-card__main"

@@ -80,7 +80,7 @@ export function LiveSensorStrip({ onWeatherEffectChange, compact = false }: { on
     : "Your location is used only for this weather request and is not stored.";
 
   return (
-    <section className={`home-status-card glass-panel ${compact ? "reference-sensor-rail" : ""}`} aria-label={locale === "de" ? "Live-Werte" : "Live values"}>
+    <section className={`home-status-card glass-panel ${compact ? "observatory-sensor-rail" : ""}`} aria-label={locale === "de" ? "Live-Werte" : "Live values"}>
       <div className="home-status-heading"><span>{locale === "de" ? "Werte im Blick" : "Values at a glance"}</span><span className={`connection-pill ${hasWeather ? "is-ready" : ""}`}><i />{hasWeather ? (locale === "de" ? "AKTUELL" : "CURRENT") : locale === "de" ? "PRIVAT & LIVE" : "PRIVATE & LIVE"}</span></div>
       <div className="sensor-grid">
         <Sensor value={waterTemperature ?? "—"} label={waterTemperature ? `${locale === "de" ? "Wasser" : "Water"} · ${aquarium?.name ?? "Aquarium"}` : auth.isAuthenticated ? (locale === "de" ? "Aquarium eintragen" : "Add aquarium") : (locale === "de" ? "Anmeldung erforderlich" : "Sign-in required")} tone="mint" icon={Waves} />

@@ -1,6 +1,6 @@
 # BlackWaterLeaf Observatory Screen Design Book
 
-**Version:** 1.1 · **Datum:** 19. September 2026 · **Gültigkeit:** Web und Native
+**Version:** 2.0 · **Datum:** 19. September 2026 · **Gültigkeit:** Web und Native
 
 ## 1. Verbindlicher Status
 
@@ -195,3 +195,78 @@ Jedes veröffentlichte Pflanzen- oder Fisch-Taxon mit einem verifizierten Katalo
 Die Detailansicht zeigt stets Fachbereich, wissenschaftlichen Namen, vollständige Bildattribution, Lizenz und die Aktion **„Quellbeobachtung öffnen“**. Der Nachweis bleibt damit auch in der größten Darstellung sichtbar und überprüfbar. Fehlen Bild-URL, Quelle, Lizenz, Attribution oder Prüfzeitpunkt, existiert keine Detailansicht; stattdessen gilt weiter der klare Zustand **„Bildnachweis offen“**.
 
 Im Web ist das Modal als zugänglicher Dialog umgesetzt: sichtbarer Auslöser, Tastaturfokus, Escape zum Schließen, Fokus-Rückgabe zum Auslöser, Tab-Begrenzung, gesperrtes Hintergrundscrolling und Schließen per Klick außerhalb der Fläche. Native verwendet dieselben Begriffe, den gleichen lokalen Bildbestand, die gleiche Attribution und eine touchgerechte Vollbildansicht mit X- und Außenbereich-Schließen. Reduzierte Bewegung deaktiviert nicht essentielle Öffnungsanimationen.
+
+## 19. Vollständige Observatory-Spezifikation – verbindlich ab Version 2.0
+
+### 19.1 Zweck und Vorrang
+
+Die Desktop- und Mobile-Referenzen vom 19. September 2026 definieren ab sofort die **vollständige visuelle Sprache**. Jede bestehende und neue Oberfläche wird in dieses System migriert. Es gibt keine parallele Altoberfläche, keinen Legacy-Fallback und keine Seite, die nur durch eine neue Farbe angepasst wird. Wenn eine Seite noch nicht migriert ist, wird sie als Abweichung behandelt und nicht als zulässige Variante.
+
+Die Umsetzung bewahrt reale Datenquellen, Berechtigungen, Mutationen, Lade-, Fehler- und Leerzustände. Das Design darf niemals Ersatzdaten, erfundene Kartenpunkte, erfundene Bilder, simulierte Live-Werte oder nicht vorhandene Funktionen einführen.
+
+### 19.2 Globaler Portalrahmen
+
+| Bereich | Desktop-Observatory | Mobile-Observatory |
+|---|---|---|
+| Kopf | 70 px hohe, dunkle Top-Shell mit Marke links, globaler Suche mittig und kompakten Kontextaktionen rechts | Brand-Zeile mit Marke, Suche, Benachrichtigung und Profilaktion; keine nachgebildete Gerätestatusleiste |
+| Navigation | Feste linke Leiste mit genau fünf Zielen: Entdecken, Karte, Erfassen, Katalog, Profil | Feste untere Leiste mit denselben fünf Zielen; jedes Ziel gleich breit, nur ein aktiver Punkt unterstrichen |
+| Arbeitsfläche | Breite Inhaltsfläche rechts von der Navigation, äußerer Abstand 16–28 px, Panels im 8–14-px-Raster | Vertikale Inhaltsfläche mit 12–16 px Außenabstand, 8–12 px Lücken und sicherem Abstand zur unteren Navigation |
+| Oberfläche | Tiefes Schwarzgrün, flache Waldgrün-Panels, feine Rahmen, zurückhaltende Schatten | Identische Farben und Informationshierarchie, jedoch einspaltig und touchgerecht |
+| Bewegungen | Funktionale Übergänge dürfen kurz und dezent sein | Gleiches Verhalten; bei reduzierter Bewegung keine dekorativen Animationen |
+
+Die Header-, Seitenleisten- und Navigationskomponenten werden je Client genau einmal gerendert. Bereichsseiten dürfen keine zweite Markenleiste, schwebende Tab-Leiste oder parallele globale Navigation erzeugen.
+
+### 19.3 Token, Typografie und Icons
+
+Das Hintergrundfeld verwendet `#020804` bis `#06160E`; Standardpanels verwenden `#06200F` bis `#0B2B16`. Haupttext ist warmes Weiß, Metadaten sind entsättigtes Salbeigrün. **Lime** ist der Portal- und Botanik-Akzent. **Aqua** markiert ausschließlich echte Aquaristik-, Wasser- und Live-Semantik. **Gold** markiert ausschließlich Terraristik. Marktplatzhinweise bleiben zurückhaltend warm und dürfen nicht wie wissenschaftliche Evidenz wirken.
+
+Überschriften sind kompakt und informationsorientiert. Überdimensionierte Display-Typografie ist untersagt; die Hierarchie besteht aus Eyebrow, Titel, Kurzsatz und Faktenzeile. Icons sind dünn, eindeutig und funktional: Kompass für Entdecken, Karte für Karte, Kamera für Erfassen, Buch für Katalog, Nutzer für Profil, Schild für Evidenz und Schutz, Pfeil für echte Navigation. Jeder interaktive Icon-Button hat einen zugänglichen Namen und ein Ziel von mindestens 44 px.
+
+### 19.4 Gemeinsame visuelle Bausteine
+
+| Baustein | Verbindliche Struktur | Einsatz |
+|---|---|---|
+| Kontextkopf | Eyebrow, kompakter Titel, ein erklärender Satz, optionales Statuslabel und zurückhaltender Bildstreifen | Jede Hauptseite, Bereichsseite und private Arbeitsfläche |
+| Kontextaktionszeile | Dichte Zeilen mit Icon, Titel, Erklärung, klarer Zielaktion oder ehrlichem Nichtverfügbarkeitsstatus | Erfassen, KI, Bereichsaktionen, Profilwerkzeuge |
+| Datenpanel | Flache, dunkle Fläche mit Header, Trennlinien, Faktenzeilen und realem Status | Karten/Listen, Katalog, Wissen, Pflege, Händler, Admin |
+| Faktenzeile | Typ/Realm, Quelle/Autor, Zeit, Sichtbarkeit, Evidenz oder Status; keine dekorativen Scheinwerte | Beobachtungen, Community, Benachrichtigungen, Merkliste, Marktplatz |
+| Segmentleiste | Zugängliche, horizontal scrollbare Auswahl mit einem klaren aktiven Zustand | Filter, Suche, Karte/Liste, KI-Werkzeugwahl, Händlerfilter |
+| Bildbeleg | Begrenztes, scharfes Bild mit korrekter Quelle, Attribution und Lizenz; bei fehlendem Nachweis neutraler Zustand | Taxa, Community-Medien, Händlerbilder, Detailansicht |
+| Zustandsfläche | Dieselbe Panelgeometrie wie Daten, aber mit klarer Lade-, Fehler-, Leer-, Offline- oder Sperrstatuskommunikation | Alle Datenrouten |
+
+### 19.5 Verbindliche Seitenarchitektur
+
+**Entdecken** zeigt einen kompakten Observatory-Kontext, drei gleichwertige Bereichskarten, dann Karte & Liste, Katalogzugang und Quellen-/Offline-Hinweise. Die Startseite darf keine zweite, konkurrierende Landing-Page-Architektur verwenden.
+
+**Karte** zeigt Bereichsfilter, Karte-/Liste-Umschalter und denselben serverseitigen Beobachtungsbestand. Solange keine zulässigen generalisierten Ortsdaten vorliegen, erscheint ausschließlich **„Keine Kartenpunkte freigegeben“**. Dekorative Pins, Konturen oder Kartenhintergründe zählen nicht als Karte und sind ausgeschlossen.
+
+**Erfassen** verwendet einen Bild- oder Kamera-Kontext mit kompakten Aktionen. Foto, Live, Beobachtung und Community bleiben reale Zielwege. Nicht verbundene Kamera-, Video-, Smart-Device- oder KI-Funktionen sind sichtbar als **„Nicht verfügbar“**, nie als attraktive Pseudofunktion.
+
+**Katalog, Suche, Wissen und Taxa** verwenden eine Arbeitsfläche mit Suche oder Kontextkopf, Segmenten, dichten Faktenzeilen und Quellen. Taxondetails zeigen zuerst Bild/Platzhalter und Identität, danach Evidenz, Fakten und Quellen. Verbreitung wird nur bei explizit quellengebundener Geometrie gezeigt; Bildquellen sind keine Verbreitungsquellen.
+
+**KI** verwendet genau eine Werkzeugwahl mit Chat, Pflanzenbestimmung und Aquarium. Die jeweils aktive Arbeitsfläche zeigt echte Upload-, Consent-, Sperr-, Fehler- und Ergebnismodule. Doppelten Werkzeugschalter, Bildkachelwand und KI-Show-Hero gibt es nicht.
+
+**Community** bleibt ein moderierter, vertikaler Fachfeed. Jeder Beitrag beginnt mit realem Medium oder einer klaren Textfläche und zeigt Autor, Zeit, Bereich, Sichtbarkeit und Interaktionen als Faktenzeile. Eigentümer- und Fremdaktionen bleiben getrennt. Ein Kopieren eines Links darf nicht als gespeicherter Beitrag aussehen.
+
+**Profil** reduziert die sichtbare Hauptfläche auf Identität, Bio, Score, sichtbare Anlagen und eigene öffentliche Beiträge. Datenschutz, Sprache, Einheiten, Sitzungen, Kontoschluss und weitere Werkzeuge bleiben private Kontextseiten. Öffentliche Profile geben nie Standort- oder private Anlagendaten aus.
+
+**Marktplatz und Händler** bleiben klar kommerziell: Start als Händlerauswahl, Shop als isolierter Händlerbereich und Produktdetail mit Bild, Offenlegung, Preis, Händler, Produktart und ausgehender Aktion. Bilder dürfen nur zum jeweiligen Händler gehören. Weiterleitungen, Kaufinteressen und bestätigte Verkäufe werden getrennt und ehrlich dargestellt.
+
+**Pflege, Ranking und Admin** verwenden keine Dashboard-Showflächen. Pflege zeigt echte Aufgaben und Zustände, Ranking nur bestätigte oder klar nicht verfügbare Werte. Die Händlerfreigabe zeigt in verbindlicher Reihenfolge **Profil → Autorisierung → Platzierung → Produkte**.
+
+### 19.6 Entfernte Legacy-Sprache
+
+Die folgenden Muster sind vollständig entfernt und dürfen weder neu verwendet noch als CSS-Fallback belassen werden: `ReferenceHero`, `ReferenceActionGrid`, `ReferenceEmptyState`, `reference-page`, `reference-hero`, `reference-action-grid`, bildgestützte Aktionskachelwände, `glitch-title`, Glas-Scan-Effekte, Scanlines, Ambient-Grids, schwebende Mobile-Pills, radiale Capture-Wheels, dekorative Kartenpins, übersteigerte Aqua- oder Lila-Glows und statische Synchronisierungsbehauptungen wie „vor 2 Min.“.
+
+Bestehende Styles mit diesen Namen werden entfernt, nachdem ihre Seiten auf die neuen Observatory-Primitives migriert wurden. Ein visueller Patch, der eine alte Klasse nur überlagert, gilt nicht als vollständige Migration.
+
+### 19.7 Abnahmeregel für die Gesamtmigration
+Vor einem Gesamtcheckpoint werden alle öffentlichen und privaten Routen auf Desktop und Mobile geöffnet. Eine Route besteht nur, wenn sie den gemeinsamen Portalrahmen nutzt, keinen Legacy-Selektor oder Legacy-Overlay enthält, reale Daten und Berechtigungen wahrt, einen sichtbaren Lade-/Fehler-/Leerzustand besitzt, sichere Bild- und Standortregeln einhält und keine zweite Navigation erzeugt. Die fünf Primärziele bleiben überall erreichbar und genau eines ist aktiv markiert.
+---
+## 19.8 Umsetzungssperre und Migrationsstand (19. September 2026)
+
+**Dieser Abschnitt ist verbindlich.** Das Observatory-System in diesem Dokument ersetzt die vorherige Reference-Overlay-Sprache vollständig. Neue oder überarbeitete Screens dürfen keine großformatigen Legacy-Promokacheln, abstrakten Effektflächen, unbelegten Kartenpunkte, simulierten Live-Zustände oder das frühere Overlay-Komponentensystem erneut einführen.
+
+Die Web-Routen für Start, Entdecken, Fachbereiche, Suche, Taxa, Wissen, Community, KI-Arbeitsbereich, Profile, Pflege, Ranking, Benachrichtigungen, Merkliste, Händlerflächen, Marketplace und Fehlerzustände sind auf den gemeinsamen Shell-, Kontextkopf-, Datenpanel- und Zustandsflächenstandard migriert. Nicht mehr geroutete Mockup-Seiten sowie die Legacy-Komponente `ReferenceOverlay` wurden entfernt. Der mobile Client verwendet dieselben Begriffe und denselben Informationsrhythmus; seine früheren Referenz-Komponenten wurden in `ObservatoryContextHeader`, `ObservatoryActionCluster` und `ObservatoryActionRow` überführt und aus großen Bildkacheln in kompakte Arbeitszeilen überführt.
+
+Die verbindliche visuelle Hierarchie lautet damit auf beiden Plattformen: **Route/Shell → kompakter Kontextkopf → Daten- oder Aktionsfläche → expliziter Zustand**. Bildmaterial dient ausschließlich der Identität, der Katalogbestimmung oder einer klar zugeordneten Fachinformation. Es darf weder Datenzustände vortäuschen noch den Bedienkontext überdecken. Der Kartenmodus bleibt, solange keine ausdrücklich zulässigen generalisierten Ortsdaten vorliegen, eine erklärte Schutzfläche ohne erfundene Punkte.

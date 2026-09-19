@@ -1,12 +1,12 @@
-import { ReferenceEmptyState, ReferenceHero } from "@/components/ReferenceOverlay";
+import { ObservatoryContextHeader, ObservatoryStateSurface } from "@/components/ObservatoryPrimitives";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Home, Leaf, Search } from "lucide-react";
 import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="reference-page reference-page--botany reference-not-found">
-      <ReferenceHero
+    <div className="observatory-route observatory-route--botany observatory-not-found">
+      <ObservatoryContextHeader
         tone="botany"
         image={REFERENCE_ASSETS.botany}
         eyebrow="ROUTE / 404"
@@ -15,15 +15,15 @@ export default function NotFound() {
         icon={Search}
         badge="NAVIGATION"
       />
-      <ReferenceEmptyState
+      <ObservatoryStateSurface
         tone="botany"
         state="error"
         code="ROUTE / 404"
         title="SEITE NICHT GEFUNDEN"
-        body="Kehre zur Startseite zurück oder entdecke die vorhandenen Naturwelten. Es wurden keine Inhalte, Messwerte oder Konten ersetzt."
+        body="Kehre zur Startseite zurück oder öffne einen vorhandenen Fachbereich. Es wurden keine Inhalte, Messwerte oder Konten ersetzt."
         action={<Link className="primary-action" href="/"><Home size={16} />ZUR STARTSEITE</Link>}
       />
-      <section className="reference-recovery-grid" aria-label="Verfügbare Ziele">
+      <section className="observatory-recovery-list" aria-label="Verfügbare Ziele">
         <Link href="/explore"><Leaf size={17} /><span><strong>ENTDECKEN</strong><small>Welten und Wissen öffnen</small></span></Link>
         <Link href="/community"><Search size={17} /><span><strong>COMMUNITY</strong><small>Freigegebene Momente ansehen</small></span></Link>
       </section>

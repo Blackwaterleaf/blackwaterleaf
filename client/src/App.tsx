@@ -12,7 +12,6 @@ import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
 import ProfileHome from "./pages/ProfileHome";
 import Ranking from "./pages/Ranking";
-import ProfileMockup, { ProfileSettingsMockup } from "./pages/ProfileMockup";
 import Realm from "./pages/Realm";
 import FlowDestination from "./pages/FlowDestination";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -28,6 +27,7 @@ import PlantTaxon from "./pages/PlantTaxon";
 import AquariumTaxon from "./pages/AquariumTaxon";
 import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
+import NotFound from "./pages/NotFound";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -63,8 +63,6 @@ function Router() {
         <Route path={"/aquarium-fish/:id"} component={AquariumTaxon} />
         <Route path={"/saved"} component={SavedItems} />
         <Route path={"/ranking"} component={Ranking} />
-        <Route path={"/profile-mockup"} component={ProfileMockup} />
-        <Route path={"/profile-mockup/settings"} component={ProfileSettingsMockup} />
         <Route path={"/profile/settings"} component={Profile} />
         <Route path={"/profile/private"} component={Profile} />
         <Route path={"/profile/habitats"} component={Profile} />
@@ -87,8 +85,8 @@ function Router() {
         <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
-        <Route path={"/404"} component={Home} />
-        <Route component={Home} />
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
           </Switch>
         </AppShell>
       </Route>

@@ -16,14 +16,12 @@ const portalNavigation = [
   { href: "/profile", label: "Profil", icon: UserRound },
 ] as const;
 
-function isReferenceNavigationActive(location: string, href: string) {
-  if (href === "/") {
-    const topLevel = location.split("/")[1] ?? "";
-    return location === "/" || location.startsWith("/world/") || location === "/assistant" || location.startsWith("/flow/live") || location.startsWith("/flow/foto") || !["explore", "marketplace", "community", "profile", "habitat-builder"].includes(topLevel);
-  }
-  if (href === "/explore") return location.startsWith("/explore") || location.startsWith("/knowledge");
-  if (href === "/marketplace") return location.startsWith("/marketplace");
-  if (href === "/community") return location.startsWith("/community") || location.startsWith("/flow/beitrag");
+function isPortalNavigationActive(location: string, hash: string, href: string) {
+  if (href === "/explore#map") return location === "/explore" && hash === "#map";
+  if (href === "/explore") return location === "/" || (location === "/explore" && hash !== "#map") || location.startsWith("/botanik") || location.startsWith("/aquaristik") || location.startsWith("/terraristik") || location.startsWith("/community") || location.startsWith("/member/");
+  if (href === "/flow/foto") return location.startsWith("/flow/") || location === "/assistant" || location === "/habitat-builder";
+  if (href === "/search") return location.startsWith("/search") || location.startsWith("/knowledge") || location.startsWith("/plant/") || location.startsWith("/aquarium-fish/");
+  if (href === "/profile") return location.startsWith("/profile") || location.startsWith("/saved") || location.startsWith("/ranking") || location.startsWith("/today") || location.startsWith("/notifications");
   return location.startsWith(href);
 }
 
@@ -40,6 +38,7 @@ export function AppShell({ children }: PropsWithChildren) {
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
   const bottomNavigation = portalNavigation;
+  const [hash, setHash] = useState(() => typeof window === "undefined" ? "" : window.location.hash);
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const [contentEntered, setContentEntered] = useState(false);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
@@ -52,6 +51,13 @@ export function AppShell({ children }: PropsWithChildren) {
     setContentEntered(false);
     const frame = window.requestAnimationFrame(() => setContentEntered(true));
     return () => window.cancelAnimationFrame(frame);
+  }, [location]);
+
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash);
+    window.addEventListener("hashchange", syncHash);
+    syncHash();
+    return () => window.removeEventListener("hashchange", syncHash);
   }, [location]);
 
   useEffect(() => () => {
@@ -100,8 +106,6 @@ export function AppShell({ children }: PropsWithChildren) {
 
   return (
     <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
-      <div className="ambient-grid" aria-hidden="true" />
-      <div className="scanlines" aria-hidden="true" />
       <header className="top-shell">
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
           <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="" /></span>
@@ -136,11 +140,11 @@ export function AppShell({ children }: PropsWithChildren) {
         <div className="portal-sidebar__nav">
           {portalNavigation.map(item => {
             const Icon = item.icon;
-            const active = item.href === "/explore#map" ? location.startsWith("/explore") : isReferenceNavigationActive(location, item.href === "/search" ? "/explore" : item.href);
+            const active = isPortalNavigationActive(location, hash, item.href);
             return <Link key={item.href} href={item.href} className={active ? "active" : ""}><Icon size={19} /><span>{item.label}</span></Link>;
           })}
         </div>
-        <div className="portal-sidebar__status"><i />Online<span>Letzte Synchronisierung<br />vor 2 Min.</span></div>
+        <div className="portal-sidebar__status"><i />Verbindung<span>Aktueller Status wird<br />pro Bereich angezeigt.</span></div>
       </aside>
       <ConnectionStateBanner />
       <AnalyticsTracker />
@@ -148,7 +152,7 @@ export function AppShell({ children }: PropsWithChildren) {
       <nav className="bottom-navigation" aria-label="Hauptnavigation">
           {bottomNavigation.map(item => {
             const Icon = item.icon;
-            const active = item.href === "/explore#map" ? location.startsWith("/explore") : isReferenceNavigationActive(location, item.href);
+            const active = isPortalNavigationActive(location, hash, item.href);
             return (
             <Link key={item.href} href={item.href} onClick={event => handleTabNavigation(event, item.href)} className={`nav-link ${active ? "active" : ""} ${pendingTab === item.href ? "is-transition-target" : ""}`}>
               <Icon size={19} strokeWidth={active ? 2.2 : 1.6} />
