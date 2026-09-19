@@ -419,6 +419,15 @@ export const createCommunityDraft = (
     input,
     token
   );
+export const uploadCommunityDraftImage = (
+  token: string,
+  input: { postId: number; base64: string; mimeType: "image/jpeg" | "image/png" | "image/webp" }
+) =>
+  trpcPost<{ id: string; accessUrl: string }>(
+    "community.uploadDraftImage",
+    input,
+    token
+  );
 export const publishCommunityDraft = (
   token: string,
   input: { postId: number }

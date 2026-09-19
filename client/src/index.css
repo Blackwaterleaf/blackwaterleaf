@@ -1702,3 +1702,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .marketplace-hub .marketplace-hub-shop__categories span { color: #e4ffd5; border-color: rgba(185,251,127,.26); background: rgba(185,251,127,.08); }
 .marketplace-hub .marketplace-hub-shop__open { color: #071208; border-color: #b9fb7f; background: #b9fb7f; }
 .marketplace-hub .marketplace-hub-shop--loading div { background: rgba(185,251,127,.2); }
+
+/* Community compose: immediate visual destination and comfortable mobile tap target. */
+.observatory-community-toolbar .community-feed-compose { width:clamp(224px,32vw,380px); min-height:44px; justify-content:center; padding-inline:18px; }
+.community-compose .upload-hint { margin:2px 0 0; color:#abcbb0; font-size:.73rem; line-height:1.45; }
+@media(max-width:700px){ .observatory-community-toolbar .community-feed-compose { width:100%; min-height:48px; font-size:.75rem; } .community-compose .upload-hint { font-size:.71rem; } }

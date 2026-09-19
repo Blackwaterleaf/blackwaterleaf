@@ -27,4 +27,12 @@ describe("mobile image upload contract", () => {
     for (const source of [community, realm, assistant]) expect(source).toContain("imageErrorMessage");
     expect(files).toContain("Das Bild konnte nicht verarbeitet werden.");
   });
+
+  it("handles Android image MIME gaps by a safe extension fallback and gives the composer a visible destination", () => {
+    expect(files).toContain("function imageMimeType(file: File)");
+    expect(files).toContain('if (declared === "image/jpg") return "image/jpeg";');
+    expect(files).toContain('if (extension === "jpg" || extension === "jpeg") return "image/jpeg";');
+    expect(community).toContain("composeRef.current?.scrollIntoView");
+    expect(community).toContain("Android-Dateien mit fehlender Typkennung");
+  });
 });

@@ -112,7 +112,7 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("connects native KI and community actions only through existing protected server contracts", () => {
-    for (const procedure of ["assistant.chat", "assistant.plantIdentify", "assistant.aquariumAnalyze", "assistant.submitPlantCorrection", "community.createDraft", "community.publish", "profile.consents"]) expect(api).toContain(procedure);
+    for (const procedure of ["assistant.chat", "assistant.plantIdentify", "assistant.aquariumAnalyze", "assistant.submitPlantCorrection", "community.createDraft", "community.uploadDraftImage", "community.publish", "profile.consents"]) expect(api).toContain(procedure);
     expect(app).toContain("ai_processing");
     expect(app).toContain("community_publishing");
     expect(app).toContain("maximal 3 Einzelbilder");
@@ -132,5 +132,16 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain('function LiveHomeWorlds');
     expect(app).toContain('AUSWAHL · {selected.toUpperCase()}');
     expect(app).toContain('LayoutAnimation.Presets.easeInEaseOut');
+  });
+
+  it("provides a consent-gated native community photo flow with the same eight-megabyte contract as web", () => {
+    expect(app).toContain("function PostScreen");
+    expect(app).toContain("choosePostImage");
+    expect(app).toContain("launchImageLibraryAsync");
+    expect(app).toContain("uploadCommunityDraftImage(token");
+    expect(app).toContain('purpose: "media_processing"');
+    expect(app).toContain("8 * 1024 * 1024");
+    expect(app).toContain("FOTO HINZUFÜGEN");
+    expect(app).toContain("BILD SICHER VERARBEITEN");
   });
 });

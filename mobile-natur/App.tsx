@@ -72,6 +72,7 @@ import {
   reportCommunityPost,
   setProfileConsent,
   updateProfile,
+  uploadCommunityDraftImage,
   uploadProfileAvatar,
   submitPlantCorrection,
   updateCommunityPost,
@@ -2272,6 +2273,8 @@ function PostScreen({
 }) {
   const [content, setContent] = useState("");
   const [realm, setRealm] = useState<Realm>("botany");
+  const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
+  const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -2283,8 +2286,33 @@ function PostScreen({
     if (!token || !showOwnPosts) return;
     void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
   }, [token, showOwnPosts]);
+
+  const choosePostImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert("Fotozugriff erforderlich", "Ohne Freigabe kann kein Bild an deinen Community-Beitrag angehängt werden.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.72, allowsEditing: false });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    const rawMimeType = asset.mimeType?.toLowerCase();
+    const mimeType = rawMimeType === "image/png" || rawMimeType === "image/webp" ? rawMimeType : "image/jpeg";
+    const fileSize = typeof asset.fileSize === "number" ? asset.fileSize : null;
+    if (fileSize !== null && fileSize > 8 * 1024 * 1024) {
+      Alert.alert("Bild zu groß", "Bitte wähle ein Bild mit maximal 8 MB. Fotos aus der Kamera werden beim Auswählen bereits komprimiert.");
+      return;
+    }
+    setPostImage({ uri: asset.uri, mimeType, fileSize });
+    setMediaConsent(false);
+  };
+
   const save = async () => {
     if (!token || !content.trim() || saving) return;
+    if (postImage && !mediaConsent) {
+      Alert.alert("Foto-Freigabe erforderlich", "Bitte bestätige zuerst die sichere Bildverarbeitung für diesen Beitrag.");
+      return;
+    }
     setSaving(true);
     setStatus(null);
     try {
@@ -2294,13 +2322,25 @@ function PostScreen({
           policyVersion: "native-1.0.8",
           granted: true,
         });
+      if (postImage)
+        await setProfileConsent(token, {
+          purpose: "media_processing",
+          policyVersion: "native-1.0.4",
+          granted: true,
+        });
       const draft = await createCommunityDraft(token, {
         content: content.trim(),
         realm,
       });
+      if (postImage) {
+        const base64 = await FileSystem.readAsStringAsync(postImage.uri, { encoding: FileSystem.EncodingType.Base64 });
+        await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64, mimeType: postImage.mimeType });
+      }
       if (publishNow)
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       setContent("");
+      setPostImage(null);
+      setMediaConsent(false);
       setPublishNow(false);
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
       setStatus(
@@ -2322,6 +2362,8 @@ function PostScreen({
     setEditingPostId(post.id);
     setContent(post.content);
     setRealm(post.realm ?? "botany");
+    setPostImage(null);
+    setMediaConsent(false);
     setEditVisibility(post.visibility);
     setPublishNow(false);
   };
@@ -2414,6 +2456,13 @@ function PostScreen({
               </Pressable>
             ))}
           </View>
+          {editingPostId === null ? <View style={[styles.communityMediaPanel, { borderColor: `${tone.accent}55`, backgroundColor: "rgba(0,0,0,.16)" }]}>
+            {postImage ? <>
+              <Image source={{ uri: postImage.uri }} style={styles.communityMediaPreview} />
+              <View style={styles.communityMediaMeta}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>BILD BEREIT</Text><Text style={styles.miniCopy}>{postImage.fileSize ? `${Math.ceil(postImage.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Bild entfernen" onPress={() => { setPostImage(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View>
+              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>BILD SICHER VERARBEITEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB. Das Foto bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
+            </> : <Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO HINZUFÜGEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB</Text></View><Ionicons name="chevron-forward-outline" size={17} color={tone.accent} /></Pressable>}
+          </View> : null}
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
             <View style={styles.flex}>
               <Text style={styles.cardTitle}>{editingPostId !== null ? "ÖFFENTLICH SPEICHERN" : "ÖFFENTLICH VERÖFFENTLICHEN"}</Text>
@@ -4645,5 +4694,10 @@ const styles = StyleSheet.create({
   exploreObservationList: { gap: 7 },
   exploreObservationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.14)" },
   exploreObservationIcon: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: 1 },
+  communityMediaPanel: { gap: 9, padding: 10, borderRadius: 14, borderWidth: 1 },
+  communityMediaPicker: { minHeight: 62, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 9 },
+  communityMediaPreview: { width: "100%", height: 170, borderRadius: 11, borderWidth: 1, borderColor: "rgba(199,243,91,.28)", resizeMode: "cover" },
+  communityMediaMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
+  communityMediaRemove: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });
