@@ -43,6 +43,7 @@ import {
   assistantChat,
   assistantPlantIdentify,
   addCommunityComment,
+  blockCommunityUser,
   careAddJournal,
   careCreatePlan,
   careCreateTask,
@@ -58,6 +59,7 @@ import {
   knowledge,
   marketplace,
   marketplaceEvent,
+  likeCommunityPost,
   markNotificationsRead,
   myCommunityPosts,
   notificationFeed,
@@ -69,6 +71,7 @@ import {
   profileConsents,
   publishCommunityDraft,
   readToken,
+  reportCommunityPost,
   setProfileConsent,
   updateProfile,
   uploadProfileAvatar,
@@ -688,6 +691,8 @@ function NaturApp() {
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
+            realm="botany"
+            observations={publicObservationRows}
             eyebrow="BOTANIK"
             title="PFLANZEN WORLD"
             subtitle="Deine Pflanzensammlung."
@@ -734,6 +739,8 @@ function NaturApp() {
         {screen === "aquarium" && (
           <WorldScreen
             tone={TONES.aquarium}
+            realm="aquarium"
+            observations={publicObservationRows}
             eyebrow="AQUARISTIK"
             title="AQUARISTIK"
             subtitle="Becken, Wasserwerte, Unterwasserwelt."
@@ -780,6 +787,8 @@ function NaturApp() {
         {screen === "terrarium" && (
           <WorldScreen
             tone={TONES.terrarium}
+            realm="terrarium"
+            observations={publicObservationRows}
             eyebrow="TERRARISTIK"
             title="TERRARISTIK"
             subtitle="Regenwald im Kleinen."
@@ -1346,17 +1355,23 @@ function Explore({
 
 function WorldScreen({
   tone,
+  realm,
+  observations,
   eyebrow,
   title,
   subtitle,
   actions,
 }: {
   tone: Tone;
+  realm: Realm;
+  observations: Observation[];
   eyebrow: string;
   title: string;
   subtitle: string;
   actions: Action[];
 }) {
+  const [view, setView] = useState<"map" | "list">("map");
+  const visibleObservations = observations.filter(item => item.realm === realm);
   return (
     <Page>
       <ReferenceHero
@@ -1378,6 +1393,12 @@ function WorldScreen({
         title="WÄHLE EINEN BEREICH"
       />
       <ActionGrid tone={tone} actions={actions} />
+      <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
+        <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · SYNCHRONISIERT</Text><Text style={styles.cardTitle}>BEOBACHTEN. EINORDNEN. TEILEN.</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: tone.accent }]} /><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View></View>
+        <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={realm === "aquarium" ? ASSETS.aquarium : realm === "terrarium" ? ASSETS.terrarium : ASSETS.botany} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{visibleObservations.length} freigegebene Beobachtungen</Text><Text style={styles.copy}>Geschützte Orte · genaue Positionen bleiben privat</Text></View><Text style={styles.exploreMapCaption}>Keine privaten Pins · nur zulässige Ortsangaben</Text></ImageBackground></View> : null}
+        {view === "list" || !visibleObservations.length ? <View style={styles.exploreObservationList}>{visibleObservations.length ? visibleObservations.slice(0, 5).map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={realm === "aquarium" ? "fish-outline" : "leaf-outline"} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>Öffentlich · Ortsangabe geschützt</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
+      </View>
     </Page>
   );
 }
@@ -2804,6 +2825,21 @@ function CommunityScreen({
                 await deleteCommunityPost(token, Number(post.id));
                 await refresh();
               }}
+              onLike={async () => {
+                if (!token) return void onSignIn();
+                await likeCommunityPost(token, Number(post.id));
+                await refresh();
+              }}
+              onReport={async () => {
+                if (!token) return void onSignIn();
+                await reportCommunityPost(token, { postId: Number(post.id), reason: "other" });
+                Alert.alert("Meldung gespeichert", "Die Meldung wurde zur Prüfung weitergeleitet.");
+              }}
+              onBlock={async () => {
+                if (!token) return void onSignIn();
+                await blockCommunityUser(token, Number(post.author.id));
+                await refresh();
+              }}
               token={token}
             />
           ))}
@@ -3417,7 +3453,7 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, onEdit, onDelete, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; token: string | null }) {
+function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onBlock, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
@@ -3463,6 +3499,7 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, token }: { tone: Tone
           style={styles.postImage}
         />
       ) : null}
+      <View style={styles.postInteractionRow}><Pressable onPress={() => void onLike()} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport() }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{!isOwner ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock() }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View>
       <Text style={styles.date}>
         {post.likesCount} Likes · {post.commentsCount} Kommentare
       </Text>
@@ -4024,9 +4061,9 @@ const styles = StyleSheet.create({
   nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
   nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
   headerAction: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: "rgba(199,243,91,.25)",
     alignItems: "center",
@@ -4037,13 +4074,13 @@ const styles = StyleSheet.create({
   stack: { gap: 13 },
   flex: { flex: 1 },
   hero: {
-    minHeight: 282,
+    minHeight: 238,
     borderWidth: 1,
     borderRadius: 22,
     overflow: "hidden",
     justifyContent: "flex-end",
   },
-  homeHero: { minHeight: 300 },
+  homeHero: { minHeight: 250 },
   heroImage: { borderRadius: 21 },
   heroShade: {
     ...StyleSheet.absoluteFill,
@@ -4509,6 +4546,7 @@ const styles = StyleSheet.create({
   postOwnerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
   postOwnerButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
   postOwnerDelete: { borderColor: "rgba(255,171,176,.42)" },
+  postInteractionRow: { flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 8, borderTopWidth: 1, borderTopColor: `${c.muted}22` },
   commentToggle: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10, paddingVertical: 7 },
   commentPanel: { gap: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)" },
   commentRow: { padding: 8, borderRadius: 9, backgroundColor: "rgba(0,0,0,.16)", gap: 3 },
@@ -4629,6 +4667,7 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     minWidth: 0,
+    minHeight: 48,
     alignItems: "center",
     justifyContent: "center",
     gap: 4,

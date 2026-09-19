@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lt, notInArray, sql } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, mediaAssets, notifications, postComments, postLikes, users } from "../../drizzle/schema";
+import { communityPosts, communityReports, mediaAssets, notifications, postComments, postLikes, userBlocks, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
@@ -71,8 +71,11 @@ async function publicMediaForPost(postId: number, userId: number) {
 export const communityRouter = router({
   feed: publicProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
+      const blockedAuthorIds = ctx.user
+        ? (await db.select({ id: userBlocks.blockedId }).from(userBlocks).where(eq(userBlocks.blockerId, ctx.user.id))).map(item => item.id)
+        : [];
       const rows = await db
         .select({ post: communityPosts, author: users })
         .from(communityPosts)
@@ -82,6 +85,7 @@ export const communityRouter = router({
             eq(communityPosts.status, "published"),
             eq(communityPosts.visibility, "public"),
             eq(users.status, "active"),
+            ...(blockedAuthorIds.length ? [notInArray(communityPosts.userId, blockedAuthorIds)] : []),
           ),
         )
         .orderBy(desc(communityPosts.createdAt))
@@ -262,7 +266,7 @@ export const communityRouter = router({
   like: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const visible = await db
-      .select({ id: communityPosts.id })
+      .select({ id: communityPosts.id, userId: communityPosts.userId })
       .from(communityPosts)
       .innerJoin(users, eq(communityPosts.userId, users.id))
       .where(
@@ -289,6 +293,15 @@ export const communityRouter = router({
         .update(communityPosts)
         .set({ likesCount: sql`${communityPosts.likesCount} + 1` })
         .where(eq(communityPosts.id, input.postId));
+      if (visible[0].userId !== ctx.user.id) {
+        await tx.insert(notifications).values({
+          recipientId: visible[0].userId,
+          actorId: ctx.user.id,
+          type: "like",
+          postId: input.postId,
+          message: "Jemandem gefällt dein Community-Beitrag.",
+        });
+      }
     });
     return { liked: true } as const;
   }),
@@ -381,5 +394,72 @@ export const communityRouter = router({
         }
       });
       return { success: true } as const;
+    }),
+
+  updateComment: protectedProcedure
+    .input(z.object({ commentId: z.number().int().positive(), content: z.string().trim().min(1).max(2_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
+      const [comment] = await db.select({ id: postComments.id, userId: postComments.userId, status: postComments.status }).from(postComments).where(eq(postComments.id, input.commentId)).limit(1);
+      if (!comment || comment.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "comment_ownership_required" });
+      if (comment.status !== "visible") throw new TRPCError({ code: "CONFLICT", message: "comment_not_editable" });
+      await db.update(postComments).set({ content: input.content }).where(eq(postComments.id, input.commentId));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_comment_updated", targetType: "comment", targetId: input.commentId, payload: { contentLength: input.content.length } });
+      return { id: input.commentId, updated: true } as const;
+    }),
+
+  deleteComment: protectedProcedure
+    .input(z.object({ commentId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [comment] = await db.select({ id: postComments.id, postId: postComments.postId, userId: postComments.userId, status: postComments.status }).from(postComments).where(eq(postComments.id, input.commentId)).limit(1);
+      if (!comment || comment.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "comment_ownership_required" });
+      if (comment.status !== "visible") return { id: input.commentId, deleted: false } as const;
+      await db.transaction(async tx => {
+        await tx.update(postComments).set({ status: "removed" }).where(eq(postComments.id, input.commentId));
+        await tx.update(communityPosts).set({ commentsCount: sql`GREATEST(${communityPosts.commentsCount} - 1, 0)` }).where(eq(communityPosts.id, comment.postId));
+      });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_comment_deleted", targetType: "comment", targetId: input.commentId, payload: { postId: comment.postId } });
+      return { id: input.commentId, deleted: true } as const;
+    }),
+
+  report: protectedProcedure
+    .input(z.object({ postId: z.number().int().positive().optional(), commentId: z.number().int().positive().optional(), reason: z.enum(["sexual_content", "harassment", "misinformation", "copyright", "other"]), note: z.string().trim().max(1_000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      if (Boolean(input.postId) === Boolean(input.commentId)) throw new TRPCError({ code: "BAD_REQUEST", message: "exactly_one_report_target_required" });
+      const db = await requireDatabase();
+      if (input.postId) {
+        const [post] = await db.select({ id: communityPosts.id, status: communityPosts.status, visibility: communityPosts.visibility }).from(communityPosts).where(eq(communityPosts.id, input.postId)).limit(1);
+        if (!post || post.status !== "published" || post.visibility !== "public") throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+      }
+      if (input.commentId) {
+        const [comment] = await db.select({ id: postComments.id, postId: postComments.postId, status: postComments.status }).from(postComments).where(eq(postComments.id, input.commentId)).limit(1);
+        if (!comment || comment.status !== "visible") throw new TRPCError({ code: "NOT_FOUND", message: "comment_not_found" });
+      }
+      const inserted = await db.insert(communityReports).values({ reporterId: ctx.user.id, postId: input.postId ?? null, commentId: input.commentId ?? null, reason: input.reason, note: input.note?.trim() || null });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_report_submitted", targetType: input.postId ? "community_post" : "comment", targetId: input.postId ?? input.commentId!, payload: { reason: input.reason, hasNote: Boolean(input.note?.trim()) } });
+      return { id: Number(inserted[0].insertId), status: "pending" } as const;
+    }),
+
+  blockUser: protectedProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.id === input.userId) throw new TRPCError({ code: "BAD_REQUEST", message: "cannot_block_self" });
+      const db = await requireDatabase();
+      const [target] = await db.select({ id: users.id, status: users.status }).from(users).where(eq(users.id, input.userId)).limit(1);
+      if (!target || target.status !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
+      await db.insert(userBlocks).values({ blockerId: ctx.user.id, blockedId: input.userId }).onDuplicateKeyUpdate({ set: { blockedId: input.userId } });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_user_blocked", targetType: "user", targetId: input.userId, payload: {} });
+      return { blocked: true, userId: input.userId } as const;
+    }),
+
+  unblockUser: protectedProcedure
+    .input(z.object({ userId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      await db.delete(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.userId)));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_user_unblocked", targetType: "user", targetId: input.userId, payload: {} });
+      return { blocked: false, userId: input.userId } as const;
     }),
 });

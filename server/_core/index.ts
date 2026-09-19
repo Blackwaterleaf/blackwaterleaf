@@ -2,10 +2,12 @@ import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { sql } from "drizzle-orm";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { getDb } from "../db";
 import { serveStatic, setupVite } from "./vite";
 import {
   aiRateLimiter,
@@ -24,7 +26,26 @@ async function startServer() {
   const server = createServer(app);
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
-  app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok" }));
+  app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok", releaseId: process.env.RELEASE_ID ?? "development" }));
+  app.get("/livez", (_req, res) => res.status(200).json({ status: "ok" }));
+  app.get("/readyz", async (_req, res) => {
+    const db = await getDb();
+    let database: "ready" | "not_ready" = "not_ready";
+    if (db) {
+      try {
+        await Promise.race([
+          db.execute(sql`SELECT 1`),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("readiness_timeout")), 2_000)),
+        ]);
+        database = "ready";
+      } catch {
+        database = "not_ready";
+      }
+    }
+    const mediaStorage = process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY ? "ready" : "not_ready";
+    const ready = database === "ready" && mediaStorage === "ready";
+    return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage } });
+  });
   app.use(securityHeaders);
   // 12 MB request limit allows an 8 MB image plus base64 overhead while
   // preventing the previous unrestricted 50 MB API payload surface.

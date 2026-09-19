@@ -162,3 +162,19 @@ Ein erfolgreicher Text-/Beobachtungsschritt darf nicht als vollständiger Medien
 Web und Native zeigen im Marktplatz zuerst einen kompakten **Händler-Hub** mit Banner, Vertrauenshinweis und separaten Händlerkarten. Eine lange, vermischte Produktwand ist nicht zulässig. Die Aktion **SHOP ÖFFNEN** führt in den eigenständigen Bereich eines Händlers; dort erscheinen nur dessen freigegebene Angebote. Der Shop besitzt Kategoriechips, Unterkategorien beziehungsweise Produktgruppen und eine touchfreundliche Sortierung nach Aktualität, Name und Preis.
 
 Partnerlogos oder offizielle Händlerbilder dürfen nur aus verifizierten Quellen übernommen werden. Preise, Verfügbarkeit, Zahlung, Versand, Rückgabe und Support bleiben beim Händler. BlackWaterLeaf speichert lediglich nachvollziehbare Klick- und Kaufinteressen-Attribution; es gibt in diesem Stand keinen BlackWaterLeaf-Checkout und keine Zahlungsabwicklung.
+
+
+## 16. Community-Schutz, Meldungen und Benachrichtigungen
+
+Community-Aktionen bleiben im Observatory-Kontext kompakt und eindeutig: Besitzer sehen Stift- und Löschaktion, andere Nutzer sehen **Gefällt mir**, **Melden** und **Blockieren**. Eine Meldung wird nie still verworfen, sondern als nachvollziehbarer Fall mit genau einem Ziel (Beitrag oder Kommentar), Grund und optionaler Notiz gespeichert. Sexualisierte Inhalte, Belästigung und andere Regelverstöße werden serverseitig geprüft; die Oberfläche darf diese Prüfung nicht umgehen.
+
+Blockierte Konten verschwinden aus dem eigenen Community-Feed. Kommentare können vom Eigentümer bearbeitet oder entfernt werden; entfernte Kommentare bleiben für Zählung und Moderationsnachweis nachvollziehbar, werden aber nicht mehr öffentlich ausgegeben. Likes und Kommentare erzeugen nur dann eine Benachrichtigung, wenn der Akteur nicht der Eigentümer ist. Benachrichtigungen werden mit stabiler Cursor-Paginierung geladen, der Unread-Zähler basiert auf einer Datenbankzählung und Moderationsentscheidungen informieren den meldenden Nutzer.
+
+Web und Native verwenden dieselben deutschen Begriffe und dieselben serverseitigen Mutationspfade. Jede privilegierte Moderationsentscheidung bleibt im Audit-Ledger. Es gibt keine Fake-Fälle, keine erfundenen Community-Inhalte und keine öffentliche Preisgabe privater Standort- oder Kontodaten.
+
+
+## 17. Bereichsübergreifende Karte-/Liste-/Katalogfläche und Bildprovenienz
+
+Botanik, Aquaristik und Terraristik verwenden dieselbe kompakte Informationsarchitektur: Bereichsheader, **Karte & Liste**, danach der fachliche Katalog. Die Akzentfarbe bleibt pro Bereich konstant: Portalgrün für Botanik, Aqua für Aquaristik und Gold für Terraristik. Die Kartenfläche darf keine erfundenen Pins oder Orte darstellen. Solange eine Beobachtung keine zulässige öffentliche Ortsangabe besitzt, wird ausschließlich der ehrliche Schutzstatus angezeigt; exakte private Standorte werden niemals ausgegeben.
+
+Katalogkarten dürfen ein Bild nur als verifiziertes Taxonbild präsentieren, wenn Bild-URL, stabile Quellseite, Lizenz und Attribution vorhanden sind. Fehlt eine dieser Angaben, zeigt die Karte eine neutrale fachliche Platzhalterfläche und den Status **Bildprüfung ausstehend**. Nutzerbilder bleiben davon getrennt und werden nie als wissenschaftliches Katalogbild wiederverwendet.

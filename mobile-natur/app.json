@@ -7,6 +7,11 @@
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
     "userInterfaceStyle": "dark",
+    "runtimeVersion": { "policy": "appVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/40ef1859-d5f9-484d-89e9-046333b708f4",
+      "checkAutomatically": "ON_LOAD"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.blackwaterleaf"

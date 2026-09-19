@@ -292,7 +292,7 @@ export const notifications = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     recipientId: int("recipientId").notNull().references(() => users.id),
     actorId: int("actorId").notNull().references(() => users.id),
-    type: mysqlEnum("type", ["comment", "like", "system"]).notNull(),
+    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "system"]).notNull(),
     postId: int("postId").references(() => communityPosts.id),
     commentId: int("commentId"),
     message: varchar("message", { length: 255 }).notNull(),
@@ -373,6 +373,15 @@ export const assistantUsage = mysqlTable(
     model: varchar("model", { length: 96 }).notNull(),
     promptChars: int("promptChars").notNull(),
     completionChars: int("completionChars").notNull(),
+    promptTokens: int("promptTokens"),
+    completionTokens: int("completionTokens"),
+    totalTokens: int("totalTokens"),
+    requestOutcome: mysqlEnum("requestOutcome", ["reserved", "completed", "failed", "timeout", "quota_exceeded"]).default("reserved").notNull(),
+    provider: varchar("provider", { length: 64 }),
+    tariffVersion: varchar("tariffVersion", { length: 64 }),
+    plantnetEngineVersion: varchar("plantnetEngineVersion", { length: 96 }),
+    plantnetRateLimitRemaining: int("plantnetRateLimitRemaining"),
+    plantnetRateLimitResetAt: timestamp("plantnetRateLimitResetAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
@@ -750,6 +759,26 @@ export const moderationLogs = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [index("moderation_logs_target_idx").on(table.targetType, table.targetId, table.createdAt)],
+);
+
+/** User-submitted moderation reports. Reports are immutable intake records; staff decisions live in the audit ledger. */
+export const communityReports = mysqlTable(
+  "community_reports",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    reporterId: int("reporterId").notNull().references(() => users.id),
+    postId: int("postId").references(() => communityPosts.id),
+    commentId: int("commentId").references(() => postComments.id),
+    reason: mysqlEnum("reason", ["sexual_content", "harassment", "misinformation", "copyright", "other"]).notNull(),
+    note: varchar("note", { length: 1_000 }),
+    status: mysqlEnum("status", ["pending", "reviewed", "dismissed"]).default("pending").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("community_reports_status_created_idx").on(table.status, table.createdAt),
+    index("community_reports_reporter_created_idx").on(table.reporterId, table.createdAt),
+  ],
 );
 
 /**

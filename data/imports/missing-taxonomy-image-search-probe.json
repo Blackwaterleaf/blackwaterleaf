@@ -1,0 +1,1425 @@
+{
+  "generatedAt": "2026-09-19T15:09:32.707Z",
+  "source": "Wikimedia Commons API",
+  "records": [
+    {
+      "name": "Alocasia azlanii",
+      "results": [
+        {
+          "query": "Alocasia azlanii",
+          "candidates": []
+        },
+        {
+          "query": "\"Alocasia azlanii\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Alocasia infernalis",
+      "results": [
+        {
+          "query": "Alocasia infernalis",
+          "candidates": []
+        },
+        {
+          "query": "\"Alocasia infernalis\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Alocasia maharani",
+      "results": [
+        {
+          "query": "Alocasia maharani",
+          "candidates": []
+        },
+        {
+          "query": "\"Alocasia maharani\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Alocasia lauterbachiana",
+      "results": [
+        {
+          "query": "Alocasia lauterbachiana",
+          "candidates": [
+            {
+              "title": "File:Plant lists - Borneo and New Guinea, 1921-1944 (IA plantlists00clem).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Plant_lists_-_Borneo_and_New_Guinea%2C_1921-1944_%28IA_plantlists00clem%29.pdf/page1-500px-Plant_lists_-_Borneo_and_New_Guinea%2C_1921-1944_%28IA_plantlists00clem%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Plant_lists_-_Borneo_and_New_Guinea,_1921-1944_(IA_plantlists00clem).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nClemens, Mary Strong,1873-1968,author</div>"
+            },
+            {
+              "title": "File:Lauterbachiana.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Lauterbachiana.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Lauterbachiana.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a rel=\"nofollow\" class=\"external free\" href=\"https://lifestylebotanics.co.nz/collection/alocasia-lauterbachiana-2/\">https://lifestylebotanics.co.nz/collection/alocasia-lauterbachiana-2/</a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia lauterbachiana\"",
+          "candidates": [
+            {
+              "title": "File:Lauterbachiana.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/9/98/Lauterbachiana.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Lauterbachiana.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a rel=\"nofollow\" class=\"external free\" href=\"https://lifestylebotanics.co.nz/collection/alocasia-lauterbachiana-2/\">https://lifestylebotanics.co.nz/collection/alocasia-lauterbachiana-2/</a>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alocasia melo",
+      "results": [
+        {
+          "query": "Alocasia melo",
+          "candidates": [
+            {
+              "title": "File:A dictionary of the plant names of the Philippine Islands (1903).djvu",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/A_dictionary_of_the_plant_names_of_the_Philippine_Islands_%281903%29.djvu/page1-1920px-A_dictionary_of_the_plant_names_of_the_Philippine_Islands_%281903%29.djvu.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:A_dictionary_of_the_plant_names_of_the_Philippine_Islands_(1903).djvu",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nMerrill, Elmer Drew, 1876-1956</div>"
+            },
+            {
+              "title": "File:Paribhashikapadh015114mbp.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Paribhashikapadh015114mbp.pdf/page1-500px-Paribhashikapadh015114mbp.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Paribhashikapadh015114mbp.pdf",
+              "license": "Public domain",
+              "artist": "<a href=\"https://en.wikipedia.org/wiki/Kasinathuni_Nageswara_Rao\" class=\"extiw\" title=\"en:Kasinathuni Nageswara Rao\">en:Kasinathuni Nageswara Rao</a> (1867-1938)"
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830023).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/07/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830023%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830023%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830023).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830030).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830030%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830030%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830030).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Gartenflora (IA gartenflora65russ).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Gartenflora_%28IA_gartenflora65russ%29.pdf/page1-500px-Gartenflora_%28IA_gartenflora65russ%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Gartenflora_(IA_gartenflora65russ).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Russischer Gartenbau-Verein in St. Petersburg</dd>\n<dd>Kaiserliche Russischer Gartenbau-Verein in St. Petersburg</dd>\n<dd>Deutsche Gartenbau-Gesellschaft</dd>\n<dd>Verein zur Befrderung des Gartenbaues in den Kniglich Preussischen Staaten</dd></dl></div>"
+            },
+            {
+              "title": "File:Gartenflora - monatsschrift fur deutsche und schweizerische garten- und blumenkunde (IA gartenfloramonat65rege).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6a/Gartenflora_-_monatsschrift_fur_deutsche_und_schweizerische_garten-_und_blumenkunde_%28IA_gartenfloramonat65rege%29.pdf/page1-960px-Gartenflora_-_monatsschrift_fur_deutsche_und_schweizerische_garten-_und_blumenkunde_%28IA_gartenfloramonat65rege%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Gartenflora_-_monatsschrift_fur_deutsche_und_schweizerische_garten-_und_blumenkunde_(IA_gartenfloramonat65rege).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRegel, E. (Eduard), 1815-1892</div>"
+            },
+            {
+              "title": "File:Hamburger Garten-und Blumenzeitung - Eine Zeitschrift für die Garten-und Blumenfreunde (IA hamburgergartenu4218unse).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_%28IA_hamburgergartenu4218unse%29.pdf/page1-500px-Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_%28IA_hamburgergartenu4218unse%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_(IA_hamburgergartenu4218unse).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Garden and forest; a journal of horticulture, landscape art and forestry (IA gardenforestjour81895sarg).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Garden_and_forest%3B_a_journal_of_horticulture%2C_landscape_art_and_forestry_%28IA_gardenforestjour81895sarg%29.pdf/page1-960px-Garden_and_forest%3B_a_journal_of_horticulture%2C_landscape_art_and_forestry_%28IA_gardenforestjour81895sarg%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Garden_and_forest;_a_journal_of_horticulture,_landscape_art_and_forestry_(IA_gardenforestjour81895sarg).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSargent, Charles Sprague, 1841-1927</div>"
+            },
+            {
+              "title": "File:The gardening world illustrated - a weekly paper exclusively devoted to all branches of practical gardening (IA gardeningworldil2019unse).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dd/The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_%28IA_gardeningworldil2019unse%29.pdf/page1-1280px-The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_%28IA_gardeningworldil2019unse%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_(IA_gardeningworldil2019unse).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Records of the Botanical Survey of India (IA recordsofbot219021904bota).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/Records_of_the_Botanical_Survey_of_India_%28IA_recordsofbot219021904bota%29.pdf/page1-500px-Records_of_the_Botanical_Survey_of_India_%28IA_recordsofbot219021904bota%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Records_of_the_Botanical_Survey_of_India_(IA_recordsofbot219021904bota).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nBotanical Survey of India</div>"
+            },
+            {
+              "title": "File:Teysmannia (IA teysmannia02bata).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Teysmannia_%28IA_teysmannia02bata%29.pdf/page1-500px-Teysmannia_%28IA_teysmannia02bata%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Teysmannia_(IA_teysmannia02bata).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:A Praça de Casa Forte - um jardim histórico, um patrimônio cultural do Brasil, Anais do Museu Paulista.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/A_Pra%C3%A7a_de_Casa_Forte_-_um_jardim_hist%C3%B3rico%2C_um_patrim%C3%B4nio_cultural_do_Brasil%2C_Anais_do_Museu_Paulista.pdf/page1-960px-A_Pra%C3%A7a_de_Casa_Forte_-_um_jardim_hist%C3%B3rico%2C_um_patrim%C3%B4nio_cultural_do_Brasil%2C_Anais_do_Museu_Paulista.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:A_Pra%C3%A7a_de_Casa_Forte_-_um_jardim_hist%C3%B3rico,_um_patrim%C3%B4nio_cultural_do_Brasil,_Anais_do_Museu_Paulista.pdf",
+              "license": "CC BY 4.0",
+              "artist": "<bdi><a href=\"https://www.wikidata.org/wiki/Q89418895\" class=\"extiw\" title=\"d:Q89418895\"><span title=\"Brazilian researcher\">Joelmir Marques da Silva</span></a></bdi> / <bdi><a href=\"https://www.wikidata.org/wiki/Q93793800\" class=\"extiw\" title=\"d:Q93793800\"><span title=\"Brazilian researcher (ORCID 000-0002-2750-5354)\">Ana Rita Sá Carneiro</span></a></bdi> / <bdi><a href=\"https://www.wikidata.org/wiki/Q93794496\" class=\"extiw\" title=\"d:Q93794496\"><span title=\"Brazilian researcher (ORCID 000-0002-2143-5463)\">Maria Eduarda Dantas de Oliveira Rolim</span></a></bdi> / <bdi><a href=\"https://www.wikidata.org/wiki/Q93794879\" class=\"extiw\" title=\"d:Q93794879\"><span title=\"Brazilian researcher (ORCID 000-0001-9992-3566)\">Wilson de Barros Feitosa Júnior</span></a></bdi>"
+            },
+            {
+              "title": "File:Planten van Nederlandsch-Indië - bruikbaar voor handel, nijverheid en geneeskunde (IA b2811498x).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6a/Planten_van_Nederlandsch-Indi%C3%AB_-_bruikbaar_voor_handel%2C_nijverheid_en_geneeskunde_%28IA_b2811498x%29.pdf/page1-960px-Planten_van_Nederlandsch-Indi%C3%AB_-_bruikbaar_voor_handel%2C_nijverheid_en_geneeskunde_%28IA_b2811498x%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Planten_van_Nederlandsch-Indi%C3%AB_-_bruikbaar_voor_handel,_nijverheid_en_geneeskunde_(IA_b2811498x).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nBisschop Grevelink, A. H. (Arnoldus Hermanus), 1811-1882</div>"
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830019).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830019%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830019%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830019).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests (IA listofintercepte61unit).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/List_of_intercepted_plant_pests_%28IA_listofintercepte61unit%29.pdf/page1-960px-List_of_intercepted_plant_pests_%28IA_listofintercepte61unit%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_(IA_listofintercepte61unit).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nUnited States. Plant Quarantine Division</div>"
+            },
+            {
+              "title": "File:(Publications) - Bureau of Government Laboratories (IA acx2261.0008.001.umich.edu).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/%28Publications%29_-_Bureau_of_Government_Laboratories_%28IA_acx2261.0008.001.umich.edu%29.pdf/page1-500px-%28Publications%29_-_Bureau_of_Government_Laboratories_%28IA_acx2261.0008.001.umich.edu%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:(Publications)_-_Bureau_of_Government_Laboratories_(IA_acx2261.0008.001.umich.edu).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nPhilippines. Bureau of Government Laboratories</div>"
+            },
+            {
+              "title": "File:বাউবি BAE 3301 - Vegetable Culture - ইউনিট ০২ - সবজির শ্রেনিবিভাগ.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/%E0%A6%AC%E0%A6%BE%E0%A6%89%E0%A6%AC%E0%A6%BF_BAE_3301_-_Vegetable_Culture_-_%E0%A6%87%E0%A6%89%E0%A6%A8%E0%A6%BF%E0%A6%9F_%E0%A7%A6%E0%A7%A8_-_%E0%A6%B8%E0%A6%AC%E0%A6%9C%E0%A6%BF%E0%A6%B0_%E0%A6%B6%E0%A7%8D%E0%A6%B0%E0%A7%87%E0%A6%A8%E0%A6%BF%E0%A6%AC%E0%A6%BF%E0%A6%AD%E0%A6%BE%E0%A6%97.pdf/page1-960px-%E0%A6%AC%E0%A6%BE%E0%A6%89%E0%A6%AC%E0%A6%BF_BAE_3301_-_Vegetable_Culture_-_%E0%A6%87%E0%A6%89%E0%A6%A8%E0%A6%BF%E0%A6%9F_%E0%A7%A6%E0%A7%A8_-_%E0%A6%B8%E0%A6%AC%E0%A6%9C%E0%A6%BF%E0%A6%B0_%E0%A6%B6%E0%A7%8D%E0%A6%B0%E0%A7%87%E0%A6%A8%E0%A6%BF%E0%A6%AC%E0%A6%BF%E0%A6%AD%E0%A6%BE%E0%A6%97.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:%E0%A6%AC%E0%A6%BE%E0%A6%89%E0%A6%AC%E0%A6%BF_BAE_3301_-_Vegetable_Culture_-_%E0%A6%87%E0%A6%89%E0%A6%A8%E0%A6%BF%E0%A6%9F_%E0%A7%A6%E0%A7%A8_-_%E0%A6%B8%E0%A6%AC%E0%A6%9C%E0%A6%BF%E0%A6%B0_%E0%A6%B6%E0%A7%8D%E0%A6%B0%E0%A7%87%E0%A6%A8%E0%A6%BF%E0%A6%AC%E0%A6%BF%E0%A6%AD%E0%A6%BE%E0%A6%97.pdf",
+              "license": "CC BY 4.0",
+              "artist": "ড. আজাদ এফ. এম. শরফুদ্দিন<br>ড. এস. এম. মনোয়ার হোসেন<br>ড. মো: আব্দুর রহিম"
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia melo\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Alocasia nebula",
+      "results": [
+        {
+          "query": "Alocasia nebula",
+          "candidates": [
+            {
+              "title": "File:L'Illustration horticole (Plate 541).jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/31/L%27Illustration_horticole_%28Plate_541%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:L%27Illustration_horticole_(Plate_541).jpg",
+              "license": "Public domain",
+              "artist": "Lemaire, Charles Antoine"
+            },
+            {
+              "title": "File:Paribhashikapadh015114mbp.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Paribhashikapadh015114mbp.pdf/page1-500px-Paribhashikapadh015114mbp.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Paribhashikapadh015114mbp.pdf",
+              "license": "Public domain",
+              "artist": "<a href=\"https://en.wikipedia.org/wiki/Kasinathuni_Nageswara_Rao\" class=\"extiw\" title=\"en:Kasinathuni Nageswara Rao\">en:Kasinathuni Nageswara Rao</a> (1867-1938)"
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia nebula\"",
+          "candidates": [
+            {
+              "title": "File:L'Illustration horticole (Plate 541).jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/3/31/L%27Illustration_horticole_%28Plate_541%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:L%27Illustration_horticole_(Plate_541).jpg",
+              "license": "Public domain",
+              "artist": "Lemaire, Charles Antoine"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alocasia princeps",
+      "results": [
+        {
+          "query": "Alocasia princeps",
+          "candidates": [
+            {
+              "title": "File:Catalogue of some stove and greenhouse plants - including orchids, palms, ferns, etc (IA catalogueofsomes1879geor).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Catalogue_of_some_stove_and_greenhouse_plants_-_including_orchids%2C_palms%2C_ferns%2C_etc_%28IA_catalogueofsomes1879geor%29.pdf/page1-960px-Catalogue_of_some_stove_and_greenhouse_plants_-_including_orchids%2C_palms%2C_ferns%2C_etc_%28IA_catalogueofsomes1879geor%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Catalogue_of_some_stove_and_greenhouse_plants_-_including_orchids,_palms,_ferns,_etc_(IA_catalogueofsomes1879geor).pdf",
+              "license": "Public domain",
+              "artist": "South Amboy, N.J. : George Such"
+            },
+            {
+              "title": "File:John Saul's Washington nurseries catalogue of plants for the spring of 1888 (IA johnsaulswashing18john).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/John_Saul%27s_Washington_nurseries_catalogue_of_plants_for_the_spring_of_1888_%28IA_johnsaulswashing18john%29.pdf/page1-500px-John_Saul%27s_Washington_nurseries_catalogue_of_plants_for_the_spring_of_1888_%28IA_johnsaulswashing18john%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:John_Saul%27s_Washington_nurseries_catalogue_of_plants_for_the_spring_of_1888_(IA_johnsaulswashing18john).pdf",
+              "license": "Public domain",
+              "artist": "Washington, D.C. : John Saul"
+            },
+            {
+              "title": "File:John Saul's catalogue of plants for the spring of 1887 (IA johnsaulscatalog18john 13).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d9/John_Saul%27s_catalogue_of_plants_for_the_spring_of_1887_%28IA_johnsaulscatalog18john_13%29.pdf/page1-500px-John_Saul%27s_catalogue_of_plants_for_the_spring_of_1887_%28IA_johnsaulscatalog18john_13%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:John_Saul%27s_catalogue_of_plants_for_the_spring_of_1887_(IA_johnsaulscatalog18john_13).pdf",
+              "license": "Public domain",
+              "artist": "Washington, D.C. : John Saul"
+            },
+            {
+              "title": "File:Henry G. Gilbert Nursery and Seed Trade Catalog Collection (IA descriptivecatal1881jame).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Henry_G._Gilbert_Nursery_and_Seed_Trade_Catalog_Collection_%28IA_descriptivecatal1881jame%29.pdf/page1-500px-Henry_G._Gilbert_Nursery_and_Seed_Trade_Catalog_Collection_%28IA_descriptivecatal1881jame%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Henry_G._Gilbert_Nursery_and_Seed_Trade_Catalog_Collection_(IA_descriptivecatal1881jame).pdf",
+              "license": "Public domain",
+              "artist": "Oakland, Calif. : James Hutchison"
+            },
+            {
+              "title": "File:Dreer's wholesale price list - plants bulbs seasonable flower and vegetable seeds fertilizers, tools, etc., etc (IA dreerswholesalep1904henr 0).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Dreer%27s_wholesale_price_list_-_plants_bulbs_seasonable_flower_and_vegetable_seeds_fertilizers%2C_tools%2C_etc.%2C_etc_%28IA_dreerswholesalep1904henr_0%29.pdf/page1-960px-Dreer%27s_wholesale_price_list_-_plants_bulbs_seasonable_flower_and_vegetable_seeds_fertilizers%2C_tools%2C_etc.%2C_etc_%28IA_dreerswholesalep1904henr_0%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Dreer%27s_wholesale_price_list_-_plants_bulbs_seasonable_flower_and_vegetable_seeds_fertilizers,_tools,_etc.,_etc_(IA_dreerswholesalep1904henr_0).pdf",
+              "license": "Public domain",
+              "artist": "Philadelphia, Pa. : Henry A. Dreer"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillAD).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a3/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillAD%29.pdf/page1-500px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillAD%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillAD).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillAP).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillAP%29.pdf/page1-500px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillAP%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillAP).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillBN).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c8/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBN%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBN%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillBN).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillH).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillH%29.pdf/page1-500px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillH%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillH).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:The garden.. (IA garden00lond).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/The_garden.._%28IA_garden00lond%29.pdf/page1-500px-The_garden.._%28IA_garden00lond%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_garden.._(IA_garden00lond).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Hamburger Garten-und Blumenzeitung - Eine Zeitschrift für die Garten-und Blumenfreunde (IA hamburgergartenu2918unse).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_%28IA_hamburgergartenu2918unse%29.pdf/page1-500px-Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_%28IA_hamburgergartenu2918unse%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hamburger_Garten-und_Blumenzeitung_-_Eine_Zeitschrift_f%C3%BCr_die_Garten-und_Blumenfreunde_(IA_hamburgergartenu2918unse).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:L'Illustration horticole ?journal spec?ial des serres et des jardins, ou choix raisonne ?des plantes les plus inter?ressantes sous le rapport ornemental (IA mobot31753002364195).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/L%27Illustration_horticole_%3Fjournal_spec%3Fial_des_serres_et_des_jardins%2C_ou_choix_raisonne_%3Fdes_plantes_les_plus_inter%3Fressantes_sous_le_rapport_ornemental_%28IA_mobot31753002364195%29.pdf/page1-1920px-thumbnail.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:L%27Illustration_horticole_%3Fjournal_spec%3Fial_des_serres_et_des_jardins,_ou_choix_raisonne_%3Fdes_plantes_les_plus_inter%3Fressantes_sous_le_rapport_ornemental_(IA_mobot31753002364195).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nLemaire, Charles Antoine,</div>"
+            },
+            {
+              "title": "File:The Gardeners' chronicle ?a weekly illustrated journal of horticulture and allied subjects. (IA mobot31753002318282).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/The_Gardeners%27_chronicle_%3Fa_weekly_illustrated_journal_of_horticulture_and_allied_subjects._%28IA_mobot31753002318282%29.pdf/page1-1920px-The_Gardeners%27_chronicle_%3Fa_weekly_illustrated_journal_of_horticulture_and_allied_subjects._%28IA_mobot31753002318282%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_Gardeners%27_chronicle_%3Fa_weekly_illustrated_journal_of_horticulture_and_allied_subjects._(IA_mobot31753002318282).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:The illustrated dictionary of gardening ?a practical and scientific encyclopadia of horticulture for gardeners and botanists ,edited by George Nicholson (IA mobot31753000409372).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/The_illustrated_dictionary_of_gardening_%3Fa_practical_and_scientific_encyclopadia_of_horticulture_for_gardeners_and_botanists_%2Cedited_by_George_Nicholson_%28IA_mobot31753000409372%29.pdf/page1-1920px-thumbnail.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_illustrated_dictionary_of_gardening_%3Fa_practical_and_scientific_encyclopadia_of_horticulture_for_gardeners_and_botanists_,edited_by_George_Nicholson_(IA_mobot31753000409372).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Garrett, John,</dd>\n<dd>Nicholson, George,</dd>\n<dd>Trail, James William Helenus,</dd></dl></div>"
+            },
+            {
+              "title": "File:Wiener illustrirte Garten-Zeitung (IA wienerillustrirt24kais).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/87/Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt24kais%29.pdf/page1-500px-Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt24kais%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Wiener_illustrirte_Garten-Zeitung_(IA_wienerillustrirt24kais).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nKaiserlich-Königliche Gartenbau-Gesellschaft in Wien</div>"
+            },
+            {
+              "title": "File:Teysmannia (IA teysmannia3189unse).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Teysmannia_%28IA_teysmannia3189unse%29.pdf/page1-500px-Teysmannia_%28IA_teysmannia3189unse%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Teysmannia_(IA_teysmannia3189unse).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:The gardening world illustrated - a weekly paper exclusively devoted to all branches of practical gardening (IA gardeningworldil1188unse).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_%28IA_gardeningworldil1188unse%29.pdf/page1-1280px-The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_%28IA_gardeningworldil1188unse%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_gardening_world_illustrated_-_a_weekly_paper_exclusively_devoted_to_all_branches_of_practical_gardening_(IA_gardeningworldil1188unse).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:A provisional check list of some common native and introduced forest plants in Hawaii (IA provisionalcheck69brya).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/48/A_provisional_check_list_of_some_common_native_and_introduced_forest_plants_in_Hawaii_%28IA_provisionalcheck69brya%29.pdf/page1-960px-A_provisional_check_list_of_some_common_native_and_introduced_forest_plants_in_Hawaii_%28IA_provisionalcheck69brya%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:A_provisional_check_list_of_some_common_native_and_introduced_forest_plants_in_Hawaii_(IA_provisionalcheck69brya).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nBryan, Lester W</div>"
+            },
+            {
+              "title": "File:Seeds and plants imported during the period from December, 1905, to July, 1906 - inventory no. 12, nos. 16797 to 19057 (IA seedsplantsimpor106unit).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/Seeds_and_plants_imported_during_the_period_from_December%2C_1905%2C_to_July%2C_1906_-_inventory_no._12%2C_nos._16797_to_19057_%28IA_seedsplantsimpor106unit%29.pdf/page1-500px-Seeds_and_plants_imported_during_the_period_from_December%2C_1905%2C_to_July%2C_1906_-_inventory_no._12%2C_nos._16797_to_19057_%28IA_seedsplantsimpor106unit%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Seeds_and_plants_imported_during_the_period_from_December,_1905,_to_July,_1906_-_inventory_no._12,_nos._16797_to_19057_(IA_seedsplantsimpor106unit).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nUnited States. Bureau of Plant Industry</div>"
+            },
+            {
+              "title": "File:The Garden - an illustrated weekly journal of gardening in all its branches (IA gardenillustrate91876lond).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b9/The_Garden_-_an_illustrated_weekly_journal_of_gardening_in_all_its_branches_%28IA_gardenillustrate91876lond%29.pdf/page1-500px-The_Garden_-_an_illustrated_weekly_journal_of_gardening_in_all_its_branches_%28IA_gardenillustrate91876lond%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_Garden_-_an_illustrated_weekly_journal_of_gardening_in_all_its_branches_(IA_gardenillustrate91876lond).pdf",
+              "license": "Public domain",
+              "artist": null
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia princeps\"",
+          "candidates": [
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillBO).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBO%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBO%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillBO).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillBP).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBP%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBP%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillBP).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillBW).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBW%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBW%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillBW).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillBX).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBX%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillBX%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillBX).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:William Bull (Firm) materials (IA WilliamBullFirm00WillCH).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillCH%29.pdf/page1-960px-William_Bull_%28Firm%29_materials_%28IA_WilliamBullFirm00WillCH%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:William_Bull_(Firm)_materials_(IA_WilliamBullFirm00WillCH).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>William Bull (Firm)</dd>\n<dd>Liberty Hyde Bailey Hortorium. Ethel Z. Bailey Horticultural Catalogue Collection</dd></dl></div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alocasia reversa",
+      "results": [
+        {
+          "query": "Alocasia reversa",
+          "candidates": [
+            {
+              "title": "File:Botanische Zeitung (IA botanischezeitu48mohl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Botanische_Zeitung_%28IA_botanischezeitu48mohl%29.pdf/page1-960px-Botanische_Zeitung_%28IA_botanischezeitu48mohl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Botanische_Zeitung_(IA_botanischezeitu48mohl).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Mohl, Hugo von, 1805-1872</dd>\n<dd>Schlechtendal, D. F. L. von (Diederich Franz Leonhard), 1794-1866</dd></dl></div>"
+            },
+            {
+              "title": "File:Botanische Zeitung (IA botanischezeitun43mohl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Botanische_Zeitung_%28IA_botanischezeitun43mohl%29.pdf/page1-960px-Botanische_Zeitung_%28IA_botanischezeitun43mohl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Botanische_Zeitung_(IA_botanischezeitun43mohl).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Mohl, Hugo von, 1805-1872</dd>\n<dd>Schlechtendal, D. F. L. von (Diederich Franz Leonhard), 1794-1866</dd></dl></div>"
+            },
+            {
+              "title": "File:Hamburger Garten- und Blumenzeitung (IA hamburgergartenu46hamb).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Hamburger_Garten-_und_Blumenzeitung_%28IA_hamburgergartenu46hamb%29.pdf/page1-500px-Hamburger_Garten-_und_Blumenzeitung_%28IA_hamburgergartenu46hamb%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hamburger_Garten-_und_Blumenzeitung_(IA_hamburgergartenu46hamb).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Wiener illustrirte Garten-Zeitung (IA wienerillustrirt21kais).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt21kais%29.pdf/page1-960px-Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt21kais%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Wiener_illustrirte_Garten-Zeitung_(IA_wienerillustrirt21kais).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nKaiserlich-Königliche Gartenbau-Gesellschaft in Wien</div>"
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia reversa\"",
+          "candidates": [
+            {
+              "title": "File:Botanische Zeitung (IA botanischezeitu48mohl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Botanische_Zeitung_%28IA_botanischezeitu48mohl%29.pdf/page1-960px-Botanische_Zeitung_%28IA_botanischezeitu48mohl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Botanische_Zeitung_(IA_botanischezeitu48mohl).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Mohl, Hugo von, 1805-1872</dd>\n<dd>Schlechtendal, D. F. L. von (Diederich Franz Leonhard), 1794-1866</dd></dl></div>"
+            },
+            {
+              "title": "File:Hamburger Garten- und Blumenzeitung (IA hamburgergartenu46hamb).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Hamburger_Garten-_und_Blumenzeitung_%28IA_hamburgergartenu46hamb%29.pdf/page1-500px-Hamburger_Garten-_und_Blumenzeitung_%28IA_hamburgergartenu46hamb%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Hamburger_Garten-_und_Blumenzeitung_(IA_hamburgergartenu46hamb).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Wiener illustrirte Garten-Zeitung (IA wienerillustrirt21kais).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt21kais%29.pdf/page1-960px-Wiener_illustrirte_Garten-Zeitung_%28IA_wienerillustrirt21kais%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Wiener_illustrirte_Garten-Zeitung_(IA_wienerillustrirt21kais).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nKaiserlich-Königliche Gartenbau-Gesellschaft in Wien</div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Alocasia stingray",
+      "results": [
+        {
+          "query": "Alocasia stingray",
+          "candidates": [
+            {
+              "title": "File:Xanthosoma sagittifolium 'Mickey Mouse' (Philippines).jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Xanthosoma_sagittifolium_%27Mickey_Mouse%27_%28Philippines%29.jpg/1920px-Xanthosoma_sagittifolium_%27Mickey_Mouse%27_%28Philippines%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Xanthosoma_sagittifolium_%27Mickey_Mouse%27_(Philippines).jpg",
+              "license": "CC0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Obsidian_Soul\" title=\"User:Obsidian Soul\">Obsidian Soul</a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Alocasia stingray\"",
+          "candidates": [
+            {
+              "title": "File:Xanthosoma sagittifolium 'Mickey Mouse' (Philippines).jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Xanthosoma_sagittifolium_%27Mickey_Mouse%27_%28Philippines%29.jpg/1920px-Xanthosoma_sagittifolium_%27Mickey_Mouse%27_%28Philippines%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Xanthosoma_sagittifolium_%27Mickey_Mouse%27_(Philippines).jpg",
+              "license": "CC0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Obsidian_Soul\" title=\"User:Obsidian Soul\">Obsidian Soul</a>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Bucephalandra",
+      "results": [
+        {
+          "query": "Bucephalandra",
+          "candidates": [
+            {
+              "title": "File:Bucephalandra botanical drawing.png",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Bucephalandra_botanical_drawing.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_botanical_drawing.png",
+              "license": "Public domain",
+              "artist": "Drawing: Josef Seboth (1814-1883). Litography: O. Sommer (unknown)"
+            },
+            {
+              "title": "File:Genera Aroidearum exposita. (IA mobot31753000312444).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Genera_Aroidearum_exposita._%28IA_mobot31753000312444%29.pdf/page1-1920px-Genera_Aroidearum_exposita._%28IA_mobot31753000312444%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Genera_Aroidearum_exposita._(IA_mobot31753000312444).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Prodromus systematis Aroidearum -H. G. Schott. (IA mobot31753002757596).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf/page1-1920px-Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Prodromus_systematis_Aroidearum_-H._G._Schott._(IA_mobot31753002757596).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Bucephalandra motleyana kz01.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Bucephalandra_motleyana_kz01.jpg/1920px-Bucephalandra_motleyana_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_motleyana_kz01.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Kenraiz\" title=\"User:Kenraiz\">Krzysztof Ziarnek, Kenraiz</a>"
+            },
+            {
+              "title": "File:2025-11-29 Unfolding spatha on Bucephalandra Super Blue.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg/1920px-2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg",
+              "license": "CC BY-SA 3.0",
+              "artist": "Manuel Werner / CC-BY-SA-3.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bucephalandra Shine Blue and Bucephalandra pygmaea ex situ.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Bucephalandra_Shine_Blue_and_Bucephalandra_pygmaea_ex_situ.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_Shine_Blue_and_Bucephalandra_pygmaea_ex_situ.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-3.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bluish sheen on Bucephalandra.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/44/Bluish_sheen_on_Bucephalandra.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bluish_sheen_on_Bucephalandra.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2025-11-30 Bucephalandra alamanda & -39;V1 Blue 7 DSC7691.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/13/2025-11-30_Bucephalandra_alamanda_%26_-39%3BV1_Blue_7_DSC7691.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2025-11-30_Bucephalandra_alamanda_%26_-39;V1_Blue_7_DSC7691.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:The highly decorative leaf of a red-black Bucephalandra kishii with clearly prominent primary lateral veins on the upper side of its leaf blades, which have earned it one of its trade names “Skeleton King”.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/The_highly_decorative_leaf_of_a_red-black_Bucephalandra_kishii_with_clearly_prominent_primary_lateral_veins_on_the_upper_side_of_its_leaf_blades%2C_which_have_earned_it_one_of_its_trade_names_%E2%80%9CSkeleton_King%E2%80%9D.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_highly_decorative_leaf_of_a_red-black_Bucephalandra_kishii_with_clearly_prominent_primary_lateral_veins_on_the_upper_side_of_its_leaf_blades,_which_have_earned_it_one_of_its_trade_names_%E2%80%9CSkeleton_King%E2%80%9D.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bluish sheen on Bucephalandra 2 Foto MWerner.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Bluish_sheen_on_Bucephalandra_2_Foto_MWerner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bluish_sheen_on_Bucephalandra_2_Foto_MWerner.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-02-28--Bucephalandra Inflorescence 13 emers.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg/1920px-2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-02-27-Bucephaöandra spatha one day before opening.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b6/2026-02-27-Bucepha%C3%B6andra_spatha_one_day_before_opening.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-02-27-Bucepha%C3%B6andra_spatha_one_day_before_opening.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-03-01-Bucephalandra inflorescence second day.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7b/2026-03-01-Bucephalandra_inflorescence_second_day.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-03-01-Bucephalandra_inflorescence_second_day.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500628.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500635.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c3/Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500634.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500658.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Bucephalandra_oblanceolata_-_Brunei_-_600500658.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500658.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500646.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Bucephalandra_oblanceolata_-_Brunei_-_600500646.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500646.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500646.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500618.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Das Pflanzenreich. Regni vegetabilis conspectus. Im Auftrage der Königl. preuss. Akademie der Wissenschaften hrgs. von A. Engler (IA daspflanzenreich55engluoft).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Das_Pflanzenreich._Regni_vegetabilis_conspectus._Im_Auftrage_der_K%C3%B6nigl._preuss._Akademie_der_Wissenschaften_hrgs._von_A._Engler_%28IA_daspflanzenreich55engluoft%29.pdf/page1-500px-thumbnail.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Das_Pflanzenreich._Regni_vegetabilis_conspectus._Im_Auftrage_der_K%C3%B6nigl._preuss._Akademie_der_Wissenschaften_hrgs._von_A._Engler_(IA_daspflanzenreich55engluoft).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nEngler, Adolf, 1844-1930</div>"
+            }
+          ]
+        },
+        {
+          "query": "\"Bucephalandra\"",
+          "candidates": [
+            {
+              "title": "File:Bucephalandra botanical drawing.png",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Bucephalandra_botanical_drawing.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_botanical_drawing.png",
+              "license": "Public domain",
+              "artist": "Drawing: Josef Seboth (1814-1883). Litography: O. Sommer (unknown)"
+            },
+            {
+              "title": "File:Genera Aroidearum exposita. (IA mobot31753000312444).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/be/Genera_Aroidearum_exposita._%28IA_mobot31753000312444%29.pdf/page1-1920px-Genera_Aroidearum_exposita._%28IA_mobot31753000312444%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Genera_Aroidearum_exposita._(IA_mobot31753000312444).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Prodromus systematis Aroidearum -H. G. Schott. (IA mobot31753002757596).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf/page1-1920px-Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Prodromus_systematis_Aroidearum_-H._G._Schott._(IA_mobot31753002757596).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Proceedings of the Linnean Society of New South Wales (IA proceedingsoflin0204linn).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Proceedings_of_the_Linnean_Society_of_New_South_Wales_%28IA_proceedingsoflin0204linn%29.pdf/page1-500px-Proceedings_of_the_Linnean_Society_of_New_South_Wales_%28IA_proceedingsoflin0204linn%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Proceedings_of_the_Linnean_Society_of_New_South_Wales_(IA_proceedingsoflin0204linn).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nLinnean Society of New South Wales</div>"
+            },
+            {
+              "title": "File:Bucephalandra motleyana kz01.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Bucephalandra_motleyana_kz01.jpg/1920px-Bucephalandra_motleyana_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_motleyana_kz01.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Kenraiz\" title=\"User:Kenraiz\">Krzysztof Ziarnek, Kenraiz</a>"
+            },
+            {
+              "title": "File:2025-11-29 Unfolding spatha on Bucephalandra Super Blue.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg/1920px-2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2025-11-29_Unfolding_spatha_on_Bucephalandra_Super_Blue.jpg",
+              "license": "CC BY-SA 3.0",
+              "artist": "Manuel Werner / CC-BY-SA-3.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bucephalandra Shine Blue and Bucephalandra pygmaea ex situ.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Bucephalandra_Shine_Blue_and_Bucephalandra_pygmaea_ex_situ.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_Shine_Blue_and_Bucephalandra_pygmaea_ex_situ.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-3.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bluish sheen on Bucephalandra.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/44/Bluish_sheen_on_Bucephalandra.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bluish_sheen_on_Bucephalandra.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2025-11-30 Bucephalandra alamanda & -39;V1 Blue 7 DSC7691.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/13/2025-11-30_Bucephalandra_alamanda_%26_-39%3BV1_Blue_7_DSC7691.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2025-11-30_Bucephalandra_alamanda_%26_-39;V1_Blue_7_DSC7691.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:The highly decorative leaf of a red-black Bucephalandra kishii with clearly prominent primary lateral veins on the upper side of its leaf blades, which have earned it one of its trade names “Skeleton King”.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/17/The_highly_decorative_leaf_of_a_red-black_Bucephalandra_kishii_with_clearly_prominent_primary_lateral_veins_on_the_upper_side_of_its_leaf_blades%2C_which_have_earned_it_one_of_its_trade_names_%E2%80%9CSkeleton_King%E2%80%9D.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:The_highly_decorative_leaf_of_a_red-black_Bucephalandra_kishii_with_clearly_prominent_primary_lateral_veins_on_the_upper_side_of_its_leaf_blades,_which_have_earned_it_one_of_its_trade_names_%E2%80%9CSkeleton_King%E2%80%9D.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bluish sheen on Bucephalandra 2 Foto MWerner.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Bluish_sheen_on_Bucephalandra_2_Foto_MWerner.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bluish_sheen_on_Bucephalandra_2_Foto_MWerner.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-02-28--Bucephalandra Inflorescence 13 emers.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/da/2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg/1920px-2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-02-28--Bucephalandra_Inflorescence_13_emers.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-02-27-Bucephaöandra spatha one day before opening.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b6/2026-02-27-Bucepha%C3%B6andra_spatha_one_day_before_opening.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-02-27-Bucepha%C3%B6andra_spatha_one_day_before_opening.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:2026-03-01-Bucephalandra inflorescence second day.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7b/2026-03-01-Bucephalandra_inflorescence_second_day.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:2026-03-01-Bucephalandra_inflorescence_second_day.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Manuel Werner / CC-BY-SA-4.0 <a href=\"//commons.wikimedia.org/wiki/User:Werner,_Deutschland\" title=\"User:Werner, Deutschland\">Werner, Deutschland</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500628.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0e/Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500628.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500635.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c3/Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500635.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500634.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500634.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500658.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Bucephalandra_oblanceolata_-_Brunei_-_600500658.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500658.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Bucephalandra oblanceolata - Brunei - 600500618.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/13/Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg/1920px-Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Bucephalandra_oblanceolata_-_Brunei_-_600500618.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Cwfoo\" title=\"User:Cwfoo\">Foo Chuan Wei</a>"
+            },
+            {
+              "title": "File:Das Pflanzenreich. Regni vegetabilis conspectus. Im Auftrage der Königl. preuss. Akademie der Wissenschaften hrgs. von A. Engler (IA daspflanzenreich55engluoft).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Das_Pflanzenreich._Regni_vegetabilis_conspectus._Im_Auftrage_der_K%C3%B6nigl._preuss._Akademie_der_Wissenschaften_hrgs._von_A._Engler_%28IA_daspflanzenreich55engluoft%29.pdf/page1-500px-thumbnail.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Das_Pflanzenreich._Regni_vegetabilis_conspectus._Im_Auftrage_der_K%C3%B6nigl._preuss._Akademie_der_Wissenschaften_hrgs._von_A._Engler_(IA_daspflanzenreich55engluoft).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nEngler, Adolf, 1844-1930</div>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cryptocoryne balansae",
+      "results": [
+        {
+          "query": "Cryptocoryne balansae",
+          "candidates": [
+            {
+              "title": "File:Just's botanischer jahresbericht. Systematisch geordnetes repertorium der botanischen literatur aller länder (IA justsbotanischer4702berl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischer4702berl%29.pdf/page1-500px-Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischer4702berl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_(IA_justsbotanischer4702berl).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Just's botanischer jahresbericht. Systematisch geordnetes repertorium der botanischen literatur aller länder (IA justsbotanischerj3802berl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischerj3802berl%29.pdf/page1-500px-Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischerj3802berl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_(IA_justsbotanischerj3802berl).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:Cryptocoryne crispatula kz01.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Cryptocoryne_crispatula_kz01.jpg/1920px-Cryptocoryne_crispatula_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Cryptocoryne_crispatula_kz01.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Kenraiz\" title=\"User:Kenraiz\">Krzysztof Ziarnek, Kenraiz</a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Cryptocoryne balansae\"",
+          "candidates": [
+            {
+              "title": "File:Cryptocoryne crispatula kz01.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Cryptocoryne_crispatula_kz01.jpg/1920px-Cryptocoryne_crispatula_kz01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Cryptocoryne_crispatula_kz01.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Kenraiz\" title=\"User:Kenraiz\">Krzysztof Ziarnek, Kenraiz</a>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cryptocoryne parva",
+      "results": [
+        {
+          "query": "Cryptocoryne parva",
+          "candidates": [
+            {
+              "title": "File:Prodromus systematis Aroidearum -H. G. Schott. (IA mobot31753002757596).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf/page1-1920px-Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Prodromus_systematis_Aroidearum_-H._G._Schott._(IA_mobot31753002757596).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Journal of the Bombay Natural History Society (IA journalofbo4419431944bomb).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Journal_of_the_Bombay_Natural_History_Society_%28IA_journalofbo4419431944bomb%29.pdf/page1-500px-Journal_of_the_Bombay_Natural_History_Society_%28IA_journalofbo4419431944bomb%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Journal_of_the_Bombay_Natural_History_Society_(IA_journalofbo4419431944bomb).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nBombay Natural History Society</div>"
+            }
+          ]
+        },
+        {
+          "query": "\"Cryptocoryne parva\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Cryptocoryne undulata",
+      "results": [
+        {
+          "query": "Cryptocoryne undulata",
+          "candidates": [
+            {
+              "title": "File:Enumeratio plantarum omnium hucusque cognitarum, secundum familias naturales disposita, adjectis characteribus, differentiis et synonymis (IA enumeratioplanta03kunt).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/27/Enumeratio_plantarum_omnium_hucusque_cognitarum%2C_secundum_familias_naturales_disposita%2C_adjectis_characteribus%2C_differentiis_et_synonymis_%28IA_enumeratioplanta03kunt%29.pdf/page1-500px-thumbnail.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Enumeratio_plantarum_omnium_hucusque_cognitarum,_secundum_familias_naturales_disposita,_adjectis_characteribus,_differentiis_et_synonymis_(IA_enumeratioplanta03kunt).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nKunth, Karl Sigismund, 1788-1850</div>"
+            },
+            {
+              "title": "File:Aroideae (IA Aroideae00Scho).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/ba/Aroideae_%28IA_Aroideae00Scho%29.pdf/page1-1920px-Aroideae_%28IA_Aroideae00Scho%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Aroideae_(IA_Aroideae00Scho).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.(Heinrich Wilhelm),1794-1865</div>"
+            },
+            {
+              "title": "File:Prodromus systematis Aroidearum -H. G. Schott. (IA mobot31753002757596).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/db/Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf/page1-1920px-Prodromus_systematis_Aroidearum_-H._G._Schott._%28IA_mobot31753002757596%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Prodromus_systematis_Aroidearum_-H._G._Schott._(IA_mobot31753002757596).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nSchott, H. W.</div>"
+            },
+            {
+              "title": "File:Just's botanischer jahresbericht. Systematisch geordnetes repertorium der botanischen literatur aller länder (IA justsbotanischer4702berl).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ef/Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischer4702berl%29.pdf/page1-500px-Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_%28IA_justsbotanischer4702berl%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Just%27s_botanischer_jahresbericht._Systematisch_geordnetes_repertorium_der_botanischen_literatur_aller_l%C3%A4nder_(IA_justsbotanischer4702berl).pdf",
+              "license": "Public domain",
+              "artist": null
+            }
+          ]
+        },
+        {
+          "query": "\"Cryptocoryne undulata\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Hemianthus callitrichoides",
+      "results": [
+        {
+          "query": "Hemianthus callitrichoides",
+          "candidates": [
+            {
+              "title": "File:Luis Embalo Aquascaping.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/56/Luis_Embalo_Aquascaping.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Luis_Embalo_Aquascaping.jpg",
+              "license": "CC BY 3.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Ghostsword&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Ghostsword (page does not exist)\">Ghostsword</a>"
+            },
+            {
+              "title": "File:Aquascaping-minilandschaft-lennart.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Aquascaping-minilandschaft-lennart.jpg/1920px-Aquascaping-minilandschaft-lennart.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Aquascaping-minilandschaft-lennart.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Lennart Jöhnk"
+            },
+            {
+              "title": "File:Freshwater aquariums Sharjah.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Freshwater_aquariums_Sharjah.jpg/1920px-Freshwater_aquariums_Sharjah.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Freshwater_aquariums_Sharjah.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ranjith-chemmad\" title=\"User:Ranjith-chemmad\">Ranjith-chemmad</a>"
+            },
+            {
+              "title": "File:Freshwater aquarium U.A.E.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Freshwater_aquarium_U.A.E.jpg/1920px-Freshwater_aquarium_U.A.E.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Freshwater_aquarium_U.A.E.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ranjith-chemmad\" title=\"User:Ranjith-chemmad\">Ranjith-chemmad</a>"
+            },
+            {
+              "title": "File:חור בצלע הר, נחל עמוד.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1e/%D7%97%D7%95%D7%A8_%D7%91%D7%A6%D7%9C%D7%A2_%D7%94%D7%A8%2C_%D7%A0%D7%97%D7%9C_%D7%A2%D7%9E%D7%95%D7%93.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:%D7%97%D7%95%D7%A8_%D7%91%D7%A6%D7%9C%D7%A2_%D7%94%D7%A8,_%D7%A0%D7%97%D7%9C_%D7%A2%D7%9E%D7%95%D7%93.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:%D7%94%D7%A9%D7%A7%D7%93%D7%99%D7%94_%D7%A4%D7%95%D7%A8%D7%97%D7%AA&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:השקדיה פורחת (page does not exist)\">השקדיה פורחת</a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Hemianthus callitrichoides\"",
+          "candidates": [
+            {
+              "title": "File:Luis Embalo Aquascaping.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/5/56/Luis_Embalo_Aquascaping.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Luis_Embalo_Aquascaping.jpg",
+              "license": "CC BY 3.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Ghostsword&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Ghostsword (page does not exist)\">Ghostsword</a>"
+            },
+            {
+              "title": "File:Aquascaping-minilandschaft-lennart.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/Aquascaping-minilandschaft-lennart.jpg/1920px-Aquascaping-minilandschaft-lennart.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Aquascaping-minilandschaft-lennart.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "Lennart Jöhnk"
+            },
+            {
+              "title": "File:Freshwater aquariums Sharjah.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Freshwater_aquariums_Sharjah.jpg/1920px-Freshwater_aquariums_Sharjah.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Freshwater_aquariums_Sharjah.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ranjith-chemmad\" title=\"User:Ranjith-chemmad\">Ranjith-chemmad</a>"
+            },
+            {
+              "title": "File:Freshwater aquarium U.A.E.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Freshwater_aquarium_U.A.E.jpg/1920px-Freshwater_aquarium_U.A.E.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Freshwater_aquarium_U.A.E.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ranjith-chemmad\" title=\"User:Ranjith-chemmad\">Ranjith-chemmad</a>"
+            },
+            {
+              "title": "File:חור בצלע הר, נחל עמוד.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/1/1e/%D7%97%D7%95%D7%A8_%D7%91%D7%A6%D7%9C%D7%A2_%D7%94%D7%A8%2C_%D7%A0%D7%97%D7%9C_%D7%A2%D7%9E%D7%95%D7%93.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:%D7%97%D7%95%D7%A8_%D7%91%D7%A6%D7%9C%D7%A2_%D7%94%D7%A8,_%D7%A0%D7%97%D7%9C_%D7%A2%D7%9E%D7%95%D7%93.jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:%D7%94%D7%A9%D7%A7%D7%93%D7%99%D7%94_%D7%A4%D7%95%D7%A8%D7%97%D7%AA&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:השקדיה פורחת (page does not exist)\">השקדיה פורחת</a>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Monstera standleyana",
+      "results": [
+        {
+          "query": "Monstera standleyana",
+          "candidates": []
+        },
+        {
+          "query": "\"Monstera standleyana\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Philodendron atabapoense",
+      "results": [
+        {
+          "query": "Philodendron atabapoense",
+          "candidates": []
+        },
+        {
+          "query": "\"Philodendron atabapoense\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Philodendron domesticum",
+      "results": [
+        {
+          "query": "Philodendron domesticum",
+          "candidates": [
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830028).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830028%29.pdf/page1-960px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830028%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830028).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests, October 1, 1978 through September 30, 1979 (IA IND81032871).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/List_of_intercepted_plant_pests%2C_October_1%2C_1978_through_September_30%2C_1979_%28IA_IND81032871%29.pdf/page1-960px-List_of_intercepted_plant_pests%2C_October_1%2C_1978_through_September_30%2C_1979_%28IA_IND81032871%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests,_October_1,_1978_through_September_30,_1979_(IA_IND81032871).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830029).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cd/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830029%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830029%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830029).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830030).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830030%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830030%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830030).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830031).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830031%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830031%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830031).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830032).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/00/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830032%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830032%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830032).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:List of intercepted plant pests - United States Department of Agriculture, Plant Quarantine and Control Administration. (IA CAT73387830033).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0b/List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830033%29.pdf/page1-1280px-List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture%2C_Plant_Quarantine_and_Control_Administration._%28IA_CAT73387830033%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:List_of_intercepted_plant_pests_-_United_States_Department_of_Agriculture,_Plant_Quarantine_and_Control_Administration._(IA_CAT73387830033).pdf",
+              "license": "Public domain",
+              "artist": null
+            },
+            {
+              "title": "File:International directory of woody plant physiologists - compiled by Stephen B. Horsley and Corrine A. Weldon. (IA CAT10695662).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/International_directory_of_woody_plant_physiologists_-_compiled_by_Stephen_B._Horsley_and_Corrine_A._Weldon._%28IA_CAT10695662%29.pdf/page1-960px-International_directory_of_woody_plant_physiologists_-_compiled_by_Stephen_B._Horsley_and_Corrine_A._Weldon._%28IA_CAT10695662%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:International_directory_of_woody_plant_physiologists_-_compiled_by_Stephen_B._Horsley_and_Corrine_A._Weldon._(IA_CAT10695662).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nHorsley, Stephen B</div>"
+            },
+            {
+              "title": "File:Price list - ornamental trees shrubs and vines, palms, ferns, grasses and flowering plants - 1925 - Edward H. Rust, nurseryman. (IA CAT31317835).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Price_list_-_ornamental_trees_shrubs_and_vines%2C_palms%2C_ferns%2C_grasses_and_flowering_plants_-_1925_-_Edward_H._Rust%2C_nurseryman._%28IA_CAT31317835%29.pdf/page1-500px-Price_list_-_ornamental_trees_shrubs_and_vines%2C_palms%2C_ferns%2C_grasses_and_flowering_plants_-_1925_-_Edward_H._Rust%2C_nurseryman._%28IA_CAT31317835%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Price_list_-_ornamental_trees_shrubs_and_vines,_palms,_ferns,_grasses_and_flowering_plants_-_1925_-_Edward_H._Rust,_nurseryman._(IA_CAT31317835).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Edward H. Rust (Firm)</dd>\n<dd>Rust, Edward H</dd>\n<dd>Henry G. Gilbert Nursery and Seed Trade Catalog Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:1927 Price list of ornamental trees, shrubs and vines, flowering plants, palms, ferns and grasses - Edward H. Rust, nurseryman. (IA CAT31326114).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/1927_Price_list_of_ornamental_trees%2C_shrubs_and_vines%2C_flowering_plants%2C_palms%2C_ferns_and_grasses_-_Edward_H._Rust%2C_nurseryman._%28IA_CAT31326114%29.pdf/page1-500px-1927_Price_list_of_ornamental_trees%2C_shrubs_and_vines%2C_flowering_plants%2C_palms%2C_ferns_and_grasses_-_Edward_H._Rust%2C_nurseryman._%28IA_CAT31326114%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:1927_Price_list_of_ornamental_trees,_shrubs_and_vines,_flowering_plants,_palms,_ferns_and_grasses_-_Edward_H._Rust,_nurseryman._(IA_CAT31326114).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Edward H. Rust (Firm)</dd>\n<dd>Rust, Edward H</dd>\n<dd>Henry G. Gilbert Nursery and Seed Trade Catalog Collection</dd></dl></div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1932 - Richard Lohrmann ; the West End Nursery. (IA CAT31338816).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1932_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31338816%29.pdf/page1-500px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1932_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31338816%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1932_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31338816).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1933 - Richard Lohrmann ; the West End Nursery. (IA CAT31341105).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1933_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31341105%29.pdf/page1-1280px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1933_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31341105%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1933_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31341105).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1934 - Richard Lohrmann ; the West End Nursery. (IA CAT31343416).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1934_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31343416%29.pdf/page1-1280px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1934_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31343416%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1934_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31343416).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1935 - Richard Lohrmann ; the West End Nursery. (IA CAT31345537).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1935_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31345537%29.pdf/page1-1280px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1935_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31345537%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1935_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31345537).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1936 - Richard Lohrmann ; the West End Nursery. (IA CAT31347637).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/94/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1936_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31347637%29.pdf/page1-1280px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1936_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31347637%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1936_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31347637).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Choice fruit and ornamental trees, shrubs, vines and flowering plants, 1937 - Richard Lohrmann ; the West End Nursery. (IA CAT31349562).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3c/Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1937_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31349562%29.pdf/page1-1280px-Choice_fruit_and_ornamental_trees%2C_shrubs%2C_vines_and_flowering_plants%2C_1937_-_Richard_Lohrmann_%3B_the_West_End_Nursery._%28IA_CAT31349562%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Choice_fruit_and_ornamental_trees,_shrubs,_vines_and_flowering_plants,_1937_-_Richard_Lohrmann_;_the_West_End_Nursery._(IA_CAT31349562).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\nRichard Lohrmann (Firm)</div>"
+            },
+            {
+              "title": "File:Cooperative economic insect report (IA cooperativeecono156unit).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/46/Cooperative_economic_insect_report_%28IA_cooperativeecono156unit%29.pdf/page1-960px-Cooperative_economic_insect_report_%28IA_cooperativeecono156unit%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Cooperative_economic_insect_report_(IA_cooperativeecono156unit).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>United States. Bureau of Entomology and Plant Quarantine</dd>\n<dd>United States. Plant Pest Control Branch</dd>\n<dd>United States. Plant Pest Control Division</dd>\n<dd>United States. Animal and Plant Health Inspection Service. Plant Protection and Quarantine Programs</dd></dl></div>"
+            },
+            {
+              "title": "File:Ethylene dibromide for control of the European chafer in soils accompanying nursery plants (IA ethylenedibromid71tash).pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/Ethylene_dibromide_for_control_of_the_European_chafer_in_soils_accompanying_nursery_plants_%28IA_ethylenedibromid71tash%29.pdf/page1-960px-Ethylene_dibromide_for_control_of_the_European_chafer_in_soils_accompanying_nursery_plants_%28IA_ethylenedibromid71tash%29.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Ethylene_dibromide_for_control_of_the_European_chafer_in_soils_accompanying_nursery_plants_(IA_ethylenedibromid71tash).pdf",
+              "license": "Public domain",
+              "artist": "<div class=\"fn value\">\n<dl><dd>Tashiro, Haruo, 1917-</dd>\n<dd>United States. Agricultural Research Service</dd></dl></div>"
+            },
+            {
+              "title": "File:OJ L 208 of 2014 - FR French.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b5/OJ_L_208_of_2014_-_FR_French.pdf/page1-960px-OJ_L_208_of_2014_-_FR_French.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:OJ_L_208_of_2014_-_FR_French.pdf",
+              "license": "Public domain",
+              "artist": "<a href=\"https://en.wikipedia.org/wiki/en:Publications_Office_of_the_European_Union\" class=\"extiw\" title=\"w:en:Publications Office of the European Union\"><span title=\"academic publisher\">Publications Office of the European Union</span></a>"
+            },
+            {
+              "title": "File:OJ L 18 of 2018 - FR French.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9c/OJ_L_18_of_2018_-_FR_French.pdf/page1-960px-OJ_L_18_of_2018_-_FR_French.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:OJ_L_18_of_2018_-_FR_French.pdf",
+              "license": "Public domain",
+              "artist": "<a href=\"https://en.wikipedia.org/wiki/en:Publications_Office_of_the_European_Union\" class=\"extiw\" title=\"w:en:Publications Office of the European Union\"><span title=\"academic publisher\">Publications Office of the European Union</span></a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Philodendron domesticum\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Philodendron gloriosum melanochrysum",
+      "results": [
+        {
+          "query": "Philodendron gloriosum melanochrysum",
+          "candidates": []
+        },
+        {
+          "query": "\"Philodendron gloriosum melanochrysum\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Philodendron plowmanii",
+      "results": [
+        {
+          "query": "Philodendron plowmanii",
+          "candidates": [
+            {
+              "title": "File:190615 275 Corona del Mar, Sherman Gardens - Tropical Conservatory, Anthurium hookeri, Anthurium crassinervium, Anthurium 'Giant Chocolate', Aechmea fasciata 'Variegata', Zamia neurophyllidia, Philodendron gloriosum, Anthurium plowmanii.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b3/190615_275_Corona_del_Mar%2C_Sherman_Gardens_-_Tropical_Conservatory%2C_Anthurium_hookeri%2C_Anthurium_crassinervium%2C_Anthurium_%27Giant_Chocolate%27%2C_Aechmea_fasciata_%27Variegata%27%2C_Zamia_neurophyllidia%2C_Philodendron_gloriosum%2C_Anthurium_plowmanii.jpg/1920px-thumbnail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:190615_275_Corona_del_Mar,_Sherman_Gardens_-_Tropical_Conservatory,_Anthurium_hookeri,_Anthurium_crassinervium,_Anthurium_%27Giant_Chocolate%27,_Aechmea_fasciata_%27Variegata%27,_Zamia_neurophyllidia,_Philodendron_gloriosum,_Anthurium_plowmanii.jpg",
+              "license": "CC BY 2.0",
+              "artist": "cultivar413"
+            },
+            {
+              "title": "File:Despite previous and Field surveys - Guerra et al - Sociedade Botânica do Brasil - 001.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/0/03/Despite_previous_and_Field_surveys_-_Guerra_et_al_-_Sociedade_Bot%C3%A2nica_do_Brasil_-_001.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Despite_previous_and_Field_surveys_-_Guerra_et_al_-_Sociedade_Bot%C3%A2nica_do_Brasil_-_001.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Guerra, Gabriel Costa; Silva, Renato Silva da; Roque, Nádia (authors of the source article; individual figure creator not specified)"
+            }
+          ]
+        },
+        {
+          "query": "\"Philodendron plowmanii\"",
+          "candidates": []
+        }
+      ]
+    },
+    {
+      "name": "Philodendron spiritus sancti",
+      "results": [
+        {
+          "query": "Philodendron spiritus sancti",
+          "candidates": [
+            {
+              "title": "File:Philodendron spiritus-sancti with hand.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/67/Philodendron_spiritus-sancti_with_hand.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Philodendron_spiritus-sancti_with_hand.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Alexandre Magno"
+            },
+            {
+              "title": "File:Philodendron spiritus-sancti in Brazil.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Philodendron_spiritus-sancti_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Philodendron_spiritus-sancti_in_Brazil.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Alexandre Magno"
+            }
+          ]
+        },
+        {
+          "query": "\"Philodendron spiritus sancti\"",
+          "candidates": [
+            {
+              "title": "File:Philodendron spiritus-sancti with hand.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/6/67/Philodendron_spiritus-sancti_with_hand.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Philodendron_spiritus-sancti_with_hand.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Alexandre Magno"
+            },
+            {
+              "title": "File:Philodendron spiritus-sancti in Brazil.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Philodendron_spiritus-sancti_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Philodendron_spiritus-sancti_in_Brazil.jpg",
+              "license": "CC BY 4.0",
+              "artist": "Alexandre Magno"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Taxiphyllum barbieri",
+      "results": [
+        {
+          "query": "Taxiphyllum barbieri",
+          "candidates": [
+            {
+              "title": "File:Willow moss.JPG",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Willow_moss.JPG/1920px-Willow_moss.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Willow_moss.JPG",
+              "license": "Public domain",
+              "artist": "No machine-readable author provided. <a href=\"//commons.wikimedia.org/wiki/User:S.Tanaka~commonswiki\" title=\"User:S.Tanaka~commonswiki\">S.Tanaka~commonswiki</a> assumed (based on copyright claims)."
+            },
+            {
+              "title": "File:Javamoos.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Javamoos.jpg/1920px-Javamoos.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Javamoos.jpg",
+              "license": "CC BY-SA 3.0",
+              "artist": null
+            },
+            {
+              "title": "File:Poda01.JPG",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/af/Poda01.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Poda01.JPG",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Pmerino&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Pmerino (page does not exist)\">Pmerino</a>"
+            },
+            {
+              "title": "File:Crevette caridina multidentata (amano, japonica).jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Crevette_caridina_multidentata_%28amano%2C_japonica%29.jpg/1920px-Crevette_caridina_multidentata_%28amano%2C_japonica%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Crevette_caridina_multidentata_(amano,_japonica).jpg",
+              "license": "CC BY-SA 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Sky99\" title=\"User:Sky99\">Sky99</a>"
+            },
+            {
+              "title": "File:爪哇莫絲 Vesicularia dubyana -香港公園 Hong Kong Park- (9227115933).jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/%E7%88%AA%E5%93%87%E8%8E%AB%E7%B5%B2_Vesicularia_dubyana_-%E9%A6%99%E6%B8%AF%E5%85%AC%E5%9C%92_Hong_Kong_Park-_%289227115933%29.jpg/1920px-%E7%88%AA%E5%93%87%E8%8E%AB%E7%B5%B2_Vesicularia_dubyana_-%E9%A6%99%E6%B8%AF%E5%85%AC%E5%9C%92_Hong_Kong_Park-_%289227115933%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:%E7%88%AA%E5%93%87%E8%8E%AB%E7%B5%B2_Vesicularia_dubyana_-%E9%A6%99%E6%B8%AF%E5%85%AC%E5%9C%92_Hong_Kong_Park-_(9227115933).jpg",
+              "license": "CC BY-SA 2.0",
+              "artist": "<a rel=\"nofollow\" class=\"external text\" href=\"https://www.flickr.com/people/52582306@N03\">阿橋 HQ</a>"
+            },
+            {
+              "title": "File:Social deprivation affects cooperative predator inspection in a cichlid fish.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf/page1-960px-Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf",
+              "license": "CC BY 4.0",
+              "artist": "Hesse, Saskia; Anaya-Rojas, Jaime M.; Frommen, Joachim G.; Thünken, Timo"
+            },
+            {
+              "title": "File:Sphaerichthys vaillanti above Java moss.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Sphaerichthys_vaillanti_above_Java_moss.jpg/1920px-Sphaerichthys_vaillanti_above_Java_moss.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sphaerichthys_vaillanti_above_Java_moss.jpg",
+              "license": "CC BY 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Gouramii&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Gouramii (page does not exist)\">Gouramii</a>"
+            },
+            {
+              "title": "File:Sphaerichthys vaillanti behind Java moss.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bf/Sphaerichthys_vaillanti_behind_Java_moss.jpg/1920px-Sphaerichthys_vaillanti_behind_Java_moss.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Sphaerichthys_vaillanti_behind_Java_moss.jpg",
+              "license": "CC BY 4.0",
+              "artist": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Gouramii&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Gouramii (page does not exist)\">Gouramii</a>"
+            },
+            {
+              "title": "File:Validating two-dimensional leadership models on three-dimensionally structured fish schools.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf/page1-960px-Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf",
+              "license": "CC BY 4.0",
+              "artist": "Watts, Isobel; Nagy, Máté; Holbrook, Robert I.; Biro, Dora; Burt de Perera, Theresa"
+            }
+          ]
+        },
+        {
+          "query": "\"Taxiphyllum barbieri\"",
+          "candidates": [
+            {
+              "title": "File:Willow moss.JPG",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Willow_moss.JPG/1920px-Willow_moss.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Willow_moss.JPG",
+              "license": "Public domain",
+              "artist": "No machine-readable author provided. <a href=\"//commons.wikimedia.org/wiki/User:S.Tanaka~commonswiki\" title=\"User:S.Tanaka~commonswiki\">S.Tanaka~commonswiki</a> assumed (based on copyright claims)."
+            },
+            {
+              "title": "File:Javamoos.jpg",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Javamoos.jpg/1920px-Javamoos.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Javamoos.jpg",
+              "license": "CC BY-SA 3.0",
+              "artist": null
+            },
+            {
+              "title": "File:Social deprivation affects cooperative predator inspection in a cichlid fish.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf/page1-960px-Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Social_deprivation_affects_cooperative_predator_inspection_in_a_cichlid_fish.pdf",
+              "license": "CC BY 4.0",
+              "artist": "Hesse, Saskia; Anaya-Rojas, Jaime M.; Frommen, Joachim G.; Thünken, Timo"
+            },
+            {
+              "title": "File:Validating two-dimensional leadership models on three-dimensionally structured fish schools.pdf",
+              "imageUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf/page1-960px-Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Validating_two-dimensional_leadership_models_on_three-dimensionally_structured_fish_schools.pdf",
+              "license": "CC BY 4.0",
+              "artist": "Watts, Isobel; Nagy, Máté; Holbrook, Robert I.; Biro, Dora; Burt de Perera, Theresa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Channa ornatipinnis",
+      "results": [
+        {
+          "query": "Channa ornatipinnis",
+          "candidates": [
+            {
+              "title": "File:Channa marulius.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Channa_marulius.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Channa_marulius.jpg",
+              "license": "Public domain",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ianare\" title=\"User:Ianare\">Ianaré Sévi</a>"
+            }
+          ]
+        },
+        {
+          "query": "\"Channa ornatipinnis\"",
+          "candidates": [
+            {
+              "title": "File:Channa marulius.jpg",
+              "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Channa_marulius.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+              "sourcePageUrl": "https://commons.wikimedia.org/wiki/File:Channa_marulius.jpg",
+              "license": "Public domain",
+              "artist": "<a href=\"//commons.wikimedia.org/wiki/User:Ianare\" title=\"User:Ianare\">Ianaré Sévi</a>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

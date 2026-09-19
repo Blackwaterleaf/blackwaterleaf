@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
-import { BookOpen, Bot, Camera, Fish, Leaf, LibraryBig, Plus, Save, ShieldCheck, Sprout } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Camera, Fish, Leaf, LibraryBig, List, Map as MapIcon, MapPin, Plus, Save, ShieldCheck, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { useLocation, useParams } from "wouter";
 
@@ -51,6 +51,8 @@ export default function Realm() {
   const { locale, t } = useI18n();
   const utils = trpc.useUtils();
   const observations = trpc.observations.mine.useQuery({ realm: realm.api }, { enabled: auth.isAuthenticated, retry: false });
+  const publicObservations = trpc.observations.publicFeed.useQuery({ realm: realm.api, limit: 12 }, { retry: false });
+  const catalog = trpc.search.catalogByRealm.useQuery({ realm: realm.api, limit: 6 }, { retry: false });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const createObservation = trpc.observations.create.useMutation();
   const updateObservation = trpc.observations.update.useMutation();
@@ -65,6 +67,7 @@ export default function Realm() {
   const [image, setImage] = useState<File | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [dataView, setDataView] = useState<"map" | "list">("map");
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
   const submitObservation = async (event: FormEvent) => {
@@ -89,6 +92,15 @@ export default function Realm() {
     <div className={`reference-page reference-page--${realm.tone}`}>
       <ReferenceHero tone={realm.tone} image={realm.image} eyebrow={realm.eyebrow} title={realm.title} subtitle={realm.subtitle} icon={realm.icon} />
       <ReferenceActionGrid tone={realm.tone} actions={actionsFor(realmKey).map(action => (action.title === "Pflanze hinzufügen" || action.title === "Aquarium hinzufügen" || action.title === "Terrarium fotografieren") ? { ...action, href: undefined, targetId: "capture", onActivate: () => setCaptureOpen(true) } : action)} />
+      <section className={`realm-observation-surface realm-observation-surface--${realm.tone}`} aria-labelledby="realm-observation-heading">
+        <div className="realm-observation-heading"><div><span className="eyebrow">KARTE &amp; LISTE · SYNCHRONISIERT</span><h2 id="realm-observation-heading">BEOBACHTEN. EINORDNEN. TEILEN.</h2></div><span className="observatory-status"><i />{publicObservations.isLoading ? "SYNC …" : "BEREIT"}</span></div>
+        <div className="realm-observation-toolbar"><span className="realm-observation-realm"><MapPin size={15} /> {realm.title}</span><div className="observatory-view-toggle" role="group" aria-label="Ansicht"><button type="button" className={dataView === "map" ? "active" : ""} aria-pressed={dataView === "map"} onClick={() => setDataView("map")}><MapIcon size={15} /> Karte</button><button type="button" className={dataView === "list" ? "active" : ""} aria-pressed={dataView === "list"} onClick={() => setDataView("list")}><List size={15} /> Liste</button></div></div>
+        <div className={`realm-observation-grid realm-observation-grid--${dataView}`}>
+          <div className="realm-map-panel"><MapPin size={30} /><strong>{publicObservations.data?.length ?? 0} freigegebene Beobachtungen</strong><small>Geschützte Orte · genaue Positionen bleiben privat</small></div>
+          <div className="realm-catalog-list"><div className="realm-catalog-list__heading"><span>BEOBACHTUNGEN · {realm.title}</span><a href="/explore"><span>KARTE &amp; LISTE</span><ArrowRight size={14} /></a></div>{publicObservations.isError ? <p className="realm-inline-state">Beobachtungen derzeit nicht erreichbar. Private Daten bleiben geschützt.</p> : publicObservations.data?.length ? publicObservations.data.slice(0, 4).map(item => <div className="realm-data-row" key={item.id}><span className="realm-data-row__icon">{realmKey === "aquarium" ? <Fish size={19} /> : realmKey === "terrarium" ? <Sprout size={19} /> : <Leaf size={19} />}</span><span><strong>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</strong><small>{item.evidenceState === "confirmed" ? "Wissenschaftlich geprüft" : "Nachweis wird geprüft"}</small></span><ArrowRight size={16} /></div>) : <p className="realm-inline-state">Noch keine öffentlichen Beobachtungen in diesem Bereich.</p>}</div>
+        </div>
+        <div className="realm-taxonomy-strip"><div className="realm-catalog-list__heading"><span>KATALOG · ARTEN</span><a href={realmKey === "aquarium" ? "/search?kind=aquarium" : "/search?kind=plant"}><span>ALLE ÖFFNEN</span><ArrowRight size={14} /></a></div><div className="realm-taxonomy-grid">{catalog.isLoading ? <p className="realm-inline-state">Katalog wird synchronisiert …</p> : catalog.data?.length ? catalog.data.slice(0, 4).map(item => <a className="realm-taxon-row" key={`${item.type}-${item.id}`} href={item.type === "aquarium" ? `/aquarium-fish/${item.id}` : `/plant/${item.id}`}>{item.imageUrl ? <img src={item.imageUrl} alt="" /> : <span className="realm-taxon-row__placeholder">{item.type === "aquarium" ? <Fish size={20} /> : <Leaf size={20} />}</span>}<span><strong>{item.acceptedScientificName ?? item.scientificName}</strong><small>{item.family ?? "Artdaten werden geprüft"}</small></span><ArrowRight size={16} /></a>) : <p className="realm-inline-state">Für diesen Bereich sind noch keine veröffentlichten Katalogtaxa vorhanden.</p>}</div></div>
+      </section>
       {!auth.isAuthenticated ? <ReferenceEmptyState tone={realm.tone} code="AUTH / REQUIRED" title={t("realm.signedOut")} body={t("home.truth.body")} action={<button type="button" className="primary-action" onClick={startLogin}><ShieldCheck size={16} />{t("common.signIn")}</button>} /> : captureOpen ? (
         <form id="capture" className="observation-form glass-panel reference-after-actions" onSubmit={submitObservation}>
           <div className="form-heading"><div><span className="eyebrow">[PRIVATE_CAPTURE]</span><h2>{locale === "de" ? "BEOBACHTUNG ERFASSEN" : "CAPTURE OBSERVATION"}</h2></div><span className="system-chip">V1</span></div>

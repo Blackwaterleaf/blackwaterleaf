@@ -3,11 +3,29 @@
     "version": ">= 24.0.0"
   },
   "build": {
-    "preview": {
+    "development": {
+      "developmentClient": true,
       "distribution": "internal",
+      "channel": "development"
+    },
+    "staging": {
+      "distribution": "internal",
+      "channel": "staging",
       "android": {
         "buildType": "apk"
       }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "staging",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true
     }
   }
 }

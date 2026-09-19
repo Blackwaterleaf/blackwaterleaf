@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle2, ExternalLink, Fish, Save, ShieldCheck, Thermom
 import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
+import { TaxonRangeMap } from "@/components/TaxonRangeMap";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 function textValue(value: unknown) {
@@ -37,6 +38,7 @@ export default function AquariumTaxon() {
       <div><span className="eyebrow">VALIDIERTER AQUARISTIK-KATALOG · CHANNA</span><h1>{item.scientificName}</h1><p>{item.acceptedScientificName && item.acceptedScientificName !== item.scientificName ? `Akzeptierter Name: ${item.acceptedScientificName}` : item.family ?? "Aquaristik-Datensatz"}</p><div className="plant-taxon-badges"><span><ShieldCheck size={13} />{item.evidenceState}</span>{item.rank ? <span>{item.rank}</span> : null}{auth.isAuthenticated ? <button type="button" className="secondary-action" onClick={toggleSave} disabled={save.isPending || unsave.isPending}><Save size={14} />{isSaved ? "GESPEICHERT" : "SPEICHERN"}</button> : null}</div>{item.imageSourceUrl ? <a className="taxon-image-credit" href={item.imageSourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={13} />Bildquelle: {item.imageLicense ?? "Lizenzangabe"}</a> : <p className="taxon-image-pending">Für diesen Fisch ist noch kein verifiziertes Katalogbild hinterlegt.</p>}</div>
     </section>
     <section className="plant-taxon-content glass-panel"><div className="section-heading"><div><span className="eyebrow">FISHBASE · VALIDIERTE QUELLE</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
+    <TaxonRangeMap realm="aquarium" summary={item.summary} source={item.source} sourceUrl={item.imageSourceUrl} />
     {(careLevel || water) ? <section className="plant-taxon-content glass-panel"><div className="section-heading"><div><span className="eyebrow">AQUARISTIK</span><h2>HALTUNGSHINWEISE</h2></div><Thermometer size={22} /></div><div className="taxon-care-grid">{careLevel ? <div className="taxon-meta"><strong>ANSPRUCH</strong><span>{careLevel}</span></div> : null}{water ? <div className="taxon-meta"><strong>WASSER</strong><span>{water}</span></div> : null}</div><p className="taxon-disclaimer">Die Hinweise sind ein kompakter Katalogauszug. Vor einer Haltung bitte Größe, Herkunft, Verhalten und gesetzliche Vorgaben individuell prüfen.</p></section> : null}
   </div>;
 }

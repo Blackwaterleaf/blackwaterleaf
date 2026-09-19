@@ -125,7 +125,7 @@ export type CommunityComment = {
 };
 export type NativeNotification = {
   id: number;
-  type: "comment" | "like" | "system";
+  type: "comment" | "like" | "report" | "moderation" | "system";
   postId: number | null;
   commentId: number | null;
   message: string;
@@ -289,6 +289,14 @@ export const addCommunityComment = (
   token: string,
   input: { postId: number; content: string; parentId?: number | null },
 ) => trpcPost<{ success: true }>("community.addComment", input, token);
+export const likeCommunityPost = (token: string, postId: number) =>
+  trpcPost<{ liked: true }>("community.like", { postId }, token);
+export const reportCommunityPost = (token: string, input: { postId?: number; commentId?: number; reason: "sexual_content" | "harassment" | "misinformation" | "copyright" | "other"; note?: string }) =>
+  trpcPost<{ id: number; status: "pending" }>("community.report", input, token);
+export const blockCommunityUser = (token: string, userId: number) =>
+  trpcPost<{ blocked: true; userId: number }>("community.blockUser", { userId }, token);
+export const unblockCommunityUser = (token: string, userId: number) =>
+  trpcPost<{ blocked: false; userId: number }>("community.unblockUser", { userId }, token);
 export const notificationFeed = (token: string) =>
   trpcGet<NativeNotification[]>("notifications.feed", undefined, token);
 export const markNotificationsRead = (token: string, notificationId?: number) =>

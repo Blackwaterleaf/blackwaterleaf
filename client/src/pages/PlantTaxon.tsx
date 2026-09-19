@@ -2,6 +2,7 @@ import { ArrowLeft, CheckCircle2, ExternalLink, Leaf, Save, ShieldCheck } from "
 import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
+import { TaxonRangeMap } from "@/components/TaxonRangeMap";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function PlantTaxon() {
@@ -30,5 +31,6 @@ export default function PlantTaxon() {
       <div><span className="eyebrow">VALIDIERTER PFLANZENKATALOG</span><h1>{item.scientificName}</h1><p>{item.acceptedScientificName && item.acceptedScientificName !== item.scientificName ? `Akzeptierter Name: ${item.acceptedScientificName}` : item.family ?? "Taxon-Datensatz"}</p><div className="plant-taxon-badges"><span><ShieldCheck size={13} />{item.evidenceState}</span>{item.rank ? <span>{item.rank}</span> : null}{auth.isAuthenticated ? <button type="button" className="secondary-action" onClick={toggleSave} disabled={save.isPending || unsave.isPending}><Save size={14} />{isSaved ? "GESPEICHERT" : "SPEICHERN"}</button> : null}</div>{item.imageSourceUrl ? <a className="taxon-image-credit" href={item.imageSourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={13} />Bildquelle: {item.imageLicense ?? "Lizenzangabe"}</a> : <p className="taxon-image-pending">Für dieses Taxon ist noch kein verifiziertes Katalogbild hinterlegt.</p>}</div>
     </section>
     <section className="plant-taxon-content glass-panel"><div className="section-heading"><div><span className="eyebrow">DATENBASIS</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
+    <TaxonRangeMap realm="botany" summary={item.summary} source={item.source} sourceUrl={item.imageSourceUrl} />
   </div>;
 }

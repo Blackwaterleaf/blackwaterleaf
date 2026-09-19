@@ -10,9 +10,13 @@ export type PlantNetValidation = {
   sameGenus: boolean;
   exactMatch: boolean;
   alternatives: PlantNetAlternative[];
+  engineVersion?: string | null;
+  referential?: string | null;
 };
 
 type PlantNetResponse = {
+  version?: string;
+  referential?: string;
   results?: Array<{
     score?: number;
     species?: {
@@ -41,6 +45,15 @@ export async function validateWithPlantNet(
   llmScientificName: string,
   timeoutMs = 8_000,
 ): Promise<PlantNetValidation | null> {
+  return validateWithPlantNetImages([{ imageBuffer, mimeType }], llmScientificName, timeoutMs);
+}
+
+/** Sends all accepted views of the same individual in one provider request. */
+export async function validateWithPlantNetImages(
+  images: Array<{ imageBuffer: Buffer; mimeType: string; organ?: string }>,
+  llmScientificName: string,
+  timeoutMs = 8_000,
+): Promise<PlantNetValidation | null> {
   const key = process.env.PLANTNET_API_KEY;
   if (!key) return null;
 
@@ -48,8 +61,10 @@ export async function validateWithPlantNet(
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const formData = new FormData();
-    formData.append("images", new Blob([new Uint8Array(imageBuffer)], { type: mimeType || "image/jpeg" }), "plant.jpg");
-    formData.append("organs", "leaf");
+    images.forEach((image, index) => {
+      formData.append("images", new Blob([new Uint8Array(image.imageBuffer)], { type: image.mimeType || "image/jpeg" }), `plant-${index + 1}.jpg`);
+      formData.append("organs", image.organ ?? "auto");
+    });
     const response = await fetch(
       `https://my-api.plantnet.org/v2/identify/all?api-key=${encodeURIComponent(key)}&lang=de&nb-results=5`,
       { method: "POST", body: formData, signal: controller.signal },
@@ -78,6 +93,8 @@ export async function validateWithPlantNet(
         score: Math.round((item.score ?? 0) * 100),
         commonNames: (item.species?.commonNames ?? []).slice(0, 2),
       })),
+      engineVersion: payload.version ?? null,
+      referential: payload.referential ?? null,
     };
   } catch {
     return null;

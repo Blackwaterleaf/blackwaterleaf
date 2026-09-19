@@ -1611,3 +1611,67 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 
 /* AP-12: catalogue image provenance is visible, never implied. */
 .taxon-image-credit{display:inline-flex;align-items:center;gap:.38rem;margin-top:.75rem;color:#baf47f;font-size:.78rem;text-decoration:none}.taxon-image-credit:hover{text-decoration:underline}.taxon-image-pending{margin:.75rem 0 0;color:#b9c9c2;font-size:.78rem;max-width:32rem}.plant-taxon-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.45rem;min-height:12rem;color:#9fca69}.plant-taxon-placeholder span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:#9eb2a8}
+
+
+/* AP-19: one measurable Observatory contract for every Web surface. */
+:root, .dark {
+  --portal-bg: #020804;
+  --portal-surface: #06200f;
+  --portal-surface-raised: #0b2b16;
+  --portal-text: #effff4;
+  --portal-muted: #a9c5ab;
+  --portal-lime: #b9fb7f;
+  --portal-aqua: #40d9ff;
+  --portal-gold: #e0c75f;
+  --portal-danger: #ff8c9d;
+  --portal-radius-card: 18px;
+  --portal-radius-hero: 22px;
+  --portal-hero-desktop: clamp(210px, 19vw, 260px);
+  --portal-hero-mobile: clamp(210px, 58vw, 250px);
+  --portal-hit: 44px;
+}
+
+/* The compact screenshot composition is the default; oversized legacy heroes are not. */
+.home-hero, .page-hero, .realm-hero { min-height: var(--portal-hero-desktop); border-radius: var(--portal-radius-hero); }
+.world-assistant { --world-accent: var(--portal-lime); }
+.world-assistant .world-image { filter: none; }
+.icon-button, .top-actions > a, .top-actions > button, .portal-shell__action, .portal-shell__menu-trigger { min-width: var(--portal-hit); min-height: var(--portal-hit); }
+button, a[href], input, textarea, select, [role="button"] { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--portal-lime); outline-offset: 3px; box-shadow: 0 0 0 2px var(--portal-bg); }
+[aria-busy="true"] { cursor: progress; }
+[aria-disabled="true"], :disabled { cursor: not-allowed; }
+
+@media (max-width: 720px) {
+  .home-hero, .page-hero, .realm-hero { min-height: var(--portal-hero-mobile); }
+  .app-content { padding-inline: 12px; }
+  .top-shell { min-height: 64px; padding: 10px 12px; }
+  .world-rail--home { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .world-rail--home .world-card { min-height: 142px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+
+/* AP-21: one map/list/catalog surface shared by Botanik, Aquaristik and Terraristik. */
+.realm-observation-surface{display:grid;gap:12px;margin:0 0 18px;padding:18px;border:1px solid rgba(158,252,118,.25);border-radius:18px;background:linear-gradient(145deg,rgba(2,18,10,.96),rgba(4,35,20,.88));box-shadow:0 16px 45px rgba(0,0,0,.18)}
+.realm-observation-surface--aquarium{--realm-accent:#40d9ff}.realm-observation-surface--terrarium{--realm-accent:#e7b969}.realm-observation-surface--botany{--realm-accent:#b9fb7f}
+.realm-observation-heading,.realm-observation-toolbar,.realm-catalog-list__heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.realm-observation-heading h2{margin:6px 0 0;color:#f1fff3;font:400 clamp(1.55rem,3vw,2.45rem)/.92 "Bebas Neue",sans-serif;letter-spacing:.02em}.realm-observation-heading .observatory-status{white-space:nowrap}.realm-observation-toolbar{padding-bottom:2px}.realm-observation-realm{display:inline-flex;align-items:center;gap:7px;color:var(--realm-accent);font:700 .64rem/1 "JetBrains Mono",monospace;letter-spacing:.1em}.realm-observation-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:12px}.realm-map-panel{position:relative;display:grid;align-content:end;gap:6px;min-height:235px;padding:18px;color:#f2fff4;border:1px solid color-mix(in srgb,var(--realm-accent) 55%,transparent);border-radius:15px;overflow:hidden;background:radial-gradient(circle at 28% 32%,color-mix(in srgb,var(--realm-accent) 18%,transparent),transparent 25%),linear-gradient(145deg,#082e27,#051710 54%,#06120c)}.realm-map-panel:before,.realm-map-panel:after{content:"";position:absolute;border:1px solid color-mix(in srgb,var(--realm-accent) 24%,transparent);border-radius:50%;inset:20% 26%;transform:rotate(-20deg)}.realm-map-panel:after{inset:38% 12% 14% 45%;border-radius:45% 55% 38% 62%;transform:rotate(28deg)}.realm-map-panel svg,.realm-map-panel strong,.realm-map-panel small{position:relative;z-index:1}.realm-map-panel svg{color:var(--realm-accent);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--realm-accent) 65%,transparent))}.realm-map-panel strong{font-size:.84rem}.realm-map-panel small{color:#b3ccb8;font-size:.68rem}.realm-catalog-list{display:grid;align-content:start;gap:7px}.realm-catalog-list__heading{padding:0 2px 5px;color:#b9fb7f;font:700 .62rem/1 "JetBrains Mono",monospace;letter-spacing:.08em}.realm-catalog-list__heading a{display:inline-flex;align-items:center;gap:5px;color:#a9d1ac;text-decoration:none;font:500 .65rem/1 Inter,sans-serif;letter-spacing:0}.realm-data-row,.realm-taxon-row{display:flex;align-items:center;gap:10px;min-height:57px;padding:8px 10px;color:#eaffed;border:1px solid rgba(158,252,118,.18);border-radius:11px;background:rgba(3,22,13,.78);text-decoration:none}.realm-data-row>span:nth-child(2),.realm-taxon-row>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}.realm-data-row strong,.realm-taxon-row strong{font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.realm-data-row small,.realm-taxon-row small{color:#9fbea3;font-size:.62rem}.realm-data-row>svg,.realm-taxon-row>svg{color:var(--realm-accent)}.realm-data-row__icon,.realm-taxon-row__placeholder{display:grid;place-items:center;width:38px;height:38px;flex:none;color:var(--realm-accent);border-radius:9px;background:rgba(7,49,30,.9)}.realm-taxonomy-strip{display:grid;gap:7px;padding-top:6px;border-top:1px solid rgba(158,252,118,.16)}.realm-taxonomy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.realm-taxon-row{min-width:0}.realm-taxon-row img{width:44px;height:38px;flex:none;object-fit:cover;border-radius:7px;background:#0a2d22}.realm-inline-state{margin:4px 0;color:#9fbea3;font-size:.7rem}.realm-observation-grid--list .realm-map-panel{display:none}.realm-observation-grid--list{grid-template-columns:1fr}
+@media (max-width:700px){.realm-observation-surface{padding:13px;border-radius:15px}.realm-observation-heading{align-items:flex-start}.realm-observation-heading h2{font-size:1.55rem}.realm-observation-toolbar{align-items:flex-start}.realm-observation-grid{grid-template-columns:1fr}.realm-map-panel{min-height:190px}.realm-taxonomy-grid{grid-template-columns:1fr}.realm-catalog-list__heading{font-size:.56rem}}
+
+
+/* Observatory readability pass: shared left inset keeps headings and field labels aligned. */
+:is(.observatory-explore-page, .reference-page, .realm-observation-surface, .plant-taxon-page) :is(h1, h2, h3, .eyebrow, .field > span, .taxon-meta strong, .section-heading) { padding-inline-start: clamp(4px, .55vw, 9px); }
+:is(.observatory-explore-page, .reference-page, .realm-observation-surface) :is(p, .realm-data-row small, .realm-taxon-row small, .taxon-meta span) { padding-inline-start: clamp(4px, .4vw, 7px); }
+:is(.observatory-section__heading, .realm-observation-heading, .section-heading) { align-items: flex-start; }
+:is(.observatory-section__heading h2, .realm-observation-heading h2, .section-heading h2) { text-wrap: balance; }
+
+/* AP-21: same source-bound range card on every public taxon detail screen. */
+.taxon-range-map { --range-accent: #b9fb7f; display: grid; gap: 13px; margin: 18px 0; padding: 18px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--range-accent) 34%, transparent); border-radius: 20px; background: linear-gradient(145deg, rgba(6,31,19,.94), rgba(3,16,11,.92)); box-shadow: 0 16px 42px rgba(0,0,0,.2); }
+.taxon-range-map--aquarium { --range-accent: #40d9ff; }.taxon-range-map--terrarium { --range-accent: #e7b969; }
+.taxon-range-map__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }.taxon-range-map__heading h2 { margin: 6px 0 0; color: #f1fff3; font: 400 clamp(1.55rem, 3vw, 2.45rem)/.92 "Bebas Neue", sans-serif; letter-spacing: .025em; }.taxon-range-map__heading > svg { flex: none; color: var(--range-accent); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--range-accent) 58%, transparent)); }
+.taxon-range-map__visual { position: relative; display: grid; min-height: 220px; place-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--range-accent) 44%, transparent); border-radius: 15px; background: radial-gradient(ellipse at 30% 42%, color-mix(in srgb, var(--range-accent) 20%, transparent), transparent 32%), linear-gradient(145deg, #082d26, #061a13 56%, #03110c); }
+.taxon-range-map__visual::before { content: ""; position: absolute; inset: 14% 8%; opacity: .72; border: 1px solid color-mix(in srgb, var(--range-accent) 28%, transparent); border-radius: 44% 56% 45% 55%; transform: rotate(-14deg); }.taxon-range-map__visual::after { content: ""; position: absolute; inset: 33% 25% 10% 48%; opacity: .5; border: 1px solid color-mix(in srgb, var(--range-accent) 24%, transparent); border-radius: 55% 45% 64% 36%; transform: rotate(24deg); }
+.taxon-range-map__contour { position: absolute; z-index: 1; border: 1px dashed color-mix(in srgb, var(--range-accent) 40%, transparent); border-radius: 50%; }.taxon-range-map__contour--one { width: 190px; height: 100px; transform: rotate(-18deg); }.taxon-range-map__contour--two { width: 260px; height: 145px; opacity: .48; transform: rotate(12deg); }.taxon-range-map__pin { position: relative; z-index: 2; display: grid; place-items: center; width: 58px; height: 58px; color: var(--range-accent); border: 1px solid color-mix(in srgb, var(--range-accent) 72%, transparent); border-radius: 50%; background: rgba(2,18,13,.82); box-shadow: 0 0 0 9px color-mix(in srgb, var(--range-accent) 10%, transparent), 0 0 28px color-mix(in srgb, var(--range-accent) 34%, transparent); }.taxon-range-map__caption { position: absolute; right: 14px; bottom: 12px; left: 14px; z-index: 2; color: #d5f3d9; font: 700 .62rem/1.35 "JetBrains Mono", monospace; letter-spacing: .08em; text-align: center; text-transform: uppercase; }.taxon-range-map__meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #bad3c0; font-size: .69rem; line-height: 1.45; }.taxon-range-map__meta span { display: inline-flex; align-items: center; gap: 6px; }.taxon-range-map__meta svg { flex: none; color: var(--range-accent); }.taxon-range-map__meta a { color: var(--range-accent); text-decoration: none; }.taxon-range-map__meta a:hover { text-decoration: underline; }.taxon-range-map__meta small { color: #9fbaaa; }
+@media (max-width: 640px) { .taxon-range-map { padding: 13px; border-radius: 16px; }.taxon-range-map__visual { min-height: 185px; }.taxon-range-map__meta { align-items: flex-start; flex-direction: column; gap: 5px; }.taxon-range-map__caption { font-size: .55rem; } }

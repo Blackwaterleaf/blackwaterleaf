@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, communityPosts, mediaAssets, userRoles, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, communityPosts, communityReports, mediaAssets, notifications, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
@@ -121,10 +121,11 @@ export const adminRouter = router({
     .input(z.object({ id: z.number().int().positive(), status: z.enum(["approved", "rejected"]), note: z.string().trim().max(1_000).optional() }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const [correction] = await db.select({ id: aiIdentificationCorrections.id, status: aiIdentificationCorrections.status, correctedName: aiIdentificationCorrections.correctedName }).from(aiIdentificationCorrections).where(eq(aiIdentificationCorrections.id, input.id)).limit(1);
+      const [correction] = await db.select({ id: aiIdentificationCorrections.id, userId: aiIdentificationCorrections.userId, status: aiIdentificationCorrections.status, correctedName: aiIdentificationCorrections.correctedName }).from(aiIdentificationCorrections).where(eq(aiIdentificationCorrections.id, input.id)).limit(1);
       if (!correction) throw new TRPCError({ code: "NOT_FOUND", message: "plant_correction_not_found" });
       if (correction.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "plant_correction_already_reviewed" });
       await db.update(aiIdentificationCorrections).set({ status: input.status, reviewedByUserId: ctx.user.id, reviewedAt: new Date() }).where(eq(aiIdentificationCorrections.id, input.id));
+      await db.insert(notifications).values({ recipientId: correction.userId, actorId: ctx.user.id, type: "moderation", message: `Deine Pflanzenkorrektur #${input.id} wurde ${input.status === "approved" ? "bestätigt" : "abgelehnt"}.` });
       await appendAuditEntry({ actorId: ctx.user.id, action: "ai_identification_correction_reviewed", targetType: "ai_identification_correction", targetId: input.id, payload: { after: input.status, correctedName: correction.correctedName, noteProvided: Boolean(input.note?.trim()) } });
       return { id: input.id, status: input.status } as const;
     }),
@@ -226,6 +227,49 @@ export const adminRouter = router({
       if (target.role !== primaryRole) await db.update(users).set({ role: primaryRole }).where(eq(users.id, input.id));
       await appendAuditEntry({ actorId: ctx.user.id, action: "account_roles_changed", targetType: "user", targetId: input.id, payload: { before: target.role, after: primaryRole, roles } });
       return { id: input.id, roles, primaryRole, changed: true } as const;
+    }),
+
+  communityReports: staffProcedure.query(async () => {
+    const db = await requireDatabase();
+    return db
+      .select({
+        id: communityReports.id,
+        reporterId: communityReports.reporterId,
+        reporterName: users.name,
+        postId: communityReports.postId,
+        commentId: communityReports.commentId,
+        reason: communityReports.reason,
+        note: communityReports.note,
+        status: communityReports.status,
+        createdAt: communityReports.createdAt,
+      })
+      .from(communityReports)
+      .leftJoin(users, eq(communityReports.reporterId, users.id))
+      .where(eq(communityReports.status, "pending"))
+      .orderBy(desc(communityReports.createdAt))
+      .limit(100);
+  }),
+
+  reviewCommunityReport: staffProcedure
+    .input(z.object({ id: z.number().int().positive(), status: z.enum(["reviewed", "dismissed"]), note: z.string().trim().max(1_000).optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [report] = await db.select({ id: communityReports.id, reporterId: communityReports.reporterId, postId: communityReports.postId, commentId: communityReports.commentId, status: communityReports.status, reason: communityReports.reason }).from(communityReports).where(eq(communityReports.id, input.id)).limit(1);
+      if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "community_report_not_found" });
+      if (report.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "community_report_already_reviewed" });
+      await db.transaction(async tx => {
+        await tx.update(communityReports).set({ status: input.status, note: input.note?.trim() || null }).where(eq(communityReports.id, input.id));
+        await tx.insert(notifications).values({
+          recipientId: report.reporterId,
+          actorId: ctx.user.id,
+          type: "moderation",
+          postId: report.postId,
+          commentId: report.commentId,
+          message: input.status === "reviewed" ? "Deine Community-Meldung wurde geprüft." : "Deine Community-Meldung wurde geschlossen.",
+        });
+      });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "community_report_reviewed", targetType: "community_report", targetId: input.id, payload: { after: input.status, reason: report.reason, noteProvided: Boolean(input.note?.trim()) } });
+      return { id: input.id, status: input.status } as const;
     }),
 
   auditTrail: staffProcedure.query(async () => {

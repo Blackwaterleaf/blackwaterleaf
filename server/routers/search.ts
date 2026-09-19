@@ -170,6 +170,37 @@ export const searchRouter = router({
       return result;
     }),
 
+  catalogByRealm: publicProcedure
+    .input(z.object({ realm: observationRealmSchema, limit: z.number().int().min(1).max(20).default(8) }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      if (input.realm === "terrarium") return [];
+      if (input.realm === "botany") {
+        const rows = await db.select({
+          id: plantTaxa.id,
+          scientificName: plantTaxa.scientificName,
+          acceptedScientificName: plantTaxa.acceptedScientificName,
+          family: plantTaxa.family,
+          imageUrl: plantTaxa.imageUrl,
+          imageSourceUrl: plantTaxa.imageSourceUrl,
+          imageLicense: plantTaxa.imageLicense,
+          evidenceState: plantTaxa.evidenceState,
+        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(desc(plantTaxa.updatedAt)).limit(input.limit);
+        return rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
+      }
+      const rows = await db.select({
+        id: aquariumTaxa.id,
+        scientificName: aquariumTaxa.scientificName,
+        acceptedScientificName: aquariumTaxa.acceptedScientificName,
+        family: aquariumTaxa.family,
+        imageUrl: aquariumTaxa.imageUrl,
+        imageSourceUrl: aquariumTaxa.imageSourceUrl,
+        imageLicense: aquariumTaxa.imageLicense,
+        evidenceState: aquariumTaxa.evidenceState,
+      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(desc(aquariumTaxa.updatedAt)).limit(input.limit);
+      return rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
+    }),
+
   plantById: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))
     .query(async ({ input }) => {

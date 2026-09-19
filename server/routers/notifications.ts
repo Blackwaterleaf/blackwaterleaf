@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lt } from "drizzle-orm";
 import { z } from "zod";
 import { notifications, users } from "../../drizzle/schema";
 import { protectedProcedure, router } from "../_core/trpc";
@@ -40,13 +40,42 @@ export const notificationsRouter = router({
 
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    const rows = await db
-      .select({ id: notifications.id })
+    const [row] = await db
+      .select({ total: count() })
       .from(notifications)
-      .where(and(eq(notifications.recipientId, ctx.user.id), isNull(notifications.readAt)))
-      .limit(100);
-    return { count: rows.length } as const;
+      .where(and(eq(notifications.recipientId, ctx.user.id), isNull(notifications.readAt)));
+    return { count: Number(row?.total ?? 0) } as const;
   }),
+
+  feedPage: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(50).default(20), beforeId: z.number().int().positive().optional() }))
+    .query(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const rows = await db
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          postId: notifications.postId,
+          commentId: notifications.commentId,
+          message: notifications.message,
+          readAt: notifications.readAt,
+          createdAt: notifications.createdAt,
+          actorName: users.name,
+          actorUsername: users.username,
+        })
+        .from(notifications)
+        .innerJoin(users, eq(notifications.actorId, users.id))
+        .where(and(eq(notifications.recipientId, ctx.user.id), ...(input.beforeId ? [lt(notifications.id, input.beforeId)] : [])))
+        .orderBy(desc(notifications.id))
+        .limit(input.limit + 1);
+      const hasMore = rows.length > input.limit;
+      const page = (hasMore ? rows.slice(0, input.limit) : rows).map(row => ({
+        ...row,
+        actorName: row.actorName ?? row.actorUsername ?? "BlackWaterLeaf-Nutzer",
+        isRead: Boolean(row.readAt),
+      }));
+      return { items: page, nextCursor: hasMore ? page.at(-1)?.id ?? null : null } as const;
+    }),
 
   markRead: protectedProcedure
     .input(z.object({ notificationId: z.number().int().positive().optional() }))

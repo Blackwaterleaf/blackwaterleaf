@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, assistantUsage, privateHabitats } from "../../drizzle/schema";
+import { aiIdentificationCorrections, assistantUsage, notifications, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
@@ -11,7 +11,7 @@ import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
 import { hasCurrentConsent } from "../consents";
-import { validateWithPlantNet } from "../plantnet";
+import { validateWithPlantNetImages } from "../plantnet";
 
 const MAX_DAILY_ASSISTANT_CALLS = 10;
 const requestIdSchema = z.string().uuid();
@@ -76,7 +76,7 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
   }
 
   try {
-    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model: "gpt-5-mini", promptChars, completionChars: 0 });
+    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model: "gpt-5-mini", promptChars, completionChars: 0, provider: "manus-forge", tariffVersion: "server-reported", requestOutcome: "reserved" });
     return { db, usageId: Number(inserted[0].insertId) };
   } catch (error) {
     if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
@@ -84,8 +84,8 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
   }
 }
 
-async function completeRequest(reservation: RequestReservation, userId: number, answer: string) {
-  await reservation.db.update(assistantUsage).set({ completionChars: answer.length }).where(eq(assistantUsage.id, reservation.usageId));
+async function completeRequest(reservation: RequestReservation, userId: number, answer: string, usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }) {
+  await reservation.db.update(assistantUsage).set({ completionChars: answer.length, promptTokens: usage?.prompt_tokens ?? null, completionTokens: usage?.completion_tokens ?? null, totalTokens: usage?.total_tokens ?? null, requestOutcome: "completed" }).where(eq(assistantUsage.id, reservation.usageId));
   const reward = await awardXpIfReady(reservation.db, {
     userId,
     eventType: "ai_use",
@@ -101,7 +101,7 @@ async function generateAnswer(reservation: RequestReservation, userId: number, m
   const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 700, messages });
   const answer = responseText(response.choices[0]?.message.content ?? "").slice(0, 6_000);
   if (!answer) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
-  const xpAwarded = await completeRequest(reservation, userId, answer);
+  const xpAwarded = await completeRequest(reservation, userId, answer, response.usage);
   return { answer, model: "gpt-5-mini", xpAwarded, disclaimer: "Hinweis: Die Antwort ist allgemeine Information und keine fachliche Diagnose oder Notfallberatung." };
 }
 
@@ -146,7 +146,7 @@ export const assistantRouter = router({
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0));
     const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "high" as const } }));
-    const response = await invokeLLM({ model: "gemini-3.1-pro-preview", maxTokens: 16384, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
+    const response = await invokeLLM({ model: "gemini-3.1-pro-preview", maxTokens: 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
       { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage dann gezielt nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
       { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${input.note ? ` Zusatzinformation: ${input.note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
     ] });
@@ -161,9 +161,8 @@ export const assistantRouter = router({
     }
     let result: PlantIdentificationResult;
     try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
-    const plantNetValidation = await validateWithPlantNet(
-      images[0].buffer,
-      images[0].mimeType,
+    const plantNetValidation = await validateWithPlantNetImages(
+      images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
       result.candidates[0]?.scientificName ?? "",
     );
     const answer = [
@@ -172,7 +171,8 @@ export const assistantRouter = router({
         ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
         : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
     ].join("\n\n");
-    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer);
+    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage);
+    await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
     return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
   }),
 
@@ -190,6 +190,12 @@ export const assistantRouter = router({
       correctionNote: input.correctionNote?.trim() || null,
     });
     const correctionId = Number(inserted[0].insertId);
+    const staff = await db.select({ id: users.id }).from(users).where(and(eq(users.status, "active"), eq(users.role, "admin")));
+    const moderators = await db.select({ id: users.id }).from(users).where(and(eq(users.status, "active"), eq(users.role, "moderator")));
+    const recipients = [...staff, ...moderators].filter(recipient => recipient.id !== ctx.user.id);
+    if (recipients.length) {
+      await db.insert(notifications).values(recipients.map(recipient => ({ recipientId: recipient.id, actorId: ctx.user.id, type: "moderation" as const, message: `Neue Pflanzenkorrektur #${correctionId} wartet auf Prüfung.` })));
+    }
     await appendAuditEntry({
       actorId: ctx.user.id,
       action: "ai_identification_correction_submitted",
