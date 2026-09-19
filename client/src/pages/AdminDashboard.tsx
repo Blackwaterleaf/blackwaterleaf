@@ -13,7 +13,7 @@ const menuItems: DashboardMenuItem[] = [
   { icon: LayoutDashboard, label: "Übersicht", path: "/admin" },
   { icon: ShieldAlert, label: "Moderation", path: "/admin/moderation" },
   { icon: UsersRound, label: "Konten", path: "/admin/accounts" },
-  { icon: Megaphone, label: "Partner", path: "/admin/partners" },
+  { icon: Megaphone, label: "Händlerfreigaben", path: "/admin/merchant-approvals" },
   { icon: Activity, label: "Analytics", path: "/admin/analytics" },
 ];
 
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
           <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1><p>Nur echte, serverseitig freigegebene Inhalte und Konten werden angezeigt.</p></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/partners")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" || section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
       </div>
     </DashboardLayout>
   );
@@ -108,18 +108,24 @@ function AccountsPanel() {
 function PartnersPanel() {
   const auth = useAuth();
   const utils = trpc.useUtils();
-  const partners = trpc.partners.list.useQuery(undefined, { enabled: auth.user?.role === "admin" });
-  const create = trpc.partners.create.useMutation({ onSuccess: () => void utils.partners.list.invalidate() });
-  const setPartnerStatus = trpc.partners.setPartnerStatus.useMutation({ onSuccess: () => { void utils.partners.list.invalidate(); void utils.partners.homepage.invalidate(); } });
-  const setPlacement = trpc.partners.setHomepagePlacement.useMutation({ onSuccess: () => { void utils.partners.list.invalidate(); void utils.partners.homepage.invalidate(); } });
-  const setAuthorization = trpc.partners.setAuthorization.useMutation({ onSuccess: () => { void utils.partners.list.invalidate(); void utils.partners.homepage.invalidate(); } });
+  const partners = trpc.partners.approvalQueue.useQuery(undefined, { enabled: auth.user?.role === "admin" });
+  const invalidateApprovalQueue = () => { void utils.partners.approvalQueue.invalidate(); void utils.partners.list.invalidate(); void utils.partners.homepage.invalidate(); };
+  const create = trpc.partners.create.useMutation({ onSuccess: invalidateApprovalQueue });
+  const setPartnerStatus = trpc.partners.setPartnerStatus.useMutation({ onSuccess: invalidateApprovalQueue });
+  const setPlacement = trpc.partners.setHomepagePlacement.useMutation({ onSuccess: invalidateApprovalQueue });
+  const setAuthorization = trpc.partners.setAuthorization.useMutation({ onSuccess: invalidateApprovalQueue });
   const [form, setForm] = useState({ displayName: "", partyType: "company" as "person" | "company", destinationUrl: "", disclosureLabel: "Werbung", authorizationConfirmed: false });
   const [windows, setWindows] = useState<Record<number, { startsAt: string; endsAt: string }>>({});
   const [status, setStatus] = useState<string | null>(null);
 
   if (auth.user?.role !== "admin") return <StatePanel code="PARTNER/ADMIN_ONLY" state="locked" title="ADMINROLLE ERFORDERLICH" body="Partnerprofile und Startseitenwerbung dürfen ausschließlich aktive Admins verwalten." />;
-  if (partners.isLoading) return <StatePanel code="PARTNER/LOAD" state="loading" title="PARTNERSTATUS WIRD GELADEN" body="Es werden keine Partner, Firmen oder Personen simuliert." />;
-  if (partners.isError || !partners.data) return <StatePanel code="PARTNER/ERROR" state="error" title="PARTNERDATEN NICHT VERFÜGBAR" body="Die serverseitige Partnerverwaltung konnte nicht verifiziert werden." />;
+  if (partners.isLoading) return <StatePanel code="MERCHANT_APPROVAL/LOAD" state="loading" title="HÄNDLERFREIGABEN WERDEN GELADEN" body="Partnerprofile, Produktbestände und Veröffentlichungsstatus werden serverseitig geprüft." />;
+  if (partners.isError || !partners.data) return <StatePanel code="MERCHANT_APPROVAL/ERROR" state="error" title="HÄNDLERFREIGABEN NICHT VERFÜGBAR" body="Die serverseitige Freigabewarteschlange konnte nicht verifiziert werden." />;
+
+  const pendingPartners = partners.data.filter(partner => !partner.readyForPublicPublication).length;
+  const pendingProducts = partners.data.reduce((sum, partner) => sum + partner.productCounts.draft, 0);
+  const liveProducts = partners.data.reduce((sum, partner) => sum + partner.productCounts.active, 0);
+  const pausedProducts = partners.data.reduce((sum, partner) => sum + partner.productCounts.paused, 0);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -138,14 +144,16 @@ function PartnersPanel() {
   };
 
   return <div className="admin-grid admin-grid--single">
+    <section className="admin-panel merchant-approval-intro"><div><p className="eyebrow">[HÄNDLERFREIGABEN / SERVER_VERIFIED]</p><h2>Prüfen, freigeben, sichtbar machen</h2><p>Jeder Händler bleibt getrennt. Erst ein genehmigtes Profil, eine gültige Autorisierung und eine aktive Platzierung können Produkte öffentlich machen. Zahlungen und bestätigte Verkäufe sind weiterhin nicht Teil dieses Bereichs.</p></div><div className="merchant-approval-rules"><span>1 · PROFIL</span><span>2 · AUTORISIERUNG</span><span>3 · PRODUKTE</span></div></section>
+    <section className="admin-metrics merchant-approval-metrics"><Metric icon={<UsersRound />} label="Händler in Prüfung" value={pendingPartners} /><Metric icon={<Activity />} label="Produkte zur Prüfung" value={pendingProducts} /><Metric icon={<BadgeCheck />} label="Aktive Produkte" value={liveProducts} /><Metric icon={<EyeOff />} label="Pausierte Produkte" value={pausedProducts} /></section>
     <form className="admin-panel partner-form" onSubmit={submit}>
-      <p className="eyebrow">[NEUER REALER PARTNER]</p><h2>Partner prüfen</h2><p>Erfasse nur Personen oder Firmen, deren Werbe- und Startseitenfreigabe tatsächlich vorliegt. Der Eintrag bleibt zuerst ein nicht öffentlicher Entwurf.</p>
+      <p className="eyebrow">[ADMIN / NEUER HÄNDLER]</p><h2>Händlerprofil anlegen</h2><p>Erfasse nur Personen oder Firmen, deren Werbe- und Veröffentlichungsfreigabe tatsächlich vorliegt. Der Eintrag bleibt zuerst ein nicht öffentlicher Entwurf.</p>
       <div className="form-grid"><label className="field"><span>Name der Person oder Firma</span><input required maxLength={160} value={form.displayName} onChange={event => setForm(current => ({ ...current, displayName: event.target.value }))} /></label><label className="field"><span>Art</span><select value={form.partyType} onChange={event => setForm(current => ({ ...current, partyType: event.target.value as "person" | "company" }))}><option value="company">Firma</option><option value="person">Privatperson</option></select></label><label className="field"><span>Ziel-URL (optional, nur HTTPS)</span><input type="url" placeholder="https://…" value={form.destinationUrl} onChange={event => setForm(current => ({ ...current, destinationUrl: event.target.value }))} /></label><label className="field"><span>Kennzeichnung</span><input required maxLength={80} value={form.disclosureLabel} onChange={event => setForm(current => ({ ...current, disclosureLabel: event.target.value }))} /></label></div>
       <label className="consent-toggle"><span>Werbe- und Veröffentlichungsfreigabe liegt tatsächlich vor.</span><input type="checkbox" checked={form.authorizationConfirmed} onChange={event => setForm(current => ({ ...current, authorizationConfirmed: event.target.checked }))} /></label>
       <button className="primary-action" type="submit" disabled={create.isPending || !form.authorizationConfirmed}><Plus size={16} />ENTWURF ANLEGEN</button>
       {status ? <p className="form-status" role="status">{status}</p> : null}
     </form>
-    <section className="admin-panel"><p className="eyebrow">[FREIGABE & SICHTBARKEIT]</p><h2>Reale Partnerprofile</h2>{partners.data.length === 0 ? <p>Es existieren noch keine real angelegten Partnerprofile. Auf der Startseite wird deshalb keine Werbung dargestellt.</p> : <div className="admin-list">{partners.data.map(partner => {
+    <section className="admin-panel"><p className="eyebrow">[FREIGABE & SICHTBARKEIT]</p><h2>Händler-Warteschlange</h2><p>Der Quellname <strong>Kiemen-Kumpel</strong> bleibt unverändert. Bestände werden nicht neu angelegt, wenn bereits ein eindeutiger Quell-Handle vorhanden ist.</p>{partners.data.length === 0 ? <p>Es existieren noch keine real angelegten Händlerprofile.</p> : <div className="admin-list">{partners.data.map(partner => {
       const windowState = windows[partner.id] ?? { startsAt: toDateTimeInput(partner.startsAt), endsAt: toDateTimeInput(partner.endsAt) };
       const authorizationLabel = partner.authorizationState === "granted" ? "BESTÄTIGT" : partner.authorizationState === "revoked" ? "WIDERRUFEN" : "FEHLT";
       return <article className="admin-row partner-admin-row" key={partner.id}><div><strong>{partner.displayName}</strong><p>{partner.partyType === "company" ? "Firma" : "Privatperson"} · Kennzeichnung: {partner.disclosureLabel}</p><small>Profil: {partner.partnerStatus.toUpperCase()} · Startseite: {(partner.placementStatus ?? "draft").toUpperCase()} · Freigabe: {authorizationLabel}</small></div><div className="partner-row-actions"><div className="admin-row__actions"><select aria-label={`Partnerstatus ${partner.displayName}`} value={partner.partnerStatus} disabled={setPartnerStatus.isPending} onChange={event => { if (window.confirm("Partnerstatus wirklich ändern?")) void setPartnerStatus.mutateAsync({ partnerId: partner.id, status: event.target.value as "draft" | "approved" | "paused" | "removed" }); }}><option value="draft">Entwurf</option><option value="approved">Genehmigt</option><option value="paused">Pausiert</option><option value="removed">Entfernt</option></select><select aria-label={`Startseitenplatzierung ${partner.displayName}`} value={partner.placementStatus ?? "draft"} disabled={setPlacement.isPending} onChange={event => { if (window.confirm("Startseitenplatzierung wirklich ändern?")) void setPlacement.mutateAsync({ partnerId: partner.id, status: event.target.value as "draft" | "active" | "paused" | "expired" | "removed" }); }}><option value="draft">Startseite: Entwurf</option><option value="active">Startseite: Aktiv</option><option value="paused">Startseite: Pausiert</option><option value="expired">Startseite: Abgelaufen</option><option value="removed">Startseite: Entfernt</option></select></div><div className="partner-window"><label><span>Start (optional)</span><input type="datetime-local" value={windowState.startsAt} onChange={event => setWindows(current => ({ ...current, [partner.id]: { ...windowState, startsAt: event.target.value } }))} /></label><label><span>Ende (optional)</span><input type="datetime-local" value={windowState.endsAt} onChange={event => setWindows(current => ({ ...current, [partner.id]: { ...windowState, endsAt: event.target.value } }))} /></label></div><div className="partner-actions"><button className="secondary-action" type="button" disabled={setPlacement.isPending} onClick={() => { if (window.confirm("Gültigkeitszeitraum wirklich speichern?")) void setPlacement.mutateAsync({ partnerId: partner.id, status: partner.placementStatus ?? "draft", startsAt: toIsoOrNull(windowState.startsAt), endsAt: toIsoOrNull(windowState.endsAt) }); }}>ZEITEN SPEICHERN</button><button className="secondary-action" type="button" disabled={setAuthorization.isPending} onClick={() => { const nextState = partner.authorizationState === "granted" ? "revoked" : "granted"; if (window.confirm(nextState === "granted" ? "Freigabe wirklich erteilen?" : "Freigabe wirklich widerrufen?")) void setAuthorization.mutateAsync({ partnerId: partner.id, state: nextState }); }}>{partner.authorizationState === "granted" ? "FREIGABE WIDERRUFEN" : "FREIGABE ERTEILEN"}</button></div><PartnerProducts partnerId={partner.id} partnerName={partner.displayName} /></div></article>;

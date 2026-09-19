@@ -6,7 +6,9 @@ const root = resolve(import.meta.dirname, "..");
 const schema = readFileSync(resolve(root, "drizzle/schema.ts"), "utf8");
 const router = readFileSync(resolve(root, "server/routers/partners.ts"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
+const shop = readFileSync(resolve(root, "client/src/pages/MarketplaceShop.tsx"), "utf8");
 const merchant = readFileSync(resolve(root, "client/src/pages/MerchantMarketplace.tsx"), "utf8");
+const adminPage = readFileSync(resolve(root, "client/src/pages/AdminDashboard.tsx"), "utf8");
 const designBook = readFileSync(resolve(root, "docs/BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md"), "utf8");
 
 describe("merchant shop and attribution contract", () => {
@@ -23,10 +25,18 @@ describe("merchant shop and attribution contract", () => {
     expect(router).toContain("confirmed sales");
   });
 
+  it("exposes an admin-only approval queue with separate publication gates", () => {
+    expect(router).toContain("approvalQueue: adminProcedure");
+    expect(router).toContain("readyForPublicPublication");
+    expect(router).toContain("productCounts");
+    expect(adminPage).toContain("Händler-Warteschlange");
+    expect(adminPage).toContain("Händlerfreigaben");
+  });
+
   it("renders a separate shop area for every approved partner", () => {
-    expect(marketplace).toContain("marketplace-shop-grid");
-    expect(marketplace).toContain("ICH WILL ZU");
-    expect(marketplace).toContain("KAUFINTERESSE MERKEN");
+    expect(marketplace).toContain("marketplace-hub__shop-grid");
+    expect(marketplace).toContain("SHOP ÖFFNEN");
+    expect(shop).toContain("KAUFINTERESSE MERKEN");
     expect(marketplace).toContain("shops.map");
   });
 

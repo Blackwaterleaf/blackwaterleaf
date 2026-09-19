@@ -18,6 +18,7 @@ import FlowDestination from "./pages/FlowDestination";
 import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
+import MarketplaceShop from "./pages/MarketplaceShop";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
 import MerchantMarketplace from "./pages/MerchantMarketplace";
 import Notifications from "./pages/Notifications";
@@ -79,6 +80,7 @@ function Router() {
         <Route path={"/aquaristik"}><Realm /></Route>
         <Route path={"/terraristik"}><Realm /></Route>
         <Route path={"/shop"} component={Marketplace} />
+        <Route path={"/marketplace/shop/:id"} component={MarketplaceShop} />
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
         <Route path={"/marketplace/manage"} component={MerchantMarketplace} />
         <Route path={"/marketplace"} component={Marketplace} />

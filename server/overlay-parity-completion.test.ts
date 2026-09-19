@@ -34,7 +34,7 @@ describe("remaining reference-overlay parity", () => {
   });
 
   it("keeps catalogue and every product state truthful without duplicating Home-only sensors", () => {
-    for (const token of ["marketplace-entry", "MARKET/ERROR", "MARKET/EMPTY"]) expect(marketplace).toContain(token);
+    for (const token of ["marketplace-hub__intro", "MARKET/HUB_ERROR", "MARKET/HUB_EMPTY"]) expect(marketplace).toContain(token);
     for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero", "StatePanel"]) expect(detail).toContain(token);
     expect(marketplace).not.toContain("LiveSensorStrip");
     expect(detail).not.toContain("LiveSensorStrip");
@@ -47,7 +47,7 @@ describe("remaining reference-overlay parity", () => {
     expect(overlay).toContain('reference-empty-state--${state}');
     expect(styles).toContain(".profile-auth-overlay");
     expect(styles).toContain(".reference-not-found");
-    expect(styles).toContain(".marketplace-entry");
+    expect(styles).toContain(".marketplace-hub__intro");
   });
 
   it("uses versioned project storage rather than session-bound image URLs", () => {

@@ -93,6 +93,14 @@ Händler verwalten ihren eigenen Shop über ein geschütztes Händlerportal. Dor
 
 Solange kein Zahlungsanbieter und kein Checkout angeschlossen ist, darf BlackWaterLeaf **keine bestätigten Verkäufe behaupten**. Die Plattform zählt deshalb getrennt: datensparsame Weiterleitungen zum Partner, ausdrücklich gemerkte Kaufinteressen und bestätigte Verkäufe. Der bestätigte Verkaufszähler bleibt bis zur späteren Checkout-Integration bei null. Diese Bezeichnungen müssen in Marktplatz und Händlerportal sichtbar bleiben.
 
+### Admin: Händlerfreigabe-Warteschlange
+
+Der Adminbereich `/admin/merchant-approvals` ist eine eigene Prüfoberfläche und keine öffentliche Shopseite. Die Reihenfolge ist verbindlich: **Profil prüfen**, **Autorisierung prüfen**, **Platzierung prüfen**, anschließend **Produktbestände einzeln prüfen**. Die Oberfläche zeigt dafür vier kompakte Kennzahlen und pro Händler die getrennten Statuswerte. Ein Produkt darf niemals allein durch seine Existenz öffentlich werden.
+
+Der bestätigte Katalogbestand bleibt quellengetreu und idempotent. Der aktuell verifizierte Kiemen-Kumpel-Bestand umfasst **106 gespeicherte Produkte**; die `Energiekostenpauschale` bleibt als bewusst pausiertes Nicht-Angebot erhalten. Eine frühere CSV-Angabe von 108 Quellzeilen darf erst dann als vollständig übernommen bezeichnet werden, wenn die originale CSV erneut vorliegt und ihre Handles gegen den Bestand abgeglichen wurden. Fehlende Quelldaten werden nicht erfunden.
+
+Die öffentliche Marktplatzübersicht ist ausschließlich eine **Shopauswahl**: Banner, kurzer Vertrauenshinweis, Händlerkarten und gegebenenfalls der geschützte Händlerzugang. Die vollständige Produktliste gehört nicht auf diese Übersicht. Ein Händler wird über den Pfad `/marketplace/shop/:id` geöffnet und erhält dort sein eigenes Banner, seine eigene Händlerfarbe (für Aquaristikangebote Aqua-Cyan), Kategorien, Suche, Produktkarten und den Link zum Originalshop. Ein offizielles Händlerbild darf nur aus einer belegten öffentlichen Händlerquelle übernommen werden; Platzhalterlogos oder fremde Suchbilder sind verboten.
+
 ## 9. Web-/Native-Parität
 
 Web und Native benutzen dieselben Begriffe, Icons, Bilder, Farbtöne, Kartenhierarchien und Zustände. Native wird als echte Expo-Oberfläche umgesetzt. WebView, Screenshot-Hülle und abweichende Navigationslogik sind ausgeschlossen. Desktop erhält die linke Navigation; Mobile erhält die feste untere Navigation. Die Daten- und Berechtigungslogik bleibt identisch.

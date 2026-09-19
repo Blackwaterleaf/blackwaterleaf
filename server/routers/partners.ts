@@ -474,6 +474,61 @@ export const partnersRouter = router({
     });
   }),
 
+  /** Admin review queue for merchant profiles and their catalog publication state. */
+  approvalQueue: adminProcedure.query(async () => {
+    const db = await requireDatabase();
+    const [latestAuthorizations, rows, productSummaries] = await Promise.all([
+      getLatestAuthorizations(db),
+      db
+        .select({
+          id: partnerProfiles.id,
+          displayName: partnerProfiles.displayName,
+          partyType: partnerProfiles.partyType,
+          destinationUrl: partnerProfiles.destinationUrl,
+          disclosureLabel: partnerProfiles.disclosureLabel,
+          partnerStatus: partnerProfiles.status,
+          placementStatus: partnerPlacements.status,
+          startsAt: partnerPlacements.startsAt,
+          endsAt: partnerPlacements.endsAt,
+          updatedAt: partnerProfiles.updatedAt,
+        })
+        .from(partnerProfiles)
+        .leftJoin(partnerPlacements, eq(partnerPlacements.partnerId, partnerProfiles.id))
+        .orderBy(desc(partnerProfiles.updatedAt)),
+      db
+        .select({
+          partnerId: partnerProducts.partnerId,
+          total: sql<number>`count(*)`,
+          active: sql<number>`coalesce(sum(case when ${partnerProducts.status} = 'active' then 1 else 0 end), 0)`,
+          draft: sql<number>`coalesce(sum(case when ${partnerProducts.status} = 'draft' then 1 else 0 end), 0)`,
+          paused: sql<number>`coalesce(sum(case when ${partnerProducts.status} = 'paused' then 1 else 0 end), 0)`,
+          removed: sql<number>`coalesce(sum(case when ${partnerProducts.status} = 'removed' then 1 else 0 end), 0)`,
+        })
+        .from(partnerProducts)
+        .groupBy(partnerProducts.partnerId),
+    ]);
+    const countsByPartner = new Map(productSummaries.map(summary => [summary.partnerId, {
+      total: Number(summary.total ?? 0),
+      active: Number(summary.active ?? 0),
+      draft: Number(summary.draft ?? 0),
+      paused: Number(summary.paused ?? 0),
+      removed: Number(summary.removed ?? 0),
+    }]));
+    return rows.map(row => {
+      const authorization = latestAuthorizations.get(row.id);
+      const authorizationState = authorization?.state ?? "missing";
+      const productCounts = countsByPartner.get(row.id) ?? { total: 0, active: 0, draft: 0, paused: 0, removed: 0 };
+      return {
+        ...row,
+        authorizationState,
+        authorizationVersion: authorization?.authorizationVersion ?? null,
+        authorizationUpdatedAt: authorization?.createdAt ?? null,
+        productCounts,
+        readyForPublicPublication: row.partnerStatus === "approved" && authorizationState === "granted" && row.placementStatus === "active",
+      };
+    });
+  }),
+
   products: adminProcedure
     .input(z.object({ partnerId: z.number().int().positive() }))
     .query(async ({ input }) => {

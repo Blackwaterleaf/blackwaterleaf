@@ -6,23 +6,38 @@ const root = resolve(import.meta.dirname, "..");
 const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
 const shell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
+const shop = readFileSync(resolve(root, "client/src/pages/MarketplaceShop.tsx"), "utf8");
 const detail = readFileSync(resolve(root, "client/src/pages/MarketplaceProduct.tsx"), "utf8");
 const router = readFileSync(resolve(root, "server/routers/partners.ts"), "utf8");
 const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
+const designBook = readFileSync(resolve(root, "docs/BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md"), "utf8");
 
 describe("marketplace UI truth contract", () => {
-  it("provides a catalogue and a real product route", () => {
+  it("provides a compact shop hub and real shop/product routes", () => {
     expect(app).toContain('path={"/marketplace"} component={Marketplace}');
+    expect(app).toContain('path={"/marketplace/shop/:id"} component={MarketplaceShop}');
     expect(app).toContain('path={"/marketplace/product/:id"} component={MarketplaceProduct}');
     expect(marketplace).toContain("trpc.partners.marketplace.useQuery");
+    expect(shop).toContain("trpc.partners.marketplace.useQuery");
     expect(detail).toContain("trpc.partners.marketplaceProduct.useQuery");
   });
 
-  it("marks all external handoffs as partner offers rather than in-app payments", () => {
-    expect(marketplace).toContain('rel="sponsored nofollow noopener"');
+  it("keeps the overview focused on verified shop selection", () => {
+    expect(marketplace).toContain("SHOP ÖFFNEN");
+    expect(marketplace).toContain("Händler auswählen");
+    expect(marketplace).toContain("FREIGEGEBENE HÄNDLER");
+    expect(marketplace).toContain("KIEMEN_KUMPEL_IMAGE");
+    expect(marketplace).not.toContain("Partner-Angebote");
+    expect(marketplace).not.toContain("filtered.map(product");
+  });
+
+  it("keeps products, categories, search and partner handoffs inside the selected shop", () => {
+    expect(shop).toContain("marketplace-shop-categories");
+    expect(shop).toContain("filterMarketplaceProducts");
+    expect(shop).toContain("KAUFINTERESSE MERKEN");
+    expect(shop).toContain('rel="sponsored nofollow noopener"');
     expect(detail).toContain('rel="sponsored nofollow noopener"');
-    expect(marketplace).toContain("BlackWaterLeaf verkauft nicht selbst");
-    expect(detail).toContain("Der Kaufvertrag, Bezahlvorgang, Versand, Widerruf und Support");
+    expect(shop).toContain("Zahlung, Versand, Rückgabe und Support");
   });
 
   it("uses the same currently-authorized publication gate for catalogue records", () => {
@@ -31,51 +46,21 @@ describe("marketplace UI truth contract", () => {
     expect(router).toContain("marketplaceProduct: publicProcedure");
   });
 
-  it("renders imported categories, variants, source-labelled images, and a verified product gallery", () => {
-    expect(marketplace).toContain("marketplaceCategoryLabel");
-    expect(marketplace).toContain("marketplace-filters--categories");
+  it("keeps source-labelled images, verified galleries and the official merchant asset", () => {
+    expect(shop).toContain("product.imageUrl");
     expect(detail).toContain("item.gallery.length");
     expect(detail).toContain("marketplace-gallery-thumbnails");
     expect(detail).toContain("item.variantSummary");
-    expect(detail).toContain("product.data?.seoTitle");
     expect(router).toContain("getPublicProductGallery");
-    expect(styles).toContain(".marketplace-product-gallery");
+    expect(marketplace).toContain("KIEMEN_KUMPEL_IMAGE");
+    expect(styles).toContain(".marketplace-hub-shop");
+    expect(styles).toContain(".marketplace-shop-hero");
   });
 
-  it("uses a clearly labelled abstract loading phase and accessible product-card motion", () => {
-    expect(marketplace).toContain("<MarketplaceLoading />");
-    expect(marketplace).toContain('aria-busy="true"');
-    expect(marketplace).toContain("Partnerangebote werden geprüft");
-    expect(styles).toContain("marketplace-loading__card");
-    expect(styles).toContain(".marketplace-card:focus-within");
-    expect(styles).toContain("@media (prefers-reduced-motion: reduce)");
-  });
-
-  it("keeps the reference entry composition and detail states inside the marketplace overlay", () => {
-    expect(marketplace).not.toContain("LiveSensorStrip");
-    expect(marketplace).toContain("marketplace-entry");
-    for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
-    expect(detail).not.toContain("LiveSensorStrip");
-    expect(styles).toContain(".marketplace-entry");
-  });
-
-  it("exposes the marketplace through bottom navigation and presents prices in one compact offer row", () => {
+  it("keeps the Marketplace in the Observatory navigation and design book", () => {
     expect(shell).toContain('href: "/marketplace"');
     expect(shell).toContain('label: "tabs.marketplace"');
-    expect(styles).toContain("grid-template-columns: repeat(5, 1fr)");
-    expect(marketplace).toContain("marketplace-card__offer");
-    expect(marketplace).toContain("marketplace-card__price");
-    expect(styles).toContain(".marketplace-card__offer");
-    expect(styles).toContain(".marketplace-card__vendor");
-  });
-
-  it("offers accessible heart toggles and a device-local favorites list", () => {
-    expect(marketplace).toContain("toggleMarketplaceFavorite");
-    expect(marketplace).toContain("marketplace-favorite-toggle");
-    expect(marketplace).toContain('aria-pressed={isFavorite}');
-    expect(marketplace).toContain("MarketplaceFavorites");
-    expect(marketplace).toContain("Favoriten bleiben nur auf diesem Gerät");
-    expect(styles).toContain(".marketplace-favorite-toggle");
-    expect(styles).toContain(".marketplace-favorite-list");
+    expect(designBook).toContain("/marketplace/shop/:id");
+    expect(designBook).toContain("Shopauswahl");
   });
 });
