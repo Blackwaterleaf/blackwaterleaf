@@ -6,6 +6,7 @@ import {
   mobileDevices,
   approvalDecisions,
   approvalRequests,
+  artifacts,
   auditEvents,
   sandboxSessions,
   taskMessages,
@@ -219,6 +220,17 @@ export async function createTask(input: { workspaceId: number; createdBy: number
   ]);
   await db.insert(taskMessages).values({ taskId, role: "user", content: input.goal, createdBy: input.createdBy });
   return taskId;
+}
+
+export async function createArtifact(input: { workspaceId: number; taskId?: number; storageKey: string; fileName: string; mediaType: string; sizeBytes: number; sha256: string; purpose: "input" | "output" | "intermediate"; createdBy: number }) {
+  const db = await requireDb();
+  const result = await db.insert(artifacts).values({ ...input, taskId: input.taskId ?? null, status: "available" });
+  return Number(result[0].insertId);
+}
+
+export async function listWorkspaceArtifacts(workspaceId: number) {
+  const db = await requireDb();
+  return db.select().from(artifacts).where(eq(artifacts.workspaceId, workspaceId)).orderBy(desc(artifacts.createdAt));
 }
 
 export async function updateTask(taskId: number, values: Partial<typeof tasks.$inferInsert>) {

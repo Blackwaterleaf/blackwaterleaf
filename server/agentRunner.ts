@@ -1,4 +1,6 @@
 import { invokeLLM, listLLMModels } from "./_core/llm";
+import { invokeKimi } from "./kimiGateway";
+import { ENV } from "./_core/env";
 import { assertControlledGoal, validateAgentResult } from "./safety";
 
 export type ControlledAgentResult = {
@@ -20,13 +22,7 @@ function parseContent(content: unknown): string {
 
 export async function runControlledAgent(input: { title: string; goal: string; signal?: AbortSignal }) {
   assertControlledGoal(`${input.title}\n${input.goal}`);
-  const catalog = await listLLMModels();
-  const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id;
-
-  const response = await invokeLLM({
-    signal: input.signal,
-    model: preferred,
-    messages: [
+  const messages = [
       {
         role: "system",
         content:
@@ -36,26 +32,31 @@ export async function runControlledAgent(input: { title: string; goal: string; s
         role: "user",
         content: `Task title: ${input.title}\nGoal: ${input.goal}`,
       },
-    ],
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "controlled_agent_result",
-        strict: true,
-        schema: {
-          type: "object",
-          properties: {
-            summary: { type: "string" },
-            plan: { type: "array", items: { type: "string" } },
-            risks: { type: "array", items: { type: "string" } },
-            nextAction: { type: "string" },
+    ] as const;
+  const response = ENV.agentProvider === "kimi"
+    ? await invokeKimi({ model: ENV.kimiModel, signal: input.signal, messages: messages.map(message => ({ ...message, role: message.role as "system" | "user" })) })
+    : await (async () => {
+      const catalog = await listLLMModels();
+      const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id;
+      return invokeLLM({ signal: input.signal, model: preferred, messages: [...messages], response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "controlled_agent_result",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              summary: { type: "string" },
+              plan: { type: "array", items: { type: "string" } },
+              risks: { type: "array", items: { type: "string" } },
+              nextAction: { type: "string" },
+            },
+            required: ["summary", "plan", "risks", "nextAction"],
+            additionalProperties: false,
           },
-          required: ["summary", "plan", "risks", "nextAction"],
-          additionalProperties: false,
         },
-      },
-    },
-  });
+      } });
+    })();
 
   const raw = parseContent(response.choices[0]?.message?.content);
   const parsed = JSON.parse(raw) as ControlledAgentResult;

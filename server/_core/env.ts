@@ -7,4 +7,9 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  kimiApiKey: process.env.KIMI_API_KEY ?? "",
+  kimiBaseUrl: process.env.KIMI_BASE_URL ?? "https://api.moonshot.ai/v1",
+  kimiModel: process.env.KIMI_MODEL ?? "kimi-k2.5",
+  kimiEnabled: process.env.KIMI_ENABLED === "true",
+  agentProvider: process.env.AGENT_PROVIDER === "kimi" && process.env.KIMI_ENABLED === "true" ? "kimi" : "builtin",
 };

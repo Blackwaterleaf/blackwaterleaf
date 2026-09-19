@@ -7,6 +7,10 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { runControlledAgent } from "./agentRunner";
 import { abortActiveRun } from "./runWorker";
 import { assertTaskTransition, createRunGuard } from "./safety";
+import { CAPABILITY_REGISTRY, evaluatePolicy, hashArtifactBytes, sanitizeResourceScope } from "./policy";
+import { getKimiProviderStatus } from "./kimiGateway";
+import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
+import { storagePut } from "./storage";
 import * as db from "./db";
 
 const operatorRoles = new Set(["owner", "admin", "operator"]);
@@ -58,7 +62,7 @@ export const appRouter = router({
           tasks: [],
           approvals: [],
           audit: [],
-          execution: { agentControlPlane: "available", isolatedWorker: "not_configured" },
+          execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason },
         } as const;
       }
       const tasks = await db.listWorkspaceTasks(membership.workspace.id);
@@ -69,7 +73,7 @@ export const appRouter = router({
         tasks,
         approvals: await db.listWorkspaceApprovals(taskIds),
         audit: await db.listWorkspaceAudit(membership.workspace.id),
-        execution: { agentControlPlane: "available", isolatedWorker: "not_configured" },
+        execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason },
       } as const;
     }),
 
@@ -192,6 +196,51 @@ export const appRouter = router({
         await db.decideApproval({ ...input, userId: ctx.user.id });
         await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: approval.taskId, actorType: "user", actorId: ctx.user.id, eventType: `approval.${input.decision}`, metadata: { approvalId: input.approvalId } });
         return { success: true as const };
+      }),
+
+    capabilityPolicy: protectedProcedure
+      .input(z.object({ capability: z.enum(["agent.plan", "artifact.read", "artifact.write", "network.request", "secret.use", "sandbox.execute", "publish", "role.change"]), taskId: z.number().int().positive().optional(), approvalStatus: z.enum(["pending", "approved", "denied", "expired", "cancelled"]).optional(), resourceScope: z.string().max(2000).optional(), networkEnabled: z.boolean().optional(), secretName: z.string().max(120).optional() }))
+      .query(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        if (input.taskId) {
+          const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
+          if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Task is outside this workspace." });
+        }
+        return { decision: evaluatePolicy({ ...input, workspaceId: membership.workspace.id, resourceScope: input.resourceScope ? sanitizeResourceScope(input.resourceScope) : undefined }), registry: CAPABILITY_REGISTRY };
+      }),
+
+    runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
+      await requireWorkspace(ctx.user.id);
+      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), capabilities: CAPABILITY_REGISTRY };
+    }),
+
+    uploadArtifact: protectedProcedure
+      .input(z.object({ taskId: z.number().int().positive().optional(), fileName: z.string().trim().min(1).max(255), mediaType: z.enum(["text/plain", "text/markdown", "application/json", "application/pdf", "image/png", "image/jpeg", "audio/mpeg", "video/mp4"]), dataBase64: z.string().max(15_000_000), sha256: z.string().regex(/^[a-f0-9]{64}$/i).optional(), purpose: z.enum(["input", "output", "intermediate"]).default("input") }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        if (input.taskId && !(await db.getTaskForWorkspace(input.taskId, membership.workspace.id))) throw new TRPCError({ code: "NOT_FOUND", message: "Task is outside this workspace." });
+        const bytes = Buffer.from(input.dataBase64, "base64");
+        if (bytes.length === 0 || bytes.length > 10 * 1024 * 1024) throw new TRPCError({ code: "BAD_REQUEST", message: "Artifact must be between 1 byte and 10 MiB." });
+        const sha256 = hashArtifactBytes(bytes);
+        if (input.sha256 && input.sha256.toLowerCase() !== sha256) throw new TRPCError({ code: "BAD_REQUEST", message: "Artifact checksum mismatch." });
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const stored = await storagePut(`studio/${membership.workspace.id}/artifacts/${safeName}`, bytes, input.mediaType);
+        const artifactId = await db.createArtifact({ workspaceId: membership.workspace.id, taskId: input.taskId, storageKey: stored.key, fileName: safeName, mediaType: input.mediaType, sizeBytes: bytes.length, sha256, purpose: input.purpose, createdBy: ctx.user.id });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: input.taskId, actorType: "user", actorId: ctx.user.id, eventType: "artifact.uploaded", metadata: { artifactId, sha256, sizeBytes: bytes.length, mediaType: input.mediaType } });
+        return { artifactId, sha256, sizeBytes: bytes.length, url: stored.url };
+      }),
+
+    artifacts: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      return db.listWorkspaceArtifacts(membership.workspace.id);
+    }),
+
+    validateSandbox: protectedProcedure
+      .input(z.unknown())
+      .query(({ input }) => {
+        try { return { valid: true as const, spec: validateSandboxSpec(input) }; }
+        catch (error) { return { valid: false as const, reason: error instanceof Error ? error.message : "SANDBOX_SPEC_INVALID" }; }
       }),
 
     taskDetail: protectedProcedure
