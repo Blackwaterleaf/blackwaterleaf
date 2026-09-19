@@ -1768,3 +1768,13 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .profile-blocked-accounts__list small { color: var(--obs-muted); font-size: .6rem; }
 @media (max-width: 820px) { .live-session-layout { grid-template-columns: 1fr; } .live-hub-track-switcher { align-items: stretch; flex-direction: column; } }
 @media (max-width: 600px) { .community-detail-record__author { align-items: flex-start; flex-wrap: wrap; } .community-detail-record__actions { width: 100%; margin-left: 54px; } .community-detail-record__content { padding: 16px 13px; } .community-detail-record__metrics { padding: 9px; } .community-detail-comment.is-reply { margin-left: 15px; } .live-hub-track-switcher__actions { grid-template-columns: 1fr 1fr; } .live-session-stage__source, .live-session-stage__unavailable { min-height: 260px; padding: 20px; } .profile-blocked-accounts__list > div { align-items: flex-start; flex-direction: column; } }
+
+/* Direct provider players: YouTube Live and Twitch */
+.live-create-form__stream { display: grid; grid-template-columns: minmax(0, .72fr) minmax(0, 1.28fr); gap: 10px; }
+.live-create-form__stream .field small { display: block; margin-top: 6px; color: var(--obs-muted); font-size: .61rem; line-height: 1.42; }
+.live-session-player { overflow: auto hidden; background: #010604; }
+.live-session-player iframe { display: block; width: 100%; min-width: 400px; min-height: 300px; aspect-ratio: 16 / 9; border: 0; background: #010604; }
+.live-session-player__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 9px; padding: 10px 14px; border-top: 1px solid rgba(185, 251, 127, .15); background: rgba(1, 13, 7, .78); }
+.live-session-player__meta a { display: inline-flex; align-items: center; gap: 5px; color: var(--obs-lime); font: 800 .57rem/1 "JetBrains Mono", monospace; letter-spacing: .06em; text-decoration: none; }
+.live-session-player__meta a:hover { color: #e5ffbd; text-decoration: underline; }
+@media (max-width: 600px) { .live-create-form__stream { grid-template-columns: 1fr; } .live-session-player__meta { align-items: flex-start; flex-direction: column; } }

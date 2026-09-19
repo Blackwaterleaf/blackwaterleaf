@@ -12,3 +12,9 @@
 ## Additional completed SEO correction
 
 The only image in the shared homepage shell now carries the descriptive alternative text `BlackWaterLeaf Logo`. Regression coverage enforces this requirement without changing title, description, keyword or heading lengths.
+
+## Direct live-provider playback
+
+- [x] Accept only normalized YouTube Live and Twitch provider references from staff.
+- [x] Embed the active provider player directly in the authenticated Live Hub with a safe external fallback link.
+- [x] Add a strict frame-source policy, provider parser tests and official-source implementation notes.

@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, gt, notInArray, or } from "drizzle-orm";
 import { z } from "zod";
 import { liveSessionMessages, liveSessions, userBlocks, users } from "../../drizzle/schema";
+import { LIVE_STREAM_PROVIDERS, parseStoredLiveStream, resolveLiveStreamReference, type LiveStreamReference } from "../../shared/live-stream-embed";
 import { protectedProcedure, router, staffProcedure } from "../_core/trpc";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
@@ -9,12 +10,23 @@ import { getDb } from "../db";
 const realmSchema = z.enum(["botany", "aquarium", "terrarium"]);
 const trackSchema = z.enum(["community", "expert"]);
 const statusSchema = z.enum(["scheduled", "live", "ended", "cancelled"]);
-const httpsUrl = z.string().url().max(1_000).refine(value => new URL(value).protocol === "https:", "https_stream_url_required");
+const streamInputSchema = z.object({
+  provider: z.enum(LIVE_STREAM_PROVIDERS),
+  source: z.string().trim().min(1).max(1_000),
+});
+type StreamInput = z.infer<typeof streamInputSchema>;
 
 async function requireDatabase() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
+}
+
+function resolveStream(input: StreamInput | null | undefined): LiveStreamReference | null {
+  if (input === null || input === undefined) return null;
+  const stream = resolveLiveStreamReference(input.provider, input.source);
+  if (!stream) throw new TRPCError({ code: "BAD_REQUEST", message: "unsupported_or_invalid_stream_source" });
+  return stream;
 }
 
 async function blockedUserIds(db: Awaited<ReturnType<typeof requireDatabase>>, viewerId: number) {
@@ -23,6 +35,7 @@ async function blockedUserIds(db: Awaited<ReturnType<typeof requireDatabase>>, v
 }
 
 function asSession(row: { session: typeof liveSessions.$inferSelect; host: typeof users.$inferSelect }) {
+  const stream = parseStoredLiveStream(row.session.streamUrl);
   return {
     id: String(row.session.id),
     track: row.session.track,
@@ -31,7 +44,7 @@ function asSession(row: { session: typeof liveSessions.$inferSelect; host: typeo
     realm: row.session.realm,
     presenterName: row.session.presenterName,
     presenterCredential: row.session.track === "expert" ? row.session.presenterCredential : null,
-    streamUrl: row.session.streamUrl,
+    stream: stream ? { provider: stream.provider, identifier: stream.identifier, canonicalUrl: stream.canonicalUrl } : null,
     status: row.session.status,
     startsAt: row.session.startsAt.toISOString(),
     endsAt: row.session.endsAt?.toISOString() ?? null,
@@ -85,23 +98,25 @@ export const liveRouter = router({
     return { id: String(inserted[0].insertId), sent: true } as const;
   }),
 
-  create: staffProcedure.input(z.object({ track: trackSchema, title: z.string().trim().min(3).max(180), description: z.string().trim().min(10).max(10_000), realm: realmSchema.nullable().optional(), presenterName: z.string().trim().min(2).max(160), presenterCredential: z.string().trim().min(2).max(160).nullable().optional(), streamUrl: httpsUrl.nullable().optional(), status: z.enum(["scheduled", "live"]).default("scheduled"), startsAt: z.coerce.date(), endsAt: z.coerce.date().nullable().optional() })).mutation(async ({ ctx, input }) => {
+  create: staffProcedure.input(z.object({ track: trackSchema, title: z.string().trim().min(3).max(180), description: z.string().trim().min(10).max(10_000), realm: realmSchema.nullable().optional(), presenterName: z.string().trim().min(2).max(160), presenterCredential: z.string().trim().min(2).max(160).nullable().optional(), stream: streamInputSchema.nullable().optional(), status: z.enum(["scheduled", "live"]).default("scheduled"), startsAt: z.coerce.date(), endsAt: z.coerce.date().nullable().optional() })).mutation(async ({ ctx, input }) => {
     if (input.track === "expert" && !input.presenterCredential) throw new TRPCError({ code: "BAD_REQUEST", message: "expert_credential_required" });
     if (input.endsAt && input.endsAt <= input.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "live_end_must_follow_start" });
+    const stream = resolveStream(input.stream);
     const db = await requireDatabase();
-    const inserted = await db.insert(liveSessions).values({ hostUserId: ctx.user.id, track: input.track, title: input.title.trim(), description: input.description.trim(), realm: input.realm ?? null, presenterName: input.presenterName.trim(), presenterCredential: input.track === "expert" ? input.presenterCredential?.trim() ?? null : null, streamUrl: input.streamUrl ?? null, status: input.status, startsAt: input.startsAt, endsAt: input.endsAt ?? null });
+    const inserted = await db.insert(liveSessions).values({ hostUserId: ctx.user.id, track: input.track, title: input.title.trim(), description: input.description.trim(), realm: input.realm ?? null, presenterName: input.presenterName.trim(), presenterCredential: input.track === "expert" ? input.presenterCredential?.trim() ?? null : null, streamUrl: stream?.canonicalUrl ?? null, status: input.status, startsAt: input.startsAt, endsAt: input.endsAt ?? null });
     const id = Number(inserted[0].insertId);
-    await appendAuditEntry({ actorId: ctx.user.id, action: "live_session_created", targetType: "live_session", targetId: id, payload: { track: input.track, status: input.status, hasStreamUrl: Boolean(input.streamUrl), hasCredential: Boolean(input.presenterCredential) } });
+    await appendAuditEntry({ actorId: ctx.user.id, action: "live_session_created", targetType: "live_session", targetId: id, payload: { track: input.track, status: input.status, streamProvider: stream?.provider ?? null, hasCredential: Boolean(input.presenterCredential) } });
     return { id: String(id), created: true } as const;
   }),
 
-  update: staffProcedure.input(z.object({ id: z.number().int().positive(), streamUrl: httpsUrl.nullable().optional(), status: statusSchema.optional(), endsAt: z.coerce.date().nullable().optional() })).mutation(async ({ ctx, input }) => {
+  update: staffProcedure.input(z.object({ id: z.number().int().positive(), stream: streamInputSchema.nullable().optional(), status: statusSchema.optional(), endsAt: z.coerce.date().nullable().optional() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const [session] = await db.select({ id: liveSessions.id, startsAt: liveSessions.startsAt }).from(liveSessions).where(eq(liveSessions.id, input.id)).limit(1);
     if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "live_session_not_found" });
     if (input.endsAt && input.endsAt <= session.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "live_end_must_follow_start" });
-    await db.update(liveSessions).set({ ...(input.streamUrl !== undefined ? { streamUrl: input.streamUrl } : {}), ...(input.status ? { status: input.status } : {}), ...(input.endsAt !== undefined ? { endsAt: input.endsAt } : {}) }).where(eq(liveSessions.id, input.id));
-    await appendAuditEntry({ actorId: ctx.user.id, action: "live_session_updated", targetType: "live_session", targetId: input.id, payload: { status: input.status ?? null, streamChanged: input.streamUrl !== undefined, endChanged: input.endsAt !== undefined } });
+    const stream = input.stream === undefined ? undefined : resolveStream(input.stream);
+    await db.update(liveSessions).set({ ...(input.stream !== undefined ? { streamUrl: stream?.canonicalUrl ?? null } : {}), ...(input.status ? { status: input.status } : {}), ...(input.endsAt !== undefined ? { endsAt: input.endsAt } : {}) }).where(eq(liveSessions.id, input.id));
+    await appendAuditEntry({ actorId: ctx.user.id, action: "live_session_updated", targetType: "live_session", targetId: input.id, payload: { status: input.status ?? null, streamProvider: stream?.provider ?? null, streamChanged: input.stream !== undefined, endChanged: input.endsAt !== undefined } });
     return { id: String(input.id), updated: true } as const;
   }),
 });

@@ -16,13 +16,13 @@ Der Live Hub trennt zwei Sitzungsarten: **Community Live** für moderierten Aust
 | --- | --- | --- |
 | Sitzungsliste und Detail | Nur aktive angemeldete Konten | `protectedProcedure`, Blockfilter, keine öffentliche API-Antwort |
 | Fachvortrag anlegen | Nur Moderator:innen oder Administrator:innen | `staffProcedure`, Pflichtfeld für die Qualifikation |
-| Übertragung | Nur HTTPS-Quelle, optional | Ohne freigegebene Quelle erscheint kein simuliertes Video |
+| Übertragung | YouTube Live oder Twitch, optional | Nur normalisierte Anbieterreferenzen; ohne freigegebene Quelle erscheint kein simuliertes Video |
 | Chat | Nur während einer aktiven Sitzung | Konto-gebunden, sichtbar moderiert, maximal sechs Nachrichten pro Minute |
 | Beziehungsschutz | Gegenseitige Blockierung wirkt sofort | Feed, Kommentare und Chat filtern blockierte Konten |
 
 ## Video-Übertragung
 
-BlackWaterLeaf betreibt in dieser Ausbaustufe keinen eigenen Video-Transcoder und zeichnet keine Streams auf. Verantwortlicher Staff kann eine HTTPS-Streamquelle an einer Sitzung hinterlegen; die Oberfläche öffnet sie transparent in einem neuen Fenster. Dieses Verhalten vermeidet Pseudo-Live-Bilder und lässt die spätere Auswahl eines Videoanbieters offen. Für echtes Echtzeit-Video mit integrierter Wiedergabe, Zuschauerzahlen und Subsekunden-Chat ist anschließend eine verbindliche Anbieterentscheidung samt Streaming- und Moderationskonzept erforderlich.
+BlackWaterLeaf betreibt in dieser Ausbaustufe keinen eigenen Video-Transcoder und zeichnet keine Streams auf. Verantwortlicher Staff wählt bei einer Sitzung **YouTube Live** oder **Twitch** und hinterlegt nur eine Video-ID beziehungsweise einen Kanalnamen oder die entsprechende öffentliche Anbieter-URL. Der Hub normalisiert diese Eingabe auf einen erlaubten Anbieter und spielt die Übertragung direkt in einem responsiven iframe ab. Twitch erhält dabei stets den aktuellen BlackWaterLeaf-Hostname als erforderlichen `parent`-Parameter. Stream-Keys, OAuth-Zugangsdaten und beliebige iframe-URLs werden nicht akzeptiert oder gespeichert. Für ein eigenes Transcoding, Zuschauerzahlen aus einer Anbieter-API oder automatisierte Sitzungsstarts wäre anschließend eine getrennte, verbindliche Anbieter- und Moderationsentscheidung erforderlich.
 
 ## Verifizierte Partnerdaten
 

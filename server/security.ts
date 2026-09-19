@@ -74,6 +74,7 @@ export const securityHeaders = helmet({
       fontSrc: ["'self'", "https:", "data:"],
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://www.youtube-nocookie.com", "https://player.twitch.tv"],
       imgSrc: ["'self'", "https:", "data:", "blob:"],
       objectSrc: ["'none'"],
       scriptSrc: ["'self'", ...(IS_DEVELOPMENT ? ["'unsafe-inline'"] : [])],

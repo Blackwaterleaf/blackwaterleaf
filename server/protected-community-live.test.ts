@@ -30,9 +30,13 @@ describe("protected Community detail and Live Hub", () => {
 
   it("separates community live sessions from staff-approved expert lectures", () => {
     for (const token of ["export const liveSessions", "track: mysqlEnum(\"track\", [\"community\", \"expert\"])", "export const liveSessionMessages", "live_sessions_member_feed_idx"]) expect(schema).toContain(token);
-    for (const token of ["list: protectedProcedure", "messages: protectedProcedure", "sendMessage: protectedProcedure", "create: staffProcedure", "expert_credential_required", "https_stream_url_required", "live_chat_rate_limited"]) expect(live).toContain(token);
+    for (const token of ["list: protectedProcedure", "messages: protectedProcedure", "sendMessage: protectedProcedure", "create: staffProcedure", "expert_credential_required", "streamInputSchema", "unsupported_or_invalid_stream_source", "live_chat_rate_limited"]) expect(live).toContain(token);
     const hub = read("client/src/pages/LiveHub.tsx");
-    for (const token of ["COMMUNITY LIVE", "FACHVORTRÄGE", "LIVE-HUB IST GESCHÜTZT", "SITZUNG PLANEN"]) expect(hub).toContain(token);
+    const player = read("client/src/pages/LiveSession.tsx");
+    const security = read("server/security.ts");
+    for (const token of ["COMMUNITY LIVE", "FACHVORTRÄGE", "LIVE-HUB IST GESCHÜTZT", "SITZUNG PLANEN", "YouTube Live", "Twitch"]) expect(hub).toContain(token);
+    for (const token of ["liveStreamEmbedSrc", "DIREKT IM HUB", "allowFullScreen"]) expect(player).toContain(token);
+    for (const token of ["youtube-nocookie.com", "player.twitch.tv"]) expect(security).toContain(token);
   });
 
   it("supports following, blocking and unblocking without retaining follow links", () => {
