@@ -1,0 +1,3 @@
+source_sha256=aa140ec9e61d753aee1d1c6f9a2bb1b8312fab02c0ef048d29415e3e325e6c3d
+source_commit=bbe27ba
+source_repo=https://github.com/Blackwaterleaf/blackwaterleaf.git

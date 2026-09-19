@@ -1,0 +1,2666 @@
+{
+  "source": "data/imports/legacy-seed-taxonomy.sql",
+  "recordCount": 99,
+  "records": [
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia baginda:Dragon Scale",
+      "scientificName": "Alocasia baginda",
+      "acceptedScientificName": "Alocasia baginda",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Drachenschuppen-Alocasia",
+        "en": "Dragon Scale Alocasia"
+      },
+      "synonyms": [
+        "Alocasia sp. Dragon Scale",
+        "Alocasia baginda Dragon Scale"
+      ],
+      "summary": "Kultivar: Dragon Scale\nLebensraum: Tropischer Regenwald, Borneo (Malaysia)\nMerkmale: silbrig-grüne Blattoberfläche mit Schuppenstruktur; ausgeprägte dunkelgrüne Nervatur; kompakter Wuchs; matte Blattoberfläche; Blattunterseite hellgrün bis silbrig",
+      "careProfile": {
+        "cultivar": "Dragon Scale",
+        "careLevel": "mittel",
+        "light": "hell, kein direktes Sonnenlicht",
+        "water": "mäßig, Substrat leicht feucht halten",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia baginda:Silver Dragon",
+      "scientificName": "Alocasia baginda",
+      "acceptedScientificName": "Alocasia baginda",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Silberdrachen-Alocasia",
+        "en": "Silver Dragon Alocasia"
+      },
+      "synonyms": [
+        "Alocasia baginda Silver Dragon"
+      ],
+      "summary": "Kultivar: Silver Dragon\nLebensraum: Tropischer Regenwald, Borneo (Malaysia)\nMerkmale: silbrig-hellgrüne Blattoberfläche; weniger ausgeprägte Nervatur als Dragon Scale; kompakter als Dragon Scale; silbrig schimmernde Blattfläche",
+      "careProfile": {
+        "cultivar": "Silver Dragon",
+        "careLevel": "mittel",
+        "light": "hell, kein direktes Sonnenlicht",
+        "water": "mäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia zebrina",
+      "scientificName": "Alocasia zebrina",
+      "acceptedScientificName": "Alocasia zebrina",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Zebra-Alocasia",
+        "en": "Zebra Elephant Ear"
+      },
+      "synonyms": [
+        "Alocasia zebrina var. zebrina"
+      ],
+      "summary": "Lebensraum: Philippinen, tropischer Regenwald\nMerkmale: auffällig gestreifter Blattstiel (schwarz-grün wie Zebra); pfeilförmige Blätter; aufrechter Wuchs; glänzende Blattoberfläche",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia amazonica:Polly",
+      "scientificName": "Alocasia amazonica",
+      "acceptedScientificName": "Alocasia amazonica",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Amazonica Polly",
+        "en": "African Mask Plant"
+      },
+      "synonyms": [
+        "Alocasia x amazonica",
+        "Alocasia Polly"
+      ],
+      "summary": "Kultivar: Polly\nLebensraum: Züchtung (Hybride)\nMerkmale: dunkelgrüne Blätter mit weißen/cremefarbenen Blattadern; gewellter Blattrand; kompakter Wuchs; Hybride aus Alocasia longiloba x Alocasia sanderiana",
+      "careProfile": {
+        "cultivar": "Polly",
+        "careLevel": "mittel",
+        "light": "hell, kein direktes Sonnenlicht",
+        "water": "regelmäßig, Staunässe vermeiden",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia macrorrhizos",
+      "scientificName": "Alocasia macrorrhizos",
+      "acceptedScientificName": "Alocasia macrorrhizos",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Riesenaronstab",
+        "en": "Giant Taro"
+      },
+      "synonyms": [
+        "Alocasia macrorrhiza",
+        "Colocasia macrorrhizos"
+      ],
+      "summary": "Lebensraum: Tropisches Asien, Pazifik\nMerkmale: sehr große pfeilförmige Blätter bis 1,5m; aufrechter Blattstiel; glänzende Blattoberfläche; kräftiger Stamm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia longiloba",
+      "scientificName": "Alocasia longiloba",
+      "acceptedScientificName": "Alocasia longiloba",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Langlappige Alocasia",
+        "en": "Longiloba Elephant Ear"
+      },
+      "synonyms": [
+        "Alocasia longiloba var. longiloba"
+      ],
+      "summary": "Lebensraum: Südostasien, Borneo, Malaysia\nMerkmale: schmale lanzettliche Blätter; silbrig-grüne Blattoberfläche; ausgeprägte Nervatur; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "mäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia cuprea",
+      "scientificName": "Alocasia cuprea",
+      "acceptedScientificName": "Alocasia cuprea",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Kupfer-Alocasia",
+        "en": "Mirror Plant, Jewel Alocasia"
+      },
+      "synonyms": [
+        "Alocasia cuprea var. cuprea"
+      ],
+      "summary": "Lebensraum: Borneo (Malaysia, Sarawak)\nMerkmale: kupfrig-metallische Blattoberfläche; dunkelgrüne bis schwarze Blattadern; kompakter Wuchs; Blattunterseite tief violett-lila",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell, kein direktes Sonnenlicht",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia reginula:Black Velvet",
+      "scientificName": "Alocasia reginula",
+      "acceptedScientificName": "Alocasia reginula",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Schwarzer Samt",
+        "en": "Black Velvet Alocasia"
+      },
+      "synonyms": [
+        "Alocasia reginula Black Velvet",
+        "Alocasia Black Velvet"
+      ],
+      "summary": "Kultivar: Black Velvet\nLebensraum: Borneo\nMerkmale: dunkelgrüne bis fast schwarze Blätter; samtige Blattoberfläche; weiße Blattadern; kompakter Zwergwuchs; Jewel Alocasia",
+      "careProfile": {
+        "cultivar": "Black Velvet",
+        "careLevel": "anspruchsvoll",
+        "light": "hell, kein direktes Sonnenlicht",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia maharani",
+      "scientificName": "Alocasia maharani",
+      "acceptedScientificName": "Alocasia maharani",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Maharani Alocasia",
+        "en": "Grey Dragon Alocasia"
+      },
+      "synonyms": [
+        "Alocasia maharani Grey Dragon"
+      ],
+      "summary": "Lebensraum: Züchtung (Hybride)\nMerkmale: grau-grüne strukturierte Blattoberfläche; ausgeprägte Nervatur; kompakter Wuchs; Hybride",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "mäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia micholitziana:Frydek",
+      "scientificName": "Alocasia micholitziana",
+      "acceptedScientificName": "Alocasia micholitziana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Frydek Alocasia, Grüner Samt",
+        "en": "Green Velvet Alocasia"
+      },
+      "synonyms": [
+        "Alocasia frydek",
+        "Alocasia micholitziana Frydek"
+      ],
+      "summary": "Kultivar: Frydek\nLebensraum: Philippinen\nMerkmale: dunkelgrüne samtige Blattoberfläche; weiße Blattadern; pfeilförmige Blätter; aufrechter Wuchs; KEIN Variegata-Muster bei Normalform",
+      "careProfile": {
+        "cultivar": "Frydek",
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia wentii",
+      "scientificName": "Alocasia wentii",
+      "acceptedScientificName": "Alocasia wentii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Wentii Alocasia",
+        "en": "Hardy Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: große pfeilförmige Blätter; Blattunterseite purpurviolett; robuste Art; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia lauterbachiana",
+      "scientificName": "Alocasia lauterbachiana",
+      "acceptedScientificName": "Alocasia lauterbachiana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Lauterbachs Alocasia",
+        "en": "Purple Sword Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: schmale lanzettliche Blätter; gewellter Blattrand; Blattunterseite purpurviolett; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia sanderiana",
+      "scientificName": "Alocasia sanderiana",
+      "acceptedScientificName": "Alocasia sanderiana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Sanders Alocasia, Kris Plant",
+        "en": "Kris Plant"
+      },
+      "synonyms": [
+        "Alocasia sanderiana var. sanderiana"
+      ],
+      "summary": "Lebensraum: Philippinen (Mindanao)\nMerkmale: tief eingeschnittener Blattrand (Kris-Schwert-Form); dunkelgrüne Blätter; silbrig-weiße Blattadern; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia melo",
+      "scientificName": "Alocasia melo",
+      "acceptedScientificName": "Alocasia melo",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Melo Alocasia",
+        "en": "Melo Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo\nMerkmale: extrem dicke, fast sukkulente Blätter; stark strukturierte Blattoberfläche; grau-grüne Farbe; kompakter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "wenig, Substrat fast trocken",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia scalprum",
+      "scientificName": "Alocasia scalprum",
+      "acceptedScientificName": "Alocasia scalprum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Skalpell-Alocasia",
+        "en": "Scalprum Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Philippinen\nMerkmale: schmale lanzettliche Blätter; ledrige Blattstruktur; dunkelgrüne Farbe; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "mäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia sinuata",
+      "scientificName": "Alocasia sinuata",
+      "acceptedScientificName": "Alocasia sinuata",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Gewellte Alocasia",
+        "en": "Quilted Dreams Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Philippinen\nMerkmale: stark strukturierte, wellige Blattoberfläche; dunkelgrüne Farbe; kompakter Wuchs; Jewel Alocasia",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia nebula",
+      "scientificName": "Alocasia nebula",
+      "acceptedScientificName": "Alocasia nebula",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Nebula Alocasia",
+        "en": "Nebula Elephant Ear"
+      },
+      "synonyms": [
+        "Alocasia nebula Imperialis"
+      ],
+      "summary": "Lebensraum: Borneo\nMerkmale: silbrig-grüne Blattoberfläche; ausgeprägte Nervatur; kompakter Wuchs; Jewel Alocasia",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia azlanii",
+      "scientificName": "Alocasia azlanii",
+      "acceptedScientificName": "Alocasia azlanii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Azlanii Alocasia",
+        "en": "Red Mambo Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo (Malaysia)\nMerkmale: metallisch-grüne Blattoberfläche; rote bis violette Blattadern; Blattunterseite tief violett; kompakter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia infernalis",
+      "scientificName": "Alocasia infernalis",
+      "acceptedScientificName": "Alocasia infernalis",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Schwarze Magie Alocasia",
+        "en": "Black Magic Alocasia"
+      },
+      "synonyms": [
+        "Alocasia infernalis Black Magic"
+      ],
+      "summary": "Lebensraum: Borneo (Malaysia, Sabah)\nMerkmale: fast schwarze Blattoberfläche; metallischer Glanz; kompakter Wuchs; Jewel Alocasia",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia heterophylla",
+      "scientificName": "Alocasia heterophylla",
+      "acceptedScientificName": "Alocasia heterophylla",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Verschiedenblättrige Alocasia",
+        "en": "Heterophylla Elephant Ear"
+      },
+      "synonyms": [
+        "Alocasia heterophylla Dragons Breath"
+      ],
+      "summary": "Lebensraum: Australien, Neuguinea\nMerkmale: schmale lanzettliche Blätter; aufrechter Wuchs; grüne Blattfarbe; variabel geformte Blätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia jacklyn",
+      "scientificName": "Alocasia jacklyn",
+      "acceptedScientificName": "Alocasia jacklyn",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Jacklyn Alocasia",
+        "en": "Jacklyn Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Papua-Neuguinea\nMerkmale: tief eingeschnittene Blätter; dunkelgrüne Farbe; ausgeprägte Nervatur; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia stingray",
+      "scientificName": "Alocasia stingray",
+      "acceptedScientificName": "Alocasia stingray",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Stachelrochen-Alocasia",
+        "en": "Stingray Alocasia"
+      },
+      "synonyms": [
+        "Alocasia macrorrhizos Stingray"
+      ],
+      "summary": "Lebensraum: Züchtung\nMerkmale: Blattspreite mit langer Spitze (Stachelrochen-Form); aufrechter Blattstiel; grüne Farbe",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia watsoniana",
+      "scientificName": "Alocasia watsoniana",
+      "acceptedScientificName": "Alocasia watsoniana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Watsons Alocasia",
+        "en": "Watson Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo\nMerkmale: große Blätter mit silbrig-grüner Oberfläche; ausgeprägte Nervatur; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia odora",
+      "scientificName": "Alocasia odora",
+      "acceptedScientificName": "Alocasia odora",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Duftende Alocasia",
+        "en": "Night-scented Lily"
+      },
+      "synonyms": [
+        "Alocasia odora var. odora"
+      ],
+      "summary": "Lebensraum: Ostasien (China, Japan, Korea)\nMerkmale: sehr große Blätter; aufrechter Wuchs; duftende Blüten; robuste Art",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia clypeolata",
+      "scientificName": "Alocasia clypeolata",
+      "acceptedScientificName": "Alocasia clypeolata",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Schildförmige Alocasia",
+        "en": "Green Shield Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Philippinen\nMerkmale: schildförmige Blätter; grüne Farbe; kompakter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "mäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia reversa",
+      "scientificName": "Alocasia reversa",
+      "acceptedScientificName": "Alocasia reversa",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Umgekehrte Alocasia",
+        "en": "Reversa Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo\nMerkmale: ungewöhnliche Blattform; dunkelgrüne Farbe; kompakter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia reginae",
+      "scientificName": "Alocasia reginae",
+      "acceptedScientificName": "Alocasia reginae",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Königin-Alocasia",
+        "en": "Queen Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo\nMerkmale: metallisch-grüne Blattoberfläche; kompakter Wuchs; Jewel Alocasia",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia princeps",
+      "scientificName": "Alocasia princeps",
+      "acceptedScientificName": "Alocasia princeps",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Prinz-Alocasia",
+        "en": "Purple Cloak Alocasia"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo\nMerkmale: dunkelgrüne bis fast schwarze Blätter; Blattunterseite violett; kompakter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "mäßig, hohe Luftfeuchtigkeit",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia portei",
+      "scientificName": "Alocasia portei",
+      "acceptedScientificName": "Alocasia portei",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Portes Alocasia",
+        "en": "Portei Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Philippinen\nMerkmale: tief eingeschnittene Blätter; aufrechter Wuchs; große Blätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alocasia brancifolia",
+      "scientificName": "Alocasia brancifolia",
+      "acceptedScientificName": "Alocasia brancifolia",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Alocasia",
+      "commonNames": {
+        "de": "Brancifolia Alocasia",
+        "en": "Brancifolia Elephant Ear"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Australien\nMerkmale: tief eingeschnittene Blätter; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "alocasia"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron gloriosum",
+      "scientificName": "Philodendron gloriosum",
+      "acceptedScientificName": "Philodendron gloriosum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Gloriosum Philodendron",
+        "en": "Gloriosum Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Kolumbien, tropischer Regenwald\nMerkmale: samtige dunkelgrüne Blätter; weiße/cremefarbene Blattadern; kriechender Wuchs (terrestrisch); herzförmige Blätter; Blätter werden sehr groß",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron melanochrysum",
+      "scientificName": "Philodendron melanochrysum",
+      "acceptedScientificName": "Philodendron melanochrysum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Schwarzgold-Philodendron",
+        "en": "Black Gold Philodendron"
+      },
+      "synonyms": [
+        "Philodendron andreanum"
+      ],
+      "summary": "Lebensraum: Kolumbien, Ecuador\nMerkmale: samtige dunkelgrüne Blätter; goldene Blattadern; kletternder Wuchs; Blätter werden sehr lang",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron verrucosum",
+      "scientificName": "Philodendron verrucosum",
+      "acceptedScientificName": "Philodendron verrucosum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Warziger Philodendron",
+        "en": "Velvet Leaf Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Costa Rica, Kolumbien, Ecuador, Peru\nMerkmale: samtige dunkelgrüne Blätter; hellgrüne Blattadern; rötliche Blattstiele mit Haaren; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron gloriosum x melanochrysum:Splendid",
+      "scientificName": "Philodendron gloriosum x melanochrysum",
+      "acceptedScientificName": "Philodendron gloriosum x melanochrysum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Splendid Philodendron",
+        "en": "Splendid Philodendron"
+      },
+      "synonyms": [
+        "Philodendron splendid"
+      ],
+      "summary": "Kultivar: Splendid\nLebensraum: Züchtung (Hybride)\nMerkmale: samtige Blätter; Merkmale beider Elternteile; kletternder Wuchs; große Blätter",
+      "careProfile": {
+        "cultivar": "Splendid",
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron pedatum:Florida Beauty",
+      "scientificName": "Philodendron pedatum",
+      "acceptedScientificName": "Philodendron pedatum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Florida Beauty Philodendron",
+        "en": "Florida Beauty Philodendron"
+      },
+      "synonyms": [
+        "Philodendron florida beauty variegata"
+      ],
+      "summary": "Kultivar: Florida Beauty\nLebensraum: Züchtung\nMerkmale: tief eingeschnittene Blätter; variegierte Formen mit weißen/cremefarbenen Flecken; kletternder Wuchs; rote Blattstiele",
+      "careProfile": {
+        "cultivar": "Florida Beauty",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron pedatum:Florida Ghost",
+      "scientificName": "Philodendron pedatum",
+      "acceptedScientificName": "Philodendron pedatum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Florida Ghost Philodendron",
+        "en": "Florida Ghost Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Kultivar: Florida Ghost\nLebensraum: Züchtung\nMerkmale: tief eingeschnittene Blätter; junge Blätter fast weiß/mint; kletternder Wuchs; rote Blattstiele",
+      "careProfile": {
+        "cultivar": "Florida Ghost",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron erubescens:Pink Princess",
+      "scientificName": "Philodendron erubescens",
+      "acceptedScientificName": "Philodendron erubescens",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Pink Princess Philodendron",
+        "en": "Pink Princess Philodendron"
+      },
+      "synonyms": [
+        "Philodendron pink princess"
+      ],
+      "summary": "Kultivar: Pink Princess\nLebensraum: Züchtung\nMerkmale: dunkelgrüne bis fast schwarze Blätter; rosa/pinke Panaschierung; kletternder Wuchs; rote Blattstiele",
+      "careProfile": {
+        "cultivar": "Pink Princess",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron erubescens:White Princess",
+      "scientificName": "Philodendron erubescens",
+      "acceptedScientificName": "Philodendron erubescens",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "White Princess Philodendron",
+        "en": "White Princess Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Kultivar: White Princess\nLebensraum: Züchtung\nMerkmale: dunkelgrüne Blätter; weiße Panaschierung; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": "White Princess",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron erubescens:White Wizard",
+      "scientificName": "Philodendron erubescens",
+      "acceptedScientificName": "Philodendron erubescens",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "White Wizard Philodendron",
+        "en": "White Wizard Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Kultivar: White Wizard\nLebensraum: Züchtung\nMerkmale: dunkelgrüne Blätter; weiße Panaschierung; grüne Blattstiele (Unterschied zu White Princess); kletternder Wuchs",
+      "careProfile": {
+        "cultivar": "White Wizard",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron hederaceum:Birkin",
+      "scientificName": "Philodendron hederaceum",
+      "acceptedScientificName": "Philodendron hederaceum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Birkin Philodendron",
+        "en": "Birkin Philodendron"
+      },
+      "synonyms": [
+        "Philodendron birkin"
+      ],
+      "summary": "Kultivar: Birkin\nLebensraum: Züchtung\nMerkmale: dunkelgrüne Blätter mit weißen Streifen; kompakter Wuchs; aufrechter Wuchs",
+      "careProfile": {
+        "cultivar": "Birkin",
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron hederaceum:Brasil",
+      "scientificName": "Philodendron hederaceum",
+      "acceptedScientificName": "Philodendron hederaceum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Brasil Philodendron",
+        "en": "Brasil Philodendron"
+      },
+      "synonyms": [
+        "Philodendron brasil"
+      ],
+      "summary": "Kultivar: Brasil\nLebensraum: Züchtung\nMerkmale: grüne Blätter mit gelbem Mittelstreifen; kletternder/hängender Wuchs; herzförmige Blätter",
+      "careProfile": {
+        "cultivar": "Brasil",
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron hederaceum:Micans",
+      "scientificName": "Philodendron hederaceum",
+      "acceptedScientificName": "Philodendron hederaceum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Micans Philodendron, Samtblatt",
+        "en": "Velvet Leaf Philodendron"
+      },
+      "synonyms": [
+        "Philodendron micans"
+      ],
+      "summary": "Kultivar: Micans\nLebensraum: Mexiko, Karibik\nMerkmale: samtige bronzefarbene Blätter; kletternder/hängender Wuchs; herzförmige Blätter; Blattunterseite rötlich",
+      "careProfile": {
+        "cultivar": "Micans",
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron hederaceum",
+      "scientificName": "Philodendron hederaceum",
+      "acceptedScientificName": "Philodendron hederaceum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Herzblatt-Philodendron",
+        "en": "Heartleaf Philodendron"
+      },
+      "synonyms": [
+        "Philodendron scandens",
+        "Philodendron oxycardium"
+      ],
+      "summary": "Lebensraum: Mexiko bis Brasilien\nMerkmale: herzförmige grüne Blätter; kletternder/hängender Wuchs; sehr robust; häufigste Philodendron-Art",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis schattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron hastatum",
+      "scientificName": "Philodendron hastatum",
+      "acceptedScientificName": "Philodendron hastatum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Silberschwert Philodendron",
+        "en": "Silver Sword Philodendron"
+      },
+      "synonyms": [
+        "Philodendron hastatum Silver Sword"
+      ],
+      "summary": "Lebensraum: Brasilien\nMerkmale: silbrig-blaue Blätter; pfeilförmige Blätter; kletternder Wuchs; Blätter werden mit Alter größer und anders geformt",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron mamei",
+      "scientificName": "Philodendron mamei",
+      "acceptedScientificName": "Philodendron mamei",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Mamei Philodendron",
+        "en": "Mamei Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Ecuador\nMerkmale: silbrig gemusterte Blätter; kriechender Wuchs; herzförmige Blätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron plowmanii",
+      "scientificName": "Philodendron plowmanii",
+      "acceptedScientificName": "Philodendron plowmanii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Plowmanii Philodendron",
+        "en": "Plowmanii Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Peru, Ecuador\nMerkmale: gewellter Blattrand; kriechender Wuchs; große Blätter; grüne Farbe",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron pastazanum",
+      "scientificName": "Philodendron pastazanum",
+      "acceptedScientificName": "Philodendron pastazanum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Pastazanum Philodendron",
+        "en": "Pastazanum Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Ecuador\nMerkmale: große herzförmige Blätter; kriechender Wuchs; grüne Farbe",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron gigas",
+      "scientificName": "Philodendron gigas",
+      "acceptedScientificName": "Philodendron gigas",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Riesen-Philodendron",
+        "en": "Giant Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Panama\nMerkmale: sehr große samtige Blätter; kletternder Wuchs; dunkelgrüne Farbe",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron squamiferum",
+      "scientificName": "Philodendron squamiferum",
+      "acceptedScientificName": "Philodendron squamiferum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Schuppenstieliger Philodendron",
+        "en": "Hairy Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Brasilien, Surinam\nMerkmale: rote haarige Blattstiele; tief eingeschnittene Blätter; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron billietiae",
+      "scientificName": "Philodendron billietiae",
+      "acceptedScientificName": "Philodendron billietiae",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Billietiae Philodendron",
+        "en": "Billietiae Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Brasilien, Guyana\nMerkmale: orange-gelbe Blattstiele; lange schmale Blätter; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron atabapoense",
+      "scientificName": "Philodendron atabapoense",
+      "acceptedScientificName": "Philodendron atabapoense",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Atabapoense Philodendron",
+        "en": "Atabapoense Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Venezuela, Brasilien\nMerkmale: lange schmale Blätter; Blattunterseite rötlich-violett; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron spiritus sancti",
+      "scientificName": "Philodendron spiritus sancti",
+      "acceptedScientificName": "Philodendron spiritus sancti",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Heiliger Geist Philodendron",
+        "en": "Spiritus Sancti Philodendron"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Brasilien (Espírito Santo)\nMerkmale: extrem seltene Art; schmale hängende Blätter; kletternder Wuchs; vom Aussterben bedroht",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron gloriosum x melanochrysum:El Choco Red",
+      "scientificName": "Philodendron gloriosum x melanochrysum",
+      "acceptedScientificName": "Philodendron gloriosum x melanochrysum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "El Choco Red Philodendron",
+        "en": "El Choco Red Philodendron"
+      },
+      "synonyms": [
+        "Philodendron el choco red"
+      ],
+      "summary": "Kultivar: El Choco Red\nLebensraum: Züchtung\nMerkmale: samtige Blätter; rötliche Unterseite; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": "El Choco Red",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Philodendron domesticum:Jose Buono",
+      "scientificName": "Philodendron domesticum",
+      "acceptedScientificName": "Philodendron domesticum",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Philodendron",
+      "commonNames": {
+        "de": "Jose Buono Philodendron",
+        "en": "Jose Buono Philodendron"
+      },
+      "synonyms": [
+        "Philodendron jose buono"
+      ],
+      "summary": "Kultivar: Jose Buono\nLebensraum: Züchtung\nMerkmale: große Blätter; variegierte Formen mit weißen Flecken; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": "Jose Buono",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "philodendron"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera deliciosa",
+      "scientificName": "Monstera deliciosa",
+      "acceptedScientificName": "Monstera deliciosa",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Fensterblatt, Köstliche Monstera",
+        "en": "Swiss Cheese Plant"
+      },
+      "synonyms": [
+        "Monstera deliciosa var. deliciosa"
+      ],
+      "summary": "Lebensraum: Mexiko bis Panama\nMerkmale: tief eingeschnittene Blätter mit Löchern; kletternder Wuchs; Luftwurzeln; große grüne Blätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera deliciosa:Albo Variegata",
+      "scientificName": "Monstera deliciosa",
+      "acceptedScientificName": "Monstera deliciosa",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Weißes Fensterblatt",
+        "en": "Albo Monstera, White Monstera"
+      },
+      "synonyms": [
+        "Monstera deliciosa Albo",
+        "Monstera albo variegata"
+      ],
+      "summary": "Kultivar: Albo Variegata\nLebensraum: Züchtung\nMerkmale: weiße/cremefarbene Panaschierung; tief eingeschnittene Blätter; kletternder Wuchs; ECHTE Panaschierung mit weißen Flecken/Sektoren",
+      "careProfile": {
+        "cultivar": "Albo Variegata",
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera deliciosa:Thai Constellation",
+      "scientificName": "Monstera deliciosa",
+      "acceptedScientificName": "Monstera deliciosa",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Thai Constellation Monstera",
+        "en": "Thai Constellation Monstera"
+      },
+      "synonyms": [],
+      "summary": "Kultivar: Thai Constellation\nLebensraum: Züchtung (Thailand)\nMerkmale: cremefarbene Panaschierung mit Sternenmuster; tief eingeschnittene Blätter; kletternder Wuchs; stabile Panaschierung",
+      "careProfile": {
+        "cultivar": "Thai Constellation",
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera adansonii",
+      "scientificName": "Monstera adansonii",
+      "acceptedScientificName": "Monstera adansonii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Adansonii Monstera, Schweizer Käse Rebe",
+        "en": "Swiss Cheese Vine"
+      },
+      "synonyms": [
+        "Monstera friedrichsthalii"
+      ],
+      "summary": "Lebensraum: Mittel- und Südamerika\nMerkmale: ovale Blätter mit Löchern; kletternder/hängender Wuchs; kleinere Blätter als M. deliciosa",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera adansonii:Variegata",
+      "scientificName": "Monstera adansonii",
+      "acceptedScientificName": "Monstera adansonii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Variegierte Adansonii",
+        "en": "Variegated Swiss Cheese Vine"
+      },
+      "synonyms": [],
+      "summary": "Kultivar: Variegata\nLebensraum: Züchtung\nMerkmale: ovale Blätter mit Löchern; weiße/cremefarbene Panaschierung; kletternder Wuchs",
+      "careProfile": {
+        "cultivar": "Variegata",
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera obliqua",
+      "scientificName": "Monstera obliqua",
+      "acceptedScientificName": "Monstera obliqua",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Obliqua Monstera",
+        "en": "Obliqua Monstera"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südamerika\nMerkmale: sehr viele Löcher (mehr Loch als Blatt); extrem selten; kletternder Wuchs; zarte dünne Blätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "hell",
+        "water": "regelmäßig, hohe Luftfeuchtigkeit",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera siltepecana",
+      "scientificName": "Monstera siltepecana",
+      "acceptedScientificName": "Monstera siltepecana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Silberne Monstera",
+        "en": "Silver Monstera"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Mexiko, Mittelamerika\nMerkmale: silbrig-grüne Blätter als Jungpflanze; kletternder Wuchs; Blattform ändert sich mit Alter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera standleyana",
+      "scientificName": "Monstera standleyana",
+      "acceptedScientificName": "Monstera standleyana",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Standleyana Monstera",
+        "en": "Standleyana Monstera"
+      },
+      "synonyms": [
+        "Philodendron cobanum"
+      ],
+      "summary": "Lebensraum: Mittelamerika\nMerkmale: ovale Blätter ohne Löcher; kletternder Wuchs; variegierte Formen verfügbar",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera dubia",
+      "scientificName": "Monstera dubia",
+      "acceptedScientificName": "Monstera dubia",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Dubia Monstera",
+        "en": "Dubia Monstera"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Mittel- und Südamerika\nMerkmale: Jungpflanze kriecht an Baumstämmen; Blätter wechseln Form mit Alter; silbrig gemusterte Jungblätter",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Monstera pinnatipartita",
+      "scientificName": "Monstera pinnatipartita",
+      "acceptedScientificName": "Monstera pinnatipartita",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Monstera",
+      "commonNames": {
+        "de": "Pinnatipartita Monstera",
+        "en": "Pinnatipartita Monstera"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Kolumbien, Peru\nMerkmale: tief eingeschnittene Blätter; kletternder Wuchs; Blätter werden mit Alter größer",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "hell bis halbschattig",
+        "water": "regelmäßig",
+        "category": "monstera"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Bucephalandra sp.",
+      "scientificName": "Bucephalandra sp.",
+      "acceptedScientificName": "Bucephalandra sp.",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Bucephalandra",
+      "commonNames": {
+        "de": "Bucephalandra",
+        "en": "Bucephalandra"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Borneo, Bachläufe\nMerkmale: kleine Wasserpflanze; auf Steinen/Holz befestigbar; diverse Formen und Farben; langsames Wachstum",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "schwach bis mittel",
+        "water": "weiches, leicht saures Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Anubias barteri",
+      "scientificName": "Anubias barteri",
+      "acceptedScientificName": "Anubias barteri",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Anubias",
+      "commonNames": {
+        "de": "Anubias",
+        "en": "Anubias"
+      },
+      "synonyms": [
+        "Anubias barteri var. barteri"
+      ],
+      "summary": "Lebensraum: Westafrika, Bachläufe\nMerkmale: breite dunkelgrüne Blätter; auf Steinen/Holz befestigbar; langsames Wachstum; robust",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Anubias barteri:Nana",
+      "scientificName": "Anubias barteri",
+      "acceptedScientificName": "Anubias barteri",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Anubias",
+      "commonNames": {
+        "de": "Zwerg-Anubias",
+        "en": "Dwarf Anubias"
+      },
+      "synonyms": [
+        "Anubias nana",
+        "Anubias barteri var. nana"
+      ],
+      "summary": "Kultivar: Nana\nLebensraum: Westafrika\nMerkmale: kleine runde Blätter; Zwergform; auf Steinen/Holz befestigbar; sehr robust",
+      "careProfile": {
+        "cultivar": "Nana",
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "manual",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Anubias barteri:Nana Petite",
+      "scientificName": "Anubias barteri",
+      "acceptedScientificName": "Anubias barteri",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Anubias",
+      "commonNames": {
+        "de": "Petite Zwerg-Anubias",
+        "en": "Petite Dwarf Anubias"
+      },
+      "synonyms": [
+        "Anubias nana petite"
+      ],
+      "summary": "Kultivar: Nana Petite\nLebensraum: Züchtung\nMerkmale: sehr kleine Blätter; Miniaturform; auf Steinen/Holz befestigbar",
+      "careProfile": {
+        "cultivar": "Nana Petite",
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Cryptocoryne wendtii",
+      "scientificName": "Cryptocoryne wendtii",
+      "acceptedScientificName": "Cryptocoryne wendtii",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Cryptocoryne",
+      "commonNames": {
+        "de": "Wendts Wasserkelch",
+        "en": "Wendt Crypt"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Sri Lanka\nMerkmale: rosettenwüchsig; braun-grüne Blätter; robust; Bodenpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Cryptocoryne parva",
+      "scientificName": "Cryptocoryne parva",
+      "acceptedScientificName": "Cryptocoryne parva",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Cryptocoryne",
+      "commonNames": {
+        "de": "Zwerg-Wasserkelch",
+        "en": "Dwarf Crypt"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Sri Lanka\nMerkmale: sehr kleine Rosette; grüne Blätter; Bodenpflanze; langsames Wachstum",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Cryptocoryne balansae",
+      "scientificName": "Cryptocoryne balansae",
+      "acceptedScientificName": "Cryptocoryne balansae",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Cryptocoryne",
+      "commonNames": {
+        "de": "Balansa Wasserkelch",
+        "en": "Balansa Crypt"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Thailand, Vietnam\nMerkmale: lange schmale Blätter; stark gewellter Blattrand; Bodenpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "weiches Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Cryptocoryne undulata",
+      "scientificName": "Cryptocoryne undulata",
+      "acceptedScientificName": "Cryptocoryne undulata",
+      "rank": "species",
+      "family": "Araceae",
+      "genus": "Cryptocoryne",
+      "commonNames": {
+        "de": "Gewellter Wasserkelch",
+        "en": "Undulate Crypt"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Sri Lanka\nMerkmale: gewellte Blätter; braun-grüne Farbe; Bodenpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Microsorum pteropus",
+      "scientificName": "Microsorum pteropus",
+      "acceptedScientificName": "Microsorum pteropus",
+      "rank": "species",
+      "family": "Polypodiaceae",
+      "genus": "Microsorum",
+      "commonNames": {
+        "de": "Javafarn",
+        "en": "Java Fern"
+      },
+      "synonyms": [
+        "Leptochilus pteropus"
+      ],
+      "summary": "Lebensraum: Südostasien\nMerkmale: auf Steinen/Holz befestigbar; grüne Blätter; langsames Wachstum; robust",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Taxiphyllum barbieri",
+      "scientificName": "Taxiphyllum barbieri",
+      "acceptedScientificName": "Taxiphyllum barbieri",
+      "rank": "species",
+      "family": "Hypnaceae",
+      "genus": "Taxiphyllum",
+      "commonNames": {
+        "de": "Javamoos",
+        "en": "Java Moss"
+      },
+      "synonyms": [
+        "Vesicularia dubyana (falsch zugeordnet)"
+      ],
+      "summary": "Lebensraum: Südostasien\nMerkmale: Moos; auf Steinen/Holz befestigbar; dichtes Wachstum; robust",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Vesicularia dubyana",
+      "scientificName": "Vesicularia dubyana",
+      "acceptedScientificName": "Vesicularia dubyana",
+      "rank": "species",
+      "family": "Hypnaceae",
+      "genus": "Vesicularia",
+      "commonNames": {
+        "de": "Weihnachtsmoos",
+        "en": "Christmas Moss"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: Moos mit weihnachtsbaumartiger Struktur; auf Steinen/Holz befestigbar",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "schwach bis mittel",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Hemianthus callitrichoides",
+      "scientificName": "Hemianthus callitrichoides",
+      "acceptedScientificName": "Hemianthus callitrichoides",
+      "rank": "species",
+      "family": "Linderniaceae",
+      "genus": "Hemianthus",
+      "commonNames": {
+        "de": "Kuba-Perlkraut",
+        "en": "Dwarf Baby Tears, HC Cuba"
+      },
+      "synonyms": [
+        "HC Cuba"
+      ],
+      "summary": "Lebensraum: Kuba\nMerkmale: sehr kleine Blätter; Bodendecker; dichtes Wachstum; anspruchsvoll",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": "stark",
+        "water": "weiches, CO2-angereichertes Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Eleocharis acicularis",
+      "scientificName": "Eleocharis acicularis",
+      "acceptedScientificName": "Eleocharis acicularis",
+      "rank": "species",
+      "family": "Cyperaceae",
+      "genus": "Eleocharis",
+      "commonNames": {
+        "de": "Nadelsimse, Haargras",
+        "en": "Needle Spike-rush, Hair Grass"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Weltweit verbreitet\nMerkmale: grasartige Pflanze; Bodendecker; grüne Halme",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "mittel bis stark",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Rotala rotundifolia",
+      "scientificName": "Rotala rotundifolia",
+      "acceptedScientificName": "Rotala rotundifolia",
+      "rank": "species",
+      "family": "Lythraceae",
+      "genus": "Rotala",
+      "commonNames": {
+        "de": "Runde Rotala",
+        "en": "Roundleaf Toothcup"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: rötliche Stängelpflanze; kleine runde Blätter; Mittelgrundpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "mittel bis stark",
+        "water": "weiches Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Ludwigia repens",
+      "scientificName": "Ludwigia repens",
+      "acceptedScientificName": "Ludwigia repens",
+      "rank": "species",
+      "family": "Onagraceae",
+      "genus": "Ludwigia",
+      "commonNames": {
+        "de": "Kriechende Ludwigia",
+        "en": "Creeping Primrose-willow"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Nordamerika\nMerkmale: rötliche Blätter; Stängelpflanze; Hintergrundpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "mittel bis stark",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Alternanthera reineckii",
+      "scientificName": "Alternanthera reineckii",
+      "acceptedScientificName": "Alternanthera reineckii",
+      "rank": "species",
+      "family": "Amaranthaceae",
+      "genus": "Alternanthera",
+      "commonNames": {
+        "de": "Papageienblatt",
+        "en": "Reineck Alternanthera"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südamerika\nMerkmale: rote bis violette Blätter; Stängelpflanze; Hintergrundpflanze",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "stark",
+        "water": "weiches Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Pogostemon helferi",
+      "scientificName": "Pogostemon helferi",
+      "acceptedScientificName": "Pogostemon helferi",
+      "rank": "species",
+      "family": "Lamiaceae",
+      "genus": "Pogostemon",
+      "commonNames": {
+        "de": "Downoi, Kleiner Stern",
+        "en": "Downoi, Little Star Plant"
+      },
+      "synonyms": [
+        "Downoi"
+      ],
+      "summary": "Lebensraum: Thailand, Myanmar\nMerkmale: sternförmige Blätter; Vordergrundpflanze; gewellte Blattränder",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "stark",
+        "water": "weiches, saures Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Hygrophila pinnatifida",
+      "scientificName": "Hygrophila pinnatifida",
+      "acceptedScientificName": "Hygrophila pinnatifida",
+      "rank": "species",
+      "family": "Acanthaceae",
+      "genus": "Hygrophila",
+      "commonNames": {
+        "de": "Fiederspaltige Hygrophila",
+        "en": "Pinnatifida Hygrophila"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Indien\nMerkmale: tief eingeschnittene Blätter; braun-rötliche Farbe; auf Steinen/Holz befestigbar",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "mittel bis stark",
+        "water": "variabel",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Bolbitis heudelotii",
+      "scientificName": "Bolbitis heudelotii",
+      "acceptedScientificName": "Bolbitis heudelotii",
+      "rank": "species",
+      "family": "Dryopteridaceae",
+      "genus": "Bolbitis",
+      "commonNames": {
+        "de": "Afrikanischer Wasserfarn",
+        "en": "African Water Fern"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Westafrika\nMerkmale: dunkelgrüner Farn; auf Steinen/Holz befestigbar; langsames Wachstum",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": "schwach bis mittel",
+        "water": "weiches, saures Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "POWO",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Vallisneria spiralis",
+      "scientificName": "Vallisneria spiralis",
+      "acceptedScientificName": "Vallisneria spiralis",
+      "rank": "species",
+      "family": "Hydrocharitaceae",
+      "genus": "Vallisneria",
+      "commonNames": {
+        "de": "Schraubenvallisnerie",
+        "en": "Straight Vallisneria"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Europa, Asien, Afrika\nMerkmale: lange bandförmige Blätter; Hintergrundpflanze; robust; schnelles Wachstum",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": "mittel bis stark",
+        "water": "hartes Wasser",
+        "category": "aquatic"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa andrao",
+      "scientificName": "Channa andrao",
+      "acceptedScientificName": "Channa andrao",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Andraos Schlangenkopf",
+        "en": "Andrao Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Bangladesch, Indien (Assam)\nMerkmale: leuchtend orange-rote Flossen; kompakter Körperbau; Zwergschlangenkopf; max. 15-20cm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, saures Wasser, Blackwater",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa asiatica",
+      "scientificName": "Channa asiatica",
+      "acceptedScientificName": "Channa asiatica",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Chinesischer Schlangenkopf",
+        "en": "Small Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: China, Vietnam\nMerkmale: grün-braune Musterung; mittlere Größe; max. 35cm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa aurantimaculata",
+      "scientificName": "Channa aurantimaculata",
+      "acceptedScientificName": "Channa aurantimaculata",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Orangeflecken-Schlangenkopf",
+        "en": "Orange-spotted Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Indien (Assam, Brahmaputra)\nMerkmale: orange Flecken auf dunklem Körper; leuchtende Flossen; max. 40cm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, kühles Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa barca",
+      "scientificName": "Channa barca",
+      "acceptedScientificName": "Channa barca",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Barca Schlangenkopf",
+        "en": "Barca Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Indien, Bangladesch\nMerkmale: auffällige Musterung; große Art; max. 90cm; Tigermuster",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": null,
+        "water": "weiches Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa bleheri",
+      "scientificName": "Channa bleheri",
+      "acceptedScientificName": "Channa bleheri",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Blehers Schlangenkopf, Regenbogen-Schlangenkopf",
+        "en": "Rainbow Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Indien (Assam)\nMerkmale: leuchtend bunte Flossen (rot, blau, orange); Zwergschlangenkopf; max. 20cm; kühle Temperaturen bevorzugt",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, kühles Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa diplogramma",
+      "scientificName": "Channa diplogramma",
+      "acceptedScientificName": "Channa diplogramma",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Malabar-Schlangenkopf",
+        "en": "Malabar Snakehead"
+      },
+      "synonyms": [
+        "Channa diplogramma"
+      ],
+      "summary": "Lebensraum: Indien (Kerala)\nMerkmale: große Art; max. 60cm; braun-grüne Musterung",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa gachua",
+      "scientificName": "Channa gachua",
+      "acceptedScientificName": "Channa gachua",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Zwerg-Schlangenkopf",
+        "en": "Dwarf Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Süd- und Südostasien\nMerkmale: Zwergschlangenkopf; max. 20cm; variable Färbung je nach Herkunft; bunte Flossen",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa limbata",
+      "scientificName": "Channa limbata",
+      "acceptedScientificName": "Channa limbata",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Gesäumter Schlangenkopf",
+        "en": "Limbata Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: orange gesäumte Flossen; Zwergschlangenkopf; max. 20cm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": null,
+        "water": "weiches Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa lucius",
+      "scientificName": "Channa lucius",
+      "acceptedScientificName": "Channa lucius",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Hecht-Schlangenkopf",
+        "en": "Splendid Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: schlanker Körperbau; max. 40cm; grün-braune Musterung",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, saures Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa marulioides",
+      "scientificName": "Channa marulioides",
+      "acceptedScientificName": "Channa marulioides",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Kaiser-Schlangenkopf",
+        "en": "Emperor Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: große Art; max. 65cm; auffällige Musterung",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa micropeltes",
+      "scientificName": "Channa micropeltes",
+      "acceptedScientificName": "Channa micropeltes",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Riesenschlangenkopf",
+        "en": "Giant Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Südostasien\nMerkmale: größte Channa-Art; max. 130cm; Jungtiere rot-schwarz gestreift; Adulte grün-schwarz",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "anspruchsvoll",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa ornatipinnis",
+      "scientificName": "Channa ornatipinnis",
+      "acceptedScientificName": "Channa ornatipinnis",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Schmuckflossen-Schlangenkopf",
+        "en": "Ornate Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Zentralafrika\nMerkmale: leuchtend bunte Flossen; Zwergschlangenkopf; max. 20cm",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, saures Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa pulchra",
+      "scientificName": "Channa pulchra",
+      "acceptedScientificName": "Channa pulchra",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Schöner Schlangenkopf",
+        "en": "Beautiful Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Myanmar\nMerkmale: leuchtend blaue Flossen; Zwergschlangenkopf; max. 25cm; kühle Temperaturen",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, kühles Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa stewartii",
+      "scientificName": "Channa stewartii",
+      "acceptedScientificName": "Channa stewartii",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Stewarts Schlangenkopf",
+        "en": "Stewart Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Indien (Assam, Brahmaputra)\nMerkmale: orange-rote Flossen; Zwergschlangenkopf; max. 20cm; kühle Temperaturen",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "mittel",
+        "light": null,
+        "water": "weiches, kühles Wasser",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    },
+    {
+      "source": "FishBase",
+      "sourceVersion": "legacy-taxonomy-2024",
+      "sourceRecordId": "Channa striata",
+      "scientificName": "Channa striata",
+      "acceptedScientificName": "Channa striata",
+      "rank": "species",
+      "family": "Channidae",
+      "genus": "Channa",
+      "commonNames": {
+        "de": "Gestreifter Schlangenkopf",
+        "en": "Striped Snakehead"
+      },
+      "synonyms": [],
+      "summary": "Lebensraum: Süd- und Südostasien\nMerkmale: gestreifte Musterung; mittlere bis große Art; max. 90cm; weit verbreitet",
+      "careProfile": {
+        "cultivar": null,
+        "careLevel": "einfach",
+        "light": null,
+        "water": "variabel",
+        "category": "channa"
+      },
+      "imageUrl": null,
+      "evidenceState": "confirmed",
+      "status": "published"
+    }
+  ]
+}
