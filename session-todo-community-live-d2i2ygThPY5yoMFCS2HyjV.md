@@ -26,4 +26,4 @@ The only image in the shared homepage shell now carries the descriptive alternat
 - [x] Live-Router um geschützten Heartbeat, host-ausgeschlossene aktuelle Zuschauerzahl und Bereinigung erweitert.
 - [x] Web-Control-Deck und Live-Hub-Karten um eindeutigen Status, Quelle, Chat-Zustand und aktuelle Zuschauende ergänzt.
 - [x] Vollständige Tests, Web-/Native-Build und visuelle Abnahme ausführen.
-- [ ] Finalen Checkpoint sichern.
+- [x] Finalen Checkpoint sichern.
