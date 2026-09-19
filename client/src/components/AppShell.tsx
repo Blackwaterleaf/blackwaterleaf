@@ -144,7 +144,7 @@ export function AppShell({ children }: PropsWithChildren) {
             return <Link key={item.href} href={item.href} className={active ? "active" : ""}><Icon size={19} /><span>{item.label}</span></Link>;
           })}
         </div>
-        <div className="portal-sidebar__status"><i />Verbindung<span>Aktueller Status wird<br />pro Bereich angezeigt.</span></div>
+        <div className="portal-sidebar__status"><i /><span><strong>Verbindung</strong><small>Aktueller Status wird pro Bereich angezeigt.</small></span></div>
       </aside>
       <ConnectionStateBanner />
       <AnalyticsTracker />

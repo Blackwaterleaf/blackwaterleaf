@@ -15,3 +15,7 @@ Context headers stay compact, visual imagery is limited to identity and catalog/
 ## Responsive correction verified
 
 At 390 × 844 pixels the homepage context header now reserves a dedicated action row. The long Observatory statement, explanatory text and the two primary actions remain separated without overlap, while the three specialist routes continue as compact, legible rows above the first data panel.
+
+## Final homepage verification
+
+Desktop verification confirms the sidebar connection state now stays as a compact two-line status record and the homepage partner section uses structured record rows rather than concatenated text. The page retains its compact Observatory hierarchy: consent state, context header, three specialist portal rows, factual observation panel, community record and transparent partner surface.
