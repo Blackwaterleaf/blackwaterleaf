@@ -746,6 +746,74 @@ export const partnerAuthorizations = mysqlTable(
   ],
 );
 
+/** Private recurring care plans. These records never enter public feeds or XP. */
+export const carePlans = mysqlTable(
+  "care_plans",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    habitatId: int("habitatId").references(() => privateHabitats.id, { onDelete: "set null" }),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]).notNull(),
+    title: varchar("title", { length: 160 }).notNull(),
+    timezone: varchar("timezone", { length: 64 }).default("Europe/Berlin").notNull(),
+    active: boolean("active").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("care_plans_user_active_updated_idx").on(table.userId, table.active, table.updatedAt)],
+);
+
+/** A single private care action; dueAt is stored in UTC and displayed in the user's timezone. */
+export const careTasks = mysqlTable(
+  "care_tasks",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    planId: int("planId").notNull().references(() => carePlans.id, { onDelete: "cascade" }),
+    habitatId: int("habitatId").references(() => privateHabitats.id, { onDelete: "set null" }),
+    title: varchar("title", { length: 160 }).notNull(),
+    dueAt: timestamp("dueAt").notNull(),
+    status: mysqlEnum("status", ["open", "done", "snoozed", "skipped"]).default("open").notNull(),
+    skipReason: varchar("skipReason", { length: 160 }),
+    completedAt: timestamp("completedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("care_tasks_user_status_due_idx").on(table.userId, table.status, table.dueAt),
+    index("care_tasks_plan_due_idx").on(table.planId, table.dueAt),
+  ],
+);
+
+/** Append-only private task history used for explainable completion, snooze and skip states. */
+export const careEvents = mysqlTable(
+  "care_events",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    taskId: int("taskId").notNull().references(() => careTasks.id, { onDelete: "cascade" }),
+    eventType: mysqlEnum("eventType", ["created", "completed", "snoozed", "skipped", "reopened"]).notNull(),
+    reason: varchar("reason", { length: 160 }),
+    occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  },
+  table => [index("care_events_user_occurred_idx").on(table.userId, table.occurredAt)],
+);
+
+/** Private care journal entries; never awarded XP and never published implicitly. */
+export const careJournal = mysqlTable(
+  "care_journal",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    habitatId: int("habitatId").references(() => privateHabitats.id, { onDelete: "set null" }),
+    taskId: int("taskId").references(() => careTasks.id, { onDelete: "set null" }),
+    note: text("note").notNull(),
+    observedAt: timestamp("observedAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [index("care_journal_user_observed_idx").on(table.userId, table.observedAt)],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type UserConsent = typeof userConsents.$inferSelect;
@@ -766,3 +834,7 @@ export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
 export type PartnerProductRecord = typeof partnerProducts.$inferSelect;
 export type PartnerPlacementRecord = typeof partnerPlacements.$inferSelect;
 export type PartnerAuthorizationRecord = typeof partnerAuthorizations.$inferSelect;
+export type CarePlanRecord = typeof carePlans.$inferSelect;
+export type CareTaskRecord = typeof careTasks.$inferSelect;
+export type CareEventRecord = typeof careEvents.$inferSelect;
+export type CareJournalRecord = typeof careJournal.$inferSelect;

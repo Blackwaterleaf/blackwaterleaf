@@ -176,6 +176,28 @@ export type ProfileConsent = {
   policyVersion: string;
   updatedAt: string;
 };
+export type CareTask = {
+  id: string;
+  planId: string;
+  habitatId: string | null;
+  title: string;
+  dueAt: string;
+  status: "open" | "done" | "snoozed" | "skipped";
+  skipReason: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+export type CarePlan = {
+  id: number;
+  userId: number;
+  habitatId: number | null;
+  realm: "botany" | "aquarium" | "terrarium";
+  title: string;
+  timezone: string;
+  active: boolean;
+};
+export type CareJournalEntry = { id: number; note: string; observedAt: string; habitatId: number | null; taskId: number | null };
 export type AssistantReply = {
   answer: string;
   model: string;
@@ -392,3 +414,15 @@ export const updateCommunityPost = (
   );
 export const deleteCommunityPost = (token: string, postId: number) =>
   trpcPost<{ deleted: true; id: string }>("community.deleteMine", { postId }, token);
+export const careToday = (token: string) =>
+  trpcGet<{ date: string; tasks: CareTask[] }>("care.today", undefined, token);
+export const careMine = (token: string) =>
+  trpcGet<{ plans: CarePlan[]; tasks: CareTask[]; journal: CareJournalEntry[] }>("care.mine", undefined, token);
+export const careCreatePlan = (token: string, input: { realm: CarePlan["realm"]; title: string; habitatId?: number | null }) =>
+  trpcPost<CarePlan>("care.createPlan", input, token);
+export const careCreateTask = (token: string, input: { planId: number; title: string; dueAt: string; habitatId?: number | null }) =>
+  trpcPost<CareTask>("care.createTask", input, token);
+export const careUpdateTask = (token: string, input: { taskId: number; status: CareTask["status"]; reason?: string | null }) =>
+  trpcPost<CareTask>("care.updateTask", input, token);
+export const careAddJournal = (token: string, input: { note: string; habitatId?: number | null; taskId?: number | null }) =>
+  trpcPost<CareJournalEntry>("care.addJournal", input, token);

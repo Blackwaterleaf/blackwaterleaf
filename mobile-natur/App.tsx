@@ -41,6 +41,12 @@ import {
   assistantChat,
   assistantPlantIdentify,
   addCommunityComment,
+  careAddJournal,
+  careCreatePlan,
+  careCreateTask,
+  careMine,
+  careToday,
+  careUpdateTask,
   clearToken,
   communityComments,
   communityFeed,
@@ -67,6 +73,9 @@ import {
   type AssistantReply,
   type CommunityPost,
   type CommunityComment,
+  type CareJournalEntry,
+  type CarePlan,
+  type CareTask,
   type Habitat,
   type KnowledgeArticle,
   type MarketplaceProduct,
@@ -132,7 +141,8 @@ type Screen =
   | "collection"
   | "builder"
   | "search"
-  | "notifications";
+  | "notifications"
+  | "care";
 type BottomTab =
   | "home"
   | "explore"
@@ -306,6 +316,14 @@ const TONES: Record<Screen, Tone> = {
     label: "BENACHRICHTIGUNGEN",
     active: "community",
   },
+  care: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "HEUTE · PFLEGE",
+    active: "profile",
+  },
 };
 
 export default function App() {
@@ -327,6 +345,9 @@ function NaturApp() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<NativeNotification[]>([]);
+  const [careTasks, setCareTasks] = useState<CareTask[]>([]);
+  const [carePlans, setCarePlans] = useState<CarePlan[]>([]);
+  const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [weather, setWeather] = useState<OutdoorWeather | null>(null);
@@ -389,6 +410,12 @@ function NaturApp() {
         setProducts(await marketplace());
       if (screen === "community") setPosts(await communityFeed());
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
+      if (screen === "care" && token) {
+        const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
+        setCareTasks(today.tasks);
+        setCarePlans(mine.plans);
+        setCareJournal(mine.journal);
+      }
       if (screen === "knowledge" || screen === "search")
         setArticles(await knowledge());
       setState("ready");
@@ -436,6 +463,9 @@ function NaturApp() {
     setAccount(null);
     setHabitats([]);
     setConsents([]);
+    setCareTasks([]);
+    setCarePlans([]);
+    setCareJournal([]);
     navigate("home");
   }, [navigate]);
 
@@ -512,6 +542,7 @@ function NaturApp() {
         account={account}
         onSearch={() => navigate("search")}
         onNotifications={notificationInfo}
+        onCare={() => { if (token) navigate("care"); else void signIn(); }}
         onProfileTarget={target => {
           setProfileMenuTarget(target);
           navigate("profile");
@@ -755,6 +786,19 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
+        {screen === "care" && (
+          <CareScreen
+            tone={TONES.care}
+            token={token}
+            tasks={careTasks}
+            plans={carePlans}
+            journal={careJournal}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            onSignIn={signIn}
+          />
+        )}
         {screen === "profile" && (
           <ProfileScreen
             tone={TONES.profile}
@@ -821,12 +865,14 @@ function Header({
   account,
   onSearch,
   onNotifications,
+  onCare,
   onProfileTarget,
 }: {
   tone: Tone;
   account: Account | null;
   onSearch: () => void;
   onNotifications: () => void;
+  onCare: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -874,6 +920,7 @@ function Header({
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.realmText}>Profilbild bearbeiten</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>PROFIL & EINSTELLUNGEN</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.realmText}>Weitere Werkzeuge</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.realmText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -2627,6 +2674,29 @@ function CommunityScreen({
       )}
     </Page>
   );
+}
+
+function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
+  const [planTitle, setPlanTitle] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [journalText, setJournalText] = useState("");
+  const [realm, setRealm] = useState<CarePlan["realm"]>("botany");
+  const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const run = async (action: () => Promise<unknown>) => { setBusy(true); try { await action(); await refresh(); } catch (cause) { Alert.alert("Pflege konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
+  const addPlan = () => { if (!token || !planTitle.trim()) return; void run(async () => { const plan = await careCreatePlan(token, { realm, title: planTitle.trim() }); setPlanTitle(""); setSelectedPlan(plan.id); }); };
+  const addTask = () => { if (!token || !selectedPlan || !taskTitle.trim()) return; void run(async () => { await careCreateTask(token, { planId: selectedPlan, title: taskTitle.trim(), dueAt: new Date().toISOString() }); setTaskTitle(""); }); };
+  const addEntry = () => { if (!token || !journalText.trim()) return; void run(async () => { await careAddJournal(token, { note: journalText.trim() }); setJournalText(""); }); };
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <ReferenceHero tone={tone} eyebrow="PRIVATE CARE" title="HEUTE." subtitle="Eine klare Handlung nach der anderen. Pflege bleibt privat und nachvollziehbar." icon="leaf-outline" />
+    {!token ? <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Deine Pflegepläne und Notizen werden nur im eigenen Konto gespeichert." onSignIn={onSignIn} /> : null}
+    {error ? <ErrorNotice text={error} /> : null}
+    <View style={styles.careSectionHeader}><Text style={[styles.eyebrow, { color: tone.accent }]}>JETZT</Text><Text style={styles.sectionTitle}>OFFENE AUFGABEN</Text><Text style={styles.careCount}>{tasks.filter(task => task.status === "open" || task.status === "snoozed").length}</Text></View>
+    {tasks.filter(task => task.status === "open" || task.status === "snoozed").map(task => <View key={task.id} style={[styles.careTask, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="time-outline" size={19} color={tone.accent} /><View style={styles.careTaskCopy}><Text style={styles.cardTitle}>{task.title}</Text><Text style={styles.miniCopy}>{task.status === "snoozed" ? "verschoben" : "offen"}</Text></View><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "done" }))} style={styles.careIconButton}><Ionicons name="checkmark" size={17} color={tone.accent} /></Pressable><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "snoozed", reason: "Später" }))} style={styles.careIconButton}><Ionicons name="play-forward-outline" size={16} color={tone.accent} /></Pressable></View>)}
+    {tasks.filter(task => task.status === "open" || task.status === "snoozed").length === 0 ? <Text style={styles.miniCopy}>Für heute ist nichts offen.</Text> : null}
+    <View style={[styles.carePanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>PLAN</Text><Text style={styles.cardTitle}>PFLEGE ANLEGEN</Text><View style={styles.careRealmRow}>{(["botany", "aquarium", "terrarium"] as const).map(item => <Pressable key={item} onPress={() => setRealm(item)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: realm === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, realm === item && { color: tone.accent }]}>{item === "botany" ? "Botanik" : item === "aquarium" ? "Aquaristik" : "Terraristik"}</Text></Pressable>)}</View><TextInput value={planTitle} onChangeText={setPlanTitle} placeholder="Planname, z. B. Morgenpflege" placeholderTextColor={c.muted} style={styles.careInput} /><PrimaryButton tone={tone} label={busy ? "SPEICHERN …" : "PLAN SPEICHERN"} icon="add" onPress={addPlan} />{plans.length ? <><Text style={[styles.eyebrow, { color: tone.accent }]}>AUFGABE FÜR PLAN</Text><View style={styles.careRealmRow}>{plans.map(plan => <Pressable key={plan.id} onPress={() => setSelectedPlan(plan.id)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: selectedPlan === plan.id ? `${tone.accent}22` : "transparent" }]}><Text style={styles.miniCopy}>{plan.title}</Text></Pressable>)}</View><TextInput value={taskTitle} onChangeText={setTaskTitle} placeholder="z. B. Feuchtigkeit prüfen" placeholderTextColor={c.muted} style={styles.careInput} /><SecondaryButton tone={tone} label={busy ? "SPEICHERN …" : "AUFGABE SPEICHERN"} icon="add" onPress={addTask} /></> : null}</View>
+    <View style={[styles.carePanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>JOURNAL · PRIVAT</Text><Text style={styles.cardTitle}>PFLEGEMOMENT FESTHALTEN</Text><TextInput value={journalText} onChangeText={setJournalText} placeholder="Was hast du beobachtet oder verändert?" placeholderTextColor={c.muted} multiline style={[styles.careInput, styles.careInputLarge]} /><PrimaryButton tone={tone} label={busy ? "SPEICHERN …" : "JOURNAL SPEICHERN"} icon="book-outline" onPress={addEntry} />{journal.slice(0, 3).map(entry => <View key={entry.id} style={styles.careJournal}><Text style={[styles.date, { color: tone.accent }]}>{new Date(entry.observedAt).toLocaleDateString("de-DE")}</Text><Text style={styles.miniCopy}>{entry.note}</Text></View>)}</View>
+  </Page>;
 }
 
 function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void }) {
@@ -4512,6 +4582,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  careSectionHeader: { flexDirection: "row", alignItems: "center", gap: 9, marginTop: 16, marginBottom: 8 },
+  sectionTitle: { flex: 1, color: c.text, fontSize: 20, fontWeight: "900", letterSpacing: 0.6 },
+  careCount: { color: c.botany, fontSize: 18, fontWeight: "900" },
+  careTask: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 15, borderWidth: 1, marginBottom: 8 },
+  careTaskCopy: { flex: 1, gap: 2 },
+  careIconButton: { width: 32, height: 32, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.24)", alignItems: "center", justifyContent: "center" },
+  carePanel: { padding: 14, gap: 9, borderRadius: 17, borderWidth: 1, marginTop: 14 },
+  careRealmRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  careRealmChip: { paddingHorizontal: 9, paddingVertical: 7, borderRadius: 10, borderWidth: 1 },
+  careInput: { minHeight: 45, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: "rgba(199,243,91,.24)", color: c.text, backgroundColor: "rgba(0,0,0,.2)", fontSize: 12 },
+  careInputLarge: { minHeight: 88, paddingTop: 11, textAlignVertical: "top" },
+  careJournal: { paddingTop: 9, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.14)", gap: 3 },
   disabled: { opacity: 0.48 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });

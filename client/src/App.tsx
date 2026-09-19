@@ -21,6 +21,7 @@ import Marketplace from "./pages/Marketplace";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
 import MerchantMarketplace from "./pages/MerchantMarketplace";
 import Notifications from "./pages/Notifications";
+import CareToday from "./pages/CareToday";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -47,6 +48,7 @@ function Router() {
         <Route path={"/explore"} component={Explore} />
         <Route path={"/community"} component={Community} />
         <Route path={"/notifications"} component={Notifications} />
+        <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/ranking"} component={Ranking} />

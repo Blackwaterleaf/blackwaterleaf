@@ -115,6 +115,7 @@ export function AppShell({ children }: PropsWithChildren) {
             <div className="profile-header-menu__panel">
               <span className="profile-header-menu__eyebrow">PROFIL · EINSTELLUNGEN</span>
               <Link href="/profile">Profil öffnen</Link>
+              <Link href="/today">Heute · Pflegeaufgaben</Link>
               <Link href="/profile/private">Privatbereich & Profil bearbeiten</Link>
               <Link href="/profile/habitats">Meine Anlagen</Link>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>

@@ -1321,3 +1321,32 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .community-comment-form textarea { width:100%; resize:vertical; min-height:58px; padding:10px 11px; color:#effff1; border:1px solid rgba(155,243,174,.24); border-radius:12px; background:rgba(4,22,11,.78); font:inherit; }
 .community-comment-form .primary-action { justify-self:end; min-height:34px; }
 @media (max-width:700px) { .community-comment.is-reply { margin-left:10px; } .community-comment-form .primary-action { width:100%; } }
+
+/* Phase 2: private Care engine and Today view. */
+.care-page { max-width: 980px; margin: 0 auto; }
+.care-page__hero { display: grid; gap: 10px; }
+.care-page__hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 4px; }
+.care-page__privacy { display: inline-flex; align-items: center; gap: 6px; color: #b6d8bc; font-size: .74rem; letter-spacing: .08em; }
+.care-panel { margin-top: 16px; padding: 18px; border: 1px solid rgba(199,243,91,.24); border-radius: 22px; background: linear-gradient(145deg, rgba(7,24,13,.96), rgba(5,18,11,.86)); box-shadow: 0 18px 45px rgba(0,0,0,.16); }
+.care-panel__heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.care-panel__heading h2 { margin: 2px 0 0; font-size: 1.2rem; }
+.care-count { display: grid; place-items: center; min-width: 34px; height: 34px; border: 1px solid rgba(199,243,91,.45); border-radius: 50%; color: #c7f35b; font-weight: 800; }
+.care-task-list { display: grid; gap: 8px; }
+.care-task { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 11px; padding: 11px 12px; border: 1px solid rgba(199,243,91,.16); border-radius: 15px; background: rgba(12,42,22,.64); }
+.care-task__icon { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 10px; color: #c7f35b; background: rgba(199,243,91,.1); }
+.care-task__copy { display: grid; gap: 3px; min-width: 0; }
+.care-task__copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.care-task__copy span, .care-empty { color: #a9c5ae; font-size: .82rem; }
+.care-task__actions { display: flex; gap: 5px; }
+.care-task__actions .icon-button { width: 32px; height: 32px; border-color: rgba(199,243,91,.24); color: #c7f35b; }
+.care-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.care-form { display: grid; gap: 10px; }
+.care-form label { display: grid; gap: 5px; color: #c5d9c8; font-size: .78rem; }
+.care-form input, .care-form select, .care-form textarea { width: 100%; border: 1px solid rgba(199,243,91,.22); border-radius: 12px; padding: 10px 11px; color: #f3fff5; background: rgba(2,13,7,.72); outline: none; }
+.care-form input:focus, .care-form select:focus, .care-form textarea:focus { border-color: #c7f35b; box-shadow: 0 0 0 3px rgba(199,243,91,.12); }
+.care-form textarea { min-height: 94px; resize: vertical; }
+.care-form .button { justify-content: center; }
+.care-journal-entry { display: grid; grid-template-columns: 90px minmax(0,1fr); gap: 12px; padding: 10px 0; border-top: 1px solid rgba(199,243,91,.12); }
+.care-journal-entry span { color: #c7f35b; font-size: .75rem; }
+.care-journal-entry p { margin: 0; color: #d9e9db; white-space: pre-wrap; }
+@media (max-width: 720px) { .care-grid { grid-template-columns: 1fr; } .care-panel { padding: 14px; border-radius: 18px; } .care-task__copy strong { font-size: .9rem; } }
