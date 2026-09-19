@@ -5,6 +5,7 @@ import { challengeProgress, challenges, mediaAssets, xpEvents } from "../../driz
 import { observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, router, staffProcedure, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
+import { appendAuditEntry } from "../auditLedger";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -65,12 +66,19 @@ export const challengesRouter = router({
     if (input.endsAt <= input.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "challenge_window_invalid" });
     const db = await requireDatabase();
     const inserted = await db.insert(challenges).values({ ...input, realm: input.realm ?? null, status: "draft", createdByUserId: ctx.user.id }).$returningId();
-    return { id: inserted[0]?.id } as const;
+    const id = inserted[0]?.id;
+    if (!id) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "challenge_create_failed" });
+    await appendAuditEntry({ actorId: ctx.user.id, action: "challenge_draft_created", targetType: "challenge", targetId: id, payload: { status: "draft", realm: input.realm ?? null } });
+    return { id } as const;
   }),
 
-  publish: staffProcedure.input(challengeId).mutation(async ({ input }) => {
+  publish: staffProcedure.input(challengeId).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
+    const [challenge] = await db.select({ id: challenges.id, status: challenges.status }).from(challenges).where(eq(challenges.id, input.challengeId)).limit(1);
+    if (!challenge) throw new TRPCError({ code: "NOT_FOUND", message: "challenge_not_found" });
+    if (challenge.status === "published") return { published: true, changed: false } as const;
     await db.update(challenges).set({ status: "published" }).where(eq(challenges.id, input.challengeId));
-    return { published: true } as const;
+    await appendAuditEntry({ actorId: ctx.user.id, action: "challenge_published", targetType: "challenge", targetId: input.challengeId, payload: { before: challenge.status, after: "published" } });
+    return { published: true, changed: true } as const;
   }),
 });

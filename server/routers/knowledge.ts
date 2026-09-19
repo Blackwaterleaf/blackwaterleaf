@@ -11,6 +11,7 @@ import {
 } from "../../shared/blackwaterleaf-contract-v1";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
+import { appendAuditEntry } from "../auditLedger";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -75,9 +76,11 @@ export const knowledgeRouter = router({
         sources: z.array(knowledgeSourceSchema).min(1).max(50),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
       const inserted = await db.insert(knowledgeArticles).values({ ...input, isPublished: false });
-      return { id: String(inserted[0].insertId), status: "draft" } as const;
+      const id = Number(inserted[0].insertId);
+      await appendAuditEntry({ actorId: ctx.user.id, action: "knowledge_draft_created", targetType: "knowledge_article", targetId: id, payload: { slug: input.slug, locale: input.locale, evidenceState: input.evidenceState, status: "draft" } });
+      return { id: String(id), status: "draft" } as const;
     }),
 });
