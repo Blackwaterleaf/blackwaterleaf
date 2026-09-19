@@ -281,10 +281,10 @@ export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const marketplaceEvent = (input: { eventId: string; productId: number; eventType: "outbound_click" | "purchase_intent" }) =>
   trpcPost<{ recorded: boolean; eventId: string }>("partners.marketplaceEvent", input, "");
-export const communityFeed = () =>
-  trpcGet<CommunityPost[]>("community.feed", { limit: 40 });
-export const communityComments = (postId: number) =>
-  trpcGet<CommunityComment[]>("community.comments", { postId });
+export const communityFeed = (token: string) =>
+  trpcGet<CommunityPost[]>("community.feed", { limit: 40 }, token);
+export const communityComments = (token: string, postId: number) =>
+  trpcGet<CommunityComment[]>("community.comments", { postId }, token);
 export const addCommunityComment = (
   token: string,
   input: { postId: number; content: string; parentId?: number | null },

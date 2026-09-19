@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, isNull, lt, notInArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lt, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { communityPosts, communityReports, mediaAssets, notifications, postComments, postLikes, userBlocks, users } from "../../drizzle/schema";
+import { communityPosts, communityReports, mediaAssets, notifications, postComments, postLikes, userBlocks, userFollows, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
@@ -69,13 +69,11 @@ async function publicMediaForPost(postId: number, userId: number) {
 }
 
 export const communityRouter = router({
-  feed: publicProcedure
+  feed: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const blockedAuthorIds = ctx.user
-        ? (await db.select({ id: userBlocks.blockedId }).from(userBlocks).where(eq(userBlocks.blockerId, ctx.user.id))).map(item => item.id)
-        : [];
+      const blockedAuthorIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, ctx.user.id)))).map(item => item.blockerId === ctx.user.id ? item.blockedId : item.blockerId);
       const rows = await db
         .select({ post: communityPosts, author: users })
         .from(communityPosts)
@@ -125,6 +123,27 @@ export const communityRouter = router({
         })),
       );
     }),
+
+  byId: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const blockedAuthorIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, ctx.user.id)))).map(item => item.blockerId === ctx.user.id ? item.blockedId : item.blockerId);
+    const rows = await db.select({ post: communityPosts, author: users }).from(communityPosts).innerJoin(users, eq(communityPosts.userId, users.id)).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.status, "published"), eq(communityPosts.visibility, "public"), eq(users.status, "active"), ...(blockedAuthorIds.length ? [notInArray(communityPosts.userId, blockedAuthorIds)] : []))).limit(1);
+    const row = rows[0];
+    if (!row || !canReadCommunityPost({ authorStatus: row.author.status, visibility: row.post.visibility, publicationStatus: row.post.status })) throw new TRPCError({ code: "NOT_FOUND", message: "community_post_not_found" });
+    return {
+      contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
+      id: String(row.post.id),
+      author: { id: String(row.author.id), name: row.author.name, username: row.author.username, avatarUrl: row.author.avatarStorageKey ? await storageGetSignedUrl(row.author.avatarStorageKey).catch(() => null) : null, role: row.author.role, status: row.author.status, roleOrigin: "server_verified" as const },
+      content: row.post.content,
+      realm: row.post.realm,
+      media: await publicMediaForPost(row.post.id, row.post.userId),
+      visibility: "public" as const,
+      likesCount: row.post.likesCount,
+      commentsCount: row.post.commentsCount,
+      createdAt: row.post.createdAt.toISOString(),
+      updatedAt: row.post.updatedAt.toISOString(),
+    };
+  }),
 
   myPosts: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
@@ -306,8 +325,9 @@ export const communityRouter = router({
     return { liked: true } as const;
   }),
 
-  comments: publicProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ input }) => {
+  comments: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).query(async ({ ctx, input }) => {
     const db = await requireDatabase();
+    const blockedUserIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, ctx.user.id)))).map(item => item.blockerId === ctx.user.id ? item.blockedId : item.blockerId);
     const visible = await db
       .select({ id: communityPosts.id })
       .from(communityPosts)
@@ -316,6 +336,7 @@ export const communityRouter = router({
           eq(communityPosts.id, input.postId),
           eq(communityPosts.status, "published"),
           eq(communityPosts.visibility, "public"),
+          ...(blockedUserIds.length ? [notInArray(communityPosts.userId, blockedUserIds)] : []),
         ),
       )
       .limit(1);
@@ -338,6 +359,7 @@ export const communityRouter = router({
           eq(postComments.postId, input.postId),
           eq(postComments.status, "visible"),
           eq(users.status, "active"),
+          ...(blockedUserIds.length ? [notInArray(postComments.userId, blockedUserIds)] : []),
         ),
       )
       .orderBy(postComments.createdAt);
@@ -449,7 +471,10 @@ export const communityRouter = router({
       const db = await requireDatabase();
       const [target] = await db.select({ id: users.id, status: users.status }).from(users).where(eq(users.id, input.userId)).limit(1);
       if (!target || target.status !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "user_not_found" });
-      await db.insert(userBlocks).values({ blockerId: ctx.user.id, blockedId: input.userId }).onDuplicateKeyUpdate({ set: { blockedId: input.userId } });
+      await db.transaction(async tx => {
+        await tx.insert(userBlocks).values({ blockerId: ctx.user.id, blockedId: input.userId }).onDuplicateKeyUpdate({ set: { blockedId: input.userId } });
+        await tx.update(userFollows).set({ status: "removed", updatedAt: new Date() }).where(or(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, input.userId)), and(eq(userFollows.followerId, input.userId), eq(userFollows.followingId, ctx.user.id))));
+      });
       await appendAuditEntry({ actorId: ctx.user.id, action: "community_user_blocked", targetType: "user", targetId: input.userId, payload: {} });
       return { blocked: true, userId: input.userId } as const;
     }),

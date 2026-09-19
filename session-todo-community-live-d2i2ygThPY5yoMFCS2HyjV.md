@@ -1,0 +1,14 @@
+# BlackWaterLeaf Community Detail & Live Hub
+
+- [x] Audit the existing community, social and authenticated-access contracts.
+- [x] Add authenticated live-session and live-message schema with migration.
+- [x] Protect community feed, post detail, comments and live data with server-side authentication.
+- [x] Implement a post-detail route with full discussion, author controls, report/block controls and links from the feed.
+- [x] Implement the Live Hub with separate community and verified expert tracks, attendee chat, staff scheduling and truthful availability states.
+- [x] Add blocked-account management with unblock controls in the private profile area.
+- [x] Extend native parity where existing native Community screens expose matching navigation or controls.
+- [x] Add regression coverage, apply database migration, validate web/native builds and save a checkpoint.
+
+## Additional completed SEO correction
+
+The only image in the shared homepage shell now carries the descriptive alternative text `BlackWaterLeaf Logo`. Regression coverage enforces this requirement without changing title, description, keyword or heading lengths.

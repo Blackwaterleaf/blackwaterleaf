@@ -757,6 +757,49 @@ export const postComments = mysqlTable(
   ],
 );
 
+/** Authenticated community streams and staff-approved expert lectures. */
+export const liveSessions = mysqlTable(
+  "live_sessions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    hostUserId: int("hostUserId").notNull().references(() => users.id),
+    track: mysqlEnum("track", ["community", "expert"]).notNull(),
+    title: varchar("title", { length: 180 }).notNull(),
+    description: text("description").notNull(),
+    realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]),
+    presenterName: varchar("presenterName", { length: 160 }).notNull(),
+    presenterCredential: varchar("presenterCredential", { length: 160 }),
+    streamUrl: varchar("streamUrl", { length: 1_000 }),
+    status: mysqlEnum("status", ["scheduled", "live", "ended", "cancelled"]).default("scheduled").notNull(),
+    startsAt: timestamp("startsAt").notNull(),
+    endsAt: timestamp("endsAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("live_sessions_member_feed_idx").on(table.status, table.track, table.startsAt),
+    index("live_sessions_host_status_idx").on(table.hostUserId, table.status, table.updatedAt),
+  ],
+);
+
+/** Moderated authenticated chat attached to a single live session. */
+export const liveSessionMessages = mysqlTable(
+  "live_session_messages",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    sessionId: int("sessionId").notNull().references(() => liveSessions.id, { onDelete: "cascade" }),
+    userId: int("userId").notNull().references(() => users.id),
+    content: varchar("content", { length: 2_000 }).notNull(),
+    status: mysqlEnum("status", ["visible", "hidden", "removed"]).default("visible").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("live_session_messages_session_status_created_idx").on(table.sessionId, table.status, table.createdAt),
+    index("live_session_messages_user_created_idx").on(table.userId, table.createdAt),
+  ],
+);
+
 export const moderationLogs = mysqlTable(
   "moderation_logs",
   {
@@ -1069,6 +1112,8 @@ export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
 export type SmartDeviceMeasurementRecord = typeof smartDeviceMeasurements.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
 export type CommunityPostRecord = typeof communityPosts.$inferSelect;
+export type LiveSessionRecord = typeof liveSessions.$inferSelect;
+export type LiveSessionMessageRecord = typeof liveSessionMessages.$inferSelect;
 export type AuditLedgerEntryRecord = typeof auditLedgerEntries.$inferSelect;
 export type PartnerProfileRecord = typeof partnerProfiles.$inferSelect;
 export type PartnerProductRecord = typeof partnerProducts.$inferSelect;

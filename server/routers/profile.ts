@@ -135,7 +135,7 @@ export const profileRouter = router({
       : null;
   }),
 
-  publicPosts: publicProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
+  publicPosts: protectedProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
     const db = await requireDatabase();
     return db
       .select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt })

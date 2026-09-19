@@ -6,6 +6,7 @@ import { HOME_SEO_KEYWORDS, HOME_SEO_TITLES } from "../client/src/lib/seo";
 const projectRoot = resolve(import.meta.dirname, "..");
 const indexHtml = readFileSync(resolve(projectRoot, "client/index.html"), "utf8");
 const homePage = readFileSync(resolve(projectRoot, "client/src/pages/Home.tsx"), "utf8");
+const appShell = readFileSync(resolve(projectRoot, "client/src/components/AppShell.tsx"), "utf8");
 
 describe("Startseite: SEO- und Zugänglichkeitsgrundlagen", () => {
   it("enthält zwischen drei und acht fokussierten Meta-Keywords", () => {
@@ -24,5 +25,9 @@ describe("Startseite: SEO- und Zugänglichkeitsgrundlagen", () => {
     expect(homePage).toContain('aria-label={locale === "de" ? "BlackWaterLeaf Portale"');
     for (const token of ["Botanik", "Aquaristik", "Terraristik", "Wasserpflanzen & Wissen", "Fische & Wirbellose", "Terrarien & Lebensräume"]) expect(homePage).toContain(token);
     expect(homePage).toContain("home-portal-row");
+  });
+
+  it("gibt dem einzigen Startseiten-Logo einen beschreibenden Alternativtext", () => {
+    expect(appShell).toContain('alt="BlackWaterLeaf Logo"');
   });
 });

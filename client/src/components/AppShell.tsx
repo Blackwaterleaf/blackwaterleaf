@@ -110,7 +110,7 @@ export function AppShell({ children }: PropsWithChildren) {
     <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
       <header className="top-shell">
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
-          <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="" /></span>
+          <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="BlackWaterLeaf Logo" /></span>
           <span className="brand-copy"><span className="brand-name">BLACKWATERLEAF</span><small>B: WATER OBSERVATORY PORTAL</small></span>
         </Link>
         <Link href="/search" className="portal-search-trigger" aria-label="Globale Suche öffnen"><Search size={17} /><span>Arten, Orte, Beobachtungen, Tags suchen …</span><kbd>⌘ K</kbd></Link>

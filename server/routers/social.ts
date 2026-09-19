@@ -48,12 +48,13 @@ async function assertNotBlocked(db: Awaited<ReturnType<typeof requireDatabase>>,
 export const socialRouter = router({
   relationship: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
     const db = await requireDatabase();
-    const [followers, following, relationship] = await Promise.all([
+    const [followers, following, relationship, block] = await Promise.all([
       db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followingId, input.id), eq(userFollows.status, "active"))),
       db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followerId, input.id), eq(userFollows.status, "active"))),
       ctx.user ? db.select({ status: userFollows.status }).from(userFollows).where(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, input.id))).limit(1) : Promise.resolve([]),
+      ctx.user ? db.select({ id: userBlocks.id }).from(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.id))).limit(1) : Promise.resolve([]),
     ]);
-    return { followers: Number(followers[0]?.value ?? 0), following: Number(following[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active" } as const;
+    return { followers: Number(followers[0]?.value ?? 0), following: Number(following[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active", isBlockedByMe: Boolean(block[0]) } as const;
   }),
 
   follow: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
@@ -83,6 +84,12 @@ export const socialRouter = router({
     const db = await requireDatabase();
     await db.delete(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.id)));
     return { blocked: false } as const;
+  }),
+
+  blocked: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    const rows = await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl, blockedAt: userBlocks.createdAt }).from(userBlocks).innerJoin(users, eq(userBlocks.blockedId, users.id)).where(eq(userBlocks.blockerId, ctx.user.id)).orderBy(desc(userBlocks.createdAt)).limit(200);
+    return rows.map(row => ({ ...row, id: String(row.id), blockedAt: row.blockedAt.toISOString() }));
   }),
 
   save: protectedProcedure.input(targetInput).mutation(async ({ ctx, input }) => {

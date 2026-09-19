@@ -6,6 +6,9 @@ import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Assistant from "./pages/Assistant";
 import Community from "./pages/Community";
+import CommunityPostDetail from "./pages/CommunityPostDetail";
+import LiveHub from "./pages/LiveHub";
+import LiveSession from "./pages/LiveSession";
 import Explore from "./pages/Explore";
 import Home from "./pages/Home";
 import Knowledge from "./pages/Knowledge";
@@ -54,6 +57,9 @@ function Router() {
         <Route path={"/explore"} component={Explore} />
         <Route path={"/search"} component={Search} />
         <Route path={"/community"} component={Community} />
+        <Route path={"/community/post/:id"} component={CommunityPostDetail} />
+        <Route path={"/live"} component={LiveHub} />
+        <Route path={"/live/:id"} component={LiveSession} />
         <Route path={"/notifications"} component={Notifications} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />

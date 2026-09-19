@@ -515,7 +515,8 @@ function NaturApp() {
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
       if (screen === "explore") setPublicObservationRows(await publicObservations());
-      if (screen === "community") setPosts(await communityFeed());
+      if (screen === "community" && token) setPosts(await communityFeed(token));
+      if (screen === "community" && !token) setPosts([]);
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
@@ -2728,6 +2729,10 @@ function CommunityScreen({
 }) {
   const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
   const visiblePosts = posts.filter(post => realmFilter === "all" || post.realm === realmFilter);
+  if (!token) return <Page>
+    <ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · GESCHÜTZT" title="MITGLIEDERBEREICH." subtitle="Beiträge, Diskussionen und Live-Austausch werden erst nach einer sicheren Anmeldung geladen." icon="people-outline" />
+    <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Der Community-Feed, einzelne Beiträge und Kommentare sind nur für angemeldete, aktive Konten sichtbar." onSignIn={onSignIn} />
+  </Page>;
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <ObservatoryContextHeader
@@ -3440,7 +3445,7 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [commentPending, setCommentPending] = useState(false);
-  const loadComments = async () => setComments(await communityComments(Number(post.id)));
+  const loadComments = async () => { if (token) setComments(await communityComments(token, Number(post.id))); };
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
     setCommentPending(true);
