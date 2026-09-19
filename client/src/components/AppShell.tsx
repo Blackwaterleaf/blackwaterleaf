@@ -37,6 +37,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const utils = trpc.useUtils();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const unreadNotifications = trpc.notifications.unreadCount.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const dailyCheckIn = trpc.gamification.dailyCheckIn.useMutation({
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
@@ -105,7 +106,10 @@ export function AppShell({ children }: PropsWithChildren) {
         <div className="top-actions">
           <Link href="/explore" className="icon-button" aria-label={t("tabs.explore")}><Search size={18} /></Link>
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
-          <Link href="/community" className="icon-button notification-button" aria-label={t("tabs.community")}><Bell size={18} /></Link>
+          <Link href="/notifications" className="icon-button notification-button" aria-label="Benachrichtigungen">
+            <Bell size={18} />
+            {auth.isAuthenticated && unreadNotifications.data?.count ? <span className="notification-badge" aria-label={`${unreadNotifications.data.count} ungelesene Benachrichtigungen`}>{unreadNotifications.data.count > 9 ? "9+" : unreadNotifications.data.count}</span> : null}
+          </Link>
           <details className="profile-header-menu">
             <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
             <div className="profile-header-menu__panel">
