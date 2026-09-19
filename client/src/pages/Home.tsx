@@ -1,5 +1,4 @@
 import { LeafCore } from "@/components/LeafCore";
-import { InstallAppButton } from "@/components/InstallAppButton";
 import { StatePanel } from "@/components/StatePanel";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
@@ -37,7 +36,6 @@ export default function Home() {
           <div className="hero-actions">
             <Link href="/explore" className="primary-action">{t("home.hero.action")}<ArrowRight size={16} /></Link>
             <Link href="/profile" className="hero-text-link">{locale === "de" ? "Mein Bereich" : "My area"}</Link>
-            <InstallAppButton locale={locale} />
           </div>
         </div>
       </section>
