@@ -1,8 +1,10 @@
-# BlackWaterLeaf Portal Design Rules V2
+# BlackWaterLeaf Observatory Portal — verbindliche Designquelle
 
-## Verbindliche Referenz
+## Verbindliche Referenz — kein Mischdesign
 
-Die neue Referenz ist ein **wissenschaftliches Natur-Observatory-Portal**. Das bisherige fehlerhafte Mockup wird nicht weiter als führende Designquelle verwendet. Bestehende Funktionen, Daten, Authentifizierung, Datenschutz, Rollen, Community, Marktplatz und KI werden in diese neue visuelle und strukturelle Sprache integriert.
+Die **Observatory-Portal-Referenz ist ab sofort die einzige gültige Designquelle** für BlackWaterLeaf Web und Native. Das frühere Mockup, Legacy-Layout, alte Kartenraster, frühere Header-/Footer-Varianten und daraus abgeleitete Zwischenlösungen sind verworfen und dürfen nicht mehr als visuelle Referenz, Fallback oder Mischbestandteil verwendet werden. Bestehende Funktionen, Daten, Authentifizierung, Datenschutz, Rollen, Community, Marktplatz und KI werden vollständig in diese eine visuelle und strukturelle Sprache überführt.
+
+Bei einem Konflikt gilt ausschließlich diese Datei und die aktuelle Observatory-Portal-Referenz. Ein Bereich gilt nicht als fertig, wenn er nur durch globale CSS-Überlagerung ähnlich aussieht; seine eigene Seitenstruktur, Hierarchie, Zustände und Navigation müssen dem Portalmodell entsprechen.
 
 ## Leitidee
 
@@ -10,7 +12,7 @@ BlackWaterLeaf wirkt wie ein Portal in eine lebendige wissenschaftliche Naturwel
 
 ## Gemeinsame Struktur Web und Native
 
-Web und Native verwenden dieselbe Informationsarchitektur, dieselben Begriffe, dieselbe Reihenfolge der Kernaktionen, dieselben Zustände und dieselben Farbtöne. Nur die Anordnung wird an Desktop beziehungsweise Touch angepasst.
+Web und Native verwenden dieselbe Informationsarchitektur, dieselben Begriffe, dieselbe Reihenfolge der Kernaktionen, dieselben Zustände, dieselben Bildmotive, dieselben Farbtöne und dieselben Icon-Bedeutungen. Nur die Anordnung wird an Desktop beziehungsweise Touch angepasst. Native wird als echte Expo-Oberfläche umgesetzt und niemals als WebView- oder Screenshot-Hülle.
 
 Die Primärnavigation lautet: **Entdecken, Karte, Erfassen, Katalog, Profil**. Community, Marktplatz, KI und Live sind kontextuell aus Entdecken, Erfassen und den jeweiligen Fachbereichen erreichbar und dürfen nicht als unverbundene Sonderseiten erscheinen.
 
@@ -64,4 +66,4 @@ Jede Aktion erhält sichtbares Feedback. Pull-to-Refresh ist für private Listen
 
 ## Abnahme
 
-Ein Release ist erst abnahmefähig, wenn Web und Native in Sprache, Farbton, Icon-Bedeutung, Route, Ladezustand, Datenzugriff, Privatsphäre und Kernfunktion 1:1 übereinstimmen. Die bestehenden Funktionen werden erhalten und in diese Regeln eingepasst; bei Konflikten gilt diese V2-Regel als führend.
+Ein Release ist erst abnahmefähig, wenn Web und Native in Sprache, Farbton, Icon-Bedeutung, Route, Ladezustand, Datenzugriff, Privatsphäre und Kernfunktion 1:1 übereinstimmen. Jede Hauptseite wird visuell einzeln geprüft; ein geänderter Startbildschirm gilt nicht als Nachweis für geänderte Unterseiten. Die bestehenden Funktionen werden erhalten und in diese Regeln eingepasst; bei Konflikten gilt diese Observatory-Regel als führend.

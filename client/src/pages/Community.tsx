@@ -1,12 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { ReferenceEmptyState, ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
-import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
+import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
-import { Camera, Heart, MessageCircle, Pencil, Save as SaveIcon, Send, Trash2, UsersRound } from "lucide-react";
+import { ArrowRight, Camera, Heart, MessageCircle, Pencil, Save as SaveIcon, Send, Trash2, UsersRound } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 
 const COMMUNITY_POLICY_VERSION = "community-2026-09-16-v1";
@@ -104,10 +103,10 @@ export default function Community() {
   };
 
   return (
-    <div className="reference-page reference-page--botany reference-page--community">
-      <ReferenceHero tone="botany" image={REFERENCE_ASSETS.botany} eyebrow="GEMEINSAM WACHSEN" title={t("community.title")} subtitle={locale === "de" ? "Echte Naturmomente von echten Konten." : "Real nature moments from real accounts."} icon={UsersRound} badge="BLACKWATERLEAF" />
-      <div className="community-feed-filters" aria-label="Community-Bereiche">{[["all", "Feed"], ["botany", "Botanik"], ["aquarium", "Aquaristik"], ["terrarium", "Terraristik"]].map(([value, label]) => <button key={value} type="button" className={feedRealm === value ? "is-selected" : ""} onClick={() => setFeedRealm(value as typeof feedRealm)}>{label}</button>)}<button type="button" className="community-feed-compose" onClick={() => auth.isAuthenticated ? setComposeOpen(true) : startLogin}><Send size={14} />Beitrag erstellen</button></div>
-      {feed.isLoading ? <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} /> : feed.isError ? <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={locale === "de" ? "Der Feed konnte nicht geladen werden. Es werden keine Ersatzbeiträge angezeigt." : "The feed could not be loaded. No replacement posts are shown."} /> : !feed.data?.length ? <ReferenceEmptyState tone="botany" code="FEED / EMPTY" title={t("community.emptyTitle")} body={t("community.emptyBody")} action={!auth.isAuthenticated ? <button type="button" className="primary-action" onClick={startLogin}>{t("common.signIn")}</button> : <button type="button" className="primary-action" onClick={() => setComposeOpen(true)}><Send size={16} />{locale === "de" ? "BEITRAG ERSTELLEN" : "CREATE POST"}</button>} /> : <div className="community-feed">{feed.data.filter(post => feedRealm === "all" || post.realm === feedRealm).map(post => {
+    <div className="observatory-community-page">
+      <header className="observatory-community-hero" style={{ backgroundImage: `url(${REFERENCE_ASSETS.botany})` }}><div><span className="eyebrow">COMMUNITY · FACHLICH KURATIERT</span><h1>{locale === "de" ? "ECHTE NATURMOMENTE." : "REAL NATURE MOMENTS."}</h1><p>{locale === "de" ? "Teilen, lernen und gemeinsam verifizieren." : "Share, learn and verify together."}</p></div><UsersRound size={34} /></header>
+      <div className="observatory-community-toolbar"><div className="community-feed-filters" aria-label="Community-Bereiche">{[["all", "Feed"], ["botany", "Botanik"], ["aquarium", "Aquaristik"], ["terrarium", "Terraristik"]].map(([value, label]) => <button key={value} type="button" className={feedRealm === value ? "is-selected" : ""} onClick={() => setFeedRealm(value as typeof feedRealm)}>{label}</button>)}</div><button type="button" className="community-feed-compose" onClick={() => auth.isAuthenticated ? setComposeOpen(true) : startLogin}><Send size={14} />Beitrag erstellen <ArrowRight size={14} /></button></div>
+      {feed.isLoading ? <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} /> : feed.isError ? <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={locale === "de" ? "Der Feed konnte nicht geladen werden. Es werden keine Ersatzbeiträge angezeigt." : "The feed could not be loaded. No replacement posts are shown."} /> : !feed.data?.length ? <section className="observatory-community-empty"><span className="eyebrow">FEED / EMPTY</span><h2>{t("community.emptyTitle")}</h2><p>{t("community.emptyBody")}</p>{!auth.isAuthenticated ? <button type="button" className="primary-action" onClick={startLogin}>{t("common.signIn")}</button> : <button type="button" className="primary-action" onClick={() => setComposeOpen(true)}><Send size={16} />{locale === "de" ? "BEITRAG ERSTELLEN" : "CREATE POST"}</button>}</section> : <div className="community-feed">{feed.data.filter(post => feedRealm === "all" || post.realm === feedRealm).map(post => {
           const isOwner = Boolean(auth.user?.id && String(auth.user.id) === String(post.author.id));
           return <CommunityPostCard key={post.id} post={post} isOwner={isOwner} locale={locale} onLike={() => void like(post.id)} onEdit={() => beginEdit({ id: Number(post.id), content: post.content, visibility: post.visibility, realm: post.realm })} onDelete={() => { if (window.confirm("Diesen eigenen Beitrag wirklich löschen?")) void deletePost.mutateAsync({ postId: Number(post.id) }).then(() => Promise.all([utils.community.feed.invalidate()])); }} />;
         })}</div>}

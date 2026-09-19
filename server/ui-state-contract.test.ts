@@ -25,7 +25,7 @@ describe("honest UI state contract", () => {
 
   it("declares real feed, knowledge and AI policy states", () => {
     const community = routeSource("Community.tsx"); const knowledge = routeSource("Knowledge.tsx"); const assistant = routeSource("Assistant.tsx");
-    for (const token of ['code="FEED/CONNECT"', 'code="FEED/ERROR"', 'code="FEED / EMPTY"']) expect(community).toContain(token);
+    for (const token of ['code="FEED/CONNECT"', 'code="FEED/ERROR"', 'FEED / EMPTY', 'observatory-community-empty']) expect(community).toContain(token);
     for (const token of ['code="KNOWLEDGE/CONNECT"', 'code="KNOWLEDGE/ERROR"', 'code="WISSEN / EMPTY"']) expect(knowledge).toContain(token);
     for (const token of ["AI/CHECKING", "AI/STATUS_ERROR", "AI/POLICY_LOCK"]) expect(assistant).toContain(token);
   });

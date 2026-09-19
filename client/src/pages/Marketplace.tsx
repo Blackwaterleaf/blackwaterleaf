@@ -1,4 +1,3 @@
-import { ReferenceHero } from "@/components/ReferenceOverlay";
 import { StatePanel } from "@/components/StatePanel";
 import { readMarketplaceFavorites, toggleMarketplaceFavorite, writeMarketplaceFavorites } from "@/lib/marketplaceCart";
 import { filterMarketplaceProducts, marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceProduct } from "@/lib/marketplacePresentation";
@@ -35,16 +34,8 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="marketplace-page reference-page reference-page--marketplace">
-      <ReferenceHero
-        tone="marketplace"
-        icon={ShoppingBag}
-        eyebrow="BLACKWATERLEAF MARKTPLATZ"
-        title="GUTES FINDET SEINEN ORT."
-        subtitle="Entdecke sorgfältig freigegebene Angebote unserer Partner für Aquaristik, Botanik und Terraristik."
-        image={REFERENCE_ASSETS.aquarium}
-        badge="PARTNER-ANGEBOTE"
-      />
+    <div className="observatory-marketplace-page marketplace-page">
+      <header className="observatory-marketplace-hero" style={{ backgroundImage: `url(${REFERENCE_ASSETS.aquarium})` }}><div><span className="eyebrow">MARKTPLATZ · KURATIERT</span><h1>GUTES FINDET SEINEN ORT.</h1><p>Transparente Partnerangebote für Aquaristik, Botanik und Terraristik.</p></div><ShoppingBag size={34} /></header>
 
       <section className="marketplace-entry glass-panel" aria-label="Marktplatz Einstieg">
         <div className="marketplace-entry__icon"><ShoppingBag size={20} /></div>

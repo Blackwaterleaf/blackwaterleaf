@@ -32,15 +32,18 @@ describe("reference-overlay routes", () => {
     for (const token of ['.reference-hero', '.reference-action-grid', '.reference-empty-state', '--reference-botany', '--reference-aquarium', '--reference-terrarium', '--reference-ai']) expect(styles).toContain(token);
   });
 
-  it("recomposes every supplied target area to reusable reference components", () => {
-    for (const file of ['Explore.tsx', 'Community.tsx', 'Knowledge.tsx', 'Assistant.tsx', 'Realm.tsx']) {
-      const source = page(file);
-      expect(source).toContain('ReferenceHero');
-    }
+  it("keeps the canonical Observatory Explore surface independent from the retired overlay composition", () => {
+    const explore = page('Explore.tsx');
+    expect(explore).toContain('observatory-explore-page');
+    expect(explore).toContain('observatory-portal-grid');
+    expect(explore).toContain('observatory-observation-panel');
+    expect(explore).not.toContain('ReferenceHero');
     const profile = page('Profile.tsx');
     expect(profile).toContain('profile-page-only');
     expect(profile).not.toContain('<LiveSensorStrip');
     expect(profile).not.toContain('<ReferenceHero');
-    for (const file of ['Community.tsx', 'Knowledge.tsx', 'Assistant.tsx', 'Realm.tsx']) expect(page(file)).toContain('ReferenceEmptyState');
+    expect(styles).toContain('.observatory-explore-page');
+    expect(styles).toContain('.observatory-portal-card');
+    expect(styles).toContain('.observatory-feature-card');
   });
 });

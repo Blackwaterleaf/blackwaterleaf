@@ -8,7 +8,7 @@ const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 const webShell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
 const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
 const native = readFileSync(resolve(root, "mobile-natur/App.tsx"), "utf8");
-const rulebook = readFileSync(resolve(root, "docs/DESIGN_RULEBOOK_V2_REFERENCE_OVERLAY.md"), "utf8");
+const rulebook = readFileSync(resolve(root, "docs/BLACKWATERLEAF_PORTAL_DESIGN_RULES_V2.md"), "utf8");
 
 describe("cross-platform BlackWaterLeaf brand parity", () => {
   it("maps calendar seasons without using weather data", () => {
@@ -26,8 +26,8 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
   });
 
   it("uses the dedicated marketplace tone on web and native", () => {
-    expect(marketplace).toContain('reference-page--marketplace');
-    expect(marketplace).toContain('tone="marketplace"');
+    expect(marketplace).toContain('observatory-marketplace-page');
+    expect(marketplace).toContain('observatory-marketplace-hero');
     expect(native).toContain('market: "#D9AD69"');
     expect(native).toContain('screen: "marketplace"');
     expect(native).toContain('label: "Marktplatz"');
@@ -35,9 +35,9 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
   });
 
   it("records the confirmed visual contract in the binding rulebook", () => {
-    expect(rulebook).toContain("Originalmarke");
-    expect(rulebook).toContain("Amber/Champagner");
-    expect(rulebook).toContain("saisonale Waldlogik");
-    expect(rulebook).toContain("keine erfundenen Wetter-, Sensor- oder Standortdaten");
+    expect(rulebook).toContain("Observatory-Portal-Referenz ist ab sofort die einzige gültige Designquelle");
+    expect(rulebook).toContain("kein Mischdesign");
+    expect(rulebook).toContain("Aqua-Cyan");
+    expect(rulebook).toContain("Keine Fake-Daten");
   });
 });
