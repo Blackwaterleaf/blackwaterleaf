@@ -15,7 +15,7 @@ const moments = readFileSync(resolve(root, "mobile-natur/src/MomentCapture.tsx")
 describe("BlackWaterLeaf native application contract", () => {
   it("is explicitly the native BlackWaterLeaf product app, never the Studio client", () => {
     expect(appConfig).toContain('"name": "BlackWaterLeaf"');
-    expect(appConfig).toContain('"slug": "blackwater-agent"');
+    expect(appConfig).toContain('"slug": "bwl"');
     expect(appConfig).toContain('"package": "com.blackwaterleaf"');
     expect(app).not.toContain("BlackWaterLeaf Studio");
     expect(app).not.toContain("CONTROL API");

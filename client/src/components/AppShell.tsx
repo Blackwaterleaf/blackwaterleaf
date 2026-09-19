@@ -160,7 +160,7 @@ export function AppShell({ children }: PropsWithChildren) {
       </aside>
       <ConnectionStateBanner />
       <AnalyticsTracker />
-      <main className={`app-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>
+      <main className={`app-content portal-route-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>
       <nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`} aria-label="Hauptnavigation">
         {bottomNavigation.map(item => {
           const Icon = item.icon;

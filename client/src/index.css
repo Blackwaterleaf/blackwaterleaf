@@ -1496,3 +1496,90 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
   .portal-quick-grid { grid-template-columns: 1fr; }
   .portal-quick-card { min-height: 84px; }
 }
+
+
+/* Observatory Portal V2 — shared visual contract for every route, not only Home. */
+.portal-route-content { position: relative; }
+.portal-route-content > .reference-page,
+.portal-route-content > .page-stack,
+.portal-route-content > .home-stack,
+.portal-route-content > .assistant-page { width: 100%; max-width: 1180px; margin-inline: auto; }
+.portal-route-content .reference-page { display: grid; gap: 18px; }
+.portal-route-content .reference-page > * { min-width: 0; }
+.portal-route-content .reference-hero,
+.portal-route-content .page-hero,
+.portal-route-content .assistant-orbit,
+.portal-route-content .public-profile-hero,
+.portal-route-content .plant-taxon-hero { border: 1px solid rgba(158,252,118,.58); border-radius: 22px; background-color: #071a0d; box-shadow: 0 22px 60px rgba(0,0,0,.30), inset 0 1px rgba(238,255,236,.08); }
+.portal-route-content .reference-action-grid,
+.portal-route-content .world-grid,
+.portal-route-content .search-results,
+.portal-route-content .community-feed,
+.portal-route-content .marketplace-grid,
+.portal-route-content .profile-habitat-choice-grid { gap: 12px; }
+.portal-route-content .glass-panel,
+.portal-route-content .state-panel,
+.portal-route-content .reference-list-empty,
+.portal-route-content .observation-card,
+.portal-route-content .assistant-result-card,
+.portal-route-content .public-profile-note,
+.portal-route-content .taxon-care-card,
+.portal-route-content .challenge-card,
+.portal-route-content .saved-item-card,
+.portal-route-content .marketplace-card { border-color: rgba(158,252,118,.28); border-radius: 17px; background: linear-gradient(145deg, rgba(11,43,22,.88), rgba(3,19,10,.94)); box-shadow: inset 0 1px rgba(238,255,236,.06), 0 14px 34px rgba(0,0,0,.20); }
+.portal-route-content .section-heading,
+.portal-route-content .form-heading,
+.portal-route-content .profile-reference-title,
+.portal-route-content .public-profile-title { border-bottom: 1px solid rgba(158,252,118,.17); padding-bottom: 10px; }
+.portal-route-content h1,
+.portal-route-content h2,
+.portal-route-content h3,
+.portal-route-content h4 { color: #f2fff1; }
+.portal-route-content input,
+.portal-route-content textarea,
+.portal-route-content select { color: #effff4; border: 1px solid rgba(158,252,118,.30); border-radius: 10px; background: rgba(3,18,9,.82); }
+.portal-route-content input:focus,
+.portal-route-content textarea:focus,
+.portal-route-content select:focus { border-color: #b9fb7f; box-shadow: 0 0 0 3px rgba(185,251,127,.12); }
+.portal-route-content .primary-action { background: linear-gradient(135deg,#b9fb7f,#54dca3); }
+.portal-route-content .secondary-action { border-color: rgba(158,252,118,.45); background: rgba(10,43,21,.84); }
+.portal-route-content .reference-page--aquarium .primary-action,
+.portal-route-content .route-aquarium .primary-action { border-color: rgba(64,217,255,.72); background: linear-gradient(135deg,#8bf5d0,#39d9ff); }
+.portal-route-content .reference-page--terrarium .primary-action { border-color: rgba(224,199,95,.72); background: linear-gradient(135deg,#e9df91,#a6d66e); }
+.portal-route-content .reference-page--ai .primary-action { border-color: rgba(191,143,255,.72); background: linear-gradient(135deg,#d7b4ff,#72e5d0); }
+.portal-route-content .evidence-chip,
+.portal-route-content .system-chip,
+.portal-route-content .connection-pill { border-color: rgba(158,252,118,.38); background: rgba(102,190,93,.12); }
+.portal-route-content .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.portal-route-content .observation-grid,
+.portal-route-content .assistant-result-grid,
+.portal-route-content .taxon-care-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.portal-route-content .community-post,
+.portal-route-content .community-card,
+.portal-route-content .post-card { border-color: rgba(158,252,118,.25); background: rgba(5,26,13,.88); }
+.portal-route-content .community-compose,
+.portal-route-content .observation-form,
+.portal-route-content .assistant-correction { border: 1px solid rgba(158,252,118,.30); border-radius: 17px; background: rgba(5,28,14,.92); }
+.portal-route-content .profile-reference-post-list article { border-color: rgba(158,252,118,.22); background: rgba(5,27,14,.84); }
+@media (min-width: 980px) {
+  .portal-route-content { margin-left: 158px; width: calc(100% - 158px); max-width: none; padding: 28px 28px 70px; }
+  .portal-route-content > .reference-page,
+  .portal-route-content > .page-stack,
+  .portal-route-content > .home-stack,
+  .portal-route-content > .assistant-page { max-width: 1320px; }
+}
+@media (max-width: 700px) {
+  .portal-route-content { padding: 14px 12px 48px; }
+  .portal-route-content .form-grid,
+  .portal-route-content .observation-grid,
+  .portal-route-content .assistant-result-grid,
+  .portal-route-content .taxon-care-grid { grid-template-columns: 1fr; }
+  .portal-route-content .reference-hero,
+  .portal-route-content .page-hero,
+  .portal-route-content .assistant-orbit,
+  .portal-route-content .public-profile-hero,
+  .portal-route-content .plant-taxon-hero { border-radius: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-route-content *, .portal-route-content *::before, .portal-route-content *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
