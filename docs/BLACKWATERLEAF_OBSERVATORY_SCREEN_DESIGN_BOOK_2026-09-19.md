@@ -1,6 +1,6 @@
 # BlackWaterLeaf Observatory Screen Design Book
 
-**Version:** 1.0 · **Datum:** 19. September 2026 · **Gültigkeit:** Web und Native
+**Version:** 1.1 · **Datum:** 19. September 2026 · **Gültigkeit:** Web und Native
 
 ## 1. Verbindlicher Status
 
@@ -187,3 +187,11 @@ BlackWaterLeaf verwendet **keine Inhalte, Bilder oder Bildprovenienzen von Wikip
 Die zulässigen Katalogquellen sind zurzeit **Plants of the World Online von Kew Science**, **FishBase**, **GBIF**, die **Biodiversity Heritage Library** und **JSTOR Global Plants**. Ein Bild benötigt immer eine nachprüfbare Artzuordnung, eine Quellen-Seite, eine Lizenz- oder Nutzungsangabe, eine Attribution und einen Prüfzeitpunkt. Fehlt einer dieser Nachweise, zeigt die Anwendung bewusst den Zustand „Bildnachweis offen“ statt eines Ersatzbildes.
 
 Fundort- und Verbreitungskarten verwenden ausschließlich veröffentlichte, quellengebundene Angaben aus dem Taxondatensatz. Sie stellen keine private Beobachtungsposition dar und dürfen weder genaue Koordinaten noch geschätzte Fundorte erfinden. Taxa aus noch nicht belegten manuellen Importen bleiben als Entwurf zur Fachprüfung erhalten und erscheinen nicht öffentlich.
+
+## 18. Verbindliche Taxon-Bilddetailansicht
+
+Jedes veröffentlichte Pflanzen- oder Fisch-Taxon mit einem verifizierten Katalogbild erhält auf **Web und Native** dieselbe explizite Aktion **„Detailansicht“**. Sie öffnet ein fokussiertes Bildmodal mit dem lokal gespeicherten Originalbild in maximal sinnvoller Bildschirmgröße. Das Bild wird vollständig dargestellt und nicht künstlich nachkoloriert, durch Beschnitt verfälscht oder durch eine dekorative Überlagerung verdeckt.
+
+Die Detailansicht zeigt stets Fachbereich, wissenschaftlichen Namen, vollständige Bildattribution, Lizenz und die Aktion **„Quellbeobachtung öffnen“**. Der Nachweis bleibt damit auch in der größten Darstellung sichtbar und überprüfbar. Fehlen Bild-URL, Quelle, Lizenz, Attribution oder Prüfzeitpunkt, existiert keine Detailansicht; stattdessen gilt weiter der klare Zustand **„Bildnachweis offen“**.
+
+Im Web ist das Modal als zugänglicher Dialog umgesetzt: sichtbarer Auslöser, Tastaturfokus, Escape zum Schließen, Fokus-Rückgabe zum Auslöser, Tab-Begrenzung, gesperrtes Hintergrundscrolling und Schließen per Klick außerhalb der Fläche. Native verwendet dieselben Begriffe, den gleichen lokalen Bildbestand, die gleiche Attribution und eine touchgerechte Vollbildansicht mit X- und Außenbereich-Schließen. Reduzierte Bewegung deaktiviert nicht essentielle Öffnungsanimationen.
