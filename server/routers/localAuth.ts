@@ -18,7 +18,7 @@ import {
   type LocalTokenPurpose,
 } from "../localAuth";
 import { getLocalAuthEmailConfig } from "../localAuthConfig";
-import { publicProcedure, router } from "../_core/trpc";
+import { localAuthProcedure, router } from "../_core/trpc";
 
 const emailInput = z.string().trim().email().max(320);
 const passwordInput = z.string().min(1).max(256);
@@ -58,13 +58,13 @@ async function setLocalSession(input: { res: { cookie: Function }; req: Paramete
 }
 
 export const localAuthRouter = router({
-  status: publicProcedure.query(() => ({
+  status: localAuthProcedure.query(() => ({
     emailDeliveryConfigured: Boolean(getLocalAuthEmailConfig()),
     passwordMinimumLength: 12,
     accountMode: "local_email_password" as const,
   })),
 
-  register: publicProcedure
+  register: localAuthProcedure
     .input(z.object({ email: emailInput, password: passwordInput, displayName: z.string().trim().min(2).max(160).optional() }))
     .mutation(async ({ input }) => {
       if (!getLocalAuthEmailConfig()) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "local_auth_email_not_configured" });
@@ -91,7 +91,7 @@ export const localAuthRouter = router({
       return { message: "confirmation_email_sent" as const };
     }),
 
-  login: publicProcedure
+  login: localAuthProcedure
     .input(z.object({ email: emailInput, password: passwordInput }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
@@ -114,7 +114,7 @@ export const localAuthRouter = router({
       return { success: true } as const;
     }),
 
-  requestPasswordReset: publicProcedure.input(z.object({ email: emailInput })).mutation(async ({ input }) => {
+  requestPasswordReset: localAuthProcedure.input(z.object({ email: emailInput })).mutation(async ({ input }) => {
     if (!getLocalAuthEmailConfig()) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "local_auth_email_not_configured" });
     const db = await requireDatabase();
     const records = await db
@@ -130,7 +130,7 @@ export const localAuthRouter = router({
     return { message: genericDeliveryMessage };
   }),
 
-  verifyEmail: publicProcedure.input(z.object({ token: z.string().min(32).max(256) })).mutation(async ({ ctx, input }) => {
+  verifyEmail: localAuthProcedure.input(z.object({ token: z.string().min(32).max(256) })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const tokenRows = await db
       .select()
@@ -152,7 +152,7 @@ export const localAuthRouter = router({
     return { success: true } as const;
   }),
 
-  resetPassword: publicProcedure.input(z.object({ token: z.string().min(32).max(256), password: passwordInput })).mutation(async ({ ctx, input }) => {
+  resetPassword: localAuthProcedure.input(z.object({ token: z.string().min(32).max(256), password: passwordInput })).mutation(async ({ ctx, input }) => {
     const passwordProblem = validatePassword(input.password);
     if (passwordProblem) throw new TRPCError({ code: "BAD_REQUEST", message: passwordProblem });
     const db = await requireDatabase();
@@ -176,7 +176,7 @@ export const localAuthRouter = router({
     return { success: true } as const;
   }),
 
-  resendVerification: publicProcedure.input(z.object({ email: emailInput })).mutation(async ({ input }) => {
+  resendVerification: localAuthProcedure.input(z.object({ email: emailInput })).mutation(async ({ input }) => {
     if (!getLocalAuthEmailConfig()) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "local_auth_email_not_configured" });
     const db = await requireDatabase();
     const records = await db
