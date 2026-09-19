@@ -1302,3 +1302,22 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 @media (prefers-reduced-motion: reduce) {
   .notification-card__main { transition:none; }
 }
+
+/* Phase 1 social core: comments stay inside the post and retain the compact reference hierarchy. */
+.community-post .post-metrics { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.community-post .post-metrics button { display:inline-flex; align-items:center; gap:5px; min-height:30px; padding:0 9px; color:#ccebd2; border:1px solid rgba(160,239,178,.2); border-radius:999px; background:rgba(9,35,18,.62); font:700 .62rem/1 "JetBrains Mono",monospace; }
+.community-post .post-metrics button:hover { color:#baff88; border-color:rgba(186,255,136,.55); }
+.community-comments { display:grid; gap:10px; margin-top:12px; padding:12px; border-top:1px solid rgba(157,245,170,.18); background:rgba(3,18,9,.32); }
+.community-comments__heading { display:flex; justify-content:space-between; color:#d8f6d9; font-size:.82rem; }
+.community-comments__heading span { color:#9fc8a5; font:700 .68rem/1 "JetBrains Mono",monospace; }
+.community-comment { display:grid; gap:4px; padding:9px 10px; border:1px solid rgba(141,239,168,.16); border-radius:12px; background:rgba(12,45,23,.42); }
+.community-comment.is-reply { margin-left:18px; border-color:rgba(94,213,255,.2); }
+.community-comment > div { display:flex; align-items:baseline; gap:8px; }
+.community-comment strong { color:#eaffea; font-size:.76rem; }
+.community-comment small { color:#99ba9e; font-size:.62rem; }
+.community-comment p { margin:0; color:#d6e9d7; white-space:pre-wrap; overflow-wrap:anywhere; font-size:.8rem; line-height:1.45; }
+.comment-reply { justify-self:start; padding:0; color:#b8f98e; border:0; background:transparent; font:800 .59rem/1 "JetBrains Mono",monospace; }
+.community-comment-form { display:grid; gap:8px; }
+.community-comment-form textarea { width:100%; resize:vertical; min-height:58px; padding:10px 11px; color:#effff1; border:1px solid rgba(155,243,174,.24); border-radius:12px; background:rgba(4,22,11,.78); font:inherit; }
+.community-comment-form .primary-action { justify-self:end; min-height:34px; }
+@media (max-width:700px) { .community-comment.is-reply { margin-left:10px; } .community-comment-form .primary-action { width:100%; } }

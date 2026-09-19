@@ -752,6 +752,7 @@ function NaturApp() {
             state={state}
             error={error}
             refresh={loadScreen}
+            navigate={navigate}
           />
         )}
         {screen === "profile" && (
@@ -2628,7 +2629,7 @@ function CommunityScreen({
   );
 }
 
-function NotificationsScreen({ tone, token, notifications, state, error, refresh }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void> }) {
+function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void }) {
   const markAllRead = async () => {
     if (!token) return;
     await markNotificationsRead(token);
@@ -2637,7 +2638,7 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   return <Page refresh={refresh} refreshing={state === "loading"}>
     <ReferenceHero tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
-    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <View key={item.id} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}</View>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.postId) navigate("community"); await refresh(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
 }
 
@@ -3295,14 +3296,16 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, token }: { tone: Tone
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
   const [commentPending, setCommentPending] = useState(false);
   const loadComments = async () => setComments(await communityComments(Number(post.id)));
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
     setCommentPending(true);
     try {
-      await addCommunityComment(token, { postId: Number(post.id), content: commentText.trim() });
+      await addCommunityComment(token, { postId: Number(post.id), parentId: replyTo, content: commentText.trim() });
       setCommentText("");
+      setReplyTo(null);
       await loadComments();
     } finally { setCommentPending(false); }
   };
@@ -3342,7 +3345,8 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, token }: { tone: Tone
         <Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text>
       </Pressable>
       {commentsOpen ? <View style={styles.commentPanel}>
-        {comments.map(comment => <View key={comment.id} style={styles.commentRow}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text></View>)}
+        {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
+        {replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}
         {token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder="Kommentar schreiben…" placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} /><Pressable style={[styles.commentSend, commentPending && { opacity: 0.55 }]} disabled={commentPending} onPress={() => void submitComment()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Text style={styles.miniCopy}>Zum Kommentieren bitte sicher anmelden.</Text>}
       </View> : null}
     </View>
@@ -4389,7 +4393,9 @@ const styles = StyleSheet.create({
   commentToggle: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10, paddingVertical: 7 },
   commentPanel: { gap: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)" },
   commentRow: { padding: 8, borderRadius: 9, backgroundColor: "rgba(0,0,0,.16)", gap: 3 },
+  commentReplyRow: { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: "rgba(94,213,255,.42)" },
   commentAuthor: { color: c.text, fontSize: 11, fontWeight: "900" },
+  commentReplyAction: { fontSize: 9, fontWeight: "900", letterSpacing: 0.7 },
   commentComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7 },
   commentInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   commentSend: { width: 38, height: 38, borderRadius: 19, backgroundColor: c.botany, alignItems: "center", justifyContent: "center" },
