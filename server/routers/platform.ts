@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { BLACKWATERLEAF_CONTRACT_VERSION } from "../../shared/blackwaterleaf-contract-v1";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
+import { getPublicSafetyGateStatus } from "../safetyGates";
 import { publicProcedure, router } from "../_core/trpc";
 
 export const platformRouter = router({
@@ -35,6 +36,7 @@ export const platformRouter = router({
       knowledge: database === "available" ? "available" : "temporarily_unavailable",
       aiAssistant: assistant.state,
       aiReason: assistant.reason,
+      safetyGates: getPublicSafetyGateStatus(),
     } as const;
   }),
 });

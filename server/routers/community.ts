@@ -11,6 +11,7 @@ import { canReadCommunityPost, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
 import { appendAuditEntry } from "../auditLedger";
 import { assertValidMediaContext } from "../mediaIntegrity";
+import { assertSafetyGateAllows } from "../safetyGates";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -144,6 +145,7 @@ export const communityRouter = router({
   uploadDraftImage: protectedProcedure
     .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
       const db = await requireDatabase();
       const posts = await db
         .select()
@@ -180,6 +182,7 @@ export const communityRouter = router({
     }),
 
   publish: protectedProcedure.input(z.object({ postId: z.number().int().positive() })).mutation(async ({ ctx, input }) => {
+    assertSafetyGateAllows("publicPublication");
     const db = await requireDatabase();
     if (!(await hasCurrentConsent(db, ctx.user.id, "community_publishing"))) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "community_publishing_consent_required" });
@@ -216,6 +219,7 @@ export const communityRouter = router({
       visibility: z.enum(["private", "public"]),
     }))
     .mutation(async ({ ctx, input }) => {
+      if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
       const db = await requireDatabase();
       const posts = await db.select().from(communityPosts).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id))).limit(1);
       const post = posts[0];
@@ -317,6 +321,7 @@ export const communityRouter = router({
   addComment: protectedProcedure
     .input(z.object({ postId: z.number().int().positive(), parentId: z.number().int().positive().nullable().optional(), content: z.string().trim().min(1).max(2_000) }))
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("publicPublication");
       const db = await requireDatabase();
       await enforceCommunityContentPolicy(db, ctx.user.id, input.content);
       const visible = await db

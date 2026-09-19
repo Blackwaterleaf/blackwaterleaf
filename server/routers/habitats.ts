@@ -15,6 +15,7 @@ import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { assertValidMediaContext } from "../mediaIntegrity";
 import { hasCurrentConsent } from "../consents";
+import { assertSafetyGateAllows } from "../safetyGates";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -108,6 +109,7 @@ export const habitatsRouter = router({
   uploadImage: protectedProcedure
     .input(z.object({ habitatId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
       const db = await requireDatabase();
       const rows = await db.select().from(privateHabitats).where(and(eq(privateHabitats.id, input.habitatId), eq(privateHabitats.userId, ctx.user.id))).limit(1);
       const habitat = rows[0];

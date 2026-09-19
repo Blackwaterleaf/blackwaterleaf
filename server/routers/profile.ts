@@ -16,6 +16,7 @@ import { validateImageUpload } from "../uploadValidation";
 import { canReadProfile } from "../accessPolicy";
 import { hasCurrentConsent, listCurrentConsents, recordCurrentConsent } from "../consents";
 import { assertValidMediaContext } from "../mediaIntegrity";
+import { assertSafetyGateAllows } from "../safetyGates";
 
 const socialUrl = z.string().url().max(255).nullable().optional();
 async function requireDatabase() {
@@ -133,6 +134,7 @@ export const profileRouter = router({
   closeAccount: protectedProcedure
     .input(z.object({ confirmation: z.literal("LÖSCHEN") }))
     .mutation(async ({ ctx }) => {
+      assertSafetyGateAllows("accountErasure");
       const db = await requireDatabase();
       await db.update(users).set({
         name: "Gelöschtes Konto",
@@ -170,6 +172,7 @@ export const profileRouter = router({
   uploadAvatar: protectedProcedure
     .input(z.object({ base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
       const db = await requireDatabase();
       if (!(await hasCurrentConsent(db, ctx.user.id, "media_processing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "media_processing_consent_required" });

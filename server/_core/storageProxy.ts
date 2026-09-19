@@ -1,11 +1,33 @@
 import type { Express } from "express";
 import { ENV } from "./env";
 
+// AP-03: the anonymous proxy serves immutable public design assets only.
+// Dynamic user, habitat, observation, community and merchant media require
+// an object-authorized server path and are never accepted as raw storage keys.
+const PUBLIC_DESIGN_ASSETS = new Set([
+  "aquarium-photorealistic-reference_3c93f1e3.png",
+  "aquarium-planted_42d3639b.jpg",
+  "aquarium-reference_2e42963b.jpg",
+  "assistant-reference_4510581b.jpg",
+  "blackwaterleaf-original-mark-1024_28dcd697.png",
+  "botany-rainforest_def7888b.jpg",
+  "botany-reference_c192e480.jpg",
+  "kiemen-kumpel-shop_5e6207a0.jpg",
+  "terrarium-moss_9eba1fa1.jpg",
+  "terrarium-photorealistic-reference_bcb9db80.png",
+  "terrarium-reference_c4e109d3.jpg",
+]);
+
 export function registerStorageProxy(app: Express) {
   app.get("/manus-storage/*", async (req, res) => {
     const key = (req.params as Record<string, string>)[0];
     if (!key) {
       res.status(400).send("Missing storage key");
+      return;
+    }
+
+    if (!PUBLIC_DESIGN_ASSETS.has(key)) {
+      res.status(403).send("Object authorization required");
       return;
     }
 

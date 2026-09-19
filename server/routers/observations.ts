@@ -18,6 +18,7 @@ import { validateImageUpload } from "../uploadValidation";
 import { canReadObservation, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
 import { assertValidMediaContext } from "../mediaIntegrity";
+import { assertSafetyGateAllows } from "../safetyGates";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -119,6 +120,7 @@ export const observationsRouter = router({
     }),
 
   create: protectedProcedure.input(createObservationInputSchema).mutation(async ({ ctx, input }) => {
+    if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
     const db = await requireDatabase();
     const existing = await db
       .select()
@@ -176,6 +178,7 @@ export const observationsRouter = router({
       if (current.revision !== input.expectedRevision) {
         throw new TRPCError({ code: "CONFLICT", message: "observation_revision_conflict" });
       }
+      if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
       if (input.visibility === "public" && !(await hasConsent(ctx.user.id, "observation_publishing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_publishing_consent_required" });
       }
@@ -198,6 +201,7 @@ export const observationsRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
       const db = await requireDatabase();
       const rows = await db
         .select()

@@ -8,6 +8,7 @@ import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
+import { assertSafetyGateAllows } from "../safetyGates";
 import { adminProcedure, merchantProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
@@ -608,6 +609,7 @@ export const partnersRouter = router({
   uploadProductImage: adminProcedure
     .input(z.object({ productId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
       const db = await requireDatabase();
       const [product] = await db.select().from(partnerProducts).where(eq(partnerProducts.id, input.productId)).limit(1);
       if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "partner_product_not_found" });
@@ -625,6 +627,7 @@ export const partnersRouter = router({
   setProductStatus: adminProcedure
     .input(z.object({ productId: z.number().int().positive(), status: productStatus }))
     .mutation(async ({ ctx, input }) => {
+      if (input.status === "active") assertSafetyGateAllows("marketplaceActivation");
       const db = await requireDatabase();
       const [product] = await db.select().from(partnerProducts).where(eq(partnerProducts.id, input.productId)).limit(1);
       if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "partner_product_not_found" });
@@ -656,6 +659,7 @@ export const partnersRouter = router({
   setPartnerStatus: adminProcedure
     .input(z.object({ partnerId: z.number().int().positive(), status: partnerStatus }))
     .mutation(async ({ ctx, input }) => {
+      if (input.status === "approved") assertSafetyGateAllows("marketplaceActivation");
       const db = await requireDatabase();
       const partner = await getPartner(db, input.partnerId);
       const latestAuthorizations = await getLatestAuthorizations(db);
@@ -672,6 +676,7 @@ export const partnersRouter = router({
   setHomepagePlacement: adminProcedure
     .input(z.object({ partnerId: z.number().int().positive(), status: placementStatus, startsAt: dateTimeInput, endsAt: dateTimeInput }))
     .mutation(async ({ ctx, input }) => {
+      if (input.status === "active") assertSafetyGateAllows("marketplaceActivation");
       const db = await requireDatabase();
       const partner = await getPartner(db, input.partnerId);
       const latestAuthorizations = await getLatestAuthorizations(db);
