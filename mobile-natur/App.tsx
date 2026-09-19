@@ -2671,7 +2671,7 @@ function ProfileScreen({
     <Page refresh={refreshOwnPosts} refreshing={ownPostsRefreshing}>
       {menuTarget !== "open" ? <View style={[styles.profileTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
-        <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "01–03 · ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
+        <Text style={styles.cardTitle}>{menuTarget === "edit" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" ? "ANLAGEN ANZEIGEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
         {menuTarget === "edit" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>

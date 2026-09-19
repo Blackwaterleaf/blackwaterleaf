@@ -12,6 +12,7 @@ import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
 import ProfileHome from "./pages/ProfileHome";
 import Ranking from "./pages/Ranking";
+import ProfileMockup, { ProfileSettingsMockup } from "./pages/ProfileMockup";
 import Realm from "./pages/Realm";
 import FlowDestination from "./pages/FlowDestination";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -47,6 +48,8 @@ function Router() {
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/ranking"} component={Ranking} />
+        <Route path={"/profile-mockup"} component={ProfileMockup} />
+        <Route path={"/profile-mockup/settings"} component={ProfileSettingsMockup} />
         <Route path={"/profile/settings"} component={Profile} />
         <Route path={"/profile/private"} component={Profile} />
         <Route path={"/profile/habitats"} component={Profile} />

@@ -67,6 +67,11 @@ export default function Profile() {
     }
   }, [profile.data]);
 
+  useEffect(() => {
+    const kind = new URLSearchParams(location.split("?")[1] ?? "").get("kind");
+    if (kind === "plant" || kind === "aquarium" || kind === "terrarium") setVisibleKinds([kind]);
+  }, [location]);
+
   const toggleVisibleKind = (kind: "plant" | "aquarium" | "terrarium") => {
     setVisibleKinds(current => {
       const next = current.includes(kind) ? current.filter(value => value !== kind) : [...current, kind];
@@ -212,7 +217,7 @@ export default function Profile() {
             </form>
           </details>
 
-          <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} /></section>
+          <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} defaultOpen={section === "settings" || section === "habitats"} /></section>
 
           <details id="profile-tools" className="profile-secondary-tools account-section glass-panel">
             <summary><span>WEITERE WERKZEUGE</span><small>Nur bei Bedarf öffnen</small></summary>

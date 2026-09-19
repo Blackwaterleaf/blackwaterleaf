@@ -158,7 +158,7 @@ export function summarizeHabitat(record: Pick<HabitatRecord, "kind" | "details">
   return [numericSummary(details.volumeLiters, "L"), numericSummary(details.humidityPercent, copy.relativeHumidity), numericSummary(details.dayTemperatureC, "°C")].filter(Boolean).join(" · ");
 }
 
-export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[] } = {}) {
+export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visibleKinds?: HabitatKind[]; defaultOpen?: boolean } = {}) {
   const { locale } = useI18n();
   const copy = habitatText(locale);
   const utils = trpc.useUtils();
@@ -218,7 +218,7 @@ export function HabitatProfiles({ visibleKinds }: { visibleKinds?: HabitatKind[]
   };
 
   return (
-    <details className="account-section habitat-section">
+    <details className="account-section habitat-section" open={defaultOpen}>
       <summary><span>{copy.sectionTitle}</span><small>{copy.sectionMeta}</small></summary>
       <div className="habitat-body">
         <p className="habitat-intro">{copy.intro}</p>
