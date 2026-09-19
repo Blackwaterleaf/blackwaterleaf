@@ -47,7 +47,16 @@ export default function Community() {
       setStatus(publishNow ? locale === "de" ? "Beitrag öffentlich veröffentlicht." : "Post published publicly." : locale === "de" ? "Privater Entwurf gespeichert." : "Private draft saved.");
     } catch (error) { setStatus(error instanceof Error ? error.message : "community_save_failed"); }
   };
-  const like = async (postId: string) => { if (!auth.isAuthenticated) { startLogin(); return; } await likePost.mutateAsync({ postId: Number(postId) }); await utils.community.feed.invalidate(); };
+  const like = async (postId: string) => {
+    if (!auth.isAuthenticated) { startLogin(); return; }
+    setStatus(null);
+    try {
+      await likePost.mutateAsync({ postId: Number(postId) });
+      await utils.community.feed.invalidate();
+    } catch (error) {
+      setStatus(error instanceof Error && error.message ? error.message : locale === "de" ? "Der Like konnte nicht gespeichert werden." : "The like could not be saved.");
+    }
+  };
 
   return (
     <div className="reference-page reference-page--botany">

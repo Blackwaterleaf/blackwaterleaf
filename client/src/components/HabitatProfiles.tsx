@@ -195,7 +195,7 @@ export function HabitatProfiles() {
   };
 
   return (
-    <details className="account-section habitat-section">
+    <details id="habitats" className="account-section habitat-section">
       <summary><span>{copy.sectionTitle}</span><small>{copy.sectionMeta}</small></summary>
       <div className="habitat-body">
         <p className="habitat-intro">{copy.intro}</p>
@@ -207,10 +207,11 @@ export function HabitatProfiles() {
         </div>
 
         {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
-        {records.length ? <div className="habitat-list">{records.map(record => {
+        {habitats.isError ? <p className="form-status" role="alert">{copy.loadFailed}</p> : null}
+        {!habitats.isLoading && !habitats.isError && records.length ? <div className="habitat-list">{records.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
           return <article key={record.id} className={`habitat-record habitat-record--${meta.accent}`}><Icon size={19} /><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p></div><button type="button" className="icon-button" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
-        })}</div> : <p className="habitat-empty">{copy.empty}</p>}
+        })}</div> : !habitats.isLoading && !habitats.isError ? <p className="habitat-empty">{copy.empty}</p> : null}
 
         {form ? <form className="habitat-editor" onSubmit={save}>
           <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>

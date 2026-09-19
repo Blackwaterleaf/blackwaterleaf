@@ -1,6 +1,7 @@
 import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { ReferenceActionGrid, ReferenceEmptyState, ReferenceHero, type ReferenceAction, type ReferenceTone } from "@/components/ReferenceOverlay";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
+import NotFound from "@/pages/NotFound";
 import { Bell, Bot, Camera, Droplets, FileText, Fish, Leaf, Map, Radio, Send, Upload, UsersRound, Video } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
@@ -13,7 +14,7 @@ const FLOW_SPECS: Record<FlowId, FlowSpec> = {
     tone: "aquarium", image: REFERENCE_ASSETS.aquarium, eyebrow: "LIVE-BEREICH", title: "DEINE WELT LIVE", subtitle: "Kamera, Wasserwerte und Stimmung – erst mit echter Verbindung aktiv.", icon: Radio,
     actions: [
       { title: "Kamera starten", note: "Foto sicher auswählen", icon: Camera, image: WORLD_ASSETS.botany, href: "/flow/foto" },
-      { title: "Wasserwerte", note: "Private Anlagen öffnen", icon: Droplets, image: WORLD_ASSETS.aquarium, href: "/profile#habitats" },
+      { title: "Wasserwerte", note: "Private Anlagen öffnen", icon: Droplets, image: WORLD_ASSETS.aquarium, href: "/profile/settings#habitats" },
       { title: "Hinweise", note: "Benachrichtigungen werden vorbereitet", icon: Bell, image: WORLD_ASSETS.terrarium, unavailable: true },
       { title: "Entdecken", note: "Naturwelten öffnen", icon: Map, image: WORLD_ASSETS.botany, href: "/explore" },
     ],
@@ -56,7 +57,9 @@ function PhotoCapture() {
 
 export default function FlowDestination() {
   const params = useParams<{ flow: string }>();
-  const flow = (params.flow in FLOW_SPECS ? params.flow : "live") as FlowId;
+  const invalidFlow = !(params.flow in FLOW_SPECS);
+  const flow = params.flow as FlowId;
+  if (invalidFlow) return <NotFound />;
   const spec = FLOW_SPECS[flow];
   return (
     <div className={`reference-page reference-page--${spec.tone}`}>
