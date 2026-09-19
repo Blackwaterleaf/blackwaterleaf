@@ -1,0 +1,22 @@
+CREATE TABLE `studio_agent_runs` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`taskId` int NOT NULL,
+	`workspaceId` int NOT NULL,
+	`requestedBy` int NOT NULL,
+	`status` enum('queued','running','succeeded','failed','cancelled','dead_letter') NOT NULL DEFAULT 'queued',
+	`attempt` int NOT NULL DEFAULT 0,
+	`maxAttempts` int NOT NULL DEFAULT 3,
+	`availableAt` timestamp NOT NULL DEFAULT (now()),
+	`leaseOwner` varchar(160),
+	`leaseExpiresAt` timestamp,
+	`cancelRequested` boolean NOT NULL DEFAULT false,
+	`cancelReason` varchar(500),
+	`checkpoint` text,
+	`result` text,
+	`lastError` text,
+	`startedAt` timestamp,
+	`finishedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `studio_agent_runs_id` PRIMARY KEY(`id`)
+);

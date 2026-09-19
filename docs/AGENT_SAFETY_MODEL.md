@@ -19,6 +19,14 @@ Der zentrale Safety-Gateway-Vertrag erzwingt:
 - persistenten Kill-Switch für laufende, wartende und queued Tasks.
 - Evidence-Audit mit SHA-256-Verkettung aus `previousHash` und `eventHash`.
 
+## Phase 1: Durable Run Control
+
+Die Control Plane besitzt jetzt eine persistente `studio_agent_runs`-Queue. Jeder Run wird atomar zusammen mit dem Task von `ready` oder `failed` nach `queued` übernommen. Ein optionaler Queue-Worker übernimmt Runs mit einer Datenbank-Lease, erneuert die Lease während der Arbeit und kann abgelaufene Runs erneut übernehmen. `attempt`, `maxAttempts`, `availableAt`, `checkpoint`, `lastError` und `dead_letter` verhindern unbounded retries und machen Recovery nachvollziehbar.
+
+Der Kill-Switch setzt den Run und den Task atomar auf `cancelled`, markiert den Abbruchgrund im Run und ruft im aktiven Prozess den `AbortController` des laufenden LLM-Requests auf. Die Queue bleibt auch bei Prozessverlust sicher: eine abgelaufene Lease ist erneut übernehmbar; ein bereits beendeter Run ist terminal und kann nicht erneut gestartet werden.
+
+Der Worker ist standardmäßig nicht aktiviert. Er wird nur mit `STUDIO_QUEUE_WORKER_ENABLED=true` gestartet und bleibt bis zur späteren Execution-Plane-Phase bewusst Control-Plane-only. Ein Control-Plane-Erfolg bedeutet daher weiterhin nicht, dass Code in einer isolierten Sandbox ausgeführt wurde.
+
 ## Agentenfehler und Loops
 
 Wiederholte oder zyklische Plan-Schritte werden nicht als Fortschritt akzeptiert. Ein Lauf darf nicht einfach weiterlaufen, wenn er dieselbe Aktion wiederholt, die Schrittgrenze überschreitet, die Zeitgrenze erreicht oder zu viele Fehler in Folge produziert. In einer späteren Worker-Integration müssen dieselben Grenzen zusätzlich außerhalb des Modells im Worker-Gateway gelten.

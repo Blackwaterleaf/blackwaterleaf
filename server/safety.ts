@@ -14,7 +14,7 @@ const TASK_TRANSITIONS: Record<string, string[]> = {
   queued: ["running", "cancelled", "expired"],
   running: ["waiting_for_approval", "succeeded", "failed", "cancelled"],
   waiting_for_approval: ["running", "succeeded", "failed", "cancelled", "expired"],
-  failed: ["ready", "running", "cancelled"],
+  failed: ["ready", "queued", "running", "cancelled"],
   succeeded: [],
   cancelled: [],
   expired: [],

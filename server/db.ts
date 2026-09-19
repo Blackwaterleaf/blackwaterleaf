@@ -1,7 +1,8 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
+  agentRuns,
   mobileDevices,
   approvalDecisions,
   approvalRequests,
@@ -229,6 +230,77 @@ export async function claimTaskForRun(taskId: number) {
   const db = await requireDb();
   const result = await db.update(tasks).set({ status: "running", cancelRequested: false, startedAt: new Date(), finishedAt: null }).where(and(eq(tasks.id, taskId), inArray(tasks.status, ["ready", "failed"])));
   return Number(result[0]?.affectedRows ?? 0) === 1;
+}
+
+export async function enqueueAgentRun(input: { taskId: number; workspaceId: number; requestedBy: number }) {
+  const db = await requireDb();
+  return db.transaction(async tx => {
+    const taskClaim = await tx.update(tasks).set({ status: "queued", cancelRequested: false, finishedAt: null }).where(and(eq(tasks.id, input.taskId), eq(tasks.workspaceId, input.workspaceId), inArray(tasks.status, ["ready", "failed"])));
+    if (Number(taskClaim[0]?.affectedRows ?? 0) !== 1) throw new Error("TASK_QUEUE_CLAIM_FAILED");
+    const result = await tx.insert(agentRuns).values({ ...input, status: "queued", availableAt: new Date() });
+    return Number(result[0].insertId);
+  });
+}
+
+export async function getAgentRunForWorkspace(runId: number, workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select().from(agentRuns).where(and(eq(agentRuns.id, runId), eq(agentRuns.workspaceId, workspaceId))).limit(1);
+  return rows[0];
+}
+
+export async function claimNextAgentRun(workerId: string, leaseSeconds = 45) {
+  const db = await requireDb();
+  const now = new Date();
+  const eligible = or(eq(agentRuns.status, "queued"), and(eq(agentRuns.status, "running"), lt(agentRuns.leaseExpiresAt, now)));
+  const candidate = await db.select().from(agentRuns).where(and(eq(agentRuns.cancelRequested, false), lte(agentRuns.availableAt, now), eligible)).orderBy(agentRuns.availableAt, agentRuns.id).limit(1);
+  const run = candidate[0];
+  if (!run) return undefined;
+  const leaseExpiresAt = new Date(now.getTime() + leaseSeconds * 1000);
+  const result = await db.update(agentRuns).set({ status: "running", attempt: sql`${agentRuns.attempt} + 1`, leaseOwner: workerId, leaseExpiresAt, startedAt: run.startedAt ?? now, lastError: null }).where(and(eq(agentRuns.id, run.id), eq(agentRuns.cancelRequested, false), eligible));
+  return Number(result[0]?.affectedRows ?? 0) === 1 ? { ...run, status: "running" as const, leaseOwner: workerId, leaseExpiresAt, attempt: run.attempt + 1 } : undefined;
+}
+
+export async function renewAgentRunLease(runId: number, workerId: string, leaseSeconds = 45) {
+  const db = await requireDb();
+  const leaseExpiresAt = new Date(Date.now() + leaseSeconds * 1000);
+  const result = await db.update(agentRuns).set({ leaseExpiresAt }).where(and(eq(agentRuns.id, runId), eq(agentRuns.status, "running"), eq(agentRuns.leaseOwner, workerId), eq(agentRuns.cancelRequested, false)));
+  return Number(result[0]?.affectedRows ?? 0) === 1;
+}
+
+export async function saveAgentRunCheckpoint(runId: number, workerId: string, checkpoint: Record<string, unknown>) {
+  const db = await requireDb();
+  await db.update(agentRuns).set({ checkpoint: JSON.stringify(checkpoint) }).where(and(eq(agentRuns.id, runId), eq(agentRuns.status, "running"), eq(agentRuns.leaseOwner, workerId)));
+}
+
+export async function requestAgentRunCancellation(runId: number, workspaceId: number, reason: string) {
+  const db = await requireDb();
+  const run = await getAgentRunForWorkspace(runId, workspaceId);
+  if (!run || ["succeeded", "failed", "cancelled", "dead_letter"].includes(run.status)) return false;
+  const result = await db.update(agentRuns).set({ cancelRequested: true, cancelReason: reason, status: "cancelled", finishedAt: new Date(), leaseExpiresAt: null }).where(and(eq(agentRuns.id, runId), eq(agentRuns.workspaceId, workspaceId), inArray(agentRuns.status, ["queued", "running"])));
+  if (Number(result[0]?.affectedRows ?? 0) !== 1) return false;
+  await db.update(tasks).set({ cancelRequested: true, status: "cancelled", finishedAt: new Date() }).where(and(eq(tasks.id, run.taskId), eq(tasks.workspaceId, workspaceId), inArray(tasks.status, ["queued", "running", "waiting_for_approval"])));
+  return true;
+}
+
+export async function getLatestAgentRunForTask(taskId: number, workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select().from(agentRuns).where(and(eq(agentRuns.taskId, taskId), eq(agentRuns.workspaceId, workspaceId))).orderBy(desc(agentRuns.createdAt)).limit(1);
+  return rows[0];
+}
+
+export async function finishAgentRun(input: { runId: number; workerId: string; status: "succeeded" | "failed" | "cancelled" | "dead_letter"; result?: string; error?: string; retryAt?: Date }) {
+  const db = await requireDb();
+  const rows = await db.select().from(agentRuns).where(and(eq(agentRuns.id, input.runId), eq(agentRuns.leaseOwner, input.workerId))).limit(1);
+  const current = rows[0];
+  if (!current) return undefined;
+  const shouldRetry = input.status === "failed" && current.attempt < current.maxAttempts && !current.cancelRequested;
+  const nextStatus = shouldRetry ? "queued" : input.status;
+  await db.update(agentRuns).set({ status: nextStatus, result: input.result, lastError: input.error, availableAt: input.retryAt ?? new Date(), leaseExpiresAt: null, leaseOwner: null, finishedAt: nextStatus === "queued" ? null : new Date() }).where(and(eq(agentRuns.id, input.runId), eq(agentRuns.leaseOwner, input.workerId)));
+  if (nextStatus !== "queued") {
+    const taskStatus = nextStatus === "succeeded" ? "succeeded" : nextStatus === "cancelled" ? "cancelled" : "failed";
+    await db.update(tasks).set({ status: taskStatus, finishedAt: new Date() }).where(eq(tasks.id, current.taskId));
+  }
+  return { ...current, status: nextStatus };
 }
 
 export async function addTaskMessage(input: { taskId: number; role: "user" | "assistant" | "system"; content: string; createdBy?: number }) {

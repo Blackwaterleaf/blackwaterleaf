@@ -75,6 +75,28 @@ export const tasks = mysqlTable("studio_tasks", {
   finishedAt: timestamp("finishedAt"),
 });
 
+export const agentRuns = mysqlTable("studio_agent_runs", {
+  id: int("id").autoincrement().primaryKey(),
+  taskId: int("taskId").notNull(),
+  workspaceId: int("workspaceId").notNull(),
+  requestedBy: int("requestedBy").notNull(),
+  status: mysqlEnum("status", ["queued", "running", "succeeded", "failed", "cancelled", "dead_letter"]).default("queued").notNull(),
+  attempt: int("attempt").default(0).notNull(),
+  maxAttempts: int("maxAttempts").default(3).notNull(),
+  availableAt: timestamp("availableAt").defaultNow().notNull(),
+  leaseOwner: varchar("leaseOwner", { length: 160 }),
+  leaseExpiresAt: timestamp("leaseExpiresAt"),
+  cancelRequested: boolean("cancelRequested").default(false).notNull(),
+  cancelReason: varchar("cancelReason", { length: 500 }),
+  checkpoint: text("checkpoint"),
+  result: text("result"),
+  lastError: text("lastError"),
+  startedAt: timestamp("startedAt"),
+  finishedAt: timestamp("finishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export const taskSteps = mysqlTable("studio_task_steps", {
   id: int("id").autoincrement().primaryKey(),
   taskId: int("taskId").notNull(),
@@ -188,6 +210,7 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Workspace = typeof workspaces.$inferSelect;
 export type Task = typeof tasks.$inferSelect;
+export type AgentRun = typeof agentRuns.$inferSelect;
 export type TaskStep = typeof taskSteps.$inferSelect;
 export type AuditEvent = typeof auditEvents.$inferSelect;
 export type ApprovalRequest = typeof approvalRequests.$inferSelect;

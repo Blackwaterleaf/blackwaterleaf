@@ -18,12 +18,13 @@ function parseContent(content: unknown): string {
   return "";
 }
 
-export async function runControlledAgent(input: { title: string; goal: string }) {
+export async function runControlledAgent(input: { title: string; goal: string; signal?: AbortSignal }) {
   assertControlledGoal(`${input.title}\n${input.goal}`);
   const catalog = await listLLMModels();
   const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id;
 
   const response = await invokeLLM({
+    signal: input.signal,
     model: preferred,
     messages: [
       {

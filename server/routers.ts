@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { runControlledAgent } from "./agentRunner";
+import { abortActiveRun } from "./runWorker";
 import { assertTaskTransition, createRunGuard } from "./safety";
 import * as db from "./db";
 
@@ -99,37 +100,26 @@ export const appRouter = router({
         requireRole(membership.membership.role, operatorRoles);
         const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
         if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
-        if (!["ready", "failed"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task is not ready for a controlled agent run." });
-        try { assertTaskTransition(task.status, "running"); } catch { throw new TRPCError({ code: "CONFLICT", message: "Task state does not allow a new run." }); }
-
-        if (!await db.claimTaskForRun(task.id)) throw new TRPCError({ code: "CONFLICT", message: "Task was claimed by another run or is no longer ready." });
-        await db.updateTaskStep(task.id, 1, { status: "running", startedAt: new Date() });
-        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "agent.run.requested", metadata: { network: "disabled", files: "not mounted" } });
-        const sessionId = await db.createSandboxSession(task.id);
-        const guard = createRunGuard();
-
+        if (!["ready", "failed"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task is not ready for a queued agent run." });
+        try { assertTaskTransition(task.status, "queued"); } catch { throw new TRPCError({ code: "CONFLICT", message: "Task state does not allow a new queued run." }); }
+        let runId: number;
         try {
-          guard.step("planner.start");
-          guard.toolCall();
-          const result = await runControlledAgent({ title: task.title, goal: task.goal });
-          guard.step("verifier.validate");
-          guard.success();
-          await db.updateTaskStep(task.id, 1, { status: "succeeded", finishedAt: new Date() });
-          await db.updateTaskStep(task.id, 2, { status: "succeeded", startedAt: new Date(), finishedAt: new Date() });
-          await db.updateTaskStep(task.id, 3, { status: "blocked", errorCode: "ISOLATED_WORKER_NOT_CONFIGURED" });
-          await db.updateTaskStep(task.id, 4, { status: "succeeded", finishedAt: new Date() });
-          await db.addTaskMessage({ taskId: task.id, role: "assistant", content: JSON.stringify(result) });
-          await db.updateTask(task.id, { status: "succeeded", finishedAt: new Date() });
-          await db.closeSandboxSession(sessionId, "closed");
-          await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "agent", eventType: "agent.run.completed", metadata: { sessionId, execution: "control_plane_only", worker: "not_configured" } });
-          return { status: "succeeded" as const, sessionId, result, worker: "not_configured" as const };
+          runId = await db.enqueueAgentRun({ taskId: task.id, workspaceId: membership.workspace.id, requestedBy: ctx.user.id });
         } catch (error) {
-          await db.updateTask(task.id, { status: "failed", finishedAt: new Date() });
-          await db.updateTaskStep(task.id, 1, { status: "failed", errorCode: "AGENT_RUN_FAILED", finishedAt: new Date() });
-          await db.closeSandboxSession(sessionId, "failed");
-          await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "system", eventType: "agent.run.failed", metadata: { sessionId, error: error instanceof Error ? error.message : "UNKNOWN", guard: guard.snapshot() } });
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error instanceof Error ? error.message : "Controlled agent run failed." });
+          if (error instanceof Error && error.message === "TASK_QUEUE_CLAIM_FAILED") throw new TRPCError({ code: "CONFLICT", message: "Task was queued by another operator." });
+          throw error;
         }
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "agent.run.queued", metadata: { runId, execution: "control_plane_only", worker: "optional_queue_worker" } });
+        return { status: "queued" as const, runId, worker: "not_configured" as const };
+      }),
+
+    runStatus: protectedProcedure
+      .input(z.object({ runId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        const run = await db.getAgentRunForWorkspace(input.runId, membership.workspace.id);
+        if (!run) throw new TRPCError({ code: "NOT_FOUND", message: "Agent run not found." });
+        return run;
       }),
 
     cancelTask: protectedProcedure
@@ -140,9 +130,28 @@ export const appRouter = router({
         const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
         if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
         if (!["running", "waiting_for_approval", "queued"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task cannot be cancelled from its current state." });
+        const latestRun = await db.getLatestAgentRunForTask(task.id, membership.workspace.id);
+        if (latestRun && ["queued", "running"].includes(latestRun.status)) {
+          await db.requestAgentRunCancellation(latestRun.id, membership.workspace.id, "Cancelled by task kill-switch");
+          abortActiveRun(latestRun.id);
+        }
         await db.updateTask(task.id, { cancelRequested: true, status: "cancelled", finishedAt: new Date() });
         await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: task.id, actorType: "user", actorId: ctx.user.id, eventType: "task.cancelled", metadata: { killSwitch: true } });
         return { success: true as const };
+      }),
+
+    cancelRun: protectedProcedure
+      .input(z.object({ runId: z.number().int().positive(), reason: z.string().trim().min(2).max(500).default("Cancelled by operator") }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const run = await db.getAgentRunForWorkspace(input.runId, membership.workspace.id);
+        if (!run) throw new TRPCError({ code: "NOT_FOUND", message: "Agent run not found." });
+        const cancelled = await db.requestAgentRunCancellation(input.runId, membership.workspace.id, input.reason);
+        if (!cancelled) throw new TRPCError({ code: "CONFLICT", message: "Run is already finished or was changed concurrently." });
+        abortActiveRun(input.runId);
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, taskId: run.taskId, actorType: "user", actorId: ctx.user.id, eventType: "agent.run.cancelled", metadata: { runId: input.runId, killSwitch: true, reason: input.reason } });
+        return { success: true as const, runId: input.runId };
       }),
 
     requestApproval: protectedProcedure
