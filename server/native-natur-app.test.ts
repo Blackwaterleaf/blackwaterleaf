@@ -27,8 +27,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).toContain("BlackWaterLeaf Originalmarke");
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
     expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.17"');
-    expect(appConfig).toContain('"versionCode": 17');
+    expect(appConfig).toContain('"version": "1.0.18"');
+    expect(appConfig).toContain('"versionCode": 18');
     for (const asset of ["botany-reference.jpg", "aquarium-reference.jpg", "terrarium-reference.jpg", "assistant-reference.jpg"]) {
       expect(existsSync(resolve(root, `mobile-natur/assets/${asset}`))).toBe(true);
     }

@@ -48,6 +48,17 @@ describe("profile settings navigation", () => {
     expect(nativeProfile).toContain("publicProfilePosts(account.id)");
     expect(nativeProfile).toContain("VERÖFFENTLICHT");
   });
+
+  it("uses a compact four-item 2×2 grid for the public profile excerpts", () => {
+    const webProfile = source("client/src/pages/ProfileHome.tsx");
+    const styles = source("client/src/index.css");
+    const native = source("mobile-natur/App.tsx");
+    expect(webProfile).toContain("publicPosts.data.slice(0, 4)");
+    expect(styles).toContain(".profile-reference-post-list { display: grid; grid-template-columns:repeat(2,minmax(0,1fr))");
+    expect(native).toContain("publicPosts.slice(0, 4)");
+    expect(native).toContain("profilePublicPostGrid");
+    expect(native).toContain('profilePublicPostTile: { width: "48.5%"');
+  });
 });
 
 export {};

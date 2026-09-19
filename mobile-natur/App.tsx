@@ -2960,7 +2960,7 @@ function ProfileScreen({
       </View>
       {publicPosts.length ? <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
         <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>FREIGEGEBEN</Text><Text style={styles.sectionTitle}>ÖFFENTLICHE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
-        <View style={styles.stack}>{publicPosts.slice(0, 6).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={[styles.profilePostRow, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }]}><Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHT · {post.realm ?? "COMMUNITY"}</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View>
+        <View style={styles.profilePublicPostGrid}>{publicPosts.slice(0, 4).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={({ pressed }) => [styles.profilePublicPostTile, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}><Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHT</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy} numberOfLines={1}>{post.realm ?? "COMMUNITY"} · {new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View>
       </View> : null}
       <SecondaryButton tone={tone} label="ABMELDEN" icon="log-out-outline" onPress={() => void onSignOut()} />
     </Page>
@@ -4667,6 +4667,8 @@ const styles = StyleSheet.create({
   profileHabitatChoiceCopy: { flex: 1, gap: 2 },
   profileReferencePostsPanel: { padding: 12, borderRadius: 16, borderWidth: 1, gap: 9, marginTop: 14 },
   profileReferencePostsHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  profilePublicPostGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  profilePublicPostTile: { width: "48.5%", minHeight: 132, padding: 10, borderRadius: 12, borderWidth: 1, justifyContent: "space-between", gap: 5 },
   photoObservationPanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 9, marginTop: 2 },
   photoObservationRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, borderTopWidth: 1 },
   explorePortalRow: { flexDirection: "row", gap: 8 },
