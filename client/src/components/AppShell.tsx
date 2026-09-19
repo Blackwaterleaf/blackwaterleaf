@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Map, Menu, Search, ShoppingBag, UserRound, BookOpen } from "lucide-react";
+import { Bell, Camera, Compass, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -13,12 +13,14 @@ const portalNavigation = [
   { href: "/explore#map", label: "Karte", icon: Map },
   { href: "/flow/foto", label: "Erfassen", icon: Camera },
   { href: "/search", label: "Katalog", icon: BookOpen },
+  { href: "/community", label: "Community", icon: UsersRound },
   { href: "/profile", label: "Profil", icon: UserRound },
 ] as const;
 
 function isPortalNavigationActive(location: string, hash: string, href: string) {
   if (href === "/explore#map") return location === "/explore" && hash === "#map";
-  if (href === "/explore") return location === "/" || (location === "/explore" && hash !== "#map") || location.startsWith("/botanik") || location.startsWith("/aquaristik") || location.startsWith("/terraristik") || location.startsWith("/community") || location.startsWith("/member/");
+  if (href === "/explore") return location === "/" || (location === "/explore" && hash !== "#map") || location.startsWith("/botanik") || location.startsWith("/aquaristik") || location.startsWith("/terraristik") || location.startsWith("/member/");
+  if (href === "/community") return location.startsWith("/community");
   if (href === "/flow/foto") return location.startsWith("/flow/") || location === "/assistant" || location === "/habitat-builder";
   if (href === "/search") return location.startsWith("/search") || location.startsWith("/knowledge") || location.startsWith("/plant/") || location.startsWith("/aquarium-fish/");
   if (href === "/profile") return location.startsWith("/profile") || location.startsWith("/saved") || location.startsWith("/ranking") || location.startsWith("/today") || location.startsWith("/notifications");

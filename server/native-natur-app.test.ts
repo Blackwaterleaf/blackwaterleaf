@@ -63,8 +63,8 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).not.toContain("<WebView");
   });
 
-  it("keeps exactly five regular Observatory navigation destinations and a reachable marketplace", () => {
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Profil"]) expect(app).toContain(`label: "${label}"`);
+  it("keeps six regular Observatory navigation destinations and a reachable marketplace", () => {
+    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
     for (const token of ['onMarketplace={() => navigate("marketplace")}', 'icon="storefront-outline"', 'label="Marktplatz"', 'screen === "marketplace"']) expect(app).toContain(token);
   });
 

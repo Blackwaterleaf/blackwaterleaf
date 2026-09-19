@@ -1,11 +1,11 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
-import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, Ban, Camera, Flag, Heart, MessageCircle, Pencil, Save as SaveIcon, Send, Trash2, UsersRound } from "lucide-react";
+import { ArrowRight, Ban, Camera, Flag, Heart, MessageCircle, Pencil, RefreshCw, Save as SaveIcon, Send, ShieldCheck, Trash2, UsersRound } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 const COMMUNITY_POLICY_VERSION = "community-2026-09-16-v1";
@@ -91,6 +91,7 @@ export default function Community() {
   const [feedRealm, setFeedRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
   const visiblePosts = feed.data?.filter(post => feedRealm === "all" || post.realm === feedRealm) ?? [];
+  const activeFilterLabel = feedRealm === "all" ? "Alle Bereiche" : feedRealm === "botany" ? "Botanik" : feedRealm === "aquarium" ? "Aquaristik" : "Terraristik";
 
   const openComposer = () => {
     if (!auth.isAuthenticated) { startLogin(); return; }
@@ -133,8 +134,19 @@ export default function Community() {
 
   return (
     <div className="observatory-route observatory-route--botany observatory-community-page">
-      <header className="observatory-community-context" style={{ backgroundImage: `url(${REFERENCE_ASSETS.botany})` }}><div><span className="eyebrow">COMMUNITY · FACHLICH KURATIERT</span><h1>{locale === "de" ? "ECHTE NATURMOMENTE." : "REAL NATURE MOMENTS."}</h1><p>{locale === "de" ? "Teilen, lernen und gemeinsam verifizieren." : "Share, learn and verify together."}</p></div><UsersRound size={24} /></header>
-      <div className="observatory-community-toolbar"><div className="community-feed-filters" aria-label="Community-Bereiche">{[["all", "Feed"], ["botany", "Botanik"], ["aquarium", "Aquaristik"], ["terrarium", "Terraristik"]].map(([value, label]) => <button key={value} type="button" className={feedRealm === value ? "is-selected" : ""} onClick={() => setFeedRealm(value as typeof feedRealm)}>{label}</button>)}</div><button type="button" className="community-feed-compose" onClick={openComposer}><Send size={14} />Beitrag erstellen <ArrowRight size={14} /></button></div>
+      <ObservatoryContextHeader
+        tone="botany"
+        eyebrow="COMMUNITY · ÖFFENTLICHER FACHFEED"
+        title={locale === "de" ? "ECHTE NATURMOMENTE." : "REAL NATURE MOMENTS."}
+        subtitle={locale === "de" ? "Veröffentlichte Beobachtungen, Pflegeerfahrungen und fachliche Fragen von aktiven Konten." : "Published observations, care experiences and expert questions from active accounts."}
+        icon={UsersRound}
+        badge="MODERIERT"
+        children={<><button type="button" className="secondary-action community-refresh" disabled={feed.isFetching} onClick={() => void feed.refetch()}><RefreshCw size={15} />{feed.isFetching ? "AKTUALISIERT …" : "AKTUALISIEREN"}</button><button type="button" className="primary-action" onClick={openComposer}><Send size={15} />BEITRAG ERSTELLEN</button></>}
+      />
+      <section className="community-feed-command observatory-data-panel" aria-label="Community Feed steuern">
+        <div className="community-feed-command__heading"><div><span className="eyebrow">ÖFFENTLICHER FEED</span><h2>{activeFilterLabel.toUpperCase()}</h2><p>{locale === "de" ? "Nur veröffentlichte Beiträge aktiver Konten. Private Entwürfe und blockierte Konten bleiben ausgeschlossen." : "Only published posts from active accounts. Private drafts and blocked accounts are excluded."}</p></div><span className={`community-feed-command__state ${feed.isFetching ? "is-refreshing" : feed.isError ? "is-error" : ""}`}><ShieldCheck size={15} />{feed.isFetching ? "WIRD AKTUALISIERT" : feed.isError ? "NICHT VERFÜGBAR" : "QUELLENBASIERT"}</span></div>
+        <div className="community-feed-filters" aria-label="Community-Bereiche">{[["all", "Feed"], ["botany", "Botanik"], ["aquarium", "Aquaristik"], ["terrarium", "Terraristik"]].map(([value, label]) => <button key={value} type="button" className={feedRealm === value ? "is-selected" : ""} aria-pressed={feedRealm === value} onClick={() => setFeedRealm(value as typeof feedRealm)}>{label}</button>)}</div>
+      </section>
       {feed.isLoading ? <StatePanel code="FEED/CONNECT" state="loading" title={t("common.loading")} body={t("home.truth.body")} /> : feed.isError ? <StatePanel code="FEED/ERROR" state="error" title={t("common.error")} body={locale === "de" ? "Der Feed konnte nicht geladen werden. Es werden keine Ersatzbeiträge angezeigt." : "The feed could not be loaded. No replacement posts are shown."} action={<button type="button" className="secondary-action" onClick={() => void feed.refetch()}>ERNEUT VERSUCHEN</button>} /> : !visiblePosts.length ? <section className="observatory-community-empty"><span className="eyebrow">FEED / EMPTY</span><h2>{feed.data?.length ? "Keine Beiträge in diesem Bereich" : t("community.emptyTitle")}</h2><p>{feed.data?.length ? "Wähle einen anderen Bereich oder erstelle deinen ersten passenden Beitrag." : t("community.emptyBody")}</p>{!auth.isAuthenticated ? <button type="button" className="primary-action" onClick={startLogin}>{t("common.signIn")}</button> : <button type="button" className="primary-action" onClick={openComposer}><Send size={16} />{locale === "de" ? "BEITRAG ERSTELLEN" : "CREATE POST"}</button>}</section> : <div className="community-feed">{visiblePosts.map(post => {
           const isOwner = Boolean(auth.user?.id && String(auth.user.id) === String(post.author.id));
           return <CommunityPostCard key={post.id} post={post} isOwner={isOwner} locale={locale} onLike={() => void like(post.id)} onReport={() => { if (window.confirm("Diesen Beitrag zur Prüfung melden?")) void reportPost.mutateAsync({ postId: Number(post.id), reason: "other" }).then(() => setStatus("Meldung zur Prüfung gespeichert.")).catch(error => setStatus(imageErrorMessage(error, locale))); }} onBlock={() => { if (window.confirm("Dieses Konto aus deinem Feed ausblenden?")) void blockUser.mutateAsync({ userId: Number(post.author.id) }).then(() => utils.community.feed.invalidate()).catch(error => setStatus(imageErrorMessage(error, locale))); }} onEdit={() => beginEdit({ id: Number(post.id), content: post.content, visibility: post.visibility, realm: post.realm })} onDelete={() => { if (window.confirm("Diesen eigenen Beitrag wirklich löschen?")) void deletePost.mutateAsync({ postId: Number(post.id) }).then(() => Promise.all([utils.community.feed.invalidate()])).catch(error => setStatus(imageErrorMessage(error, locale))); }} />;

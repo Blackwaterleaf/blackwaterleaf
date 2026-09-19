@@ -261,7 +261,7 @@ Die folgenden Muster sind vollständig entfernt und dürfen weder neu verwendet 
 Bestehende Styles mit diesen Namen werden entfernt, nachdem ihre Seiten auf die neuen Observatory-Primitives migriert wurden. Ein visueller Patch, der eine alte Klasse nur überlagert, gilt nicht als vollständige Migration.
 
 ### 19.7 Abnahmeregel für die Gesamtmigration
-Vor einem Gesamtcheckpoint werden alle öffentlichen und privaten Routen auf Desktop und Mobile geöffnet. Eine Route besteht nur, wenn sie den gemeinsamen Portalrahmen nutzt, keinen Legacy-Selektor oder Legacy-Overlay enthält, reale Daten und Berechtigungen wahrt, einen sichtbaren Lade-/Fehler-/Leerzustand besitzt, sichere Bild- und Standortregeln einhält und keine zweite Navigation erzeugt. Die fünf Primärziele bleiben überall erreichbar und genau eines ist aktiv markiert.
+Vor einem Gesamtcheckpoint werden alle öffentlichen und privaten Routen auf Desktop und Mobile geöffnet. Eine Route besteht nur, wenn sie den gemeinsamen Portalrahmen nutzt, keinen Legacy-Selektor oder Legacy-Overlay enthält, reale Daten und Berechtigungen wahrt, einen sichtbaren Lade-/Fehler-/Leerzustand besitzt, sichere Bild- und Standortregeln einhält und keine zweite Navigation erzeugt. Die sechs Primärziele bleiben überall erreichbar und genau eines ist aktiv markiert.
 ---
 ## 19.8 Umsetzungssperre und Migrationsstand (19. September 2026)
 
@@ -270,3 +270,12 @@ Vor einem Gesamtcheckpoint werden alle öffentlichen und privaten Routen auf Des
 Die Web-Routen für Start, Entdecken, Fachbereiche, Suche, Taxa, Wissen, Community, KI-Arbeitsbereich, Profile, Pflege, Ranking, Benachrichtigungen, Merkliste, Händlerflächen, Marketplace und Fehlerzustände sind auf den gemeinsamen Shell-, Kontextkopf-, Datenpanel- und Zustandsflächenstandard migriert. Nicht mehr geroutete Mockup-Seiten sowie die Legacy-Komponente `ReferenceOverlay` wurden entfernt. Der mobile Client verwendet dieselben Begriffe und denselben Informationsrhythmus; seine früheren Referenz-Komponenten wurden in `ObservatoryContextHeader`, `ObservatoryActionCluster` und `ObservatoryActionRow` überführt und aus großen Bildkacheln in kompakte Arbeitszeilen überführt.
 
 Die verbindliche visuelle Hierarchie lautet damit auf beiden Plattformen: **Route/Shell → kompakter Kontextkopf → Daten- oder Aktionsfläche → expliziter Zustand**. Bildmaterial dient ausschließlich der Identität, der Katalogbestimmung oder einer klar zugeordneten Fachinformation. Es darf weder Datenzustände vortäuschen noch den Bedienkontext überdecken. Der Kartenmodus bleibt, solange keine ausdrücklich zulässigen generalisierten Ortsdaten vorliegen, eine erklärte Schutzfläche ohne erfundene Punkte.
+
+
+### 19.9 Community-Feed und direkte Navigation
+
+**Community ist ein gleichwertiges Primärziel.** Die Web- und Native-Navigation führen deshalb in identischer Reihenfolge die sechs Ziele **Entdecken, Karte, Erfassen, Katalog, Community und Profil**. Marketplace, KI, Pflege und weitere Werkzeuge bleiben kontextbezogene Wege; Community ist jedoch kein Unterpunkt von Entdecken und erhält einen eigenen aktiven Navigationszustand.
+
+Der Community-Screen ist ein öffentlicher, moderierter Fachfeed und keine Social-Media-Showfläche. Ein gemeinsamer Kontextkopf erklärt die Daten- und Moderationsgrenzen. Darunter bleibt der bereits vorhandene Bereichswähler erhalten: **Feed, Botanik, Aquaristik und Terraristik**. Er filtert ausschließlich bereits serverseitig veröffentlichte Beiträge aktiver Konten. Bei einem leeren Bereich wird ein echter Leerzustand gezeigt; weder Ersatzbeiträge noch simulierte Interaktionen sind zulässig.
+
+Beitragskarten folgen der Reihenfolge **Autor und Zeit → Bereich/Sichtbarkeit → Inhalt → optionales echtes Medium → Interaktionen**. Eigentümeraktionen, Melden und Blockieren bleiben getrennt, Kommentare werden erst auf ausdrückliche Aktion geladen. Web und Native verwenden dieselben Filterwerte, Moderationssprache, Aktualisierungs- und Leerzustände sowie die gleiche direkte Community-Navigation.

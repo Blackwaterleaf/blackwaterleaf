@@ -19,3 +19,7 @@ At 390 × 844 pixels the homepage context header now reserves a dedicated action
 ## Final homepage verification
 
 Desktop verification confirms the sidebar connection state now stays as a compact two-line status record and the homepage partner section uses structured record rows rather than concatenated text. The page retains its compact Observatory hierarchy: consent state, context header, three specialist portal rows, factual observation panel, community record and transparent partner surface.
+
+## Community feed verification
+
+Desktop and mobile review confirm Community is a direct, active navigation destination. The revised feed presents a contextual introduction, an explicit data/moderation status, the retained four-option realm selector, and only live published content. At 390 × 844 pixels, the six-item bottom bar remains readable and the feed filters preserve clear 2 × 2 tap targets above the first real post.

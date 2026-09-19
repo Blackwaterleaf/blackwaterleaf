@@ -259,7 +259,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "COMMUNITY",
-    active: "discover",
+    active: "community",
   },
   profile: {
     accent: c.botany,
@@ -2726,6 +2726,8 @@ function CommunityScreen({
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
 }) {
+  const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
+  const visiblePosts = posts.filter(post => realmFilter === "all" || post.realm === realmFilter);
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <ObservatoryContextHeader
@@ -2754,23 +2756,28 @@ function CommunityScreen({
           },
         ]}
       />
+      <View style={[styles.communityFeedSelector, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <View style={styles.communityFeedSelectorHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>ÖFFENTLICHER FEED</Text><Text style={styles.cardTitle}>{realmFilter === "all" ? "ALLE BEREICHE" : realmFilter === "botany" ? "BOTANIK" : realmFilter === "aquarium" ? "AQUARISTIK" : "TERRARISTIK"}</Text></View><View style={[styles.communityFeedVerified, { borderColor: `${tone.accent}55` }]}><Ionicons name="shield-checkmark-outline" size={15} color={tone.accent} /><Text style={[styles.chip, { color: tone.accent }]}>MODERIERT</Text></View></View>
+        <Text style={styles.miniCopy}>Nur veröffentlichte Beiträge aktiver Konten. Private Entwürfe und blockierte Konten bleiben ausgeschlossen.</Text>
+        <View style={styles.communityFeedFilterRow}>{(["all", "botany", "aquarium", "terrarium"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: realmFilter === item }} onPress={() => setRealmFilter(item)} style={[styles.communityFeedFilter, { borderColor: realmFilter === item ? tone.accent : `${tone.accent}55`, backgroundColor: realmFilter === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: realmFilter === item ? tone.accent : c.muted }]}>{item === "all" ? "Feed" : item === "botany" ? "Botanik" : item === "aquarium" ? "Aquaristik" : "Terraristik"}</Text></Pressable>)}</View>
+      </View>
       {state === "loading" ? (
         <Loading tone={tone} />
       ) : state === "error" ? (
         <ErrorNotice text={error ?? "Feed konnte nicht geladen werden."} />
-      ) : !posts.length ? (
+      ) : !visiblePosts.length ? (
         <StatusPanel
           tone={tone}
           icon="people-outline"
-          code="FEED / LEER"
-          title="NOCH KEINE ÖFFENTLICHEN BEITRÄGE"
-          text="Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen automatisch."
+          code={posts.length ? "FEED / BEREICH_LEER" : "FEED / LEER"}
+          title={posts.length ? "KEINE BEITRÄGE IN DIESEM BEREICH" : "NOCH KEINE ÖFFENTLICHEN BEITRÄGE"}
+          text={posts.length ? "Wähle einen anderen Bereich oder veröffentliche einen passenden Beitrag." : "Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen automatisch."}
           actionLabel={token ? "BEITRAG ERSTELLEN" : "SICHER ANMELDEN"}
           onAction={() => (token ? navigate("post") : void onSignIn())}
         />
       ) : (
         <View style={styles.stack}>
-          {posts.map(post => (
+          {visiblePosts.map(post => (
             <PostCard
               key={post.id}
               tone={tone}
@@ -3742,22 +3749,29 @@ function BottomNavigation({
       icon: "camera-outline",
       color: c.botany,
     },
-    {
-      id: "catalog",
-      screen: "search",
-      label: "Katalog",
-      icon: "book-outline",
-      color: c.botany,
-    },
-    {
-      id: "profile",
+      {
+        id: "catalog",
+        screen: "search",
+        label: "Katalog",
+        icon: "book-outline",
+        color: c.botany,
+      },
+      {
+        id: "community",
+        screen: "community",
+        label: "Community",
+        icon: "people-outline",
+        color: c.botany,
+      },
+      {
+        id: "profile",
       screen: "profile",
       label: "Profil",
       icon: "person-outline",
       color: c.botany,
     },
   ];
-  const activeId: BottomTab = active === "home" ? "discover" : active === "explore" ? "map" : active === "marketplace" ? "discover" : active === "community" ? "discover" : active === "builder" ? "profile" : active;
+  const activeId: BottomTab = active === "home" ? "discover" : active === "explore" ? "map" : active === "marketplace" ? "discover" : active === "builder" ? "profile" : active;
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
@@ -4638,6 +4652,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  communityFeedSelector: { gap: 10, padding: 14, borderRadius: 17, borderWidth: 1 },
+  communityFeedSelectorHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
+  communityFeedVerified: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
+  communityFeedFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  communityFeedFilter: { minWidth: "46%", flexGrow: 1, minHeight: 39, paddingHorizontal: 9, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   careSectionHeader: { flexDirection: "row", alignItems: "center", gap: 9, marginTop: 16, marginBottom: 8 },
   sectionTitle: { flex: 1, color: c.text, fontSize: 20, fontWeight: "900", letterSpacing: 0.6 },
   careCount: { color: c.botany, fontSize: 18, fontWeight: "900" },
