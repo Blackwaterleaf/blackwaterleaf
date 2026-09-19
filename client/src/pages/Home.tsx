@@ -34,7 +34,7 @@ import {
   TriangleAlert,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type NavItem = { label: string; icon: typeof LayoutDashboard; key: string };
@@ -100,6 +100,10 @@ export default function Home() {
     onSuccess: result => { setQueuedRunId(result.runId ?? null); setRunningTaskId(null); setLastRunResult(result); overview.refetch(); toast.success(result.status === "queued" ? "Agentenlauf in die persistente Queue eingereiht" : result.worker === "not_configured" ? "Agentenanalyse abgeschlossen; Worker wartet auf Sicherheitskonfiguration" : "Agentenlauf abgeschlossen"); },
     onError: error => { setRunningTaskId(null); overview.refetch(); toast.error(error.message); },
   });
+  const runStatus = trpc.studio.runStatus.useQuery(
+    { runId: queuedRunId ?? 0 },
+    { enabled: queuedRunId !== null, refetchInterval: 3_000 },
+  );
   const requestApproval = trpc.studio.requestApproval.useMutation({
     onSuccess: () => { overview.refetch(); toast.success("Freigabeanforderung protokolliert"); },
     onError: error => toast.error(error.message),
@@ -116,6 +120,22 @@ export default function Home() {
     onSuccess: () => { setQueuedRunId(null); setRunningTaskId(null); setLastRunResult(null); overview.refetch(); toast.success("Kill-Switch aktiviert: Queue-Run gestoppt"); },
     onError: error => toast.error(error.message),
   });
+
+  useEffect(() => {
+    const current = runStatus.data;
+    if (!current || queuedRunId === null) return;
+    if (current.status === "running") {
+      setLastRunResult(previous => ({ ...(previous ?? {}), runId: current.id, status: "running", worker: "control_plane_worker" }));
+      return;
+    }
+    if (!["succeeded", "failed", "cancelled", "dead_letter"].includes(current.status)) return;
+    let parsedResult: AgentRunResult["result"];
+    try { parsedResult = current.result ? JSON.parse(current.result) as AgentRunResult["result"] : undefined; } catch { parsedResult = undefined; }
+    setLastRunResult(previous => ({ ...(previous ?? {}), runId: current.id, status: current.status, worker: "control_plane_worker", result: parsedResult }));
+    setQueuedRunId(null);
+    setRunningTaskId(null);
+    overview.refetch();
+  }, [runStatus.data, queuedRunId, overview]);
 
   const tasks = [...(overview.data?.tasks ?? [])];
   const pendingApprovals = overview.data?.approvals.filter(item => item.status === "pending") ?? [];
@@ -179,7 +199,7 @@ export default function Home() {
         <header className="studio-topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button><div><div className="studio-small-label">{active === "workspace" ? "ARBEITSRAUM" : navItems.find(item => item.key === active)?.label.toUpperCase()}</div><h2>{active === "workspace" ? "Guten Morgen, {name}".replace("{name}", user.name?.split(" ")[0] || "Studio") : navItems.find(item => item.key === active)?.label}</h2></div><div className="topbar-actions"><div className="connection-pill"><span className="status-dot" /> Control API online</div><Button className="studio-primary-button" onClick={() => setComposerOpen(true)}><Plus size={16} /> Neuer Auftrag</Button></div></header>
         <main className="studio-content">
           {active === "workspace" ? <>
-            {runAgent.isPending || lastRunResult ? <AgentExecutionPanel running={runAgent.isPending} queued={lastRunResult?.status === "queued"} result={lastRunResult} approvalDecision={approvalDecision} onOpenApproval={() => setApprovalOpen(true)} onCancel={() => { if (queuedRunId) cancelRun.mutate({ runId: queuedRunId }); else if (runningTaskId) cancelTask.mutate({ taskId: runningTaskId }); }} cancelPending={cancelTask.isPending || cancelRun.isPending} /> : null}
+            {runAgent.isPending || lastRunResult ? <AgentExecutionPanel running={runAgent.isPending || lastRunResult?.status === "running"} queued={lastRunResult?.status === "queued"} result={lastRunResult} approvalDecision={approvalDecision} onOpenApproval={() => setApprovalOpen(true)} onCancel={() => { if (queuedRunId) cancelRun.mutate({ runId: queuedRunId }); else if (runningTaskId) cancelTask.mutate({ taskId: runningTaskId }); }} cancelPending={cancelTask.isPending || cancelRun.isPending} /> : null}
             <section className="hero-grid"><div className="hero-panel"><div className="hero-kicker"><span className="hero-kicker-dot" /> KONTROLLIERTE AGENTENARBEIT</div><h1>Vom Ziel zum<br /><span>klaren Ergebnis.</span></h1><p>Formuliere ein Ziel. Gib nur den nötigen Kontext frei. Verfolge jeden Schritt.</p><Button className="studio-light-button" onClick={() => setComposerOpen(true)}>Arbeitsauftrag starten <ArrowUpRight size={16} /></Button><div className="hero-grid-lines" /></div><div className="hero-signal-panel"><div className="signal-orbit orbit-one" /><div className="signal-orbit orbit-two" /><div className="signal-core"><Bot size={22} /></div><div className="signal-caption"><span className="status-dot" /> Agent Control Plane<div>isolated worker <strong>not configured</strong></div></div></div></section>
             <section className="metric-grid"><Metric label="Aktive Aufträge" value={stats.active} hint="aus echten Statusereignissen" icon={Activity} accent="mint" /><Metric label="Abgeschlossen" value={stats.completed} hint="mit Ergebniszuordnung" icon={CheckCircle2} accent="blue" /><Metric label="Freigaben" value={stats.approvals} hint="wartend auf Entscheidung" icon={ShieldCheck} accent="violet" /></section>
             <section className="dashboard-grid"><Card className="studio-card task-card"><CardHeader className="studio-card-head"><div><div className="studio-small-label">LETZTE AUFTRÄGE</div><CardTitle>Arbeitsstrom</CardTitle></div><Button variant="ghost" size="sm" className="studio-ghost-button" onClick={() => setActive("tasks")}>Alle anzeigen <ChevronRight size={14} /></Button></CardHeader><CardContent>{tasks.length === 0 ? <EmptyState icon={FolderKanban} title="Noch keine Aufträge" copy="Dein erster Arbeitsauftrag erscheint hier mit echtem serverseitigem Status." action="Auftrag anlegen" onAction={() => setComposerOpen(true)} /> : <div className="task-list">{tasks.slice(0, 5).map(task => <div className="task-row" key={task.id}><div className={`task-icon ${task.status}`}><TerminalSquare size={17} /></div><div className="min-w-0 flex-1"><div className="task-title truncate">{task.title}</div><div className="task-meta">#{task.id} · {new Date(task.updatedAt).toLocaleString("de-DE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</div></div><Badge className={`status-badge ${task.status}`}>{statusLabel[task.status] || task.status}</Badge>{task.status === "ready" && canOperate ? <Button size="icon" variant="ghost" className="row-run-button" disabled={runAgent.isPending} onClick={() => runAgent.mutate({ taskId: task.id })}><Play size={14} /></Button> : null}</div>)}</div>}</CardContent></Card><Card className="studio-card activity-card"><CardHeader className="studio-card-head"><div><div className="studio-small-label">SICHERHEIT & SYSTEM</div><CardTitle>Ausführungsstatus</CardTitle></div><LockKeyhole size={17} className="text-white/35" /></CardHeader><CardContent><div className="status-stack"><StatusRow icon={Bot} label="Agent Control Plane" value="Verfügbar" tone="good" /><StatusRow icon={TerminalSquare} label="Isolated Worker" value="Nicht konfiguriert" tone="neutral" /><StatusRow icon={LockKeyhole} label="Netzwerkzugriff" value="Deaktiviert" tone="good" /><StatusRow icon={FileKey2} label="Datei-Mounts" value="Keine" tone="good" /></div><div className="status-footnote"><CircleDashed size={14} /> Jeder echte Worker-Lauf benötigt eine separate Freigabe und Isolation.</div></CardContent></Card></section>

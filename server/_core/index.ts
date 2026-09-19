@@ -55,9 +55,11 @@ async function startServer() {
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);
 
-  if (process.env.STUDIO_QUEUE_WORKER_ENABLED === "true") {
+  const queueWorkerEnabled = process.env.STUDIO_QUEUE_WORKER_ENABLED === "true"
+    || (process.env.NODE_ENV === "development" && process.env.STUDIO_QUEUE_WORKER_ENABLED !== "false");
+  if (queueWorkerEnabled) {
     startQueueWorker();
-    console.log("[Studio Queue] durable worker enabled");
+    console.log("[Studio Queue] Manus control-plane worker enabled");
   }
 
   if (port !== preferredPort) {
