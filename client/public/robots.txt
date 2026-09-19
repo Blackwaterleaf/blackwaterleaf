@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /search
+Disallow: /saved
+Disallow: /member/
+Disallow: /profile
+Disallow: /today
+Disallow: /notifications
+Disallow: /community
+Disallow: /flow/
+Disallow: /marketplace/manage
+
+Sitemap: https://www.blackwaterleaf.com/sitemap.xml
