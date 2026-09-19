@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { challengeProgress, challenges, xpEvents } from "../../drizzle/schema";
+import { challengeProgress, challenges, mediaAssets, xpEvents } from "../../drizzle/schema";
 import { observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, router, staffProcedure, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
@@ -47,7 +47,14 @@ export const challengesRouter = router({
     const db = await requireDatabase();
     const challenge = await db.select({ startsAt: challenges.startsAt, endsAt: challenges.endsAt }).from(challenges).innerJoin(challengeProgress, eq(challengeProgress.challengeId, challenges.id)).where(and(eq(challenges.id, input.challengeId), eq(challengeProgress.userId, ctx.user.id))).limit(1);
     if (!challenge[0]) throw new TRPCError({ code: "NOT_FOUND", message: "challenge_not_joined" });
-    const events = await db.select({ count: sql<number>`COUNT(*)` }).from(xpEvents).where(and(eq(xpEvents.userId, ctx.user.id), gte(xpEvents.createdAt, challenge[0].startsAt), lte(xpEvents.createdAt, challenge[0].endsAt)));
+    const events = await db.select({ count: sql<number>`COUNT(*)` }).from(xpEvents).innerJoin(mediaAssets, eq(sql`CAST(${xpEvents.sourceId} AS UNSIGNED)`, mediaAssets.id)).where(and(
+      eq(xpEvents.userId, ctx.user.id),
+      eq(xpEvents.eventType, "photo_upload"),
+      eq(xpEvents.sourceType, "media_asset"),
+      eq(mediaAssets.visibility, "public"),
+      gte(xpEvents.createdAt, challenge[0].startsAt),
+      lte(xpEvents.createdAt, challenge[0].endsAt),
+    ));
     const progress = Math.min(100, Number(events[0]?.count ?? 0) * 10);
     const status = progress >= 100 ? "completed" : "joined";
     await db.update(challengeProgress).set({ progress, status, updatedAt: new Date() }).where(and(eq(challengeProgress.challengeId, input.challengeId), eq(challengeProgress.userId, ctx.user.id)));

@@ -2,8 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { awardXpIfReady, dayKey, getExperienceSummary, XP_REWARDS } from "../gamification";
-import { users, xpEvents } from "../../drizzle/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { mediaAssets, users, xpEvents } from "../../drizzle/schema";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { protectedProcedure, router } from "../_core/trpc";
 
 async function requireDatabase() {
@@ -34,7 +34,13 @@ export const gamificationRouter = router({
       .select({ userId: users.id, name: users.name, username: users.username, totalXp: sql<number>`COALESCE(SUM(${xpEvents.points}), 0)` })
       .from(users)
       .innerJoin(xpEvents, eq(xpEvents.userId, users.id))
-      .where(eq(users.status, "active"))
+      .innerJoin(mediaAssets, eq(sql`CAST(${xpEvents.sourceId} AS UNSIGNED)`, mediaAssets.id))
+      .where(and(
+        eq(users.status, "active"),
+        eq(xpEvents.eventType, "photo_upload"),
+        eq(xpEvents.sourceType, "media_asset"),
+        eq(mediaAssets.visibility, "public"),
+      ))
       .groupBy(users.id, users.name, users.username)
       .orderBy(desc(sql`SUM(${xpEvents.points})`))
       .limit(25);

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { mediaAssets, users } from "../../drizzle/schema";
+import { communityPosts, mediaAssets, users } from "../../drizzle/schema";
 import {
   BLACKWATERLEAF_CONTRACT_VERSION,
   consentPurposeSchema,
@@ -83,6 +83,15 @@ export const profileRouter = router({
     })
       ? serializeProfile(rows[0], false)
       : null;
+  }),
+
+  publicPosts: publicProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
+    const db = await requireDatabase();
+    return db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt }).from(communityPosts).where(and(
+      eq(communityPosts.userId, input.userId),
+      eq(communityPosts.status, "published"),
+      eq(communityPosts.visibility, "public"),
+    )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
   }),
 
   update: protectedProcedure

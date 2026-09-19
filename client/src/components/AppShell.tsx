@@ -88,6 +88,18 @@ export function AppShell({ children }: PropsWithChildren) {
     dailyCheckIn.mutate();
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
+  useEffect(() => {
+    const noIndex = location === "/search" || location === "/saved" || location.startsWith("/member/") || location.startsWith("/community") || location.startsWith("/profile") || location.startsWith("/today") || location.startsWith("/notifications") || location.startsWith("/flow/") || location.startsWith("/admin");
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) { robots = document.createElement("meta"); robots.setAttribute("name", "robots"); document.head.appendChild(robots); }
+    robots.setAttribute("content", noIndex ? "noindex, nofollow, noarchive" : "index, follow");
+    const canonicalPath = location.split("?")[0] || "/";
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
+    canonical.setAttribute("href", `${window.location.origin}${canonicalPath}`);
+    return () => { robots?.setAttribute("content", "index, follow"); };
+  }, [location]);
+
   return (
     <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
       <div className="ambient-grid" aria-hidden="true" />
