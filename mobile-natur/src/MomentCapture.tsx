@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system/legacy";
 import { useState } from "react";
 import {
   Alert,
@@ -14,7 +13,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { createObservation, setConsent, uploadObservationImage } from "./api";
+import { enqueueObservation, syncObservationOutbox } from "./observationOutbox";
 
 const c = {
   bg: "#031108",
@@ -64,6 +63,7 @@ export function MomentCapture({
   const [subject, setSubject] = useState("");
   const [note, setNote] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageMimeType, setImageMimeType] = useState("image/jpeg");
   const [mediaConsent, setMediaConsent] = useState(false);
   const [saving, setSaving] = useState(false);
   const accent = realmColor[realm];
@@ -93,7 +93,10 @@ export function MomentCapture({
           quality: 0.7,
           allowsEditing: false,
         });
-    if (!result.canceled && result.assets[0]) setImageUri(result.assets[0].uri);
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+      setImageMimeType(result.assets[0].mimeType ?? "image/jpeg");
+    }
   };
 
   const save = async () => {
@@ -113,39 +116,37 @@ export function MomentCapture({
     }
     setSaving(true);
     try {
-      const observation = await createObservation(token, {
-        clientId: Crypto.randomUUID(),
-        realm,
-        subject: subject.trim() || null,
-        scientificName: null,
-        note: note.trim() || null,
-        metrics: [],
-        evidenceState: "unverified",
-        visibility: "private",
+      await enqueueObservation({
+        payload: {
+          clientId: Crypto.randomUUID(),
+          realm,
+          subject: subject.trim() || null,
+          scientificName: null,
+          note: note.trim() || null,
+          metrics: [],
+          evidenceState: "unverified",
+          visibility: "private",
+        },
+        imageUri,
+        mimeType: imageMimeType,
+        needsMediaConsent: Boolean(imageUri),
       });
-      if (imageUri) {
-        await setConsent(token, {
-          purpose: "media_processing",
-          policyVersion: "native-1.0.4",
-          granted: true,
-        });
-        const base64 = await FileSystem.readAsStringAsync(imageUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        await uploadObservationImage(token, {
-          observationId: Number(observation.id),
-          base64,
-          mimeType: "image/jpeg",
-        });
-      }
+      const summary = await syncObservationOutbox(token);
       setSubject("");
       setNote("");
       setImageUri(null);
+      setImageMimeType("image/jpeg");
       setMediaConsent(false);
       await onComplete();
       Alert.alert(
-        "Privater Moment gespeichert",
-        "Der Moment ist nur in deinem BlackWaterLeaf-Konto sichtbar."
+        summary.pending || summary.imagePending || summary.conflicts
+          ? "Privater Moment für Synchronisierung vorgemerkt"
+          : "Privater Moment gespeichert",
+        summary.conflicts
+          ? "Der Server meldet einen Konflikt. Bitte prüfe den Eintrag und versuche es später erneut."
+          : summary.pending || summary.imagePending
+            ? "Die Beobachtung bleibt verschlüsselt im App-Speicher und wird bei einer stabilen Verbindung automatisch wiederholt."
+            : "Der Moment ist nur in deinem BlackWaterLeaf-Konto sichtbar."
       );
     } catch (cause) {
       Alert.alert(

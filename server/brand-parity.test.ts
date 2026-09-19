@@ -29,9 +29,9 @@ describe("cross-platform BlackWaterLeaf brand parity", () => {
     expect(marketplace).toContain('observatory-marketplace-page');
     expect(marketplace).toContain('observatory-marketplace-hero');
     expect(native).toContain('market: "#D9AD69"');
-    expect(native).toContain('screen: "marketplace"');
-    expect(native).toContain('label: "Marktplatz"');
-    expect(native).toContain('color: c.market');
+    expect(native).toContain('screen === "marketplace"');
+    expect(native).toContain('label: "MARKTPLATZ"');
+    expect(native).toContain('accent: c.market');
   });
 
   it("records the confirmed visual contract in the binding rulebook", () => {

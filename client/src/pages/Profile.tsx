@@ -5,7 +5,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Camera, Leaf, Loader2, LockKeyhole, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Camera, Leaf, Loader2, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -33,11 +33,13 @@ export default function Profile() {
   const { locale, unitSystem, setLocale, setUnitSystem, t } = useI18n();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const sessions = trpc.auth.sessions.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const update = trpc.profile.update.useMutation();
   const setConsent = trpc.profile.setConsent.useMutation();
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
   const closeAccount = trpc.profile.closeAccount.useMutation();
+  const revokeAllSessions = trpc.auth.revokeAllSessions.useMutation();
   const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
   const [status, setStatus] = useState<string | null>(null);
   const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
@@ -95,7 +97,7 @@ export default function Profile() {
 
   const consentMap = useMemo(() => new Map(consents.data?.map(item => [item.purpose, item.granted]) ?? []), [consents.data]);
 
-  const updateConsent = async (purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing", granted: boolean) => {
+  const updateConsent = async (purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing" | "location_processing", granted: boolean) => {
     await setConsent.mutateAsync({ purpose, granted, policyVersion: POLICY_VERSION });
     await utils.profile.consents.invalidate();
   };
@@ -163,6 +165,16 @@ export default function Profile() {
     }
   };
 
+  const signOutEverywhere = async () => {
+    setStatus(null);
+    try {
+      await revokeAllSessions.mutateAsync();
+      await auth.logout();
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "session_revoke_failed");
+    }
+  };
+
   const section = location.startsWith("/profile/") ? location.split("/")[2] : "settings";
   return (
     <div className={`reference-page reference-page--botany profile-page-only profile-settings-page profile-section-${section}`}>
@@ -201,6 +213,12 @@ export default function Profile() {
               <ConsentToggle label="Bilder sicher verarbeiten" checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />
               <ConsentToggle label="Community-Beiträge veröffentlichen" checked={Boolean(consentMap.get("community_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("community_publishing", checked)} />
               <ConsentToggle label="KI-Anfragen sicher verarbeiten" checked={Boolean(consentMap.get("ai_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("ai_processing", checked)} />
+              <ConsentToggle label="Standort grob für aktuelles Wetter verwenden" checked={Boolean(consentMap.get("location_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("location_processing", checked)} />
+            </section>
+            <section className="profile-session-panel" aria-labelledby="active-sessions-title">
+              <div><span className="eyebrow">SICHERHEIT</span><h3 id="active-sessions-title">AKTIVE ZUGÄNGE</h3><p>Nur Gerätetyp und letzte Aktivität werden angezeigt. Sitzungstoken bleiben unsichtbar.</p></div>
+              {sessions.isLoading ? <p className="form-status"><Loader2 size={14} className="spin" /> Sitzungen werden geladen …</p> : sessions.data?.length ? <div className="profile-session-list">{sessions.data.map(session => <div className="profile-session-row" key={session.id}><span><strong>{session.provider === "local" ? "Lokale Anmeldung" : "Manus-Anmeldung"}</strong><small>{session.deviceId ? `Gerät ${session.deviceId}` : "Gerät nicht benannt"} · zuletzt {new Date(session.lastSeenAt).toLocaleString(locale === "de" ? "de-DE" : "en-US")}</small></span><ShieldCheck size={15} /></div>)}</div> : <p className="form-status">Keine aktiven Sitzungen gefunden.</p>}
+              <button className={`secondary-action ${revokeAllSessions.isPending ? "action-loading" : ""}`} type="button" disabled={revokeAllSessions.isPending} onClick={() => void signOutEverywhere()}><LogOut size={15} />{revokeAllSessions.isPending ? "ABMELDUNG …" : "ALLE GERÄTE ABMELDEN"}</button>
             </section>
           </details>
 

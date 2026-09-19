@@ -1,0 +1,21 @@
+import fs from "node:fs";
+const file = new URL("../server/routers/search.ts", import.meta.url);
+let s = fs.readFileSync(file, "utf8");
+const replaceOnce = (from, to) => {
+  const count = s.split(from).length - 1;
+  if (count !== 1) throw new Error(`Expected one occurrence, found ${count}: ${from.slice(0, 100)}`);
+  s = s.replace(from, to);
+};
+const replaceExactly = (from, to, expected) => {
+  const count = s.split(from).length - 1;
+  if (count !== expected) throw new Error(`Expected ${expected} occurrences, found ${count}: ${from.slice(0, 100)}`);
+  s = s.replaceAll(from, to);
+};
+replaceOnce('  imageUrl: z.string().url().max(1_000).nullable().optional(),\n  evidenceState:', '  imageUrl: z.string().url().max(1_000).nullable().optional(),\n  imageSourceUrl: z.string().url().max(1_000).nullable().optional(),\n  imageLicense: z.string().trim().max(128).nullable().optional(),\n  imageAttribution: z.string().trim().max(2_000).nullable().optional(),\n  evidenceState:');
+replaceOnce('          commonNames: plantTaxa.commonNames,\n          summary: plantTaxa.summary,\n          imageUrl: plantTaxa.imageUrl,\n          evidenceState:', '          commonNames: plantTaxa.commonNames,\n          summary: plantTaxa.summary,\n          imageUrl: plantTaxa.imageUrl,\n          imageSourceUrl: plantTaxa.imageSourceUrl,\n          imageLicense: plantTaxa.imageLicense,\n          imageAttribution: plantTaxa.imageAttribution,\n          imageVerifiedAt: plantTaxa.imageVerifiedAt,\n          evidenceState:');
+replaceOnce('          commonNames: aquariumTaxa.commonNames,\n          summary: aquariumTaxa.summary,\n          imageUrl: aquariumTaxa.imageUrl,\n          evidenceState:', '          commonNames: aquariumTaxa.commonNames,\n          summary: aquariumTaxa.summary,\n          imageUrl: aquariumTaxa.imageUrl,\n          imageSourceUrl: aquariumTaxa.imageSourceUrl,\n          imageLicense: aquariumTaxa.imageLicense,\n          imageAttribution: aquariumTaxa.imageAttribution,\n          imageVerifiedAt: aquariumTaxa.imageVerifiedAt,\n          evidenceState:');
+replaceOnce('    .mutation(async ({ input }) => {\n      const db = await requireDatabase();\n      for (const record of input.records) {\n        await db.insert(plantTaxa)', '    .mutation(async ({ input }) => {\n      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {\n        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });\n      }\n      const db = await requireDatabase();\n      for (const record of input.records) {\n        await db.insert(plantTaxa)');
+replaceOnce('    .mutation(async ({ input }) => {\n      const db = await requireDatabase();\n      for (const record of input.records) {\n        await db.insert(aquariumTaxa)', '    .mutation(async ({ input }) => {\n      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {\n        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });\n      }\n      const db = await requireDatabase();\n      for (const record of input.records) {\n        await db.insert(aquariumTaxa)');
+replaceExactly('          genus: record.genus ?? null,\n          commonNames: record.commonNames,\n          synonyms: record.synonyms,\n          summary: record.summary ?? null,\n          careProfile: record.careProfile ?? null,\n          imageUrl: record.imageUrl ?? null,\n          evidenceState: record.evidenceState,', '          genus: record.genus ?? null,\n          commonNames: record.commonNames,\n          synonyms: record.synonyms,\n          summary: record.summary ?? null,\n          careProfile: record.careProfile ?? null,\n          imageUrl: record.imageUrl ?? null,\n          imageSourceUrl: record.imageSourceUrl ?? null,\n          imageLicense: record.imageLicense ?? null,\n          imageAttribution: record.imageAttribution ?? null,\n          imageVerifiedAt: input.publish ? new Date() : null,\n          evidenceState: record.evidenceState,', 2);
+fs.writeFileSync(file, s);
+console.log("Updated search router image provenance contract");

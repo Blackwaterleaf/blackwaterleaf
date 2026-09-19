@@ -65,8 +65,8 @@ describe("marketplace UI truth contract", () => {
   });
 
   it("keeps the Marketplace in the Observatory navigation and design book", () => {
-    expect(shell).toContain('href: "/marketplace"');
-    expect(shell).toContain('label: "tabs.marketplace"');
+    expect(shell).toContain('href="/marketplace"');
+    expect(shell).not.toContain('label: "tabs.marketplace"');
     expect(designBook).toContain("/marketplace/shop/:id");
     expect(designBook).toContain("Shopauswahl");
   });

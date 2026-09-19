@@ -88,6 +88,8 @@ export type MarketplaceProduct = {
   id: number;
   partnerId: number;
   partnerName: string;
+  partnerType?: "company" | "individual" | "organization" | string;
+  partnerUrl?: string | null;
   disclosureLabel: string;
   title: string;
   description: string | null;
@@ -96,6 +98,10 @@ export type MarketplaceProduct = {
   imageUrl: string | null;
   imageAltText: string | null;
   marketplaceCategory: string | null;
+  productType?: string | null;
+  variantSummary?: string | null;
+  variantCount?: number | null;
+  updatedAt?: string | null;
 };
 export type CommunityPost = {
   id: string;
@@ -174,7 +180,7 @@ export type Observation = {
   createdAt: string;
 };
 export type ProfileConsent = {
-  purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing";
+  purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing" | "location_processing";
   granted: boolean;
   policyVersion: string;
   updatedAt: string;
@@ -265,8 +271,12 @@ export const writeToken = (token: string) =>
 export const clearToken = () => SecureStore.deleteItemAsync(NATIVE_TOKEN_KEY);
 export const platformAvailability = () =>
   trpcGet<PlatformAvailability>("platform.availability", null);
-export const outdoorWeather = (latitude: number, longitude: number) =>
-  trpcGet<OutdoorWeather>("sensors.outdoor", { latitude, longitude });
+export const outdoorWeather = (latitude: number, longitude: number, token?: string | null) =>
+  trpcPost<OutdoorWeather>(
+    "sensors.outdoor",
+    { latitude: Math.round(latitude * 100) / 100, longitude: Math.round(longitude * 100) / 100 },
+    token ?? "",
+  );
 export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const marketplaceEvent = (input: { eventId: string; productId: number; eventType: "outbound_click" | "purchase_intent" }) =>
@@ -310,6 +320,8 @@ export const uploadHabitatImage = (
 ) => trpcPost<{ id: string; accessUrl: string }>("habitats.uploadImage", input, token);
 export const privateObservations = (token: string) =>
   trpcGet<Observation[]>("observations.mine", undefined, token);
+export const publicObservations = (realm?: "botany" | "aquarium" | "terrarium") =>
+  trpcGet<Observation[]>("observations.publicFeed", { realm, limit: 20 });
 export const createObservation = (
   token: string,
   input: {
@@ -344,7 +356,7 @@ export const profileConsents = (token: string) =>
 export const setProfileConsent = (
   token: string,
   input: {
-    purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing";
+    purpose: "profile_publication" | "observation_publishing" | "media_processing" | "community_publishing" | "ai_processing" | "location_processing";
     policyVersion: string;
     granted: boolean;
   }

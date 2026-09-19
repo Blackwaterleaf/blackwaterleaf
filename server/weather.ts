@@ -9,6 +9,14 @@ export const outdoorWeatherInputSchema = z.object({
   longitude: z.number().finite().min(-180).max(180),
 }).strict();
 
+/** Weather needs a region, not a household-level coordinate. Two decimals are roughly kilometre precision. */
+export function roundWeatherCoordinates(input: z.infer<typeof outdoorWeatherInputSchema>) {
+  return {
+    latitude: Math.round(input.latitude * 100) / 100,
+    longitude: Math.round(input.longitude * 100) / 100,
+  };
+}
+
 const providerResponseSchema = z.object({
   current: z.object({
     temperature_2m: z.number().finite(),
@@ -42,7 +50,7 @@ export async function fetchOutdoorWeather(
   input: z.infer<typeof outdoorWeatherInputSchema>,
   request: typeof fetch = globalThis.fetch,
 ): Promise<OutdoorWeather> {
-  const location = outdoorWeatherInputSchema.parse(input);
+  const location = roundWeatherCoordinates(outdoorWeatherInputSchema.parse(input));
   const url = new URL(WEATHER_ENDPOINT);
   url.searchParams.set("latitude", String(location.latitude));
   url.searchParams.set("longitude", String(location.longitude));

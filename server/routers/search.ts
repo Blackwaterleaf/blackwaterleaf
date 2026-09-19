@@ -19,6 +19,9 @@ const taxaRecordSchema = z.object({
   summary: z.string().trim().max(10_000).nullable().optional(),
   careProfile: z.record(z.string(), z.unknown()).nullable().optional(),
   imageUrl: z.string().url().max(1_000).nullable().optional(),
+  imageSourceUrl: z.string().url().max(1_000).nullable().optional(),
+  imageLicense: z.string().trim().max(128).nullable().optional(),
+  imageAttribution: z.string().trim().max(2_000).nullable().optional(),
   evidenceState: evidenceStateSchema.default("confirmed"),
 });
 
@@ -71,6 +74,10 @@ export const searchRouter = router({
           commonNames: plantTaxa.commonNames,
           summary: plantTaxa.summary,
           imageUrl: plantTaxa.imageUrl,
+          imageSourceUrl: plantTaxa.imageSourceUrl,
+          imageLicense: plantTaxa.imageLicense,
+          imageAttribution: plantTaxa.imageAttribution,
+          imageVerifiedAt: plantTaxa.imageVerifiedAt,
           evidenceState: plantTaxa.evidenceState,
         }).from(plantTaxa).where(and(
           eq(plantTaxa.status, "published"),
@@ -100,6 +107,10 @@ export const searchRouter = router({
           commonNames: aquariumTaxa.commonNames,
           summary: aquariumTaxa.summary,
           imageUrl: aquariumTaxa.imageUrl,
+          imageSourceUrl: aquariumTaxa.imageSourceUrl,
+          imageLicense: aquariumTaxa.imageLicense,
+          imageAttribution: aquariumTaxa.imageAttribution,
+          imageVerifiedAt: aquariumTaxa.imageVerifiedAt,
           evidenceState: aquariumTaxa.evidenceState,
         }).from(aquariumTaxa).where(and(
           eq(aquariumTaxa.status, "published"),
@@ -183,6 +194,9 @@ export const searchRouter = router({
       publish: z.boolean().default(false),
     }))
     .mutation(async ({ input }) => {
+      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
+      }
       const db = await requireDatabase();
       for (const record of input.records) {
         await db.insert(plantTaxa).values({
@@ -199,6 +213,10 @@ export const searchRouter = router({
           summary: record.summary ?? null,
           careProfile: record.careProfile ?? null,
           imageUrl: record.imageUrl ?? null,
+          imageSourceUrl: record.imageSourceUrl ?? null,
+          imageLicense: record.imageLicense ?? null,
+          imageAttribution: record.imageAttribution ?? null,
+          imageVerifiedAt: input.publish ? new Date() : null,
           evidenceState: record.evidenceState,
           status: input.publish ? "published" : "draft",
         }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
@@ -214,6 +232,9 @@ export const searchRouter = router({
       publish: z.boolean().default(false),
     }))
     .mutation(async ({ input }) => {
+      if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
+      }
       const db = await requireDatabase();
       for (const record of input.records) {
         await db.insert(aquariumTaxa).values({
@@ -230,6 +251,10 @@ export const searchRouter = router({
           summary: record.summary ?? null,
           careProfile: record.careProfile ?? null,
           imageUrl: record.imageUrl ?? null,
+          imageSourceUrl: record.imageSourceUrl ?? null,
+          imageLicense: record.imageLicense ?? null,
+          imageAttribution: record.imageAttribution ?? null,
+          imageVerifiedAt: input.publish ? new Date() : null,
           evidenceState: record.evidenceState,
           status: input.publish ? "published" : "draft",
         }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });

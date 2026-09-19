@@ -192,6 +192,28 @@ export const localAuthTokens = mysqlTable(
   ],
 );
 
+/** Server-revocable session registry for web and native clients. Tokens are never stored in plaintext. */
+export const userSessions = mysqlTable(
+  "user_sessions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    sessionHash: varchar("sessionHash", { length: 64 }).notNull(),
+    provider: mysqlEnum("provider", ["manus", "local"]).notNull(),
+    deviceId: varchar("deviceId", { length: 128 }),
+    clientAgent: varchar("userAgent", { length: 512 }),
+    issuedAt: timestamp("issuedAt"),
+    expiresAt: timestamp("expiresAt").notNull(),
+    lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
+    revokedAt: timestamp("revokedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("user_sessions_hash_unique").on(table.sessionHash),
+    index("user_sessions_user_active_idx").on(table.userId, table.revokedAt, table.expiresAt),
+  ],
+);
+
 export const observations = mysqlTable(
   "observations",
   {
@@ -543,6 +565,10 @@ export const plantTaxa = mysqlTable(
     summary: text("summary"),
     careProfile: json("careProfile"),
     imageUrl: varchar("imageUrl", { length: 1_000 }),
+    imageSourceUrl: varchar("imageSourceUrl", { length: 1_000 }),
+    imageLicense: varchar("imageLicense", { length: 128 }),
+    imageAttribution: text("imageAttribution"),
+    imageVerifiedAt: timestamp("imageVerifiedAt"),
     evidenceState: mysqlEnum("evidenceState", ["confirmed", "contextual", "unverified", "conflicting", "insufficient"]).default("confirmed").notNull(),
     status: mysqlEnum("status", ["draft", "published", "retired"]).default("draft").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -573,6 +599,10 @@ export const aquariumTaxa = mysqlTable(
     summary: text("summary"),
     careProfile: json("careProfile"),
     imageUrl: varchar("imageUrl", { length: 1_000 }),
+    imageSourceUrl: varchar("imageSourceUrl", { length: 1_000 }),
+    imageLicense: varchar("imageLicense", { length: 128 }),
+    imageAttribution: text("imageAttribution"),
+    imageVerifiedAt: timestamp("imageVerifiedAt"),
     evidenceState: mysqlEnum("evidenceState", ["confirmed", "contextual", "unverified", "conflicting", "insufficient"]).default("confirmed").notNull(),
     status: mysqlEnum("status", ["draft", "published", "retired"]).default("draft").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),

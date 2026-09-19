@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Home, Map, Menu, Ruler, Search, ShoppingBag, UserRound, UsersRound, BookOpen } from "lucide-react";
+import { Bell, Camera, Compass, Map, Menu, Search, ShoppingBag, UserRound, BookOpen } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -7,16 +7,6 @@ import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } 
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
 import { AnalyticsTracker } from "./AnalyticsTracker";
 import { getBlackWaterLeafSeason } from "@/lib/season";
-
-const navigation = [
-  { href: "/", label: "tabs.home" as const, icon: Home },
-  { href: "/explore", label: "tabs.explore" as const, icon: Compass },
-  { href: "/marketplace", label: "tabs.marketplace" as const, icon: ShoppingBag },
-  { href: "/community", label: "tabs.community" as const, icon: UsersRound },
-  { href: "/profile", label: "tabs.profile" as const, icon: UserRound },
-];
-
-const adminBuilderNavigation = { href: "/habitat-builder", label: "tabs.builder" as const, icon: Ruler };
 
 const portalNavigation = [
   { href: "/explore", label: "Entdecken", icon: Compass },
@@ -41,7 +31,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const [location, setLocation] = useLocation();
   const season = getBlackWaterLeafSeason();
   const auth = useAuth();
-  const { locale, setLocale, t } = useI18n();
+  const { locale, setLocale } = useI18n();
   const utils = trpc.useUtils();
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
@@ -49,7 +39,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const dailyCheckIn = trpc.gamification.dailyCheckIn.useMutation({
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
-  const bottomNavigation = auth.user?.role === "admin" ? [...navigation, adminBuilderNavigation] : navigation;
+  const bottomNavigation = portalNavigation;
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const [contentEntered, setContentEntered] = useState(false);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
@@ -118,12 +108,6 @@ export function AppShell({ children }: PropsWithChildren) {
           <span className="brand-copy"><span className="brand-name">BLACKWATERLEAF</span><small>B: WATER OBSERVATORY PORTAL</small></span>
         </Link>
         <Link href="/search" className="portal-search-trigger" aria-label="Globale Suche öffnen"><Search size={17} /><span>Arten, Orte, Beobachtungen, Tags suchen …</span><kbd>⌘ K</kbd></Link>
-        <nav className="desktop-navigation" aria-label="Hauptnavigation">
-          {navigation.map(item => {
-            const active = isReferenceNavigationActive(location, item.href);
-            return <Link key={item.href} href={item.href} className={active ? "active" : ""}>{t(item.label)}</Link>;
-          })}
-        </nav>
         <div className="top-actions">
           <Link href="/search" className="icon-button" aria-label="Suche öffnen"><Search size={18} /></Link>
           <Link href="/marketplace" className="icon-button marketplace-header-button" aria-label="Marktplatz"><ShoppingBag size={18} /></Link>
@@ -161,14 +145,14 @@ export function AppShell({ children }: PropsWithChildren) {
       <ConnectionStateBanner />
       <AnalyticsTracker />
       <main className={`app-content portal-route-content tab-transition-surface ${contentEntered ? "is-entered" : "is-entering"}`} aria-busy={isTabSwitching}>{children}</main>
-      <nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`} aria-label="Hauptnavigation">
-        {bottomNavigation.map(item => {
-          const Icon = item.icon;
-          const active = isReferenceNavigationActive(location, item.href);
-          return (
+      <nav className="bottom-navigation" aria-label="Hauptnavigation">
+          {bottomNavigation.map(item => {
+            const Icon = item.icon;
+            const active = item.href === "/explore#map" ? location.startsWith("/explore") : isReferenceNavigationActive(location, item.href);
+            return (
             <Link key={item.href} href={item.href} onClick={event => handleTabNavigation(event, item.href)} className={`nav-link ${active ? "active" : ""} ${pendingTab === item.href ? "is-transition-target" : ""}`}>
               <Icon size={19} strokeWidth={active ? 2.2 : 1.6} />
-              <span>{t(item.label)}</span>
+              <span>{item.label}</span>
             </Link>
           );
         })}

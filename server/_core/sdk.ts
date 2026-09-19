@@ -3,11 +3,12 @@ import { ForbiddenError } from "@shared/_core/errors";
 import axios, { type AxiosInstance } from "axios";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT, decodeJwt, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
 import { isSessionPayloadBoundToApp } from "../security";
+import { assertActiveSession } from "../sessionRegistry";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -332,6 +333,18 @@ class SDKServer {
 
     if (!user) {
       throw ForbiddenError("User not found");
+    }
+
+    if (sessionToken) {
+      const decoded = decodeJwt(sessionToken);
+      await assertActiveSession({
+        token: sessionToken,
+        userId: user.id,
+        provider: session.provider,
+        issuedAt: session.issuedAt,
+        expiresAt: typeof decoded.exp === "number" ? decoded.exp * 1_000 : null,
+        request: req,
+      });
     }
 
     if (session.provider === "local") {

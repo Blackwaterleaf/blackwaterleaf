@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { observationsRouter } from "./routers/observations";
 import { platformRouter } from "./routers/platform";
 import { profileRouter } from "./routers/profile";
@@ -21,6 +21,7 @@ import { careRouter } from "./routers/care";
 import { searchRouter } from "./routers/search";
 import { socialRouter } from "./routers/social";
 import { challengesRouter } from "./routers/challenges";
+import { listActiveSessions, revokeAllSessions, revokeSessionForRequest } from "./sessionRegistry";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -46,13 +47,19 @@ export const appRouter = router({
   auth: router({
     ...localAuthRouter._def.record,
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user) await revokeSessionForRequest(ctx.req, ctx.user.id).catch(() => false);
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
         success: true,
       } as const;
     }),
+    revokeAllSessions: protectedProcedure.mutation(async ({ ctx }) => ({
+      success: true as const,
+      revoked: await revokeAllSessions(ctx.user.id),
+    })),
+    sessions: protectedProcedure.query(({ ctx }) => listActiveSessions(ctx.user.id)),
   }),
 
   // TODO: add feature routers here, e.g.

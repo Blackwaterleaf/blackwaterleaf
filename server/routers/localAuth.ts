@@ -19,6 +19,7 @@ import {
 } from "../localAuth";
 import { getLocalAuthEmailConfig } from "../localAuthConfig";
 import { publicProcedure, router } from "../_core/trpc";
+import { revokeAllSessions } from "../sessionRegistry";
 
 const emailInput = z.string().trim().email().max(320);
 const passwordInput = z.string().min(1).max(256);
@@ -170,6 +171,7 @@ export const localAuthRouter = router({
     if (!credential || !user) throw new TRPCError({ code: "NOT_FOUND", message: "local_account_not_found" });
     const now = new Date();
     await db.update(localAuthTokens).set({ usedAt: now }).where(eq(localAuthTokens.id, token.id));
+    await revokeAllSessions(user.id);
     await db.update(localCredentials).set({ passwordHash: await hashPassword(input.password), passwordChangedAt: now }).where(eq(localCredentials.id, credential.id));
     await db.update(users).set({ loginMethod: "local", lastSignedIn: now }).where(eq(users.id, user.id));
     await setLocalSession({ res: ctx.res, req: ctx.req, openId: user.openId, name: user.name });

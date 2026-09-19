@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Leaf, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Leaf, Save, ShieldCheck } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
@@ -25,7 +25,10 @@ export default function PlantTaxon() {
   };
   return <div className="reference-page plant-taxon-page">
     <Link className="page-back-link" href="/explore"><ArrowLeft size={16} />Suche & Entdecken</Link>
-    <section className="plant-taxon-hero glass-panel">{item.imageUrl ? <img src={item.imageUrl} alt={item.scientificName} /> : <div className="plant-taxon-placeholder"><Leaf size={46} /></div>}<div><span className="eyebrow">VALIDIERTER PFLANZENKATALOG</span><h1>{item.scientificName}</h1><p>{item.acceptedScientificName && item.acceptedScientificName !== item.scientificName ? `Akzeptierter Name: ${item.acceptedScientificName}` : item.family ?? "Taxon-Datensatz"}</p><div className="plant-taxon-badges"><span><ShieldCheck size={13} />{item.evidenceState}</span>{item.rank ? <span>{item.rank}</span> : null}{auth.isAuthenticated ? <button type="button" className="secondary-action" onClick={toggleSave} disabled={save.isPending || unsave.isPending}><Save size={14} />{isSaved ? "GESPEICHERT" : "SPEICHERN"}</button> : null}</div></div></section>
+    <section className="plant-taxon-hero glass-panel">
+      {item.imageUrl ? <img src={item.imageUrl} alt={item.scientificName} /> : <div className="plant-taxon-placeholder"><Leaf size={46} /><span>Bildnachweis offen</span></div>}
+      <div><span className="eyebrow">VALIDIERTER PFLANZENKATALOG</span><h1>{item.scientificName}</h1><p>{item.acceptedScientificName && item.acceptedScientificName !== item.scientificName ? `Akzeptierter Name: ${item.acceptedScientificName}` : item.family ?? "Taxon-Datensatz"}</p><div className="plant-taxon-badges"><span><ShieldCheck size={13} />{item.evidenceState}</span>{item.rank ? <span>{item.rank}</span> : null}{auth.isAuthenticated ? <button type="button" className="secondary-action" onClick={toggleSave} disabled={save.isPending || unsave.isPending}><Save size={14} />{isSaved ? "GESPEICHERT" : "SPEICHERN"}</button> : null}</div>{item.imageSourceUrl ? <a className="taxon-image-credit" href={item.imageSourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={13} />Bildquelle: {item.imageLicense ?? "Lizenzangabe"}</a> : <p className="taxon-image-pending">Für dieses Taxon ist noch kein verifiziertes Katalogbild hinterlegt.</p>}</div>
+    </section>
     <section className="plant-taxon-content glass-panel"><div className="section-heading"><div><span className="eyebrow">DATENBASIS</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
   </div>;
 }

@@ -14,6 +14,7 @@ import {
 } from "react";
 import {
   ActivityIndicator,
+  AppState,
   Alert,
   FlatList,
   Image,
@@ -23,6 +24,7 @@ import {
   Platform,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -62,6 +64,8 @@ import {
   outdoorWeather,
   platformAvailability,
   privateHabitats,
+  privateObservations,
+  publicObservations,
   profileConsents,
   publishCommunityDraft,
   readToken,
@@ -96,6 +100,7 @@ import {
   type Habitat,
   type KnowledgeArticle,
   type MarketplaceProduct,
+  type Observation,
   type OwnCommunityPost,
   type NativeNotification,
   type OutdoorWeather,
@@ -116,6 +121,13 @@ import {
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
 import { signInWithBlackWaterLeaf } from "./src/nativeAuth";
+import {
+  cachePrivateObservations,
+  observationOutboxSummary,
+  readCachedPrivateObservations,
+  syncObservationOutbox,
+  type ObservationOutboxSummary,
+} from "./src/observationOutbox";
 import { getBlackWaterLeafSeason } from "./src/season";
 
 const ASSETS = {
@@ -177,11 +189,15 @@ type Screen =
   | "notifications"
   | "care";
 type BottomTab =
+  | "discover"
+  | "map"
+  | "capture"
+  | "catalog"
+  | "profile"
   | "home"
   | "explore"
   | "marketplace"
   | "community"
-  | "profile"
   | "builder";
 type State = "loading" | "ready" | "error";
 type Tone = {
@@ -235,7 +251,7 @@ const TONES: Record<Screen, Tone> = {
     panel: "#271c0f",
     image: ASSETS.aquarium,
     label: "MARKTPLATZ",
-    active: "marketplace",
+    active: "discover",
   },
   community: {
     accent: c.botany,
@@ -243,7 +259,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "COMMUNITY",
-    active: "community",
+    active: "discover",
   },
   profile: {
     accent: c.botany,
@@ -283,7 +299,7 @@ const TONES: Record<Screen, Tone> = {
     panel: "#1e1134",
     image: ASSETS.ai,
     label: "BLACKWATERLEAF KI",
-    active: "home",
+    active: "capture",
   },
   knowledge: {
     accent: c.botany,
@@ -291,7 +307,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "WISSEN & EVIDENZ",
-    active: "explore",
+    active: "catalog",
   },
   live: {
     accent: c.aqua,
@@ -299,7 +315,7 @@ const TONES: Record<Screen, Tone> = {
     panel: "#032231",
     image: ASSETS.aquarium,
     label: "LIVE-BEREICH",
-    active: "home",
+    active: "capture",
   },
   photo: {
     accent: c.botany,
@@ -307,7 +323,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "MOMENT FESTHALTEN",
-    active: "home",
+    active: "capture",
   },
   post: {
     accent: c.botany,
@@ -315,7 +331,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "BEITRAG",
-    active: "community",
+    active: "capture",
   },
   collection: {
     accent: c.botany,
@@ -339,7 +355,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "SUCHE",
-    active: "explore",
+    active: "catalog",
   },
   publicProfile: {
     accent: c.botany,
@@ -355,7 +371,7 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "PFLANZENKATALOG",
-    active: "explore",
+    active: "catalog",
   },
   aquariumTaxon: {
     accent: c.aqua,
@@ -363,7 +379,7 @@ const TONES: Record<Screen, Tone> = {
     panel: "#032231",
     image: ASSETS.aquarium,
     label: "AQUARISTIK-KATALOG",
-    active: "explore",
+    active: "catalog",
   },
   saved: {
     accent: c.botany,
@@ -414,6 +430,9 @@ function NaturApp() {
   const [token, setToken] = useState<string | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
   const [habitats, setHabitats] = useState<Habitat[]>([]);
+  const [privateObservationRows, setPrivateObservationRows] = useState<Observation[]>([]);
+  const [observationSync, setObservationSync] = useState<ObservationOutboxSummary>({ pending: 0, imagePending: 0, conflicts: 0 });
+  const [publicObservationRows, setPublicObservationRows] = useState<Observation[]>([]);
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -454,19 +473,28 @@ function NaturApp() {
       if (!sessionToken) {
         setAccount(null);
         setHabitats([]);
+        setPrivateObservationRows([]);
+        setObservationSync({ pending: 0, imagePending: 0, conflicts: 0 });
         setConsents([]);
         setExperience(null);
         return;
       }
       try {
-        const [me, mine, permissions, summary] = await Promise.all([
+        setPrivateObservationRows(await readCachedPrivateObservations());
+        const synced = await syncObservationOutbox(sessionToken).catch(() => null);
+        if (synced) setObservationSync(synced);
+        const [me, mine, observations, permissions, summary] = await Promise.all([
           currentAccount(sessionToken),
           privateHabitats(sessionToken),
+          privateObservations(sessionToken),
           profileConsents(sessionToken),
           gamificationSummary(sessionToken),
         ]);
         setAccount(me);
         setHabitats(mine);
+        setPrivateObservationRows(observations);
+        await cachePrivateObservations(observations);
+        setObservationSync(await observationOutboxSummary());
         setConsents(permissions);
         setExperience(summary);
       } catch (cause) {
@@ -488,6 +516,7 @@ function NaturApp() {
         setPlatform(await platformAvailability());
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
+      if (screen === "explore") setPublicObservationRows(await publicObservations());
       if (screen === "community") setPosts(await communityFeed());
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
       if (screen === "care" && token) {
@@ -518,6 +547,12 @@ function NaturApp() {
   useEffect(() => {
     void loadScreen();
   }, [loadScreen]);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", nextState => {
+      if (nextState === "active" && token) void refreshPrivate(token);
+    });
+    return () => subscription.remove();
+  }, [refreshPrivate, token]);
 
   const signIn = useCallback(async () => {
     try {
@@ -542,6 +577,8 @@ function NaturApp() {
     setToken(null);
     setAccount(null);
     setHabitats([]);
+    setPrivateObservationRows([]);
+    setObservationSync({ pending: 0, imagePending: 0, conflicts: 0 });
     setConsents([]);
     setCareTasks([]);
     setCarePlans([]);
@@ -587,13 +624,14 @@ function NaturApp() {
       setWeather(
         await outdoorWeather(
           position.coords.latitude,
-          position.coords.longitude
+          position.coords.longitude,
+          token,
         )
       );
     } catch {
       setWeatherError("Außenwetter derzeit nicht verfügbar.");
     }
-  }, []);
+  }, [token]);
 
   const notificationInfo = useCallback(() => {
     if (token) navigate("notifications");
@@ -646,7 +684,7 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
-        {screen === "explore" && <Explore navigate={navigate} />}
+        {screen === "explore" && <Explore navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} />}
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
@@ -815,8 +853,10 @@ function NaturApp() {
           <PhotoScreen
             token={token}
             tone={TONES.photo}
+            observations={privateObservationRows}
+            observationSync={observationSync}
             onSignIn={signIn}
-            onComplete={refreshPrivate}
+            onComplete={async () => { await refreshPrivate(); }}
             navigate={navigate}
           />
         )}
@@ -948,7 +988,6 @@ function NaturApp() {
       <BottomNavigation
         active={tone.active}
         inset={insets.bottom}
-        showBuilder={account?.role === "admin"}
         onSelect={next => navigate(next)}
       />
     </SafeAreaView>
@@ -1263,70 +1302,44 @@ function LiveHomeWorlds({
   );
 }
 
-function Explore({ navigate }: { navigate: (screen: Screen) => void }) {
+function Explore({
+  navigate,
+  observations,
+  loading,
+  error,
+  refresh,
+}: {
+  navigate: (screen: Screen) => void;
+  observations: Observation[];
+  loading: boolean;
+  error: string | null;
+  refresh: () => Promise<void>;
+}) {
   const tone = TONES.explore;
+  const [realm, setRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
+  const [view, setView] = useState<"map" | "list">("map");
+  const realmLabels = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" } as const;
+  const filtered = realm === "all" ? observations : observations.filter(item => item.realm === realm);
+  const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
   return (
-    <Page>
-      <ReferenceHero
-        tone={tone}
-        eyebrow="WORLD INDEX"
-        title="ENTDECKE DAS LEBEN."
-        subtitle="Wähle eine Welt und dokumentiere, was du wirklich beobachtest."
-        icon="compass-outline"
-      />
-      <SectionLabel tone={tone} overline="BEREICHE" title="DEINE AUSWAHL" />
-      <ActionGrid
-        tone={tone}
-        actions={[
-          {
-            title: "Botanik",
-            note: "Pflanzenwelt öffnen",
-            icon: "leaf-outline",
-            image: ASSETS.botany,
-            area: "botany",
-            onPress: () => navigate("botany"),
-          },
-          {
-            title: "Aquaristik",
-            note: "Unterwasserwelt öffnen",
-            icon: "fish-outline",
-            image: ASSETS.aquarium,
-            area: "aquarium",
-            onPress: () => navigate("aquarium"),
-          },
-          {
-            title: "Terraristik",
-            note: "Regenwald öffnen",
-            icon: "leaf-outline",
-            image: ASSETS.terrarium,
-            area: "terrarium",
-            onPress: () => navigate("terrarium"),
-          },
-          {
-            title: "KI-Assistent",
-            note: "Transparente Hilfe",
-            icon: "hardware-chip-outline",
-            image: ASSETS.ai,
-            area: "assistant",
-            onPress: () => navigate("assistant"),
-          },
-        ]}
-      />
-      <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}>
-        <Text style={[styles.dividerText, { color: tone.accent }]}>
-          WISSEN & EVIDENZ
-        </Text>
+    <Page refresh={refresh} refreshing={loading}>
+      <ReferenceHero tone={tone} eyebrow="KARTE & LISTE · SYNCHRONISIERT" title="BEOBACHTEN. EINORDNEN. TEILEN." subtitle="Freigegebene Beobachtungen werden für alle drei Fachbereiche gleich behandelt. Private Orte bleiben privat." icon="map-outline" />
+      <View style={styles.explorePortalRow}>
+        {[
+          { label: "Botanik", screen: "botany" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.botany, color: TONES.botany.accent },
+          { label: "Aquaristik", screen: "aquarium" as Screen, icon: "fish-outline" as IconName, image: ASSETS.aquarium, color: TONES.aquarium.accent },
+          { label: "Terraristik", screen: "terrarium" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.terrarium, color: TONES.terrarium.accent },
+        ].map(item => <Pressable key={item.label} onPress={() => navigate(item.screen)} style={({ pressed }) => [styles.explorePortalCard, { borderColor: `${item.color}66` }, pressed && styles.pressed]}><ImageBackground source={item.image} style={styles.explorePortalImage} imageStyle={styles.explorePortalImageStyle}><View style={styles.explorePortalShade} /><Ionicons name={item.icon} size={21} color={item.color} /><Text style={styles.explorePortalLabel}>{item.label}</Text></ImageBackground></Pressable>)}
       </View>
-      <ReferenceCard
-        tone={tone}
-        action={{
-          title: "Wissen & Quellen",
-          note: "Veröffentlichte Quellen prüfen",
-          icon: "book-outline",
-          image: ASSETS.botany,
-          onPress: () => navigate("knowledge"),
-        }}
-      />
+      <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
+        <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>
+        <View style={styles.exploreFilterRow}>{(Object.keys(realmLabels) as Array<keyof typeof realmLabels>).map(key => <Pressable key={key} onPress={() => setRealm(key)} accessibilityRole="button" accessibilityState={{ selected: realm === key }} style={[styles.exploreFilter, { borderColor: realm === key ? tone.accent : `${tone.accent}33`, backgroundColor: realm === key ? `${tone.accent}20` : "rgba(0,0,0,.18)" }]}><Text style={[styles.exploreFilterText, { color: realm === key ? tone.accent : c.muted }]}>{realmLabels[key]}</Text></Pressable>)}</View>
+        <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{filtered.length ? "Beobachtungen vorhanden" : "Keine Kartenpunkte freigegeben"}</Text><Text style={styles.copy}>{filtered.length ? "Keine öffentlich zulässige Ortsangabe – es werden keine Pins simuliert." : "Private Daten bleiben geschützt."}</Text></View><Text style={styles.exploreMapCaption}>{filtered.length ? `${filtered.length} Beobachtung${filtered.length === 1 ? "" : "en"} · Ortsangaben geschützt` : "Geschützte Orte · genaue Positionen privat"}</Text></ImageBackground></View> : null}
+        {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
+      </View>
+      <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}><Text style={[styles.dividerText, { color: tone.accent }]}>WISSEN & EVIDENZ</Text></View>
+      <ReferenceCard tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
     </Page>
   );
 }
@@ -2242,12 +2255,16 @@ function LiveScreen({
 function PhotoScreen({
   token,
   tone,
+  observations,
+  observationSync,
   onSignIn,
   onComplete,
   navigate,
 }: {
   token: string | null;
   tone: Tone;
+  observations: Observation[];
+  observationSync: ObservationOutboxSummary;
   onSignIn: () => Promise<void>;
   onComplete: () => Promise<void>;
   navigate: (screen: Screen) => void;
@@ -2258,7 +2275,7 @@ function PhotoScreen({
       <MomentCapture
         token={token}
         initialRealm={capture}
-        onComplete={onComplete}
+        onComplete={async () => { await onComplete(); setCapture(null); }}
       />
     );
   return (
@@ -2319,6 +2336,7 @@ function PhotoScreen({
           },
         ]}
       />
+      {token ? <View style={[styles.photoObservationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>PRIVATE BEOBACHTUNGEN</Text><Text style={styles.cardTitle}>{observations.length} gespeicherte Momente</Text></View><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /></View>{observationSync.pending || observationSync.imagePending || observationSync.conflicts ? <Text style={[styles.copy, { color: observationSync.conflicts ? c.danger : tone.accent }]}>{observationSync.conflicts ? `${observationSync.conflicts} Konflikt(e) prüfen` : `${observationSync.pending + observationSync.imagePending} Eintrag/Einträge warten auf Synchronisierung`}</Text> : <Text style={styles.copy}>Synchronisiert · nur für dich sichtbar</Text>}{observations.slice(0, 3).map(item => <View key={item.id} style={[styles.photoObservationRow, { borderColor: `${tone.accent}33` }]}><Ionicons name="eye-outline" size={16} color={tone.accent} /><View style={styles.flex}><Text style={styles.cardTitle}>{item.subject || item.scientificName || "Privater Moment"}</Text><Text style={styles.miniCopy}>{item.realm.toUpperCase()} · {new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View></View>)}</View> : null}
     </Page>
   );
 }
@@ -2613,6 +2631,9 @@ function MarketplaceScreen({
   error: string | null;
   refresh: () => Promise<void>;
 }) {
+  const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
+  const [category, setCategory] = useState("Alle");
+  const [sort, setSort] = useState<"updated" | "name" | "price-low" | "price-high">("updated");
   const shops = Array.from(new Map(products.map(product => [product.partnerId, { partnerId: product.partnerId, partnerName: product.partnerName, products: products.filter(item => item.partnerId === product.partnerId) }])).values());
   const recordProductEvent = async (product: MarketplaceProduct, eventType: "outbound_click" | "purchase_intent") => {
     try {
@@ -2621,13 +2642,23 @@ function MarketplaceScreen({
       // Attribution must never block the partner handoff or the native UI.
     }
   };
+  const selectedShop = shops.find(shop => shop.partnerId === selectedPartnerId) ?? null;
+  const categories = selectedShop ? ["Alle", ...Array.from(new Set(selectedShop.products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value))))] : [];
+  const visibleProducts = selectedShop ? selectedShop.products.filter(product => category === "Alle" || product.marketplaceCategory === category).slice().sort((a, b) => {
+    if (sort === "name") return a.title.localeCompare(b.title, "de");
+    if (sort === "price-low" || sort === "price-high") {
+      const price = (item: MarketplaceProduct) => Number((item.priceLabel ?? "").replace(/[^0-9,.-]/g, "").replace(",", ".")) || 0;
+      return sort === "price-low" ? price(a) - price(b) : price(b) - price(a);
+    }
+    return String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? ""));
+  }) : [];
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <ReferenceHero
         tone={tone}
         eyebrow="MARKTPLATZ"
-        title="PARTNERANGEBOTE"
-        subtitle="Externe Angebote autorisierter Partner. BlackWaterLeaf verarbeitet keine Zahlung, Bestellung oder Lieferung."
+        title={selectedShop ? selectedShop.partnerName.toUpperCase() : "DEIN WEG. DEIN SHOP."}
+        subtitle={selectedShop ? "Eigener Händlerbereich mit klarer Kategorie, Auswahl und transparenter Vermittlung." : "Wähle zuerst einen freigegebenen Händler. BlackWaterLeaf verarbeitet keine Zahlung, Bestellung oder Lieferung."}
         icon="storefront-outline"
       />
       <View
@@ -2642,8 +2673,7 @@ function MarketplaceScreen({
           color={tone.accent}
         />
         <Text style={styles.copy}>
-          Du wechselst bei einem Angebot direkt zur Seite des Partners. Preise
-          und Verfügbarkeit stammen aus dessen veröffentlichtem Angebot.
+          {selectedShop ? "Dieser Bereich gehört ausschließlich zu diesem Händler. Preise, Verfügbarkeit und Versand stammen aus dessen veröffentlichtem Angebot." : "Keine vermischte Produktwand: Jeder Händler erhält seinen eigenen Shopbereich."}
         </Text>
       </View>
       {state === "loading" ? (
@@ -2662,6 +2692,17 @@ function MarketplaceScreen({
         />
       ) : (
         <View style={styles.stack}>
+          {selectedShop ? <>
+            <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => { setSelectedPartnerId(null); setCategory("Alle"); }}><Ionicons name="arrow-back-outline" size={16} color={tone.accent} /><Text style={[styles.secondaryButtonText, { color: tone.accent }]}>ALLE HÄNDLER</Text></Pressable>
+            <View style={[styles.infoCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+              <Text style={[styles.chip, { color: tone.accent }]}>SHOP · {selectedShop.products.length} ANGEBOTE</Text>
+              <Text style={styles.cardTitle}>{selectedShop.partnerName}</Text>
+              <Text style={styles.copy}>Freigegebene Kategorien und Angebote dieses Partners.</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>{categories.map(item => <Pressable key={item} onPress={() => setCategory(item)} style={[styles.filterChip, { borderColor: category === item ? tone.accent : `${tone.accent}55`, backgroundColor: category === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: category === item ? tone.accent : c.muted }]}>{item}</Text></Pressable>)}</ScrollView>
+            <View style={styles.sortRow}>{([['updated', 'Neueste'], ['name', 'Name'], ['price-low', 'Preis aufsteigend'], ['price-high', 'Preis absteigend']] as const).map(([value, label]) => <Pressable key={value} onPress={() => setSort(value)} style={[styles.sortChip, { borderColor: sort === value ? tone.accent : `${tone.accent}55` }]}><Text style={[styles.miniCopy, { color: sort === value ? tone.accent : c.muted }]}>{label}</Text></Pressable>)}</View>
+            {visibleProducts.length ? <View style={styles.stack}>{visibleProducts.map(product => <ProductCard key={product.id} tone={tone} product={product} onInterest={item => void recordProductEvent(item, "purchase_intent")} />)}</View> : <StatusPanel tone={tone} icon="search-outline" code="SHOP / LEER" title="KEIN PASSENDES ANGEBOT" text="Wähle eine andere Kategorie oder Sortierung." />}
+          </> : <>
           <View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
             <Text style={[styles.chip, { color: tone.accent }]}>JEDER HÄNDLER · EIN EIGENER SHOP</Text>
             <Text style={styles.cardTitle}>PARTNER-SHOPS</Text>
@@ -2669,16 +2710,17 @@ function MarketplaceScreen({
           </View>
           {shops.map(shop => (
             <View key={shop.partnerId} style={[styles.infoCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
-              <Text style={[styles.chip, { color: tone.accent }]}>PARTNER-SHOP · {shop.products.length} PRODUKTE</Text>
+              <Ionicons name="storefront-outline" size={26} color={tone.accent} />
+              <Text style={[styles.chip, { color: tone.accent }]}>{shop.products[0]?.partnerType === "company" ? "FACHHANDEL" : "PARTNER-SHOP"} · {shop.products.length} ANGEBOTE</Text>
               <Text style={styles.cardTitle}>{shop.partnerName}</Text>
-              <Text style={styles.copy}>Eigener Händlerbereich · transparent vermittelt</Text>
-              <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => { const first = shop.products[0]; if (first) { void recordProductEvent(first, "outbound_click"); void Linking.openURL(first.destinationUrl); } }}>
-                <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>ICH WILL ZU {shop.partnerName.toUpperCase()}</Text>
+              <Text style={styles.copy}>{Array.from(new Set(shop.products.map(product => product.marketplaceCategory).filter(Boolean))).slice(0, 3).join(" · ") || "Eigener Händlerbereich"}</Text>
+              <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => setSelectedPartnerId(shop.partnerId)}>
+                <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>SHOP ÖFFNEN</Text>
                 <Ionicons name="arrow-forward-outline" size={16} color={tone.accent} />
               </Pressable>
-              <View style={styles.stack}>{shop.products.map(product => <ProductCard key={product.id} tone={tone} product={product} onInterest={item => void recordProductEvent(item, "purchase_intent")} />)}</View>
             </View>
           ))}
+          </>}
         </View>
       )}
     </Page>
@@ -2897,7 +2939,7 @@ function ProfileScreen({
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
-        {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
+        {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten'], ['location_processing', 'Grobe Region für aktuelles Wetter verwenden']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
         {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
         {menuTarget === "edit" || menuTarget === "private" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
           {menuTarget === "avatar" ? <SecondaryButton tone={tone} label="PROFILBILD AUS GALERIE WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /> : null}
@@ -3656,12 +3698,10 @@ function Page({
 function BottomNavigation({
   active,
   inset,
-  showBuilder,
   onSelect,
 }: {
   active: BottomTab;
   inset: number;
-  showBuilder: boolean;
   onSelect: (screen: Screen) => void;
 }) {
   const tabs: Array<{
@@ -3672,31 +3712,31 @@ function BottomNavigation({
     color: string;
   }> = [
     {
-      id: "home",
+      id: "discover",
       screen: "home",
-      label: "Home",
-      icon: "home-outline",
-      color: c.botany,
-    },
-    {
-      id: "explore",
-      screen: "explore",
       label: "Entdecken",
       icon: "compass-outline",
       color: c.botany,
     },
     {
-      id: "marketplace",
-      screen: "marketplace",
-      label: "Marktplatz",
-      icon: "storefront-outline",
-      color: c.market,
+      id: "map",
+      screen: "explore",
+      label: "Karte",
+      icon: "map-outline",
+      color: c.botany,
     },
     {
-      id: "community",
-      screen: "community",
-      label: "Community",
-      icon: "people-outline",
+      id: "capture",
+      screen: "photo",
+      label: "Erfassen",
+      icon: "camera-outline",
+      color: c.botany,
+    },
+    {
+      id: "catalog",
+      screen: "search",
+      label: "Katalog",
+      icon: "book-outline",
       color: c.botany,
     },
     {
@@ -3706,35 +3746,25 @@ function BottomNavigation({
       icon: "person-outline",
       color: c.botany,
     },
-    ...(showBuilder
-      ? [
-          {
-            id: "builder" as const,
-            screen: "builder" as Screen,
-            label: "Builder",
-            icon: "construct-outline" as IconName,
-            color: c.aqua,
-          },
-        ]
-      : []),
   ];
+  const activeId: BottomTab = active === "home" ? "discover" : active === "explore" ? "map" : active === "marketplace" ? "discover" : active === "community" ? "discover" : active === "builder" ? "profile" : active;
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
         <Pressable
           key={tab.id}
           accessibilityRole="tab"
-          accessibilityState={{ selected: active === tab.id }}
+          accessibilityState={{ selected: activeId === tab.id }}
           style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
           onPress={() => onSelect(tab.screen)}
         >
           <Ionicons
             name={tab.icon}
             size={21}
-            color={active === tab.id ? tab.color : c.muted}
+            color={activeId === tab.id ? tab.color : c.muted}
           />
           <Text
-            style={[styles.tabText, active === tab.id && { color: tab.color }]}
+            style={[styles.tabText, activeId === tab.id && { color: tab.color }]}
           >
             {tab.label}
           </Text>
@@ -4408,6 +4438,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
   },
+  chipRow: { gap: 8, paddingVertical: 2 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
+  sortRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  sortChip: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10, borderWidth: 1 },
   infoCard: { padding: 14, gap: 8, borderRadius: 15, borderWidth: 1 },
   source: {
     paddingTop: 6,
@@ -4647,5 +4681,32 @@ const styles = StyleSheet.create({
   profileHabitatChoiceCopy: { flex: 1, gap: 2 },
   profileReferencePostsPanel: { padding: 12, borderRadius: 16, borderWidth: 1, gap: 9, marginTop: 14 },
   profileReferencePostsHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  photoObservationPanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 9, marginTop: 2 },
+  photoObservationRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, borderTopWidth: 1 },
+  explorePortalRow: { flexDirection: "row", gap: 8 },
+  explorePortalCard: { flex: 1, minWidth: 0, height: 92, overflow: "hidden", borderRadius: 15, borderWidth: 1 },
+  explorePortalImage: { flex: 1, justifyContent: "flex-end", gap: 3, padding: 9 },
+  explorePortalImageStyle: { borderRadius: 14 },
+  explorePortalShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,16,8,.52)" },
+  explorePortalLabel: { color: c.text, fontSize: 10, fontWeight: "900" },
+  explorePanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 10 },
+  explorePanelHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  exploreStatus: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 9, borderWidth: 1 },
+  exploreStatusDot: { width: 7, height: 7, borderRadius: 4 },
+  exploreFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  exploreFilter: { paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
+  exploreFilterText: { fontSize: 9, fontWeight: "900" },
+  exploreViewRow: { flexDirection: "row", gap: 6 },
+  exploreViewButton: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
+  exploreMap: { height: 248, overflow: "hidden", borderRadius: 14, borderWidth: 1 },
+  exploreMapImage: { flex: 1 },
+  exploreMapImageStyle: { borderRadius: 13 },
+  exploreMapShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,16,12,.38)" },
+  exploreMapPin: { position: "absolute", width: 34, height: 34, alignItems: "center", justifyContent: "center", borderRadius: 17, borderWidth: 2, backgroundColor: "rgba(2,20,18,.88)" },
+  exploreMapCaption: { position: "absolute", left: 12, right: 12, bottom: 10, color: c.text, fontSize: 9, fontWeight: "800", textShadowColor: "#000", textShadowRadius: 4 },
+  exploreEmpty: { position: "absolute", left: 20, right: 20, top: 58, alignItems: "center", gap: 6, padding: 14, borderRadius: 13, backgroundColor: "rgba(1,17,11,.84)" },
+  exploreObservationList: { gap: 7 },
+  exploreObservationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.14)" },
+  exploreObservationIcon: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: 1 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });

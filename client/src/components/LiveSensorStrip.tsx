@@ -37,18 +37,18 @@ export function LiveSensorStrip({ onWeatherEffectChange, compact = false }: { on
   const habitats = trpc.habitats.mine.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [geolocationState, setGeolocationState] = useState<GeolocationState>("idle");
-  const [fallbackCoordinates] = useState<Coordinates>({ latitude: 0, longitude: 0 });
-  const outdoor = trpc.sensors.outdoor.useQuery(coordinates ?? fallbackCoordinates, {
-    enabled: coordinates !== null,
-    staleTime: 4 * 60 * 1_000,
-    refetchInterval: 5 * 60 * 1_000,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+  const outdoor = trpc.sensors.outdoor.useMutation();
 
   useEffect(() => {
     onWeatherEffectChange?.(outdoor.data?.effect ?? "none");
   }, [onWeatherEffectChange, outdoor.data?.effect]);
+
+  useEffect(() => {
+    if (!coordinates) return;
+    void outdoor.mutateAsync(coordinates).catch(() => undefined);
+    const refreshTimer = window.setInterval(() => void outdoor.mutateAsync(coordinates).catch(() => undefined), 5 * 60 * 1_000);
+    return () => window.clearInterval(refreshTimer);
+  }, [coordinates]);
 
   const aquarium = ((habitats.data ?? []) as AquariumRecord[]).find(item => item.kind === "aquarium");
   const waterTemperature = formatTemperature(aquarium?.details.temperatureC, unitSystem);
@@ -63,7 +63,10 @@ export function LiveSensorStrip({ onWeatherEffectChange, compact = false }: { on
     setGeolocationState("requesting");
     navigator.geolocation.getCurrentPosition(
       position => {
-        setCoordinates({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        setCoordinates({
+          latitude: Math.round(position.coords.latitude * 100) / 100,
+          longitude: Math.round(position.coords.longitude * 100) / 100,
+        });
         setGeolocationState("ready");
       },
       () => setGeolocationState("denied"),
@@ -82,14 +85,14 @@ export function LiveSensorStrip({ onWeatherEffectChange, compact = false }: { on
       <div className="sensor-grid">
         <Sensor value={waterTemperature ?? "—"} label={waterTemperature ? `${locale === "de" ? "Wasser" : "Water"} · ${aquarium?.name ?? "Aquarium"}` : auth.isAuthenticated ? (locale === "de" ? "Aquarium eintragen" : "Add aquarium") : (locale === "de" ? "Anmeldung erforderlich" : "Sign-in required")} tone="mint" icon={Waves} />
         <Sensor value={waterPh ?? "—"} label={waterPh ? `${locale === "de" ? "pH-Wert" : "pH value"} · ${aquarium?.name ?? "Aquarium"}` : auth.isAuthenticated ? (locale === "de" ? "pH privat eintragen" : "Add private pH") : (locale === "de" ? "Anmeldung erforderlich" : "Sign-in required")} tone="cyan" icon={Gauge} />
-        <Sensor value={outdoor.isLoading ? "…" : formatHumidity(outdoor.data?.humidityPercent) ?? "—"} label={hasWeather ? (locale === "de" ? "Außenluftfeuchte" : "Outdoor humidity") : locale === "de" ? "Außenluft" : "Outdoor air"} tone="green" icon={Droplets} />
-        <Sensor value={outdoor.isLoading ? "…" : formatTemperature(outdoor.data?.temperatureC, unitSystem) ?? "—"} label={hasWeather ? weatherTitle : locale === "de" ? "Außentemperatur" : "Outdoor temperature"} tone="gold" icon={outdoor.data?.effect === "fog" ? CloudFog : outdoor.data?.effect === "rain" ? CloudRain : ThermometerSun} />
+        <Sensor value={outdoor.isPending ? "…" : formatHumidity(outdoor.data?.humidityPercent) ?? "—"} label={hasWeather ? (locale === "de" ? "Außenluftfeuchte" : "Outdoor humidity") : locale === "de" ? "Außenluft" : "Outdoor air"} tone="green" icon={Droplets} />
+        <Sensor value={outdoor.isPending ? "…" : formatTemperature(outdoor.data?.temperatureC, unitSystem) ?? "—"} label={hasWeather ? weatherTitle : locale === "de" ? "Außentemperatur" : "Outdoor temperature"} tone="gold" icon={outdoor.data?.effect === "fog" ? CloudFog : outdoor.data?.effect === "rain" ? CloudRain : ThermometerSun} />
       </div>
       {auth.isAuthenticated && (!waterTemperature || !waterPh) ? <p className="sensor-note sensor-note--action">{locale === "de" ? "Wasser- und pH-Werte werden privat im Profil unter „Meine Anlagen & Werte“ gepflegt." : "Water temperature and pH are managed privately in Profile under My habitats & values."}</p> : null}
       {geolocationState === "idle" ? <button className="sensor-location-control" type="button" onClick={requestLocation}><MapPin size={15} />{locale === "de" ? "Außenwetter für diesen Moment aktivieren" : "Enable outdoor weather for this moment"}</button> : null}
       {geolocationState === "requesting" ? <p className="sensor-note">{locale === "de" ? "Standortfreigabe wird im Browser angefragt …" : "Requesting browser location permission …"}</p> : null}
       {geolocationState === "denied" || geolocationState === "unavailable" ? <button className="sensor-location-control sensor-location-control--retry" type="button" onClick={requestLocation}><MapPin size={15} />{locale === "de" ? "Standortfreigabe im Browser erneut versuchen" : "Try browser location permission again"}</button> : null}
-      {coordinates && outdoor.isError ? <button className="sensor-location-control sensor-location-control--retry" type="button" onClick={() => void outdoor.refetch()}>{locale === "de" ? "Wetterdaten erneut laden" : "Reload weather data"}</button> : null}
+      {coordinates && outdoor.isError ? <button className="sensor-location-control sensor-location-control--retry" type="button" onClick={() => void outdoor.mutateAsync(coordinates).catch(() => undefined)}>{locale === "de" ? "Wetterdaten erneut laden" : "Reload weather data"}</button> : null}
       {hasWeather ? <p className="sensor-note">{weatherDescription}</p> : null}
     </section>
   );

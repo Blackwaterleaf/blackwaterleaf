@@ -11,6 +11,7 @@ const auth = readFileSync(resolve(root, "mobile-natur/src/nativeAuth.ts"), "utf8
 const appConfig = readFileSync(resolve(root, "mobile-natur/app.json"), "utf8");
 const habitats = readFileSync(resolve(root, "mobile-natur/src/HabitatManager.tsx"), "utf8");
 const moments = readFileSync(resolve(root, "mobile-natur/src/MomentCapture.tsx"), "utf8");
+const outbox = readFileSync(resolve(root, "mobile-natur/src/observationOutbox.ts"), "utf8");
 
 describe("BlackWaterLeaf native application contract", () => {
   it("is explicitly the native BlackWaterLeaf product app, never the Studio client", () => {
@@ -47,12 +48,12 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(habitats).toContain("createHabitat(token, payload)");
     expect(moments).toContain("launchCameraAsync");
     expect(moments).toContain("launchImageLibraryAsync");
-    expect(moments).toContain("createObservation(token");
-    expect(moments).toContain("uploadObservationImage(token");
+    expect(moments).toContain("enqueueObservation");
+    expect(moments).toContain("syncObservationOutbox");
     expect(moments).toContain('visibility: "private"');
     expect(moments).toContain("mediaConsent");
-    expect(moments).toContain("setConsent(token");
-    expect(moments).toContain('purpose: "media_processing"');
+    expect(outbox).toContain("uploadObservationImage(token");
+    expect(outbox).toContain('purpose: "media_processing"');
     expect(moments).not.toContain("WebView");
   });
 
@@ -104,9 +105,9 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).not.toContain("<WebView");
   });
 
-  it("keeps the exact five regular navigation destinations and a server-role-gated Builder", () => {
-    for (const label of ["Home", "Entdecken", "Marktplatz", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    expect(app).toContain('showBuilder={account?.role === "admin"}');
+  it("keeps exactly five regular Observatory navigation destinations", () => {
+    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    expect(app).not.toContain('showBuilder={account?.role === "admin"}');
     expect(app).toContain('account?.role !== "admin"');
   });
 

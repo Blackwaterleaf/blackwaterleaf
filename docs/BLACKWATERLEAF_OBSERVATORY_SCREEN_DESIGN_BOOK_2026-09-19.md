@@ -124,3 +124,41 @@ AP-09 behandelt Profilstandorte als private Kontodaten: Öffentliche Profilantwo
 AP-10 verwendet eine fail-closed Rollenmatrix: `admin` verwaltet Kontorollen und globale Freigaben, `moderator` erhält nur den Staff-/Moderationsbereich, und `merchant` ist eine additive Capability aus `user_roles`, die ausschließlich den eigenen Shop, eigene Produkte und eigene Attribution sieht. Native und Web dürfen Berechtigungen nur anzeigen; die Server-Policy bleibt autoritativ.
 
 AP-11 protokolliert jede privilegierte Zustandsänderung im signierten Audit-Ledger. Challenge-Entwürfe, Challenge-Veröffentlichungen und Wissensentwürfe enthalten Actor, Ziel und Zustandswechsel; sensible Artikel- oder Nutzdaten werden nicht in das Ledger kopiert. Die Hash-Kette verwendet Previous-Hash, HMAC-Signatur und Head-Prüfung.
+
+
+## 12. Sicherheits- und Navigationszusatz 19. September 2026
+
+### 12.1 Session- und Standortzustand
+
+Web und Native registrieren verifizierte Sitzungen serverseitig nur als SHA-256-Hash. Die Registry kennt Anbieter, Gerät, letzte Aktivität, Ablauf und Widerruf, zeigt jedoch niemals Session-Token. Logout, Passwort-Reset und die explizite Aktion **Alle Geräte abmelden** widerrufen Sitzungen. Der Gerätebezeichner ist optional und darf keine E-Mail-Adresse oder freien personenbezogenen Text enthalten.
+
+Wetter darf nach einer ausdrücklich gespeicherten `location_processing`-Freigabe angefragt werden. Die aktuelle Position wird vor dem Request auf ungefähr Kilometerpräzision gerundet, ausschließlich per POST übertragen und mit `Cache-Control: no-store, private` ausgeliefert. Koordinaten werden weder in URLs noch in Telemetrie, Fehlertexten oder öffentlichen Profilantworten gespeichert. Wird die Freigabe widerrufen, zeigt die Oberfläche einen handlungsfähigen Zustand statt Wetterdaten.
+
+### 12.2 Verbindliche Primärnavigation
+
+Die globale Primärnavigation besteht auf beiden Clients aus genau fünf Zielen: **Entdecken**, **Karte**, **Erfassen**, **Katalog** und **Profil**. Marktplatz, Community, Benachrichtigungen, Heute, Live, Wissen, Händlerportal und Builder sind kontextuelle oder geschützte Ziele und dürfen nicht als zusätzliche globale Tabs erscheinen. Desktop nutzt dafür die linke Observatory-Seitenleiste; Mobile nutzt eine feste untere Leiste. Der aktive Punkt erhält genau eine Lime-Markierung und eine Unterstreichung beziehungsweise rechte Akzentkante.
+
+Die Native-Zuordnung ist identisch: Entdecken führt zur Startfläche, Karte zum Explore-/Kartenmodul, Erfassen zum Foto-/Live-Einstieg, Katalog zur Suche und Profil zum geschützten Profil. Der Admin-Builder bleibt über seinen geschützten Pfad erreichbar, verlässt aber die globale Tab-Leiste.
+
+
+## 13. Karte-/Liste-Fläche und bereichsübergreifende Beobachtungen
+
+Die Karte-/Liste-Fläche ist ein gemeinsames Observatory-Modul für **Botanik, Aquaristik und Terraristik**. Die Bereichswahl steht als kleine, horizontale Filtergruppe über der Fläche; die Auswahl bleibt bei Karten- und Listenansicht synchron. Karte und Liste verwenden dieselbe serverseitige `observations.publicFeed`-Quelle. Es werden ausschließlich aktive öffentliche Beobachtungen geliefert. Private oder geschützte Orte, exakte Koordinaten und nicht freigegebene Medien werden nicht in die öffentliche Antwort aufgenommen.
+
+Die Kartenfläche darf keine Pins als Dekoration simulieren. Existieren keine freigegebenen Beobachtungen mit zulässiger Ortsinformation, erscheint ein klarer Leerzustand: **„Keine Kartenpunkte freigegeben“** mit dem Hinweis, dass private Daten geschützt bleiben. Bei einem Fehler bleibt die Liste beziehungsweise der Katalogzugang benutzbar und zeigt einen handlungsfähigen Fehlertext. Lade-, Fehler-, Bereit- und Leerzustände sind visuell unterscheidbar. `Bereit` wird nur nach einer erfolgreichen aktuellen Serverantwort angezeigt.
+
+Web und Native verwenden dieselbe Reihenfolge: Bereichskarten, Statuszeile, Bereichsfilter, Karte-/Liste-Schalter, Datenfläche und Quellen-/Evidenzzugang. Die Fachbereichsfarben bleiben verbindlich: Botanik Lime, Aquaristik Cyan und Terraristik Gold. Bilder aus Nutzerbeobachtungen sind von verifizierten Taxon-Bildern getrennt und dürfen niemals als Artbestätigung missverstanden werden.
+
+
+## 14. Native-Erfassung, Offline-Outbox und private Beobachtungen
+
+Der Native-Erfassungsfluss legt eine private Beobachtung zuerst mit einer RFC-konformen `clientId` in einer persistenten Geräte-Outbox an. Das Bild wird im privaten App-Speicher abgelegt; das tatsächliche ImagePicker-MIME wird erhalten. Erst danach versucht die App die Serverübertragung. Bei instabiler Verbindung bleiben Beobachtung und Bild kontrolliert ausstehend. Die Zustände **warten auf Synchronisierung**, **Bild ausstehend**, **Konflikt** und **synchronisiert** sind sichtbar und unterscheiden sich von einem Erfolg.
+
+Ein erfolgreicher Text-/Beobachtungsschritt darf nicht als vollständiger Medienerfolg ausgegeben werden. Fehlt der Upload, wird nur der Bildschritt wiederholt; ein bereits angelegter Datensatz wird nicht blind doppelt angelegt. Bei Konflikten bleibt der Eintrag erhalten und wird nicht automatisch überschrieben. Beim erneuten Öffnen der App wird die Outbox sequenziell erneut verarbeitet. Private Beobachtungen werden zusätzlich zuletzt erfolgreich lokal gecacht, bleiben aber ausschließlich im authentifizierten PhotoScreen sichtbar. Der öffentliche Feed erhält diese Daten nicht.
+
+
+## 15. Marktplatz-Hub und Händler-Shop-Parität
+
+Web und Native zeigen im Marktplatz zuerst einen kompakten **Händler-Hub** mit Banner, Vertrauenshinweis und separaten Händlerkarten. Eine lange, vermischte Produktwand ist nicht zulässig. Die Aktion **SHOP ÖFFNEN** führt in den eigenständigen Bereich eines Händlers; dort erscheinen nur dessen freigegebene Angebote. Der Shop besitzt Kategoriechips, Unterkategorien beziehungsweise Produktgruppen und eine touchfreundliche Sortierung nach Aktualität, Name und Preis.
+
+Partnerlogos oder offizielle Händlerbilder dürfen nur aus verifizierten Quellen übernommen werden. Preise, Verfügbarkeit, Zahlung, Versand, Rückgabe und Support bleiben beim Händler. BlackWaterLeaf speichert lediglich nachvollziehbare Klick- und Kaufinteressen-Attribution; es gibt in diesem Stand keinen BlackWaterLeaf-Checkout und keine Zahlungsabwicklung.

@@ -47,11 +47,12 @@ describe("BlackWaterLeaf reference layout", () => {
     expect(style).toContain(".home-status-card .sensor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }");
   });
 
-  it("keeps desktop navigation clear while retaining the mobile icon bar", () => {
-    expect(shell).toContain('className="desktop-navigation"');
-    expect(shell).toContain('<nav className={`bottom-navigation ${auth.user?.role === "admin" ? "bottom-navigation--admin" : ""}`}');
-    expect(style).toContain(".desktop-navigation { display:flex; }");
-    expect(style).toContain(".bottom-navigation { display:none; }");
+  it("keeps one Observatory navigation with exactly five primary destinations", () => {
+    expect(shell).toContain("const portalNavigation");
+    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Profil"]) expect(shell).toContain(`label: "${label}"`);
+    expect(shell).not.toContain('className="desktop-navigation"');
+    expect(shell).not.toContain("adminBuilderNavigation");
+    expect(style).toContain(".bottom-navigation { display: none !important; }");
   });
 
   it("uses the supplied original mark for global branding while retaining descriptive action icons", () => {
@@ -63,12 +64,10 @@ describe("BlackWaterLeaf reference layout", () => {
     expect(leafCore).toContain("Fish");
   });
 
-  it("shows the Habitat Builder as an admin-only sixth bottom-navigation item", () => {
-    expect(shell).toContain('auth.user?.role === "admin"');
-    expect(shell).toContain('href: "/habitat-builder"');
-    expect(shell).toContain('label: "tabs.builder"');
-    expect(shell).toContain("bottom-navigation--admin");
-    expect(style).toContain(".bottom-navigation--admin { grid-template-columns:repeat(6, minmax(0, 1fr))");
+  it("keeps the Habitat Builder outside the global navigation", () => {
+    expect(shell).not.toContain('href: "/habitat-builder"');
+    expect(shell).not.toContain('label: "tabs.builder"');
+    expect(style).not.toContain(".bottom-navigation--admin { grid-template-columns:repeat(6, minmax(0, 1fr))");
   });
 
   it("uses a short interruptible transition for bottom-tab changes, including the Builder", () => {
