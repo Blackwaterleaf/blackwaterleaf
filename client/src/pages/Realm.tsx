@@ -8,7 +8,7 @@ import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { trpc } from "@/lib/trpc";
 import { BookOpen, Bot, Camera, Fish, Leaf, LibraryBig, Plus, Save, ShieldCheck, Sprout } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
-import { useParams } from "wouter";
+import { useLocation, useParams } from "wouter";
 
 const REALMS = {
   botany: { api: "botany" as const, tone: "botany" as ReferenceTone, eyebrow: "PFLANZEN WORLD", title: "BOTANIK", subtitle: "Deine Pflanzensammlung.", image: REFERENCE_ASSETS.botany, icon: Leaf },
@@ -41,7 +41,11 @@ function actionsFor(realm: keyof typeof REALMS): ReferenceAction[] {
 
 export default function Realm() {
   const params = useParams<{ realm: string }>();
-  const realmKey = (params.realm in REALMS ? params.realm : "botany") as keyof typeof REALMS;
+  const [location] = useLocation();
+  const directSegment = (typeof window !== "undefined" ? window.location.pathname : location).split("/").filter(Boolean)[0];
+  const directRealm = ({ botanik: "botany", aquaristik: "aquarium", terraristik: "terrarium" } as Record<string, string>)[directSegment] ?? directSegment;
+  const requestedRealm = directRealm in REALMS ? directRealm : params.realm;
+  const realmKey = (requestedRealm in REALMS ? requestedRealm : "botany") as keyof typeof REALMS;
   const realm = REALMS[realmKey];
   const auth = useAuth();
   const { locale, t } = useI18n();

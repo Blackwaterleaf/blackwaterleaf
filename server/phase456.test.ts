@@ -71,3 +71,17 @@ describe("private profile boundary and native menu parity", () => {
     expect(source).toContain("profilePreferencesPanel");
   });
 });
+
+
+describe("continuous realm banners and focused community editing", () => {
+  it("maps the German realm routes to their own themes and removes duplicate history loading", () => {
+    const realm = read("../client/src/pages/Realm.tsx");
+    const community = read("../client/src/pages/Community.tsx");
+    const overlay = read("../client/src/components/ReferenceOverlay.tsx");
+    expect(realm).toContain("aquaristik: \"aquarium\"");
+    expect(realm).toContain("terraristik: \"terrarium\"");
+    expect(community).not.toContain("const myPosts = trpc.community.myPosts.useQuery");
+    expect(community).toContain("community-edit--focused");
+    expect(overlay).toContain("reference-hero--continuous");
+  });
+});

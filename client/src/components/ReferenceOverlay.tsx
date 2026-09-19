@@ -27,7 +27,7 @@ type ReferenceHeroProps = {
 
 export function ReferenceHero({ tone, image, eyebrow, title, subtitle, icon: Icon = Leaf, badge }: ReferenceHeroProps) {
   return (
-    <section className={`reference-hero reference-tone--${tone}`} style={{ backgroundImage: `url(${image})` }}>
+    <section className={`reference-hero reference-hero--continuous reference-tone--${tone}`} aria-label={title} style={{ backgroundImage: `url(${image})` }}>
       <div className="reference-hero__shade" aria-hidden="true" />
       <div className="reference-hero__copy">
         <span className="reference-hero__icon"><Icon size={20} /></span>
