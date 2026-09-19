@@ -6,6 +6,7 @@ export type OfficialTaxonSource = {
   label: string;
   homepageUrl: string;
   approvedHosts: readonly string[];
+  supportsDirectMedia: boolean;
 };
 
 export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
@@ -15,6 +16,7 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "Plants of the World Online · Kew Science",
     homepageUrl: "https://powo.science.kew.org/",
     approvedHosts: ["powo.science.kew.org"],
+    supportsDirectMedia: true,
   },
   {
     id: "fishbase",
@@ -22,6 +24,7 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "FishBase",
     homepageUrl: "https://www.fishbase.se/",
     approvedHosts: ["fishbase.se", "www.fishbase.se"],
+    supportsDirectMedia: true,
   },
   {
     id: "gbif",
@@ -29,6 +32,7 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "Global Biodiversity Information Facility",
     homepageUrl: "https://www.gbif.org/",
     approvedHosts: ["gbif.org", "www.gbif.org"],
+    supportsDirectMedia: false,
   },
   {
     id: "bhl",
@@ -36,6 +40,7 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "Biodiversity Heritage Library",
     homepageUrl: "https://www.biodiversitylibrary.org/",
     approvedHosts: ["biodiversitylibrary.org", "www.biodiversitylibrary.org"],
+    supportsDirectMedia: true,
   },
   {
     id: "jstor-plants",
@@ -43,6 +48,7 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "JSTOR Global Plants",
     homepageUrl: "https://plants.jstor.org/",
     approvedHosts: ["plants.jstor.org"],
+    supportsDirectMedia: true,
   },
 ] as const;
 
@@ -74,4 +80,35 @@ export function belongsToOfficialSource(source: string, value: string | null | u
   } catch {
     return false;
   }
+}
+
+/** GBIF is an authoritative discovery index but never a direct image host. */
+export function belongsToOfficialMediaSource(source: string, value: string | null | undefined): boolean {
+  const configuredSource = officialTaxonSource(source);
+  if (!configuredSource?.supportsDirectMedia || !value) return false;
+  try {
+    return configuredSource.approvedHosts.includes(new URL(value).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+/** Taxonbilder erscheinen auch neben kommerziellen Marketplace-Flächen; NC- und unklare Rechte sind daher ausgeschlossen. */
+export function isCommerciallyReusableCatalogImageLicense(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
+  if (/(?:by[- ]?nc|non[- ]?commercial|all rights reserved|permission required)/.test(normalized)) return false;
+  return [
+    "cc0 1.0",
+    "cc0-1.0",
+    "https://creativecommons.org/publicdomain/zero/1.0/",
+    "cc by 4.0",
+    "cc-by 4.0",
+    "cc-by-4.0",
+    "https://creativecommons.org/licenses/by/4.0/",
+    "cc by 3.0",
+    "cc-by 3.0",
+    "cc-by-3.0",
+    "https://creativecommons.org/licenses/by/3.0/",
+  ].includes(normalized);
 }

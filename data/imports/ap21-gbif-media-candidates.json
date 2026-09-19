@@ -1,0 +1,1160 @@
+{
+  "generatedAt": "2026-09-19T16:19:18.622Z",
+  "purpose": "Discovery-only candidate review; no database changes and no automatic imports.",
+  "source": "GBIF public API; each candidate requires manual original-source verification.",
+  "policy": {
+    "wikipediaAndWikimediaAllowed": false,
+    "automaticImportAllowed": false,
+    "requiredBeforeImport": [
+      "exact taxon",
+      "original source page",
+      "direct image",
+      "reusable license",
+      "creator/attribution",
+      "manual visual verification"
+    ]
+  },
+  "summary": {
+    "queued": 81,
+    "candidatesFound": 0,
+    "candidatesAbsent": 80,
+    "noExactTaxonMatch": 1,
+    "lookupErrors": 0
+  },
+  "records": [
+    {
+      "id": 1,
+      "scientificName": "Pogostemon helferi",
+      "source": "POWO",
+      "sourceRecordId": "Pogostemon helferi",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 3900041,
+        "canonicalName": "Pogostemon helferi",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 2,
+      "scientificName": "Hygrophila pinnatifida",
+      "source": "POWO",
+      "sourceRecordId": "Hygrophila pinnatifida",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 8276892,
+        "canonicalName": "Hygrophila pinnatifida",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 3,
+      "scientificName": "Bolbitis heudelotii",
+      "source": "POWO",
+      "sourceRecordId": "Bolbitis heudelotii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2650967,
+        "canonicalName": "Bolbitis heudelotii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 4,
+      "scientificName": "Vallisneria spiralis",
+      "source": "POWO",
+      "sourceRecordId": "Vallisneria spiralis",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2865526,
+        "canonicalName": "Vallisneria spiralis",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 5,
+      "scientificName": "Monstera siltepecana",
+      "source": "POWO",
+      "sourceRecordId": "Monstera siltepecana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868229,
+        "canonicalName": "Monstera siltepecana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 6,
+      "scientificName": "Monstera standleyana",
+      "source": "POWO",
+      "sourceRecordId": "Monstera standleyana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868231,
+        "canonicalName": "Monstera standleyana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 7,
+      "scientificName": "Monstera dubia",
+      "source": "POWO",
+      "sourceRecordId": "Monstera dubia",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868179,
+        "canonicalName": "Monstera dubia",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 8,
+      "scientificName": "Monstera pinnatipartita",
+      "source": "POWO",
+      "sourceRecordId": "Monstera pinnatipartita",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868226,
+        "canonicalName": "Monstera pinnatipartita",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 10,
+      "scientificName": "Anubias barteri",
+      "source": "POWO",
+      "sourceRecordId": "Anubias barteri",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871871,
+        "canonicalName": "Anubias barteri",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 11,
+      "scientificName": "Anubias barteri",
+      "source": "POWO",
+      "sourceRecordId": "Anubias barteri:Nana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871871,
+        "canonicalName": "Anubias barteri",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 13,
+      "scientificName": "Cryptocoryne wendtii",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne wendtii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2869214,
+        "canonicalName": "Cryptocoryne wendtii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 14,
+      "scientificName": "Cryptocoryne parva",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne parva",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2869202,
+        "canonicalName": "Cryptocoryne parva",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 15,
+      "scientificName": "Cryptocoryne balansae",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne balansae",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2869259,
+        "canonicalName": "Cryptocoryne balansae",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 16,
+      "scientificName": "Cryptocoryne undulata",
+      "source": "POWO",
+      "sourceRecordId": "Cryptocoryne undulata",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2869198,
+        "canonicalName": "Cryptocoryne undulata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 17,
+      "scientificName": "Microsorum pteropus",
+      "source": "POWO",
+      "sourceRecordId": "Microsorum pteropus",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 7289955,
+        "canonicalName": "Microsorum pteropus",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 18,
+      "scientificName": "Taxiphyllum barbieri",
+      "source": "POWO",
+      "sourceRecordId": "Taxiphyllum barbieri",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2682670,
+        "canonicalName": "Taxiphyllum barbieri",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 19,
+      "scientificName": "Vesicularia dubyana",
+      "source": "POWO",
+      "sourceRecordId": "Vesicularia dubyana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5283653,
+        "canonicalName": "Vesicularia dubyana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 20,
+      "scientificName": "Hemianthus callitrichoides",
+      "source": "POWO",
+      "sourceRecordId": "Hemianthus callitrichoides",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 3172188,
+        "canonicalName": "Hemianthus callitrichoides",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 21,
+      "scientificName": "Eleocharis acicularis",
+      "source": "POWO",
+      "sourceRecordId": "Eleocharis acicularis",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2717570,
+        "canonicalName": "Eleocharis acicularis",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 22,
+      "scientificName": "Rotala rotundifolia",
+      "source": "POWO",
+      "sourceRecordId": "Rotala rotundifolia",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 7122825,
+        "canonicalName": "Rotala rotundifolia",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 23,
+      "scientificName": "Ludwigia repens",
+      "source": "POWO",
+      "sourceRecordId": "Ludwigia repens",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5421030,
+        "canonicalName": "Ludwigia repens",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 24,
+      "scientificName": "Alternanthera reineckii",
+      "source": "POWO",
+      "sourceRecordId": "Alternanthera reineckii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 3674859,
+        "canonicalName": "Alternanthera reineckii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 27,
+      "scientificName": "Alocasia watsoniana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia watsoniana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 11196460,
+        "canonicalName": "Alocasia watsoniana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 28,
+      "scientificName": "Alocasia odora",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia odora",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 9506227,
+        "canonicalName": "Alocasia odora",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 29,
+      "scientificName": "Alocasia clypeolata",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia clypeolata",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329882,
+        "canonicalName": "Alocasia clypeolata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 30,
+      "scientificName": "Alocasia reversa",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reversa",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329861,
+        "canonicalName": "Alocasia reversa",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 31,
+      "scientificName": "Alocasia reginae",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reginae",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329879,
+        "canonicalName": "Alocasia reginae",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 32,
+      "scientificName": "Alocasia princeps",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia princeps",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329833,
+        "canonicalName": "Alocasia princeps",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 33,
+      "scientificName": "Alocasia portei",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia portei",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329888,
+        "canonicalName": "Alocasia portei",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 34,
+      "scientificName": "Alocasia brancifolia",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia brancifolia",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329839,
+        "canonicalName": "Alocasia brancifolia",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 35,
+      "scientificName": "Philodendron gloriosum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron gloriosum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870786,
+        "canonicalName": "Philodendron gloriosum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 36,
+      "scientificName": "Philodendron melanochrysum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron melanochrysum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871241,
+        "canonicalName": "Philodendron melanochrysum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 37,
+      "scientificName": "Philodendron verrucosum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron verrucosum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871089,
+        "canonicalName": "Philodendron verrucosum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 45,
+      "scientificName": "Alocasia baginda",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia baginda:Dragon Scale",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 8316200,
+        "canonicalName": "Alocasia baginda",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 46,
+      "scientificName": "Alocasia baginda",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia baginda:Silver Dragon",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 8316200,
+        "canonicalName": "Alocasia baginda",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 47,
+      "scientificName": "Alocasia zebrina",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia zebrina",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 11344748,
+        "canonicalName": "Alocasia zebrina",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 48,
+      "scientificName": "Alocasia amazonica",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia amazonica:Polly",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 7412524,
+        "canonicalName": "Alocasia amazonica",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 49,
+      "scientificName": "Alocasia macrorrhizos",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia macrorrhizos",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329904,
+        "canonicalName": "Alocasia macrorrhizos",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 50,
+      "scientificName": "Alocasia longiloba",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia longiloba",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329978,
+        "canonicalName": "Alocasia longiloba",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 51,
+      "scientificName": "Alocasia cuprea",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia cuprea",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329958,
+        "canonicalName": "Alocasia cuprea",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 52,
+      "scientificName": "Alocasia reginula",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia reginula:Black Velvet",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329895,
+        "canonicalName": "Alocasia reginula",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 54,
+      "scientificName": "Alocasia micholitziana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia micholitziana:Frydek",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329899,
+        "canonicalName": "Alocasia micholitziana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 55,
+      "scientificName": "Alocasia wentii",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia wentii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329957,
+        "canonicalName": "Alocasia wentii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 56,
+      "scientificName": "Alocasia lauterbachiana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia lauterbachiana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329877,
+        "canonicalName": "Alocasia lauterbachiana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 57,
+      "scientificName": "Alocasia sanderiana",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia sanderiana",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329946,
+        "canonicalName": "Alocasia sanderiana",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 58,
+      "scientificName": "Alocasia melo",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia melo",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329862,
+        "canonicalName": "Alocasia melo",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 59,
+      "scientificName": "Alocasia scalprum",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia scalprum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329887,
+        "canonicalName": "Alocasia scalprum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 60,
+      "scientificName": "Alocasia sinuata",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia sinuata",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329859,
+        "canonicalName": "Alocasia sinuata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 61,
+      "scientificName": "Alocasia nebula",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia nebula",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329858,
+        "canonicalName": "Alocasia nebula",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 62,
+      "scientificName": "Alocasia azlanii",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia azlanii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 9245081,
+        "canonicalName": "Alocasia azlanii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 63,
+      "scientificName": "Alocasia infernalis",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia infernalis",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329948,
+        "canonicalName": "Alocasia infernalis",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 64,
+      "scientificName": "Alocasia heterophylla",
+      "source": "POWO",
+      "sourceRecordId": "Alocasia heterophylla",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 5329835,
+        "canonicalName": "Alocasia heterophylla",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 66,
+      "scientificName": "Philodendron hederaceum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hederaceum:Micans",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871003,
+        "canonicalName": "Philodendron hederaceum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 67,
+      "scientificName": "Philodendron hederaceum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hederaceum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871003,
+        "canonicalName": "Philodendron hederaceum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 68,
+      "scientificName": "Philodendron hastatum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron hastatum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871100,
+        "canonicalName": "Philodendron hastatum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 69,
+      "scientificName": "Philodendron mamei",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron mamei",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870711,
+        "canonicalName": "Philodendron mamei",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 70,
+      "scientificName": "Philodendron plowmanii",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron plowmanii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 8304977,
+        "canonicalName": "Philodendron plowmanii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 71,
+      "scientificName": "Philodendron pastazanum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron pastazanum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870956,
+        "canonicalName": "Philodendron pastazanum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 72,
+      "scientificName": "Philodendron gigas",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron gigas",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870847,
+        "canonicalName": "Philodendron gigas",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 73,
+      "scientificName": "Philodendron squamiferum",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron squamiferum",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870698,
+        "canonicalName": "Philodendron squamiferum",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 74,
+      "scientificName": "Philodendron billietiae",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron billietiae",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2870818,
+        "canonicalName": "Philodendron billietiae",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 75,
+      "scientificName": "Philodendron atabapoense",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron atabapoense",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2871146,
+        "canonicalName": "Philodendron atabapoense",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 76,
+      "scientificName": "Philodendron spiritus sancti",
+      "source": "POWO",
+      "sourceRecordId": "Philodendron spiritus sancti",
+      "kind": "plant",
+      "status": "no_exact_gbif_taxon_match",
+      "gbif": {
+        "usageKey": null,
+        "canonicalName": null,
+        "matchType": "NONE"
+      },
+      "candidates": []
+    },
+    {
+      "id": 79,
+      "scientificName": "Monstera deliciosa",
+      "source": "POWO",
+      "sourceRecordId": "Monstera deliciosa",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868241,
+        "canonicalName": "Monstera deliciosa",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 82,
+      "scientificName": "Monstera adansonii",
+      "source": "POWO",
+      "sourceRecordId": "Monstera adansonii",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868136,
+        "canonicalName": "Monstera adansonii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 84,
+      "scientificName": "Monstera obliqua",
+      "source": "POWO",
+      "sourceRecordId": "Monstera obliqua",
+      "kind": "plant",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2868185,
+        "canonicalName": "Monstera obliqua",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 1,
+      "scientificName": "Channa andrao",
+      "source": "FishBase",
+      "sourceRecordId": "Channa andrao",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 7820111,
+        "canonicalName": "Channa andrao",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 2,
+      "scientificName": "Channa asiatica",
+      "source": "FishBase",
+      "sourceRecordId": "Channa asiatica",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391557,
+        "canonicalName": "Channa asiatica",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 3,
+      "scientificName": "Channa aurantimaculata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa aurantimaculata",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391454,
+        "canonicalName": "Channa aurantimaculata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 4,
+      "scientificName": "Channa barca",
+      "source": "FishBase",
+      "sourceRecordId": "Channa barca",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391474,
+        "canonicalName": "Channa barca",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 5,
+      "scientificName": "Channa bleheri",
+      "source": "FishBase",
+      "sourceRecordId": "Channa bleheri",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391447,
+        "canonicalName": "Channa bleheri",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 6,
+      "scientificName": "Channa diplogramma",
+      "source": "FishBase",
+      "sourceRecordId": "Channa diplogramma",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391501,
+        "canonicalName": "Channa diplogramma",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 7,
+      "scientificName": "Channa gachua",
+      "source": "FishBase",
+      "sourceRecordId": "Channa gachua",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391514,
+        "canonicalName": "Channa gachua",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 8,
+      "scientificName": "Channa limbata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa limbata",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 8514307,
+        "canonicalName": "Channa limbata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 9,
+      "scientificName": "Channa lucius",
+      "source": "FishBase",
+      "sourceRecordId": "Channa lucius",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391505,
+        "canonicalName": "Channa lucius",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 10,
+      "scientificName": "Channa marulioides",
+      "source": "FishBase",
+      "sourceRecordId": "Channa marulioides",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391442,
+        "canonicalName": "Channa marulioides",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 11,
+      "scientificName": "Channa micropeltes",
+      "source": "FishBase",
+      "sourceRecordId": "Channa micropeltes",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391455,
+        "canonicalName": "Channa micropeltes",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 12,
+      "scientificName": "Channa ornatipinnis",
+      "source": "FishBase",
+      "sourceRecordId": "Channa ornatipinnis",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391446,
+        "canonicalName": "Channa ornatipinnis",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 13,
+      "scientificName": "Channa pulchra",
+      "source": "FishBase",
+      "sourceRecordId": "Channa pulchra",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391539,
+        "canonicalName": "Channa pulchra",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 14,
+      "scientificName": "Channa stewartii",
+      "source": "FishBase",
+      "sourceRecordId": "Channa stewartii",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391448,
+        "canonicalName": "Channa stewartii",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    },
+    {
+      "id": 15,
+      "scientificName": "Channa striata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa striata",
+      "kind": "aquarium",
+      "status": "no_reusable_exact_candidate_found",
+      "gbif": {
+        "usageKey": 2391463,
+        "canonicalName": "Channa striata",
+        "matchType": "EXACT"
+      },
+      "candidates": []
+    }
+  ]
+}

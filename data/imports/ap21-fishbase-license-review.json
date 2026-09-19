@@ -1,0 +1,856 @@
+{
+  "generatedAt": "2026-09-19T16:33:34.198Z",
+  "purpose": "FishBase individual image-card license review only. No production import, no download and no image publication.",
+  "policy": "Only exact Channa species with an explicit commercial reusable license can advance to visual review. CC-BY-NC and all-rights-reserved media remain blocked.",
+  "summary": {
+    "queued": 15,
+    "manualReviewCandidates": 0,
+    "blockedCandidates": 81,
+    "inspectedPictureCards": 81,
+    "lookupErrors": 0
+  },
+  "records": [
+    {
+      "id": 1,
+      "scientificName": "Channa andrao",
+      "source": "FishBase",
+      "sourceRecordId": "Channa andrao",
+      "fishBaseSpeciesId": 67146,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-andrao.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=67146&what=species&showAll=yes",
+      "discoveredPictureCards": 1,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chand_u2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=67146&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chand_u2.jpg",
+          "creator": "Hippocampus-Bildarchiv",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "scientificName": "Channa asiatica",
+      "source": "FishBase",
+      "sourceRecordId": "Channa asiatica",
+      "fishBaseSpeciesId": 7756,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-asiatica.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=7756&what=species&showAll=yes",
+      "discoveredPictureCards": 4,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chasi_u1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=7756&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chasi_u1.jpg",
+          "creator": "Hippocampus-Bildarchiv",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chasi_u2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=7756&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chasi_u2.jpg",
+          "creator": "Liao, T.-Y.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chasi_u3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=7756&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chasi_u3.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chasi_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=7756&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chasi_u0.jpg",
+          "creator": "Shao, K.T.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "scientificName": "Channa aurantimaculata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa aurantimaculata",
+      "fishBaseSpeciesId": 57932,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-aurantimaculata.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=57932&what=species&showAll=yes",
+      "discoveredPictureCards": 1,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chaur_um.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=57932&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chaur_um.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "scientificName": "Channa barca",
+      "source": "FishBase",
+      "sourceRecordId": "Channa barca",
+      "fishBaseSpeciesId": 10133,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-barca.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=10133&what=species&showAll=yes",
+      "discoveredPictureCards": 0,
+      "status": "no_picture_records",
+      "candidates": []
+    },
+    {
+      "id": 5,
+      "scientificName": "Channa bleheri",
+      "source": "FishBase",
+      "sourceRecordId": "Channa bleheri",
+      "fishBaseSpeciesId": 59754,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-bleheri.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=59754&what=species&showAll=yes",
+      "discoveredPictureCards": 2,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chble_ud.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=59754&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chble_ud.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chble_ue.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=59754&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chble_ue.jpg",
+          "creator": "Vierke, J.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "scientificName": "Channa diplogramma",
+      "source": "FishBase",
+      "sourceRecordId": "Channa diplogramma",
+      "fishBaseSpeciesId": 55109,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-diplogramma.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=55109&what=species&showAll=yes",
+      "discoveredPictureCards": 2,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chdip_u1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=55109&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chdip_u1.jpg",
+          "creator": "Cousins, S.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chdip_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=55109&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chdip_u0.jpg",
+          "creator": "Zeena, K.V.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "scientificName": "Channa gachua",
+      "source": "FishBase",
+      "sourceRecordId": "Channa gachua",
+      "fishBaseSpeciesId": 50504,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-gachua.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+      "discoveredPictureCards": 14,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chgac_u1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u1.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u2.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u4.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u4.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u7.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u7.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u9.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u9.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_ua.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_ua.jpg",
+          "creator": "Hadiaty, R.K.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_j0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chgac_j0.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u0.jpg",
+          "creator": "Baird, I.G.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u5.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u5.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u6.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u6.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_ub.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_ub.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_uc.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_uc.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u3.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u8.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u8.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "scientificName": "Channa limbata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa limbata",
+      "fishBaseSpeciesId": 50504,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-limbata.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+      "discoveredPictureCards": 14,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chgac_u1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u1.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u2.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u4.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u4.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u7.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u7.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u9.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u9.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_ua.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_ua.jpg",
+          "creator": "Hadiaty, R.K.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_j0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chgac_j0.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u0.jpg",
+          "creator": "Baird, I.G.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u5.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u5.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u6.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u6.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_ub.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_ub.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_uc.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_uc.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u3.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chgac_u8.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=50504&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chgac_u8.jpg",
+          "creator": "CAFS",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "scientificName": "Channa lucius",
+      "source": "FishBase",
+      "sourceRecordId": "Channa lucius",
+      "fishBaseSpeciesId": 16137,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-lucius.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=16137&what=species&showAll=yes",
+      "discoveredPictureCards": 3,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chluc_j0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=16137&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chluc_j0.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chluc_j1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=16137&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chluc_j1.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chluc_u2.gif",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=16137&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chluc_u2.gif",
+          "creator": null,
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "scientificName": "Channa marulioides",
+      "source": "FishBase",
+      "sourceRecordId": "Channa marulioides",
+      "fishBaseSpeciesId": 25148,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-marulioides.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=25148&what=species&showAll=yes",
+      "discoveredPictureCards": 4,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chmar_uj.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=25148&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmar_uj.jpg",
+          "creator": "Cheong, W.C.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmar_ue.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=25148&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmar_ue.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmar_ui.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=25148&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmar_ui.jpg",
+          "creator": "Khoo, W.L.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmar_uk.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=25148&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmar_uk.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "scientificName": "Channa micropeltes",
+      "source": "FishBase",
+      "sourceRecordId": "Channa micropeltes",
+      "fishBaseSpeciesId": 344,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-micropeltes.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+      "discoveredPictureCards": 13,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chmic_j4.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chmic_j4.jpg",
+          "creator": "Muséum-Aquarium de Nancy/D. Terver",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_j3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_j3.jpg",
+          "creator": "Liao, T.-Y.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_j2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_j2.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u0.jpg",
+          "creator": "Baird, I.G.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u1.jpg",
+          "creator": "Warren, T.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u2.jpg",
+          "creator": "Jessen, C.Q.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u3.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u4.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u4.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u5.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u5.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u6.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u6.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u7.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u7.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_u0.gif",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_u0.gif",
+          "creator": null,
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chmic_ue.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=344&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chmic_ue.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "scientificName": "Channa ornatipinnis",
+      "source": "FishBase",
+      "sourceRecordId": "Channa ornatipinnis",
+      "fishBaseSpeciesId": 64104,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-ornatipinnis.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=64104&what=species&showAll=yes",
+      "discoveredPictureCards": 1,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chorn_ug.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=64104&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chorn_ug.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "scientificName": "Channa pulchra",
+      "source": "FishBase",
+      "sourceRecordId": "Channa pulchra",
+      "fishBaseSpeciesId": 64105,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-pulchra.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=64105&what=species&showAll=yes",
+      "discoveredPictureCards": 1,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chpul_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=64105&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chpul_u0.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "scientificName": "Channa stewartii",
+      "source": "FishBase",
+      "sourceRecordId": "Channa stewartii",
+      "fishBaseSpeciesId": 13591,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-stewartii.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=13591&what=species&showAll=yes",
+      "discoveredPictureCards": 3,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chpun_ug.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=13591&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chpun_ug.jpg",
+          "creator": "Hippocampus-Bildarchiv",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chste_u0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=13591&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chste_u0.jpg",
+          "creator": "JJPhoto",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chste_u5.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=13591&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chste_u5.jpg",
+          "creator": "Hippocampus-Bildarchiv",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "scientificName": "Channa striata",
+      "source": "FishBase",
+      "sourceRecordId": "Channa striata",
+      "fishBaseSpeciesId": 343,
+      "speciesPage": "https://www.fishbase.se/summary/Channa-striata.html",
+      "picturePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+      "discoveredPictureCards": 18,
+      "status": "no_commercially_reusable_license_found",
+      "candidates": [
+        {
+          "filename": "Chstr_uq.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_uq.jpg",
+          "creator": "Ramani Shirantha",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chbar_u6.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chbar_u6.jpg",
+          "creator": "Martin-Smith, K.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chpun_ue.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chpun_ue.jpg",
+          "creator": "Khan, M.M.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_j0.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_j0.jpg",
+          "creator": "Appleby, C.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_j1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_j1.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_j2.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_j2.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_m1.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_m1.jpg",
+          "creator": "Matillano, J.D.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_u3.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_u3.jpg",
+          "creator": "Baird, I.G.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_ug.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_ug.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_uh.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_uh.jpg",
+          "creator": "Jean-Francois Helias / Fishing Adventures Thailand",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_uj.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_uj.jpg",
+          "creator": "Das, J.K.",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_uk.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chstr_uk.jpg",
+          "creator": "Reyes, R.B.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_un.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chstr_un.jpg",
+          "creator": "Reyes, R.B.",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_uo.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/HiRes_Pics/hr_Chstr_uo.jpg",
+          "creator": "Mutia et al., 2017",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_u0.gif",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_u0.gif",
+          "creator": null,
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_u2.gif",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_u2.gif",
+          "creator": null,
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_u3.gif",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_u3.gif",
+          "creator": "FAO",
+          "licenseStatus": "blocked_non_commercial",
+          "importEligibility": "manual_review_required"
+        },
+        {
+          "filename": "Chstr_up.jpg",
+          "sourcePage": "https://www.fishbase.se/photos/PicturesSummary.php?ID=343&what=species&showAll=yes",
+          "directImageUrl": "https://www.fishbase.se/images/species/Chstr_up.jpg",
+          "creator": "Ramani Shirantha",
+          "licenseStatus": "blocked_all_rights_reserved",
+          "importEligibility": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

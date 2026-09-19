@@ -17,6 +17,7 @@ describe("AP-12 catalog image provenance", () => {
   it("requires complete image provenance before a staff import may publish records", () => {
     const router = read("server/routers/search.ts");
     expect((router.match(/published_taxon_image_provenance_required/g) ?? []).length).toBe(2);
+    expect(router).toContain("catalog_image_license_not_reusable");
     expect(router).toContain("imageVerifiedAt: input.publish ? new Date() : null");
   });
 

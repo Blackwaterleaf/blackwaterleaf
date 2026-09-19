@@ -6,7 +6,7 @@
 
 ## Ergebnis
 
-Die zehn Vorabnahmeschritte sind für den gegenwärtigen Code- und Datenstand ausgeführt. Der aktuelle Stand ist **kein Buildauftrag**, sondern eine geprüfte Übergabebasis für einen späteren Expo-Build. Ein APK darf erst gestartet werden, wenn die verbleibenden geprüften Katalogbilder aus zugelassenen Fachquellen eingepflegt und die bestehende Release-Freigabe ausdrücklich erteilt sind.
+Die zehn Vorabnahmeschritte sind für den gegenwärtigen Code- und Datenstand ausgeführt. Der aktuelle Stand ist **kein Buildauftrag**, sondern eine geprüfte Übergabebasis für einen späteren Expo-Build. Ein APK darf erst gestartet werden, wenn die verbleibenden geprüften Katalogbilder aus zugelassenen Fachquellen eingepflegt und die bestehende Release-Freigabe ausdrücklich erteilt sind. Die anschließende Einzelbildprüfung hat keine automatisch nutzbaren Bilder freigegeben; die Rechteentscheidung ist separat dokumentiert.
 
 | Schritt | Ergebnis | Nachweis |
 |---|---|---|
@@ -25,13 +25,13 @@ Die zehn Vorabnahmeschritte sind für den gegenwärtigen Code- und Datenstand au
 
 > Ein fehlendes oder nicht vollständig belegtes Bild wird nicht durch ein ähnlich aussehendes Ersatzbild ersetzt. Die Anwendung zeigt den offenen Prüfzustand sichtbar an.
 
-Öffentliche Taxonbilder werden ausschließlich akzeptiert, wenn die Taxonomiequelle zu einer konfigurierten Fachquelle gehört, der Bildpfad derselben Quelle zugeordnet werden kann und Quellseite, Lizenz, Attribution sowie Prüfzeitpunkt vorliegen. Zulässige Quellen sind derzeit **Plants of the World Online von Kew Science**, **FishBase**, **GBIF**, die **Biodiversity Heritage Library** und **JSTOR Global Plants**. Wikipedia und Wikimedia Commons sind ausgeschlossen.
+Öffentliche Taxonbilder werden ausschließlich akzeptiert, wenn die Taxonomiequelle zu einer konfigurierten Fachquelle gehört, der Bildpfad derselben Quelle zugeordnet werden kann und Quellseite, Lizenz, Attribution sowie Prüfzeitpunkt vorliegen. Zulässig sind nur **CC0**, **CC BY 3.0** oder **CC BY 4.0**. CC-BY-NC, „all rights reserved“, Genehmigungsvorbehalte und unklare Rechte werden serverseitig blockiert. **Plants of the World Online von Kew Science**, **FishBase**, die **Biodiversity Heritage Library** und **JSTOR Global Plants** können nach Einzelprüfung Medienquellen sein; **GBIF** bleibt ausschließlich Nachweis- und Taxonomieindex. Wikipedia und Wikimedia Commons sind ausgeschlossen.
 
 Die Fundortflächen verarbeiten nur veröffentlichte, quellengebundene Verbreitungsangaben. Sie sind keine Darstellung privater Beobachtungskoordinaten und erzeugen keine Kartenpins oder Fundorte, wenn keine zulässigen Daten vorhanden sind.
 
 ## Verbleibende Release-Voraussetzung
 
-Die einzige absichtliche fachliche Restaufgabe vor einem Produktiv- bzw. Expo-Release ist die Beschaffung und Prüfung von passenden Katalogbildern über die zugelassenen wissenschaftlichen Quellen. Bis zu dieser Prüfung bleiben die betroffenen Kacheln transparent im Zustand **„Bildnachweis offen“**. Dadurch wird weder ein falsches Bild noch eine nicht belastbare Quellenbehauptung veröffentlicht.
+Die einzige absichtliche fachliche Restaufgabe vor einem Produktiv- bzw. Expo-Release ist die Beschaffung und Prüfung von passenden Katalogbildern über eine rechtlich eindeutige Route: eigene Fachbilder, schriftliche Rechtefreigaben oder einzeln verifizierte gemeinfreie beziehungsweise CC-BY-Abbildungen. Die GBIF-Prüfung fand unter 81 offenen Taxa keinen vollständig prüfbaren Kandidaten. Die FishBase-Prüfung bewertete 81 Bildkarten zu den 15 Channa-Arten und fand keine kommerziell wiederverwendbare Lizenz. Bis zu einer solchen Rechteentscheidung bleiben die betroffenen Kacheln transparent im Zustand **„Bildnachweis offen“**. Dadurch wird weder ein falsches Bild noch eine nicht belastbare Quellenbehauptung veröffentlicht. Der vollständige Nachweis steht in `docs/AP21_MEDIA_RIGHTS_DECISION_2026-09-19.md`.
 
 ## Validierung
 

@@ -3,7 +3,7 @@ import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { belongsToOfficialSource, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, officialTaxonSource } from "../../shared/taxon-source-policy";
+import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, officialTaxonSource } from "../../shared/taxon-source-policy";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 
@@ -40,8 +40,11 @@ function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof
     if (!configuredSource || !record.imageUrl || !record.imageSourceUrl) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "official_taxon_source_required" });
     }
-    if (!isOfficialTaxonSourceUrl(record.imageUrl) || !isOfficialTaxonSourceUrl(record.imageSourceUrl) || !belongsToOfficialSource(source, record.imageUrl) || !belongsToOfficialSource(source, record.imageSourceUrl)) {
+    if (!isOfficialTaxonSourceUrl(record.imageSourceUrl) || !belongsToOfficialMediaSource(source, record.imageUrl) || !belongsToOfficialSource(source, record.imageSourceUrl)) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_media_source" });
+    }
+    if (publish && !isCommerciallyReusableCatalogImageLicense(record.imageLicense)) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "catalog_image_license_not_reusable" });
     }
   }
 }
