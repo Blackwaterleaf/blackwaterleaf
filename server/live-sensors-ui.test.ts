@@ -9,9 +9,10 @@ const weatherService = readFileSync(resolve(root, "server/weather.ts"), "utf8");
 const style = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("live sensor interface", () => {
-  it("uses a dedicated live sensor component rather than hard-coded offline readings", () => {
-    expect(home).toContain("<LiveSensorStrip");
-    expect(home).toContain("weather-effect--${weatherEffect}");
+  it("keeps live sensors available as a dedicated component without placing the rail above the home hero", () => {
+    expect(home).not.toContain("<LiveSensorStrip");
+    expect(home).not.toContain("weather-effect--${weatherEffect}");
+    expect(home).toContain("home-hero");
     expect(home).not.toContain('value={t("common.offline")}');
   });
 

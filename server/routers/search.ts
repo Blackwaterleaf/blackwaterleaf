@@ -25,6 +25,26 @@ const taxaRecordSchema = z.object({
   evidenceState: evidenceStateSchema.default("confirmed"),
 });
 
+function containsDisallowedMediaSource(value: string | null | undefined) {
+  return typeof value === "string" && /(?:wikimedia|wikipedia|commons\.wikimedia|upload\.wikimedia)/i.test(value);
+}
+
+function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof taxaRecordSchema>>) {
+  const values = [source, ...records.flatMap(record => [record.imageUrl, record.imageSourceUrl, record.imageAttribution, record.imageLicense])];
+  if (values.some(containsDisallowedMediaSource)) {
+    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "disallowed_media_source" });
+  }
+  const approvedHosts = new Set(["powo.science.kew.org", "fishbase.se", "www.fishbase.se", "gbif.org", "www.gbif.org", "biodiversitylibrary.org", "www.biodiversitylibrary.org", "plants.jstor.org"]);
+  for (const record of records) {
+    for (const value of [record.imageUrl, record.imageSourceUrl]) {
+      if (!value) continue;
+      let hostname: string;
+      try { hostname = new URL(value).hostname.toLowerCase(); } catch { throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_media_source_url" }); }
+      if (!approvedHosts.has(hostname)) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_media_source" });
+    }
+  }
+}
+
 async function requireDatabase() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
@@ -225,6 +245,7 @@ export const searchRouter = router({
       publish: z.boolean().default(false),
     }))
     .mutation(async ({ input }) => {
+      assertApprovedMediaSource(input.source, input.records);
       if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
       }
@@ -263,6 +284,7 @@ export const searchRouter = router({
       publish: z.boolean().default(false),
     }))
     .mutation(async ({ input }) => {
+      assertApprovedMediaSource(input.source, input.records);
       if (input.publish && input.records.some(record => !record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution)) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
       }

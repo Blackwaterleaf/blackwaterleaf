@@ -10,16 +10,16 @@ const leafCore = readFileSync(resolve(root, "client/src/components/LeafCore.tsx"
 const style = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("BlackWaterLeaf reference layout", () => {
-  it("keeps the reference composition of sensor strip, nature imagery, realm selection and a central leaf action", () => {
-    for (const token of ["LiveSensorStrip", "home-hero", "world-rail--home", "home-capture-zone", "<LeafCore"]) {
+  it("keeps the reference composition of nature imagery, realm selection and a central leaf action", () => {
+    for (const token of ["home-hero", "world-rail--home", "home-capture-zone", "<LeafCore"]) {
       expect(home).toContain(token);
     }
+    expect(home).not.toContain("<LiveSensorStrip");
     expect(home).not.toContain("hero-note");
     expect(home).not.toContain("Privat starten");
     for (const token of ["home-status-card", "sensor-grid", "Waves", "Droplets", "Gauge", "ThermometerSun"]) {
       expect(liveSensors).toContain(token);
     }
-    expect(home.indexOf("<LiveSensorStrip")).toBeLessThan(home.indexOf("home-hero"));
     expect(home.indexOf("home-hero")).toBeLessThan(home.indexOf("world-rail--home"));
   });
 

@@ -1,5 +1,4 @@
 import { LeafCore } from "@/components/LeafCore";
-import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { StatePanel } from "@/components/StatePanel";
 import { WorldCard } from "@/components/WorldCard";
@@ -8,9 +7,8 @@ import { publicPartnerCardPresentation } from "@/lib/partnerPresentation";
 import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
-import type { WeatherEffect } from "@shared/current-weather";
 import { ArrowRight, RadioTower } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "wouter";
 
 export default function Home() {
@@ -19,10 +17,6 @@ export default function Home() {
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.feed.useQuery({ limit: 1 }, { retry: false });
   const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
-  const [weatherEffect, setWeatherEffect] = useState<WeatherEffect>("none");
-  const applyWeatherEffect = useCallback((effect: WeatherEffect) => {
-    setWeatherEffect(current => current === effect ? current : effect);
-  }, []);
 
   useEffect(() => {
     document.title = pageTitle;
@@ -33,10 +27,7 @@ export default function Home() {
     : { welcome: "The aquatic observatory", overview: "Portals", status: "Current status", values: "Values at a glance", partner: "Selected & transparent" };
 
   return (
-    <div className={`home-stack weather-effect--${weatherEffect}`}>
-      <div className="weather-atmosphere" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
-      <LiveSensorStrip compact onWeatherEffectChange={applyWeatherEffect} />
-
+    <div className="home-stack">
       <section className="home-hero hero-scene" style={{ backgroundImage: `url(${WORLD_ASSETS.botany})` }}>
         <span className="hero-light" aria-hidden="true" />
         <div className="hero-copy">
