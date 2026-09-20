@@ -92,21 +92,31 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
+let mapScriptPromise: Promise<void> | null = null;
+
 function loadMapScript() {
-  return new Promise(resolve => {
+  if (window.google?.maps) return Promise.resolve();
+  if (!API_KEY) return Promise.reject(new Error("Kartenbasis ist nicht konfiguriert."));
+  if (mapScriptPromise) return mapScriptPromise;
+
+  mapScriptPromise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
-      resolve(null);
-      script.remove(); // Clean up immediately
+      if (window.google?.maps) resolve();
+      else reject(new Error("Kartenbasis wurde ohne Google-Maps-API geladen."));
+      script.remove();
     };
     script.onerror = () => {
-      console.error("Failed to load Google Maps script");
+      script.remove();
+      mapScriptPromise = null;
+      reject(new Error("Kartenbasis konnte nicht geladen werden."));
     };
     document.head.appendChild(script);
   });
+  return mapScriptPromise;
 }
 
 interface MapViewProps {
@@ -114,6 +124,7 @@ interface MapViewProps {
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
+  onMapError?: (error: Error) => void;
 }
 
 export function MapView({
@@ -121,27 +132,31 @@ export function MapView({
   initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
   onMapReady,
+  onMapError,
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
 
   const init = usePersistFn(async () => {
-    await loadMapScript();
-    if (!mapContainer.current) {
-      console.error("Map container not found");
-      return;
-    }
-    map.current = new window.google.maps.Map(mapContainer.current, {
-      zoom: initialZoom,
-      center: initialCenter,
-      mapTypeControl: true,
-      fullscreenControl: true,
-      zoomControl: true,
-      streetViewControl: true,
-      mapId: "DEMO_MAP_ID",
-    });
-    if (onMapReady) {
-      onMapReady(map.current);
+    try {
+      await loadMapScript();
+      if (!mapContainer.current || !window.google?.maps) {
+        throw new Error("Kartencontainer ist nicht verfügbar.");
+      }
+      map.current = new window.google.maps.Map(mapContainer.current, {
+        zoom: initialZoom,
+        center: initialCenter,
+        mapTypeControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+        streetViewControl: false,
+        mapId: "DEMO_MAP_ID",
+      });
+      onMapReady?.(map.current);
+    } catch (error) {
+      const normalized = error instanceof Error ? error : new Error("Kartenbasis konnte nicht initialisiert werden.");
+      console.error(normalized);
+      onMapError?.(normalized);
     }
   });
 

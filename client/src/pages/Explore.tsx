@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ArrowRight, BookOpen, Fish, Leaf, List, Map, MapPin, Search, ShieldCheck, Sprout, WifiOff } from "lucide-react";
+import { ArrowRight, BookOpen, Fish, Leaf, List, Map, Search, ShieldCheck, Sprout, WifiOff } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
 import { REFERENCE_ASSETS, WORLD_ASSETS } from "@/lib/worlds";
 import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
+import { MapView } from "@/components/Map";
 
 type RealmFilter = "all" | "botany" | "aquarium" | "terrarium";
 type ViewMode = "map" | "list";
@@ -21,6 +22,8 @@ export default function Explore() {
   const { locale } = useI18n();
   const [realm, setRealm] = useState<RealmFilter>("all");
   const [view, setView] = useState<ViewMode>("map");
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [mapAttempt, setMapAttempt] = useState(0);
   const observations = trpc.observations.publicFeed.useQuery({ realm: realm === "all" ? undefined : realm, limit: 20 }, { retry: false });
   const title = locale === "de" ? "WASSER VERBINDET." : "WATER CONNECTS.";
   const intro = locale === "de" ? "FORSCHEN · ENTDECKEN · SCHÜTZEN" : "RESEARCH · DISCOVER · PROTECT";
@@ -49,8 +52,10 @@ export default function Explore() {
           <div className="observatory-view-toggle" role="group" aria-label="Ansicht"><button type="button" className={view === "map" ? "active" : ""} aria-pressed={view === "map"} onClick={() => setView("map")}><Map size={15} /> Karte</button><button type="button" className={view === "list" ? "active" : ""} aria-pressed={view === "list"} onClick={() => setView("list")}><List size={15} /> Liste</button></div>
         </div>
         <div className={`observatory-observation-grid observatory-observation-grid--${view}`}>
-          <div className="observatory-map-panel">
-            {observationBusy ? <div className="observatory-map-empty"><MapPin size={26} /><strong>Beobachtungen werden synchronisiert</strong><small>Öffentliche Orte werden erst nach erfolgreicher Prüfung angezeigt.</small></div> : observations.isError ? <div className="observatory-map-empty"><WifiOff size={26} /><strong>Karte derzeit nicht verfügbar</strong><small>Die Verbindung konnte nicht hergestellt werden. Bitte erneut versuchen.</small><button type="button" className="secondary-action" onClick={() => void observations.refetch()}>ERNEUT VERSUCHEN</button></div> : <div className="observatory-map-empty"><MapPin size={26} /><strong>Keine Kartenpunkte freigegeben</strong><small>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten. Die Beobachtungsliste bleibt vollständig nutzbar.</small></div>}
+          <div className="observatory-map-panel observatory-map-panel--interactive">
+            <div className="observatory-map-fallback" aria-hidden="true"><span>ÖFFENTLICHE DATENEBENE</span><span>EUROPA · GENERALISIERTE ORTE</span><i /></div>
+            <MapView key={mapAttempt} className="observatory-google-map" initialCenter={{ lat: 51.1657, lng: 10.4515 }} initialZoom={5} onMapError={error => setMapError(error.message)} />
+            <div className="observatory-map-overlay"><span className="eyebrow">BLACKWATERLEAF · ÖFFENTLICHE KARTENBASIS</span><strong>{observations.isError ? "Datenfeed nicht erreichbar" : observationRows.length ? `${observationRows.length} öffentliche Beobachtung${observationRows.length === 1 ? "" : "en"}` : "Noch keine öffentlichen Kartenpunkte"}</strong><small>{mapError ? "Die interaktive Kartenbasis konnte nicht geladen werden. Die Liste bleibt als sichere Alternative verfügbar." : "Exakte private Standorte bleiben verborgen. Pins erscheinen erst, wenn generalisierte Ortsdaten ausdrücklich freigegeben sind."}</small>{mapError ? <button type="button" className="secondary-action" onClick={() => { setMapError(null); setMapAttempt(attempt => attempt + 1); }}>KARTE ERNEUT LADEN</button> : null}</div>
           </div>
           <div className="observatory-catalog-list"><div className="observatory-list-heading"><span>BEOBACHTUNGEN · {realmLabels[realm].toUpperCase()}</span><Link href="/search">KATALOG öffnen <ArrowRight size={14} /></Link></div>{observationBusy ? <p className="observatory-inline-state">Beobachtungen werden synchronisiert …</p> : observations.isError ? <p className="observatory-inline-state">Beobachtungen derzeit nicht erreichbar. Die Katalogsuche bleibt nutzbar.</p> : observationRows.length ? observationRows.map(row => <div key={row.id} className="observatory-observation-item"><span className="observatory-observation-item__icon">{row.realm === "aquarium" ? <Fish size={20} /> : row.realm === "terrarium" ? <Sprout size={20} /> : <Leaf size={20} />}</span><span><strong>{row.scientificName ?? row.subject ?? "Unbestimmte Beobachtung"}</strong><small>{realmLabels[row.realm as RealmFilter] ?? row.realm} · {row.evidenceState === "confirmed" ? "bestätigt" : "Nachweis wird geprüft"}</small></span><span className="observatory-observation-item__state">{row.visibility === "public" ? "öffentlich" : "geschützt"}</span></div>) : <p className="observatory-inline-state">Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</p>}</div>
         </div>

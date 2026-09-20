@@ -302,3 +302,10 @@ Die Zuschauerzahl ist keine Reichweiten- oder Aufrufmetrik. Sie zählt ausschlie
 ### 19.13 Stream-Deck-Aktionen
 
 Staff sieht die drei direkten Aktionen **Stream starten**, **Stream beenden** und – nur bei einer eigenen IONOS-Quelle – **Schlüssel rotieren** als zusammenhängende Kontrollgruppe im Control Deck, nicht verstreut im Seitenkopf. Start trägt den Lime-Akzent, Ende den kontrollierten Warnrot-Akzent; Rotation bleibt eine sekundäre technische Aktion mit Refresh-Symbol. Deaktivierte Aktionen erklären keinen falschen Übertragungsstatus, sondern sind nur verfügbar, wenn ihr serverseitiger Vorzustand erfüllt ist. Laufende Aktionen ersetzen ihren Text durch einen klaren Vorgangsstatus.
+
+
+### 19.14 Kartenroute: echte Kartenbasis und ehrlicher Datenzustand
+
+Die Webroute `/explore` verwendet für die Kartenansicht eine echte interaktive Kartenbasis mit Europa als neutralem Ausgangsbereich. Die Kartenansicht darf nur ausdrücklich freigegebene, generalisierte Beobachtungsorte darstellen; private oder nicht vorhandene Ortsdaten werden niemals als Pins simuliert. Wenn die Kartenbasis technisch nicht erreichbar oder noch nicht konfiguriert ist, bleibt eine visuell erkennbare Kartenfläche mit verständlichem Status, erneuter Ladeaktion und vollständig nutzbarer Listenansicht sichtbar. Ein leerer Datenbestand wird getrennt vom technischen Kartenfehler erklärt.
+
+Die Beobachtungsliste bleibt die autoritative Datenansicht. Aktuell enthält die Datenbank keine öffentlichen Beobachtungen und die Beobachtungstabelle keine Koordinatenfelder; deshalb werden keine künstlichen Beispielpunkte angezeigt. Sobald veröffentlichte generalisierte Ortsdaten vorliegen, werden diese in derselben Karte neben der Liste dargestellt. Diese Regel gilt für Desktop und Mobile.

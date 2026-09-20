@@ -1611,6 +1611,18 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .observatory-observation-grid--list { grid-template-columns: 1fr; }
 .observatory-observation-grid--list .observatory-map-panel { display: none; }
 .observatory-map-panel { min-height: 240px; display: grid; place-items: stretch; overflow: hidden; border: 1px solid rgba(199, 243, 91, .32); border-radius: 12px; background: radial-gradient(circle at 30% 20%, rgba(28, 87, 53, .28), transparent 48%), #07170d; }
+.observatory-map-panel--interactive { position: relative; min-height: 360px; background: #081a11; }
+.observatory-map-fallback { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; color: rgba(185, 251, 127, .42); background-color: #081a11; background-image: linear-gradient(rgba(185, 251, 127, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(185, 251, 127, .08) 1px, transparent 1px), radial-gradient(ellipse at 52% 46%, rgba(34, 119, 70, .42), transparent 42%); background-size: 42px 42px, 42px 42px, 100% 100%; }
+.observatory-map-fallback span { position: absolute; z-index: 1; font: 800 .58rem/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .1em; }
+.observatory-map-fallback span:first-child { top: 18px; left: 18px; }
+.observatory-map-fallback span:nth-child(2) { right: 18px; bottom: 18px; text-align: right; }
+.observatory-map-fallback i { width: 46%; height: 56%; border: 1px solid rgba(185, 251, 127, .22); border-radius: 48% 55% 42% 58%; transform: rotate(-14deg); box-shadow: 18px 12px 0 -6px rgba(37, 121, 73, .18), -34px 28px 0 -18px rgba(37, 121, 73, .28); }
+.observatory-google-map { position: absolute; inset: 0; width: 100% !important; height: 100% !important; min-height: 360px; filter: saturate(.78) hue-rotate(72deg) brightness(.72); }
+.observatory-google-map > div { width: 100%; height: 100%; }
+.observatory-map-overlay { position: absolute; right: 14px; bottom: 14px; left: 14px; z-index: 2; display: grid; gap: 5px; max-width: 520px; padding: 12px 14px; color: #e9ffed; border: 1px solid rgba(185, 251, 127, .35); border-radius: 10px; background: rgba(2, 18, 10, .88); box-shadow: 0 10px 26px rgba(0, 0, 0, .28); backdrop-filter: blur(8px); }
+.observatory-map-overlay strong { color: #f1fff2; font-size: .88rem; }
+.observatory-map-overlay small { color: #b8cbbc; font-size: .69rem; line-height: 1.45; }
+.observatory-map-overlay .secondary-action { justify-self: start; min-height: 32px; margin-top: 3px; padding-inline: 10px; font-size: .58rem; }
 .observatory-map-empty { display: grid; align-content: center; justify-items: start; gap: 9px; max-width: 460px; padding: 28px; color: #b7ff5e; }
 .observatory-map-empty strong { color: #f1fff2; font-size: 1rem; }
 .observatory-map-empty small { color: #b8cbbc; font-size: .85rem; line-height: 1.5; }
@@ -1618,7 +1630,7 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .observatory-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(199, 243, 91, .14); color: #b7ff5e; font: 800 .68rem/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .08em; }
 .observatory-list-heading a { display: inline-flex; align-items: center; gap: 5px; color: #c4d8c6; font-size: .68rem; }
 .observatory-inline-state { margin: 16px 0 0; color: #b8cbbc; font-size: .86rem; line-height: 1.5; }
-@media (max-width: 760px) { .observatory-observation-toolbar { align-items: flex-start; flex-direction: column; } .observatory-observation-grid { grid-template-columns: 1fr; } .observatory-map-panel { min-height: 200px; } .observatory-map-empty { padding: 22px; } }
+@media (max-width: 760px) { .observatory-observation-toolbar { align-items: flex-start; flex-direction: column; } .observatory-observation-grid { grid-template-columns: 1fr; } .observatory-map-panel { min-height: 200px; } .observatory-map-panel--interactive, .observatory-google-map { min-height: 300px; } .observatory-map-empty { padding: 22px; } .observatory-map-overlay { right: 9px; bottom: 9px; left: 9px; } }
 
 @media (max-width: 760px) {
   .observatory-context-header { min-height: unset; }
