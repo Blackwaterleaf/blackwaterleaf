@@ -53,7 +53,8 @@
           "locationWhenInUsePermission": "BlackWaterLeaf verwendet deinen Standort nur für das aktuelle Außenwetter und speichert keine Koordinaten."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-video"
     ],
     "extra": {
       "apiOrigin": "https://blackwaterleaf.com",

@@ -82,6 +82,9 @@ export default function Assistant() {
   const aquariums = useMemo(() => (habitats.data ?? []).filter(item => item.kind === "aquarium"), [habitats.data]);
 
   useEffect(() => () => { plantPreviews.forEach(URL.revokeObjectURL); }, [plantPreviews]);
+  useEffect(() => {
+    if (window.location.hash === "#plant") setTool("plant");
+  }, []);
   useEffect(() => { if (!selectedAquariumId && aquariums[0]) setSelectedAquariumId(aquariums[0].id); }, [aquariums, selectedAquariumId]);
 
   const chat = trpc.assistant.chat.useMutation({

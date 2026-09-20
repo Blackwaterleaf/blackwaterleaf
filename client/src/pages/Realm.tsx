@@ -25,7 +25,7 @@ function actionsFor(realm: keyof typeof REALMS): ObservatoryAction[] {
   if (realm === "botany") return [
     { title: "Meine Pflanzen", note: "Private Sammlung öffnen", icon: LibraryBig, image: WORLD_ASSETS.botany, href: "/profile#habitats" },
     { title: "Pflanze hinzufügen", note: "Anlage privat anlegen", icon: Plus, image: REFERENCE_ASSETS.botany, href: "/profile#habitats" },
-    { title: "Pflanze bestimmen", note: "Bildbestimmung wird vorbereitet", icon: Leaf, image: REFERENCE_ASSETS.ai, unavailable: true },
+    { title: "Pflanze bestimmen", note: "Foto sicher mit KI prüfen", icon: Leaf, image: REFERENCE_ASSETS.ai, href: "/assistant#plant" },
     { title: "Pflegewissen", note: "Quellenwissen öffnen", icon: BookOpen, image: WORLD_ASSETS.terrarium, href: "/knowledge" },
   ];
   if (realm === "aquarium") return [

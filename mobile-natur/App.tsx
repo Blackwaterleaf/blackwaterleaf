@@ -3,6 +3,7 @@ import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { StatusBar } from "expo-status-bar";
 import {
   useCallback,
@@ -44,6 +45,7 @@ import {
   assistantPlantIdentify,
   addCommunityComment,
   blockCommunityUser,
+  API_ORIGIN,
   careAddJournal,
   careCreatePlan,
   careCreateTask,
@@ -91,6 +93,15 @@ import {
   publishedChallenges,
   myChallenges,
   joinChallenge,
+  liveById,
+  liveCapabilities,
+  liveList,
+  liveMessages,
+  liveRotateSelfHostedKey,
+  liveSendMessage,
+  liveUpdate,
+  liveViewerPresence,
+  liveViewerTicket,
   gamificationSummary,
   gamificationLeaderboard,
   type Account,
@@ -119,6 +130,10 @@ import {
   type ChallengeProgress,
   type ExperienceSummary,
   type LeaderboardRow,
+  type LiveCapabilities,
+  type LiveMessage,
+  type LiveSession,
+  type LiveTrack,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -169,6 +184,7 @@ type Screen =
   | "explore"
   | "marketplace"
   | "community"
+  | "communityDetail"
   | "profile"
   | "botany"
   | "aquarium"
@@ -259,6 +275,14 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "COMMUNITY",
+    active: "community",
+  },
+  communityDetail: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "COMMUNITY · DISKUSSION",
     active: "community",
   },
   profile: {
@@ -451,6 +475,7 @@ function NaturApp() {
   const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<number | null>(null);
   const [selectedTaxonId, setSelectedTaxonId] = useState<number | null>(null);
   const [selectedAquariumTaxonId, setSelectedAquariumTaxonId] = useState<number | null>(null);
+  const [selectedCommunityPostId, setSelectedCommunityPostId] = useState<string | null>(null);
 
   const tone =
     screen === "collection"
@@ -816,14 +841,9 @@ function NaturApp() {
         {screen === "live" && (
           <LiveScreen
             tone={TONES.live}
-            habitats={habitats}
             token={token}
-            onPrivate={() =>
-              guarded(
-                () => openCollection("aquarium"),
-                "Wasserwerte werden ausschließlich aus deinem privaten Aquarium geladen."
-              )
-            }
+            account={account}
+            onSignIn={signIn}
             navigate={navigate}
           />
         )}
@@ -875,8 +895,22 @@ function NaturApp() {
             token={token}
             onSignIn={signIn}
             navigate={navigate}
+            onOpenDetail={id => { setSelectedCommunityPostId(id); navigate("communityDetail"); }}
           />
         )}
+        {screen === "communityDetail" && selectedCommunityPostId ? (
+          <CommunityPostDetailScreen
+            tone={TONES.communityDetail}
+            token={token}
+            post={posts.find(item => item.id === selectedCommunityPostId) ?? null}
+            onBack={() => navigate("community")}
+            onSignIn={signIn}
+            onRefresh={loadScreen}
+            onLike={async post => { if (!token) return void signIn(); await likeCommunityPost(token, Number(post.id)); await loadScreen(); }}
+            onReport={async post => { if (!token) return void signIn(); await reportCommunityPost(token, { postId: Number(post.id), reason: "other" }); Alert.alert("Meldung gespeichert", "Die Meldung wurde zur Prüfung weitergeleitet."); }}
+            onBlock={async post => { if (!token) return void signIn(); await blockCommunityUser(token, Number(post.author.id)); await loadScreen(); navigate("community"); }}
+          />
+        ) : null}
         {screen === "notifications" && (
           <NotificationsScreen
             tone={TONES.notifications}
@@ -2102,85 +2136,149 @@ function AssistantScreen({
   );
 }
 
-function LiveScreen({
-  tone,
-  habitats,
-  token,
-  onPrivate,
-  navigate,
-}: {
-  tone: Tone;
-  habitats: Habitat[];
-  token: string | null;
-  onPrivate: () => void;
-  navigate: (screen: Screen) => void;
-}) {
-  const aquarium = habitats.find(item => item.kind === "aquarium");
-  return (
-    <Page>
-      <ObservatoryContextHeader
-        tone={tone}
-        eyebrow="LIVE-BEREICH"
-        title="DEINE WELT LIVE"
-        subtitle="Verbindung, Wasserwerte und Hinweise bleiben nur dort sichtbar, wo echte Daten vorliegen."
-        icon="videocam-outline"
-      />
-      <StatusPanel
-        tone={tone}
-        icon="link-outline"
-        code="LIVE-VERBINDUNG"
-        title="NOCH NICHT VERBUNDEN"
-        text="Es ist kein Smartgerät oder keine Kamera verbunden. BlackWaterLeaf zeigt keinen simulierten Live-Status."
-      />
-      <ObservatoryActionCluster
-        tone={tone}
-        actions={[
-          {
-            title: "Kamera",
-            note: "Herstellerverbindung abwarten",
-            icon: "videocam-outline",
-            image: ASSETS.aquarium,
-            unavailable: true,
-            onPress: () =>
-              Alert.alert(
-                "Noch nicht verbunden",
-                "Eine Live-Kamera wird erst nach einer echten Geräteverbindung verfügbar."
-              ),
-          },
-          {
-            title: "Wasserwerte",
-            note: aquarium ? "Privates Aquarium öffnen" : "Aquarium eintragen",
-            icon: "flask-outline",
-            image: ASSETS.aquarium,
-            onPress: onPrivate,
-          },
-          {
-            title: "Benachrichtigungen",
-            note: "Kommentare und Kontohinweise öffnen",
-            icon: "notifications-outline",
-            image: ASSETS.aquarium,
-            onPress: () => (token ? navigate("notifications") : onPrivate()),
-          },
-          {
-            title: "Entdecken",
-            note: "Weitere Welten öffnen",
-            icon: "compass-outline",
-            image: ASSETS.terrarium,
-            onPress: () => navigate("explore"),
-          },
-        ]}
-      />
-      {!token ? (
-        <StatusPanel
-          tone={tone}
-          icon="lock-closed-outline"
-          code="PRIVAT / GESCHÜTZT"
-          title="ANMELDUNG ERFORDERLICH"
-          text="Private Wasserwerte werden erst nach sicherer Anmeldung geladen."
-        />
-      ) : null}
-    </Page>
+function NativeSelfHostedPlayer({ ticketUrl, token, title }: { ticketUrl: string; token: string; title: string }) {
+  const player = useVideoPlayer(
+    {
+      uri: `${API_ORIGIN}${ticketUrl}`,
+      headers: { Authorization: `Bearer ${token}` },
+      contentType: "hls",
+      metadata: { title, artist: "BlackWaterLeaf Live" },
+    },
+    instance => {
+      instance.play();
+    },
   );
+  return <VideoView player={player} nativeControls contentFit="contain" style={styles.nativeLiveVideo} accessibilityLabel={`${title} – BlackWaterLeaf Live`} />;
+}
+
+function LiveScreen({ tone, token, account, onSignIn, navigate }: { tone: Tone; token: string | null; account: Account | null; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void }) {
+  const [track, setTrack] = useState<LiveTrack>("community");
+  const [sessions, setSessions] = useState<LiveSession[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [session, setSession] = useState<LiveSession | null>(null);
+  const [messages, setMessages] = useState<LiveMessage[]>([]);
+  const [capabilities, setCapabilities] = useState<LiveCapabilities | null>(null);
+  const [ticketUrl, setTicketUrl] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loadState, setLoadState] = useState<State>("loading");
+  const [status, setStatus] = useState<string | null>(null);
+  const canManage = account?.role === "admin" || account?.role === "moderator";
+
+  const loadHub = useCallback(async () => {
+    if (!token) return;
+    setLoadState("loading");
+    try {
+      const [rows, media] = await Promise.all([liveList(token, track), liveCapabilities(token)]);
+      setSessions(rows);
+      setCapabilities(media);
+      setLoadState("ready");
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Sitzungen konnten nicht geladen werden.");
+      setLoadState("error");
+    }
+  }, [token, track]);
+
+  const loadSession = useCallback(async (id: number) => {
+    if (!token) return;
+    setBusy(true);
+    setStatus(null);
+    setTicketUrl(null);
+    try {
+      const next = await liveById(token, id);
+      setSession(next);
+      setMessages(await liveMessages(token, id));
+      if (next.status === "live" && next.stream?.provider === "self_hosted") {
+        const ticket = await liveViewerTicket(token, id);
+        setTicketUrl(ticket.url);
+      }
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Sitzung konnte nicht geladen werden.");
+      setSession(null);
+    } finally {
+      setBusy(false);
+    }
+  }, [token]);
+
+  useEffect(() => { if (token) void loadHub(); }, [loadHub, token]);
+  useEffect(() => { if (token && selectedId) void loadSession(selectedId); }, [loadSession, selectedId, token]);
+  useEffect(() => {
+    if (!token || !session || session.status !== "live") return;
+    let cancelled = false;
+    const heartbeat = async () => {
+      const result = await liveViewerPresence(token, Number(session.id)).catch(() => null);
+      if (!cancelled && result) setSession(current => current ? { ...current, viewerCount: result.viewerCount } : current);
+    };
+    const refresh = async () => {
+      const [nextMessages, nextSession] = await Promise.all([liveMessages(token, Number(session.id)).catch(() => messages), liveById(token, Number(session.id)).catch(() => session)]);
+      if (!cancelled) { setMessages(nextMessages); setSession(nextSession); }
+    };
+    void heartbeat();
+    const heartbeatTimer = setInterval(() => void heartbeat(), 20_000);
+    const refreshTimer = setInterval(() => void refresh(), 6_000);
+    return () => { cancelled = true; clearInterval(heartbeatTimer); clearInterval(refreshTimer); };
+  }, [messages, session?.id, session?.status, token]);
+
+  const send = async () => {
+    if (!token || !session || session.status !== "live" || !messageText.trim() || busy) return;
+    setBusy(true);
+    try {
+      await liveSendMessage(token, { sessionId: Number(session.id), content: messageText.trim() });
+      setMessageText("");
+      setMessages(await liveMessages(token, Number(session.id)));
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Nachricht konnte nicht gesendet werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateStatus = async (nextStatus: "live" | "ended") => {
+    if (!token || !session || !canManage || busy) return;
+    setBusy(true);
+    try {
+      if (nextStatus === "live" && !session.stream) throw new Error("Für den Start wird eine echte Videoquelle benötigt.");
+      await liveUpdate(token, { id: Number(session.id), status: nextStatus, ...(nextStatus === "ended" ? { endsAt: new Date().toISOString() } : {}) });
+      await Promise.all([loadSession(Number(session.id)), loadHub()]);
+      setStatus(nextStatus === "live" ? "Stream gestartet." : "Stream beendet.");
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Status konnte nicht aktualisiert werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rotateKey = async () => {
+    if (!token || !session || !canManage || session.stream?.provider !== "self_hosted" || busy) return;
+    setBusy(true);
+    try {
+      const receipt = await liveRotateSelfHostedKey(token, Number(session.id));
+      setStatus(`Neuer Einspielschlüssel · ${receipt.path} · ${receipt.key}`);
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Schlüssel konnte nicht rotiert werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!token) return <Page><ObservatoryContextHeader tone={tone} eyebrow="LIVE · NUR FÜR MITGLIEDER" title="ECHTE LIVE-SESSIONS." subtitle="Live-Sitzungen, Fachvorträge und der Member-Chat sind nur nach sicherer Anmeldung sichtbar." icon="radio-outline" /><PrivateFeature tone={tone} title="LIVE BLEIBT GESCHÜTZT." text="Melde dich an, damit Streamquellen, Chat und Zuschauerzahlen nur für aktive Konten geladen werden." onSignIn={onSignIn} /></Page>;
+  if (selectedId && session) {
+    const selfHosted = session.stream?.provider === "self_hosted";
+    const external = session.stream && !selfHosted ? session.stream.canonicalUrl : null;
+    return <Page refresh={() => loadSession(selectedId)} refreshing={busy}>
+      <SecondaryButton tone={tone} label="ZURÜCK ZUM LIVE-HUB" icon="arrow-back-outline" onPress={() => { setSelectedId(null); setSession(null); setMessages([]); }} />
+      <ObservatoryContextHeader tone={tone} eyebrow={`${session.track === "expert" ? "FACHVORTRAG · STAFF-ANGELEGT" : "COMMUNITY LIVE · MODERIERT"} · ${session.status.toUpperCase()}`} title={session.title} subtitle={session.description} icon="radio-outline" />
+      {canManage ? <View style={[styles.liveControlPanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>CONTROL DECK · ECHTZEIT</Text><Text style={styles.cardTitle}>{session.status === "live" ? "STREAM ONLINE" : session.status === "scheduled" ? "BEREIT ZUR SENDUNG" : "STREAM OFFLINE"}</Text><View style={styles.liveMetricRow}><Sensor color={tone.accent} icon="radio-outline" label="STATUS" value={session.status === "live" ? "ONLINE" : session.status.toUpperCase()} note={selfHosted ? "IONOS" : session.stream ? session.stream.provider.toUpperCase() : "QUELLE FEHLT"} /><Sensor color={tone.accent} icon="eye-outline" label="ZUSCHAUENDE" value={String(session.viewerCount)} note="aktive Mitglieder" /><Sensor color={tone.accent} icon="chatbubble-ellipses-outline" label="CHAT" value={session.status === "live" ? "OFFEN" : "ZU"} note="moderiert" /></View><View style={styles.inlineButtons}><PrimaryButton tone={tone} label="STREAM STARTEN" icon="play" disabled={busy || session.status === "live" || session.status === "ended" || !session.stream} onPress={() => void updateStatus("live")} /><SecondaryButton tone={tone} label="STREAM BEENDEN" icon="stop" disabled={busy || session.status !== "live"} onPress={() => void updateStatus("ended")} />{selfHosted ? <SecondaryButton tone={tone} label="SCHLÜSSEL ROTIEREN" icon="refresh-outline" disabled={busy || session.status === "ended"} onPress={() => void rotateKey()} /> : null}</View></View> : null}
+      <View style={[styles.liveStage, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.liveStageMeta}><Text style={[styles.chip, { color: tone.accent }]}>{session.status === "live" ? "LIVE-ÜBERTRAGUNG" : session.status === "scheduled" ? "BEGINN GEPLANT" : "ÜBERTRAGUNG BEENDET"}</Text><Text style={styles.miniCopy}>{session.viewerCount} ZUSCHAUENDE · {new Date(session.startsAt).toLocaleString("de-DE")}</Text></View>{session.status === "live" && selfHosted && ticketUrl ? <NativeSelfHostedPlayer ticketUrl={ticketUrl} token={token} title={session.title} /> : session.status === "live" && external ? <View style={styles.liveExternalPlayer}><Ionicons name="open-outline" size={28} color={tone.accent} /><Text style={styles.cardTitle}>{session.stream?.provider === "youtube" ? "YOUTUBE LIVE" : "TWITCH"}</Text><Text style={styles.copy}>Die geprüfte Anbieterquelle wird in der nativen App sicher außerhalb des eingebetteten Webplayers geöffnet.</Text><PrimaryButton tone={tone} label="BEIM ANBIETER ÖFFNEN" icon="open-outline" onPress={() => void Linking.openURL(external).catch(() => setStatus("Anbieterquelle konnte nicht geöffnet werden."))} /></View> : <StatusPanel tone={tone} icon="radio-outline" code="LIVE / QUELLE" title={session.status === "scheduled" ? "ÜBERTRAGUNG BEGINNT ZUM TERMIN" : "KEINE AKTIVE ÜBERTRAGUNG"} text="Es wird kein Videobild simuliert. Eine echte Quelle wird erst nach serverseitiger Freigabe wiedergegeben." />}<View style={styles.livePresenter}><Text style={styles.cardTitle}>{session.presenterName}</Text><Text style={styles.miniCopy}>{session.presenterCredential ?? "Community-Host"}</Text></View></View>
+      <View style={[styles.liveChatPanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.liveChatHeading}><Text style={[styles.chip, { color: tone.accent }]}>MEMBER-CHAT</Text><Text style={styles.cardTitle}>DISKUSSION · {session.status === "live" ? "AKTIV" : "GESCHLOSSEN"}</Text></View><Text style={styles.miniCopy}>Nur angemeldete Konten · maximal sechs Nachrichten pro Minute · blockierte Konten bleiben ausgeblendet.</Text>{messages.length ? messages.map(message => <View key={message.id} style={styles.liveMessage}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{message.authorName ?? message.authorUsername ?? "Konto"}</Text><Text style={styles.date}>{new Date(message.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</Text></View><Text style={styles.copy}>{message.content}</Text></View>) : <Text style={styles.miniCopy}>Noch keine Nachricht in dieser Sitzung.</Text>}<View style={styles.commentComposer}><TextInput value={messageText} onChangeText={setMessageText} placeholder={session.status === "live" ? "Sachliche Nachricht schreiben …" : "Der Chat ist nur während einer Live-Sitzung offen."} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={session.status === "live" && !busy} /><Pressable style={[styles.commentSend, (busy || session.status !== "live") && { opacity: 0.45 }]} disabled={busy || session.status !== "live"} onPress={() => void send()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View></View>{status ? <Text style={[styles.formMessage, { color: tone.accent }]}>{status}</Text> : null}
+    </Page>;
+  }
+  const visible = sessions.filter(item => item.track === track);
+  const live = visible.filter(item => item.status === "live");
+  const scheduled = visible.filter(item => item.status === "scheduled");
+  const ended = visible.filter(item => item.status === "ended");
+  const group = (label: string, rows: LiveSession[], empty: string) => <View style={styles.liveGroup}><View style={styles.liveGroupHeading}><Text style={[styles.eyebrow, { color: tone.accent }]}>{label}</Text><Text style={[styles.chip, { color: tone.accent }]}>{rows.length}</Text></View>{rows.length ? rows.map(item => <Pressable key={item.id} onPress={() => setSelectedId(Number(item.id))} style={[styles.liveSessionCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.liveSessionBadge}><Ionicons name={item.status === "live" ? "radio" : "calendar-outline"} size={14} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>{item.status === "live" ? "LIVE" : item.status === "scheduled" ? "GEPLANT" : "BEENDET"}</Text></View><Text style={styles.cardTitle}>{item.title}</Text><Text style={styles.copy}>{item.description}</Text><Text style={styles.miniCopy}>{item.presenterName}{item.presenterCredential ? ` · ${item.presenterCredential}` : " · Community-Host"}</Text><Text style={styles.miniCopy}>{item.status === "live" ? `${item.viewerCount} ZUSCHAUENDE · ` : ""}{new Date(item.startsAt).toLocaleString("de-DE")}</Text><Ionicons name="arrow-forward-outline" size={17} color={tone.accent} style={styles.liveSessionArrow} /></Pressable>) : <View style={[styles.liveEmpty, { borderColor: `${tone.accent}44` }]}><Ionicons name="radio-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>{empty}</Text></View>}</View>;
+  return <Page refresh={loadHub} refreshing={loadState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="LIVE · NUR FÜR MITGLIEDER · ANGEMELDET" title="ECHTE LIVE-SESSIONS." subtitle="Eigene IONOS-Übertragungen, YouTube Live und Twitch werden nur mit echter Quelle angezeigt." icon="radio-outline" /><View style={[styles.liveTrackPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>ZWEI GETRENNTE FORMATE</Text><Text style={styles.cardTitle}>{track === "community" ? "COMMUNITY LIVE" : "FACHVORTRÄGE"}</Text><Text style={styles.copy}>{track === "community" ? "Offener, moderierter Austausch für angemeldete Mitglieder." : "Von aktivem Staff angelegte Vorträge mit serverseitig dokumentierter Qualifikation."}</Text><View style={styles.liveTrackButtons}><Pressable onPress={() => setTrack("community")} style={[styles.liveTrackButton, { borderColor: track === "community" ? tone.accent : `${tone.accent}55`, backgroundColor: track === "community" ? `${tone.accent}22` : "transparent" }]}><Ionicons name="people-outline" size={17} color={tone.accent} /><Text style={styles.miniCopy}>COMMUNITY</Text></Pressable><Pressable onPress={() => setTrack("expert")} style={[styles.liveTrackButton, { borderColor: track === "expert" ? tone.accent : `${tone.accent}55`, backgroundColor: track === "expert" ? `${tone.accent}22` : "transparent" }]}><Ionicons name="person-outline" size={17} color={tone.accent} /><Text style={styles.miniCopy}>FACHVORTRÄGE</Text></Pressable></View><Text style={styles.miniCopy}>{capabilities?.enabled ? "IONOS-Medienserver verbunden." : "IONOS-Medienserver noch nicht verbunden. Externe Quellen bleiben separat gekennzeichnet."}</Text></View>{loadState === "loading" ? <Loading tone={tone} /> : loadState === "error" ? <ErrorNotice text={status ?? "Live-Hub konnte nicht geladen werden."} /> : <>{group("JETZT LIVE", live, "Aktuell ist keine echte Übertragung gestartet.")}{group("GEPLANT", scheduled, "Derzeit sind keine weiteren Sitzungen terminiert.")}{group("ABGESCHLOSSEN", ended, "Noch keine abgeschlossenen Sitzungen in diesem Bereich.")}</>}{status ? <Text style={[styles.formMessage, { color: tone.accent }]}>{status}</Text> : null}</Page>;
 }
 
 function PhotoScreen({
@@ -2716,6 +2814,7 @@ function CommunityScreen({
   token,
   onSignIn,
   navigate,
+  onOpenDetail,
 }: {
   tone: Tone;
   account: Account | null;
@@ -2726,6 +2825,7 @@ function CommunityScreen({
   token: string | null;
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
+  onOpenDetail: (id: string) => void;
 }) {
   const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
   const visiblePosts = posts.filter(post => realmFilter === "all" || post.realm === realmFilter);
@@ -2809,6 +2909,7 @@ function CommunityScreen({
                 await blockCommunityUser(token, Number(post.author.id));
                 await refresh();
               }}
+              onOpenDetail={() => onOpenDetail(post.id)}
               token={token}
             />
           ))}
@@ -2816,6 +2917,24 @@ function CommunityScreen({
       )}
     </Page>
   );
+}
+
+function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefresh, onLike, onReport, onBlock }: { tone: Tone; token: string | null; post: CommunityPost | null; onBack: () => void; onSignIn: () => Promise<void>; onRefresh: () => Promise<void>; onLike: (post: CommunityPost) => Promise<void>; onReport: (post: CommunityPost) => Promise<void>; onBlock: (post: CommunityPost) => Promise<void> }) {
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const loadComments = useCallback(async () => { if (token && post) setComments(await communityComments(token, Number(post.id))); }, [post, token]);
+  useEffect(() => { void loadComments(); }, [loadComments]);
+  const submit = async () => {
+    if (!token || !post || !commentText.trim() || busy) return;
+    setBusy(true);
+    try { await addCommunityComment(token, { postId: Number(post.id), parentId: replyTo, content: commentText.trim() }); setCommentText(""); setReplyTo(null); await loadComments(); await onRefresh(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setBusy(false); }
+  };
+  if (!post) return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><StatusPanel tone={tone} icon="people-outline" code="BEITRAG / NICHT_GEFUNDEN" title="BEITRAG NICHT VERFÜGBAR" text="Der Beitrag wurde entfernt oder ist für dieses Konto nicht sichtbar." /></Page>;
+  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Text style={styles.cardTitle}>{post.author.name ?? post.author.username ?? "Verifiziertes Konto"}</Text><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{token && post.author.id !== "" ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock(post) }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
 }
 
 function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
@@ -3438,7 +3557,7 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onBlock, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; token: string | null }) {
+function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
@@ -3488,10 +3607,10 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
       <Text style={styles.date}>
         {post.likesCount} Likes · {post.commentsCount} Kommentare
       </Text>
-      <Pressable style={styles.commentToggle} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}>
+      <View style={styles.commentActionRow}><Pressable style={styles.commentToggle} onPress={onOpenDetail}><Ionicons name="open-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>DETAILANSICHT</Text></Pressable><Pressable style={styles.commentToggle} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}>
         <Ionicons name="chatbubble-outline" size={16} color={tone.accent} />
         <Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text>
-      </Pressable>
+      </Pressable></View>
       {commentsOpen ? <View style={styles.commentPanel}>
         {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
         {replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}
@@ -4113,6 +4232,27 @@ const styles = StyleSheet.create({
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   homeContextActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
   liveWorlds: { gap: 10 },
+  liveTrackPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 8 },
+  liveTrackButtons: { flexDirection: "row", gap: 8, marginTop: 4 },
+  liveTrackButton: { flex: 1, minHeight: 42, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center", gap: 4 },
+  liveGroup: { gap: 8 },
+  liveGroupHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
+  liveSessionCard: { position: "relative", padding: 13, borderRadius: 14, borderWidth: 1, gap: 6, paddingRight: 34 },
+  liveSessionBadge: { flexDirection: "row", alignItems: "center", gap: 6 },
+  liveSessionArrow: { position: "absolute", top: 15, right: 13 },
+  liveEmpty: { minHeight: 54, padding: 13, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", flexDirection: "row", alignItems: "center", gap: 8 },
+  liveControlPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 9 },
+  liveMetricRow: { flexDirection: "row", gap: 7 },
+  liveStage: { padding: 13, borderRadius: 16, borderWidth: 1, gap: 10 },
+  liveStageMeta: { gap: 5 },
+  nativeLiveVideo: { width: "100%", height: 220, borderRadius: 12, backgroundColor: "#000" },
+  liveExternalPlayer: { minHeight: 200, padding: 18, borderRadius: 12, borderWidth: 1, borderColor: "rgba(199,243,91,.24)", backgroundColor: "rgba(0,0,0,.18)", alignItems: "center", justifyContent: "center", gap: 9 },
+  livePresenter: { paddingTop: 4, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)", gap: 3 },
+  liveChatPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 9 },
+  liveChatHeading: { gap: 4 },
+  liveMessage: { padding: 10, borderRadius: 10, backgroundColor: "rgba(0,0,0,.16)", gap: 5 },
+  liveMessageMeta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  commentActionRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignItems: "center" },
   inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9 },
   inlineChoiceHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   analysisLoading: {

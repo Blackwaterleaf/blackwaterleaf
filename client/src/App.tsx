@@ -56,6 +56,7 @@ function Router() {
         <Route path={"/"} component={Home} />
         <Route path={"/explore"} component={Explore} />
         <Route path={"/search"} component={Search} />
+        <Route path={"/catalog"} component={Search} />
         <Route path={"/community"} component={Community} />
         <Route path={"/community/post/:id"} component={CommunityPostDetail} />
         <Route path={"/live"} component={LiveHub} />

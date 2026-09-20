@@ -309,3 +309,22 @@ Staff sieht die drei direkten Aktionen **Stream starten**, **Stream beenden** un
 Die Webroute `/explore` verwendet für die Kartenansicht eine echte interaktive Kartenbasis mit Europa als neutralem Ausgangsbereich. Die Kartenansicht darf nur ausdrücklich freigegebene, generalisierte Beobachtungsorte darstellen; private oder nicht vorhandene Ortsdaten werden niemals als Pins simuliert. Wenn die Kartenbasis technisch nicht erreichbar oder noch nicht konfiguriert ist, bleibt eine visuell erkennbare Kartenfläche mit verständlichem Status, erneuter Ladeaktion und vollständig nutzbarer Listenansicht sichtbar. Ein leerer Datenbestand wird getrennt vom technischen Kartenfehler erklärt.
 
 Die Beobachtungsliste bleibt die autoritative Datenansicht. Aktuell enthält die Datenbank keine öffentlichen Beobachtungen und die Beobachtungstabelle keine Koordinatenfelder; deshalb werden keine künstlichen Beispielpunkte angezeigt. Sobald veröffentlichte generalisierte Ortsdaten vorliegen, werden diese in derselben Karte neben der Liste dargestellt. Diese Regel gilt für Desktop und Mobile.
+
+
+## 15. Paritätsnachtrag 20. September 2026
+
+### 15.1 Live-Hub und geschützte Wiedergabe
+
+Der Live-Hub bleibt auf Web und Native ein geschützter Mitgliederbereich. Beide Clients laden ausschließlich serverseitig veröffentlichte Sitzungen und unterscheiden sichtbar zwischen **Community Live** und **Fachvortrag**. Sitzungen enthalten Host, Track, Status, Startzeit, echte Quelle und datensparsame Zuschauerzahl; nicht vorhandene Quellen werden niemals durch ein Video oder einen Zuschauerwert simuliert.
+
+Web bettet geprüfte YouTube-Live- und Twitch-Quellen direkt im Hub ein und verwendet für IONOS/MediaMTX eine kurzlebige, geschützte Wiedergabe-URL. Native verwendet für die geschützte IONOS-Quelle den Expo-HLS-Player mit einem autorisierten Bearer-Request. Externe YouTube-/Twitch-Quellen werden in Native als solche gekennzeichnet und über die geprüfte Anbieter-URL geöffnet; ein WebView-Screenshot oder ein nicht autorisierter Medienaufruf ist nicht zulässig.
+
+Die Sitzung enthält auf beiden Plattformen Member-Chat, Moderationshinweis und einen 45-Sekunden-Heartbeat für aktive Zuschauer. Der Host wird nicht in der Zuschauerzahl gezählt. Staff-Aktionen zum Starten, Beenden und Rotieren eines IONOS-Einspielschlüssels bleiben serverautoritativ, auditierbar und ohne konfigurierte Quelle deaktiviert.
+
+### 15.2 Community-Diskussion
+
+Ein Community-Beitrag ist auf Web und Native nicht nur eine Feed-Karte. Jede Karte bietet eine eigene **Detailansicht** mit vollständigem Inhalt, Medien, Autor, Zeit, Moderationsaktionen, Kommentarzahl, verschachtelten Antworten und sicherem Kommentar-Editor. Sichtbarkeit, Blocklisten, Melden, owner-scoped Löschen und Authentifizierung bleiben identisch; blockierte Konten werden serverseitig aus Feed, Detailansicht, Kommentaren und Live-Chat ausgeschlossen.
+
+### 15.3 Erkennen und Katalog-Navigation
+
+Die Botanikaktion **Pflanze bestimmen** führt auf beiden Plattformen in den vorhandenen KI-Bestimmungsworkflow. Der Webpfad `/assistant#plant` öffnet direkt das Pflanzenwerkzeug; `/catalog` ist ein stabiler Alias für den quellengebundenen Katalog-/Suchzugang. Ein Eintrag darf nicht als „nicht verfügbar“ markiert werden, wenn bereits ein echter, geschützter Workflow existiert.

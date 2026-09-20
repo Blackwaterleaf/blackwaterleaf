@@ -94,18 +94,18 @@ export default function Community() {
   const visiblePosts = feed.data?.filter(post => feedRealm === "all" || post.realm === feedRealm) ?? [];
   const activeFilterLabel = feedRealm === "all" ? "Alle Bereiche" : feedRealm === "botany" ? "Botanik" : feedRealm === "aquarium" ? "Aquaristik" : "Terraristik";
 
+  useEffect(() => {
+    if (!composeOpen) return;
+    const frame = window.requestAnimationFrame(() => composeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [composeOpen]);
+
   if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany observatory-community-page"><StatePanel code="COMMUNITY/AUTH_REQUIRED" state="locked" title="COMMUNITY IST GESCHÜTZT" body="Der Feed, einzelne Beiträge, Kommentare und Live-Diskussionen sind nur für angemeldete, aktive Konten sichtbar." action={<button type="button" className="primary-action" onClick={startLogin}>SICHER ANMELDEN</button>} /></div>;
 
   const openComposer = () => {
     if (!auth.isAuthenticated) { startLogin(); return; }
     setComposeOpen(true);
   };
-
-  useEffect(() => {
-    if (!composeOpen) return;
-    const frame = window.requestAnimationFrame(() => composeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
-    return () => window.cancelAnimationFrame(frame);
-  }, [composeOpen]);
 
   const submitPost = async (event: FormEvent) => {
     event.preventDefault(); setStatus(null);

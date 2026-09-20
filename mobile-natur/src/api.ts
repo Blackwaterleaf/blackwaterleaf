@@ -3,6 +3,36 @@ import * as SecureStore from "expo-secure-store";
 export const API_ORIGIN = "https://blackwaterleaf.com";
 export const NATIVE_TOKEN_KEY = "blackwaterleaf.session_token.v1";
 
+export type LiveTrack = "community" | "expert";
+export type LiveProvider = "youtube" | "twitch" | "self_hosted";
+export type LiveSession = {
+  id: string;
+  track: LiveTrack;
+  title: string;
+  description: string;
+  realm: "botany" | "aquarium" | "terrarium" | null;
+  presenterName: string;
+  presenterCredential: string | null;
+  stream: { provider: LiveProvider; identifier: string; canonicalUrl: string } | null;
+  status: "scheduled" | "live" | "ended" | "cancelled";
+  viewerCount: number;
+  startsAt: string;
+  endsAt: string | null;
+  host: { id: string; name: string | null; username: string | null; role: string; roleOrigin: "server_verified" };
+};
+export type LiveMessage = {
+  id: string;
+  sessionId: number;
+  content: string;
+  createdAt: string;
+  authorId: string;
+  authorName: string | null;
+  authorUsername: string | null;
+  authorRole: string;
+  authorRoleOrigin: "server_verified";
+};
+export type LiveCapabilities = { enabled: boolean; origin: string | null; ingestServer: string | null };
+
 type TrpcEnvelope<T> = {
   result?: { data?: { json?: T } };
   error?: { json?: { message?: string } };
@@ -271,6 +301,24 @@ export const writeToken = (token: string) =>
 export const clearToken = () => SecureStore.deleteItemAsync(NATIVE_TOKEN_KEY);
 export const platformAvailability = () =>
   trpcGet<PlatformAvailability>("platform.availability", null);
+export const liveCapabilities = (token: string) =>
+  trpcGet<LiveCapabilities>("live.capabilities", undefined, token);
+export const liveList = (token: string, track?: LiveTrack) =>
+  trpcGet<LiveSession[]>("live.list", { track, limit: 24 }, token);
+export const liveById = (token: string, id: number) =>
+  trpcGet<LiveSession>("live.byId", { id }, token);
+export const liveMessages = (token: string, sessionId: number) =>
+  trpcGet<LiveMessage[]>("live.messages", { sessionId, limit: 100 }, token);
+export const liveViewerPresence = (token: string, sessionId: number) =>
+  trpcPost<{ active: boolean; viewerCount: number; expiresAt: string | null }>("live.viewerPresence", { sessionId }, token);
+export const liveViewerTicket = (token: string, sessionId: number) =>
+  trpcGet<{ url: string; expiresAt: string }>("live.viewerTicket", { sessionId }, token);
+export const liveSendMessage = (token: string, input: { sessionId: number; content: string }) =>
+  trpcPost<{ id: string; sent: true }>("live.sendMessage", input, token);
+export const liveUpdate = (token: string, input: { id: number; status?: "scheduled" | "live" | "ended" | "cancelled"; endsAt?: string }) =>
+  trpcPost<{ id: string; updated: true }>("live.update", input, token);
+export const liveRotateSelfHostedKey = (token: string, sessionId: number) =>
+  trpcPost<{ path: string; key: string; keyVersion: number }>("live.rotateSelfHostedKey", { sessionId }, token);
 export const outdoorWeather = (latitude: number, longitude: number, token?: string | null) =>
   trpcPost<OutdoorWeather>(
     "sensors.outdoor",

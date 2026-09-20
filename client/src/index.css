@@ -1088,6 +1088,13 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .search-result-card em, .saved-row em { display: inline-flex; align-items: center; gap: 4px; color: #aaf381; font: 700 .57rem/1 "JetBrains Mono", monospace; font-style: normal; text-transform: uppercase; letter-spacing: .05em; }
 .search-result-icon { display: grid; place-items: center; flex: 0 0 auto; width: 38px; height: 38px; color: #c8f98d; border: 1px solid rgba(169,248,121,.29); border-radius: 12px; background: rgba(100,214,114,.12); }
 .search-result-icon--plant { color: #b7ff83; background: rgba(106,210,96,.16); }
+.observatory-recovery-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.observatory-recovery-list a { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 12px; color: var(--obs-text); border: 1px solid color-mix(in srgb, var(--route-accent) 28%, transparent); border-radius: 10px; background: rgba(5, 28, 13, .72); text-decoration: none; }
+.observatory-recovery-list a:hover { border-color: color-mix(in srgb, var(--route-accent) 64%, transparent); background: color-mix(in srgb, var(--route-accent) 9%, rgba(5, 28, 13, .82)); }
+.observatory-recovery-list a > svg { flex: 0 0 auto; color: var(--route-accent); }
+.observatory-recovery-list a > span { display: grid; min-width: 0; gap: 3px; }
+.observatory-recovery-list strong { font-size: .7rem; }
+.observatory-recovery-list small { color: var(--obs-muted); font-size: .62rem; line-height: 1.35; }
 .page-back-link { display: inline-flex; align-items: center; gap: 7px; width: fit-content; color: #c4f59b; font: 800 .66rem/1 "JetBrains Mono", monospace; text-decoration: none; letter-spacing: .05em; }
 .page-back-link:hover { color: #efffdc; text-decoration: underline; }
 .plant-taxon-hero, .public-profile-hero { display: grid; grid-template-columns: minmax(110px, 180px) minmax(0, 1fr); align-items: center; gap: 20px; padding: 18px; }
@@ -1548,6 +1555,9 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .observatory-context-header__icon { width: 30px; height: 30px; }
   .observatory-context-header__badge { display: none; }
   .observatory-action-cluster__copy strong { font-size: .67rem; }
+  .observatory-recovery-list { grid-template-columns: 1fr; }
+  .search-input-wrap { padding: 0 11px; }
+  .search-input-wrap input { font-size: .78rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

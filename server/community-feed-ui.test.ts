@@ -17,6 +17,16 @@ describe("Observatory community feed interface", () => {
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
+  it("keeps every hook before the unauthenticated early return", () => {
+    const page = read("client/src/pages/Community.tsx");
+    const community = page.slice(page.indexOf("export default function Community()"));
+    const authGuard = community.indexOf('if (!auth.isAuthenticated)');
+    const composerEffect = community.indexOf('useEffect(() => {');
+    expect(authGuard).toBeGreaterThan(-1);
+    expect(composerEffect).toBeGreaterThan(-1);
+    expect(composerEffect).toBeLessThan(authGuard);
+  });
+
   it("exposes Community as a sixth direct destination on web and native", () => {
     const shell = read("client/src/components/AppShell.tsx");
     const css = read("client/src/index.css");

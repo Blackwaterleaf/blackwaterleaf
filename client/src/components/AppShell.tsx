@@ -22,7 +22,7 @@ function isPortalNavigationActive(location: string, hash: string, href: string) 
   if (href === "/explore") return location === "/" || (location === "/explore" && hash !== "#map") || location.startsWith("/botanik") || location.startsWith("/aquaristik") || location.startsWith("/terraristik") || location.startsWith("/member/");
   if (href === "/community") return location.startsWith("/community");
   if (href === "/flow/foto") return location.startsWith("/flow/") || location === "/assistant" || location === "/habitat-builder";
-  if (href === "/search") return location.startsWith("/search") || location.startsWith("/knowledge") || location.startsWith("/plant/") || location.startsWith("/aquarium-fish/");
+  if (href === "/search") return location.startsWith("/search") || location.startsWith("/catalog") || location.startsWith("/knowledge") || location.startsWith("/plant/") || location.startsWith("/aquarium-fish/");
   if (href === "/profile") return location.startsWith("/profile") || location.startsWith("/saved") || location.startsWith("/ranking") || location.startsWith("/today") || location.startsWith("/notifications");
   return location.startsWith(href);
 }
