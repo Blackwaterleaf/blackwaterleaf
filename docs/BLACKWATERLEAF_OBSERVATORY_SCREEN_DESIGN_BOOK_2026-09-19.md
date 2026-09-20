@@ -339,3 +339,9 @@ Der vollständige Nachrichteninhalt darf nur in der autorisierten Unterhaltung e
 
 ### 15.5 Bewusst nicht aktivierte Infrastruktur
 Eine Funktion darf nicht als aktiv erscheinen, solange ihre externe Infrastruktur fehlt. Das gilt derzeit für die produktive IONOS/MediaMTX-Origin, für Community-Video-Uploads und für externe Smart-Device-Herstellerfreigaben. Diese Zustände müssen sichtbar, technisch wahr und ohne Fake-Daten bleiben. Bereits implementierte Wege – Pflanzenbestimmung, Benachrichtigungen, Community-Diskussionen, Postfach und externe Live-Provider – dürfen dagegen nicht länger als „vorbereitet“ oder „nicht verfügbar“ markiert werden.
+
+
+### 15.5 Community-Video und Smart Devices
+Community-Beiträge dürfen optional genau ein Video im Format MP4 oder WebM bis 16 MB enthalten. Web und Native zeigen Medien mit kontrolliertem Playback ohne Autoplay; Upload, Verarbeitung und Veröffentlichung bleiben getrennte, ausdrücklich bestätigte Schritte. Der Server validiert Container-Signatur und MIME-Typ und speichert Videos unter demselben geschützten Medienkontext wie Bilder.
+
+Smart-Device-Auswahl, private Aquarium-Zuordnung und manuelle Messwerte sind echte Funktionen. Ohne konkrete Herstellerfreigabe darf die Oberfläche jedoch keine Verbindung, Synchronisierung oder Herstellerdaten behaupten. Der verbindliche Status bleibt `awaiting_authorization`, bis OAuth-/Webhook-Vertrag, Secret-Verwaltung und Hersteller-API geprüft und aktiviert sind.

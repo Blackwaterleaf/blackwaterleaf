@@ -6,7 +6,7 @@ export type MediaContextInput = Pick<MediaAssetRecord, "kind" | "observationId" 
 export function hasValidMediaContext(input: MediaContextInput): boolean {
   if (input.kind === "avatar") return input.observationId === null && input.postId === null && input.habitatId === null;
   if (input.kind === "observation_image") return input.observationId !== null && input.postId === null && input.habitatId === null;
-  if (input.kind === "post_image") return input.observationId === null && input.postId !== null && input.habitatId === null;
+  if (input.kind === "post_image" || input.kind === "post_video") return input.observationId === null && input.postId !== null && input.habitatId === null;
   if (input.kind === "habitat_image") return input.observationId === null && input.postId === null && input.habitatId !== null;
   return false;
 }

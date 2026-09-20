@@ -77,6 +77,7 @@ import {
   setProfileConsent,
   updateProfile,
   uploadCommunityDraftImage,
+  uploadCommunityDraftVideo,
   uploadProfileAvatar,
   submitPlantCorrection,
   updateCommunityPost,
@@ -2257,6 +2258,11 @@ function NativeSelfHostedPlayer({ ticketUrl, token, title }: { ticketUrl: string
   return <VideoView player={player} nativeControls contentFit="contain" style={styles.nativeLiveVideo} accessibilityLabel={`${title} – BlackWaterLeaf Live`} />;
 }
 
+function NativeCommunityVideo({ uri, title }: { uri: string; title: string }) {
+  const player = useVideoPlayer({ uri, metadata: { title, artist: "BlackWaterLeaf Community" } });
+  return <VideoView player={player} nativeControls contentFit="contain" style={styles.postImage} accessibilityLabel={title} />;
+}
+
 function LiveScreen({ tone, token, account, onSignIn, navigate }: { tone: Tone; token: string | null; account: Account | null; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void }) {
   const [track, setTrack] = useState<LiveTrack>("community");
   const [sessions, setSessions] = useState<LiveSession[]>([]);
@@ -2490,6 +2496,7 @@ function PostScreen({
   const [content, setContent] = useState("");
   const [realm, setRealm] = useState<Realm>("botany");
   const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
+  const [postVideo, setPostVideo] = useState<{ uri: string; mimeType: "video/mp4" | "video/webm"; fileSize: number | null } | null>(null);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -2523,10 +2530,25 @@ function PostScreen({
     setMediaConsent(false);
   };
 
+  const choosePostVideo = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { Alert.alert("Videorechte erforderlich", "Ohne Freigabe kann kein Video an deinen Community-Beitrag angehängt werden."); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], allowsEditing: false, videoMaxDuration: 120 });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    const rawMimeType = asset.mimeType?.toLowerCase();
+    const mimeType = rawMimeType === "video/webm" || asset.uri.toLowerCase().endsWith(".webm") ? "video/webm" : "video/mp4";
+    const fileSize = typeof asset.fileSize === "number" ? asset.fileSize : null;
+    if (fileSize !== null && fileSize > 16 * 1024 * 1024) { Alert.alert("Video zu groß", "Bitte wähle ein MP4- oder WebM-Video mit maximal 16 MB."); return; }
+    setPostVideo({ uri: asset.uri, mimeType, fileSize });
+    setPostImage(null);
+    setMediaConsent(false);
+  };
+
   const save = async () => {
     if (!token || !content.trim() || saving) return;
-    if (postImage && !mediaConsent) {
-      Alert.alert("Foto-Freigabe erforderlich", "Bitte bestätige zuerst die sichere Bildverarbeitung für diesen Beitrag.");
+    if ((postImage || postVideo) && !mediaConsent) {
+      Alert.alert("Medienfreigabe erforderlich", "Bitte bestätige zuerst die sichere Verarbeitung dieses Mediums.");
       return;
     }
     setSaving(true);
@@ -2538,7 +2560,7 @@ function PostScreen({
           policyVersion: "native-1.0.8",
           granted: true,
         });
-      if (postImage)
+      if (postImage || postVideo)
         await setProfileConsent(token, {
           purpose: "media_processing",
           policyVersion: "native-1.0.4",
@@ -2552,10 +2574,15 @@ function PostScreen({
         const base64 = await FileSystem.readAsStringAsync(postImage.uri, { encoding: FileSystem.EncodingType.Base64 });
         await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64, mimeType: postImage.mimeType });
       }
+      if (postVideo) {
+        const base64 = await FileSystem.readAsStringAsync(postVideo.uri, { encoding: FileSystem.EncodingType.Base64 });
+        await uploadCommunityDraftVideo(token, { postId: Number(draft.id), base64, mimeType: postVideo.mimeType });
+      }
       if (publishNow)
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       setContent("");
       setPostImage(null);
+      setPostVideo(null);
       setMediaConsent(false);
       setPublishNow(false);
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
@@ -2676,8 +2703,8 @@ function PostScreen({
             {postImage ? <>
               <Image source={{ uri: postImage.uri }} style={styles.communityMediaPreview} />
               <View style={styles.communityMediaMeta}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>BILD BEREIT</Text><Text style={styles.miniCopy}>{postImage.fileSize ? `${Math.ceil(postImage.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Bild entfernen" onPress={() => { setPostImage(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View>
-              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>BILD SICHER VERARBEITEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB. Das Foto bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
-            </> : <Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO HINZUFÜGEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB</Text></View><Ionicons name="chevron-forward-outline" size={17} color={tone.accent} /></Pressable>}
+              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>Das Medium bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
+            </> : postVideo ? <><View style={[styles.communityMediaMeta, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>VIDEO BEREIT</Text><Text style={styles.miniCopy}>{postVideo.fileSize ? `${Math.ceil(postVideo.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Video entfernen" onPress={() => { setPostVideo(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View><View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>MP4 oder WebM bis 16 MB. Das Video bleibt privat, bis du veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View></> : <View style={styles.communityMediaPickerRow}><Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB</Text></View></Pressable><Pressable accessibilityLabel="Video für Community-Beitrag auswählen" onPress={() => void choosePostVideo()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="videocam-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>VIDEO</Text><Text style={styles.copy}>MP4/WebM bis 16 MB</Text></View></Pressable></View>}
           </View> : null}
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
             <View style={styles.flex}>
@@ -3040,7 +3067,7 @@ function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefr
     finally { setBusy(false); }
   };
   if (!post) return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><StatusPanel tone={tone} icon="people-outline" code="BEITRAG / NICHT_GEFUNDEN" title="BEITRAG NICHT VERFÜGBAR" text="Der Beitrag wurde entfernt oder ist für dieses Konto nicht sichtbar." /></Page>;
-  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Text style={styles.cardTitle}>{post.author.name ?? post.author.username ?? "Verifiziertes Konto"}</Text><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{token && post.author.id !== "" ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock(post) }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
+  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Text style={styles.cardTitle}>{post.author.name ?? post.author.username ?? "Verifiziertes Konto"}</Text><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{token && post.author.id !== "" ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock(post) }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
 }
 
 function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
@@ -3704,7 +3731,7 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
         </View> : null}
       </View>
       <Text style={styles.copy}>{post.content}</Text>
-      {post.media[0] ? (
+      {post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : (
         <Image
           source={{ uri: post.media[0].accessUrl }}
           style={styles.postImage}
@@ -5012,6 +5039,7 @@ const styles = StyleSheet.create({
   exploreObservationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.14)" },
   exploreObservationIcon: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: 1 },
   communityMediaPanel: { gap: 9, padding: 10, borderRadius: 14, borderWidth: 1 },
+  communityMediaPickerRow: { gap: 8 },
   communityMediaPicker: { minHeight: 62, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 9 },
   communityMediaPreview: { width: "100%", height: 170, borderRadius: 11, borderWidth: 1, borderColor: "rgba(199,243,91,.28)", resizeMode: "cover" },
   communityMediaMeta: { flexDirection: "row", alignItems: "center", gap: 8 },

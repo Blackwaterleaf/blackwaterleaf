@@ -48,10 +48,10 @@ async function startServer() {
     return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage } });
   });
   app.use(securityHeaders);
-  // 12 MB request limit allows an 8 MB image plus base64 overhead while
-  // preventing the previous unrestricted 50 MB API payload surface.
-  app.use(express.json({ limit: "12mb" }));
-  app.use(express.urlencoded({ limit: "12mb", extended: true }));
+  // 24 MB request limit allows a 16 MB video plus base64 overhead while
+  // keeping the API payload surface bounded.
+  app.use(express.json({ limit: "24mb" }));
+  app.use(express.urlencoded({ limit: "24mb", extended: true }));
   registerStorageProxy(app);
   // Called only by the separately deployed IONOS media stack. Both routes require
   // the server-side media-control secret and never expose ingest credentials.

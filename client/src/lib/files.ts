@@ -1,4 +1,5 @@
 const CLIENT_IMAGE_LIMIT_BYTES = 8 * 1024 * 1024;
+const CLIENT_VIDEO_LIMIT_BYTES = 16 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 2400;
 const ANALYSIS_IMAGE_DIMENSION = 1800;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -55,6 +56,18 @@ export async function readImageAsBase64(file: File, options: { forAnalysis?: boo
   return { base64, mimeType: prepared.mimeType };
 }
 
+export async function readVideoAsBase64(file: File): Promise<{ base64: string; mimeType: "video/mp4" | "video/webm" }> {
+  const declared = file.type.trim().toLowerCase();
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  const mimeType = declared === "video/webm" || extension === "webm" ? "video/webm" : declared === "video/mp4" || extension === "mp4" ? "video/mp4" : null;
+  if (!mimeType) throw new Error("unsupported_video_type");
+  if (file.size <= 0 || file.size > CLIENT_VIDEO_LIMIT_BYTES) throw new Error("video_too_large");
+  const dataUrl = await fileToDataUrl(file);
+  const base64 = dataUrl.split(",", 2)[1];
+  if (!base64) throw new Error("video_read_failed");
+  return { base64, mimeType };
+}
+
 export function imageErrorMessage(error: unknown, locale: "de" | "en" = "de") {
   const code = error instanceof Error ? error.message : "";
   const german: Record<string, string> = {
@@ -65,6 +78,11 @@ export function imageErrorMessage(error: unknown, locale: "de" | "en" = "de") {
     invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 8 MB.",
     image_signature_mismatch: "Die Bilddatei passt nicht zu ihrem Dateiformat. Bitte speichere sie erneut als JPG, PNG oder WebP.",
     media_processing_consent_required: "Für den Bildupload ist deine ausdrückliche Bildverarbeitungsfreigabe erforderlich.",
+    unsupported_video_type: "Bitte wähle ein MP4- oder WebM-Video.",
+    video_too_large: "Das Video ist zu groß. Erlaubt sind MP4 oder WebM bis 16 MB.",
+    video_read_failed: "Das Video konnte nicht gelesen werden. Bitte versuche es erneut.",
+    video_signature_mismatch: "Die Videodatei passt nicht zu ihrem Dateiformat.",
+    one_video_per_post: "Pro Beitrag ist nur ein Video erlaubt.",
   };
   const english: Record<string, string> = {
     unsupported_image_type: "Choose a JPG, PNG, or WebP image.",
@@ -74,6 +92,11 @@ export function imageErrorMessage(error: unknown, locale: "de" | "en" = "de") {
     invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 8 MB are supported.",
     image_signature_mismatch: "The image data does not match its file type. Save it again as JPG, PNG, or WebP.",
     media_processing_consent_required: "Explicit image-processing consent is required for uploads.",
+    unsupported_video_type: "Choose an MP4 or WebM video.",
+    video_too_large: "The video is too large. MP4 or WebM up to 16 MB is supported.",
+    video_read_failed: "The video could not be read. Please try again.",
+    video_signature_mismatch: "The video data does not match its file type.",
+    one_video_per_post: "Only one video is allowed per post.",
   };
   return (locale === "de" ? german : english)[code] ?? (locale === "de" ? "Das Bild konnte nicht verarbeitet werden." : "The image could not be processed.");
 }

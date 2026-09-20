@@ -7,6 +7,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
+import { MAX_VIDEO_BYTES, validateVideoUpload } from "../videoUploadValidation";
 import { canReadCommunityPost, canReadMedia, isResourceOwner } from "../accessPolicy";
 import { hasCurrentConsent } from "../consents";
 import { appendAuditEntry } from "../auditLedger";
@@ -210,6 +211,24 @@ export const communityRouter = router({
         storageKey: stored.key,
         visibility: "private",
       });
+      return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
+    }),
+  uploadDraftVideo: protectedProcedure
+    .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.enum(["video/mp4", "video/webm"]) }))
+    .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("mediaUpload");
+      const db = await requireDatabase();
+      const posts = await db.select().from(communityPosts).where(and(eq(communityPosts.id, input.postId), eq(communityPosts.userId, ctx.user.id))).limit(1);
+      const post = posts[0];
+      if (!post || !isResourceOwner(ctx.user.id, post.userId)) throw new TRPCError({ code: "FORBIDDEN", message: "post_ownership_required" });
+      if (!(await hasCurrentConsent(db, ctx.user.id, "media_processing"))) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "media_processing_consent_required" });
+      const existing = await db.select({ id: mediaAssets.id }).from(mediaAssets).where(and(eq(mediaAssets.postId, post.id), eq(mediaAssets.userId, ctx.user.id), eq(mediaAssets.kind, "post_video"))).limit(1);
+      if (existing[0]) throw new TRPCError({ code: "CONFLICT", message: "one_video_per_post" });
+      const video = validateVideoUpload(input.base64, input.mimeType);
+      if (video.byteSize > MAX_VIDEO_BYTES) throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "invalid_video_size" });
+      assertValidMediaContext({ kind: "post_video", observationId: null, postId: post.id, habitatId: null });
+      const stored = await storagePut(`users/${ctx.user.id}/posts/${post.id}/video.${video.extension}`, video.buffer, video.mimeType);
+      const inserted = await db.insert(mediaAssets).values({ userId: ctx.user.id, postId: post.id, kind: "post_video", mimeType: video.mimeType, byteSize: video.byteSize, accessUrl: stored.url, storageKey: stored.key, visibility: "private" });
       return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
     }),
 

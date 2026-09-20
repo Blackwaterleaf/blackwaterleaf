@@ -63,3 +63,9 @@ Die Prüfung der verbleibenden `unavailable`-Markierungen korrigierte veraltete 
 ## Validierung dieses Nachtrags
 
 Web-TypeScript, die vollständige Vitest-Suite mit **86 Testdateien und 333 Tests**, Native-TypeScript, Produktionsbuild und `git diff --check` wurden erfolgreich ausgeführt. Der Produktionsbuild meldet weiterhin nur die bestehende Chunkgrößen-Warnung; es gibt keinen Buildfehler. Der finale Checkpoint muss nach einer letzten Status-/Diff-Prüfung gespeichert werden.
+
+## Community-Medien und Smart-Device-Status
+
+Der Community-Composer unterstützt auf Web und Native neben Bildern nun auch MP4- und WebM-Videos. Uploads bleiben an die Einwilligung zur Medienverarbeitung und an den ausdrücklichen Veröffentlichungs-Schalter gebunden. Der Server prüft MIME-Typ, Base64-Kodierung, Container-Signatur und ein Limit von 16 MB; pro Beitrag ist höchstens ein Video zulässig. Feed und Diskussionsdetail verwenden kontrolliertes Playback ohne Autoplay. Die additive Migration `drizzle/0036_lumpy_omega_sentinel.sql` ist erzeugt und geprüft, wurde aber entsprechend dem Deployment-Vertrag nicht automatisch auf einer verbundenen Produktionsdatenbank ausgeführt.
+
+Die Smart-Device-Anbindung bleibt absichtlich herstellerneutral: Die Web-Auswahl, private Zuordnung, manuelle Messwerte und der Status `awaiting_authorization` sind vorhanden; es werden keine Herstellerzugangsdaten erfragt und keine automatische Verbindung behauptet. Eine echte Synchronisierung benötigt vor Aktivierung eine konkret freigegebene Hersteller-API, OAuth-/Webhook-Spezifikation und sichere Secret-Verwaltung. Bis dahin zeigt die Oberfläche den ehrlichen Nicht-verbunden-Zustand.

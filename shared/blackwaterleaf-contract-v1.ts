@@ -97,8 +97,8 @@ export const observationMetricSchema = z.object({
 export const mediaAssetSchema = z.object({
   id: z.string().min(1),
   ownerId: z.string().min(1),
-  kind: z.enum(["avatar", "observation_image", "post_image"]),
-  mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  kind: z.enum(["avatar", "observation_image", "post_image", "post_video"]),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]),
   byteSize: z.number().int().positive(),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),

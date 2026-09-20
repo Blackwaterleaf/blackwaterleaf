@@ -138,7 +138,7 @@ export type CommunityPost = {
   author: { id: string; name: string | null; username: string | null };
   content: string;
   realm: string | null;
-  media: Array<{ id: string; accessUrl: string }>;
+  media: Array<{ id: string; accessUrl: string; mimeType: string; kind: string }>;
   likesCount: number;
   commentsCount: number;
   createdAt: string;
@@ -495,6 +495,15 @@ export const uploadCommunityDraftImage = (
 ) =>
   trpcPost<{ id: string; accessUrl: string }>(
     "community.uploadDraftImage",
+    input,
+    token
+  );
+export const uploadCommunityDraftVideo = (
+  token: string,
+  input: { postId: number; base64: string; mimeType: "video/mp4" | "video/webm" }
+) =>
+  trpcPost<{ id: string; accessUrl: string }>(
+    "community.uploadDraftVideo",
     input,
     token
   );
