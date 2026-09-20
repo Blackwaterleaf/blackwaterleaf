@@ -50,3 +50,16 @@ Eine kleine responsive Restkorrektur bleibt: Der lange Such-Placeholder im `/cat
 Die letzte Mobile-Aufnahme des Katalogs bei 390 × 844 px bestätigt den korrigierten Placeholder „Pflanze, Wissen oder Produkt …“ ohne sichtbares Abschneiden; die Filterchips bleiben innerhalb einer horizontalen Scrollfläche ohne Dokumentüberlauf.
 
 Nach der Korrektur ist die Validierung vollständig grün: **85 Testdateien, 330 Tests**, Web-TypeScript, Produktionsbuild, Native-TypeScript und `git diff --check`. Der zusätzliche Native-Paritätsvertrag schützt künftig Live-API-Verträge, HLS-Player, getrennte Live-Tracks, geschützten Chat und die Community-Detailansicht.
+
+
+## Postfach-, Notification- und Pre-Live-Technikprüfung
+
+Vor dem produktiven Live-Streaming wurden persönliche Nachrichten als echter geschützter Bereich ergänzt. Web und Native bieten `/messages` beziehungsweise den entsprechenden Native-Screen, eine Unterhaltungsübersicht, einen autorisierten Nachrichtenverlauf, neue 1:1-Unterhaltungen aus öffentlichen Profilen, Antwortversand, Lesestatus und ungelesene Zähler. Notifications vom Typ `message` führen auf beiden Plattformen in das Postfach. Die Serverregeln verhindern Selbstnachrichten, inaktive oder suspendierte Empfänger, beidseitig blockierte Konten, policy-widrige Inhalte und mehr als 100 sichtbare Nachrichten pro Konto und Stunde. Private Inhalte werden nicht in öffentliche Profil- oder Feedantworten kopiert.
+
+Die Web- und Native-Header zeigen die privaten Benachrichtigungs- beziehungsweise Postfachzähler; Native aktualisiert diese Werte nach dem Öffnen eines Gesprächs oder Notification-Eintrags. Das Postfach enthält echte Lade-, Fehler-, Leer- und geschützte Zustände und zeigt keine Test- oder Ersatznachrichten. Eine Regression deckt Schema, Router, Web, Native, Blockprüfung, Rate-Limit und Notification-Ziel ab.
+
+Die Prüfung der verbleibenden `unavailable`-Markierungen korrigierte veraltete Hinweise für bereits implementierte Benachrichtigungen und Pflanzenbestimmung: `/flow/live` führt zu `/notifications`, `/flow/foto` zu `/assistant#plant`. Bewusst offen bleiben nur reale externe beziehungsweise noch nicht implementierte Bereiche: die produktive IONOS/MediaMTX-Origin, Community-Video-Uploads und Smart-Device-Herstellerfreigaben. Diese werden weiterhin wahrheitsgemäß als nicht verbunden beziehungsweise nicht verfügbar gekennzeichnet; es werden keine Fake-Daten oder Fake-Videos ergänzt.
+
+## Validierung dieses Nachtrags
+
+Web-TypeScript, die vollständige Vitest-Suite mit **86 Testdateien und 333 Tests**, Native-TypeScript, Produktionsbuild und `git diff --check` wurden erfolgreich ausgeführt. Der Produktionsbuild meldet weiterhin nur die bestehende Chunkgrößen-Warnung; es gibt keinen Buildfehler. Der finale Checkpoint muss nach einer letzten Status-/Diff-Prüfung gespeichert werden.

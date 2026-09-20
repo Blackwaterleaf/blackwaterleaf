@@ -12,7 +12,7 @@ const FLOW_SPECS: Record<FlowId, FlowSpec> = {
     actions: [
       { title: "Kamera starten", note: "Foto sicher auswählen", icon: Camera, image: WORLD_ASSETS.botany, href: "/flow/foto" },
       { title: "Wasserwerte", note: "Private Anlagen öffnen", icon: Droplets, image: WORLD_ASSETS.aquarium, href: "/profile#habitats" },
-      { title: "Hinweise", note: "Benachrichtigungen werden vorbereitet", icon: Bell, image: WORLD_ASSETS.terrarium, unavailable: true },
+      { title: "Hinweise", note: "Benachrichtigungen sicher öffnen", icon: Bell, image: WORLD_ASSETS.terrarium, href: "/notifications" },
       { title: "Entdecken", note: "Naturwelten öffnen", icon: Map, image: WORLD_ASSETS.botany, href: "/explore" },
     ],
   },
@@ -21,7 +21,7 @@ const FLOW_SPECS: Record<FlowId, FlowSpec> = {
     actions: [
       { title: "Als Pflanzenfoto", note: "Beobachtung in Botanik erfassen", icon: Leaf, image: WORLD_ASSETS.botany, href: "/botanik#capture" },
       { title: "Als Aquariumfoto", note: "Beobachtung im Becken erfassen", icon: Fish, image: WORLD_ASSETS.aquarium, href: "/aquaristik#capture" },
-      { title: "Mit KI bestimmen", note: "Bildbestimmung wird vorbereitet", icon: Bot, image: REFERENCE_ASSETS.ai, unavailable: true },
+      { title: "Mit KI bestimmen", note: "Pflanze mit echtem Foto prüfen", icon: Bot, image: REFERENCE_ASSETS.ai, href: "/assistant#plant" },
       { title: "Zum Feed", note: "Beitrag sicher verfassen", icon: UsersRound, image: WORLD_ASSETS.terrarium, href: "/community?compose=1" },
     ],
   },

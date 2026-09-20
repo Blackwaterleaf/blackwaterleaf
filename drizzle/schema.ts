@@ -292,7 +292,7 @@ export const notifications = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     recipientId: int("recipientId").notNull().references(() => users.id),
     actorId: int("actorId").notNull().references(() => users.id),
-    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "system"]).notNull(),
+    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "system", "message"]).notNull(),
     postId: int("postId").references(() => communityPosts.id),
     commentId: int("commentId"),
     message: varchar("message", { length: 255 }).notNull(),
@@ -302,6 +302,44 @@ export const notifications = mysqlTable(
   table => [
     index("notifications_recipient_created_idx").on(table.recipientId, table.createdAt),
     index("notifications_recipient_read_idx").on(table.recipientId, table.readAt),
+  ],
+);
+
+/** A private two-member conversation. Participant ordering is normalized server-side. */
+export const directConversations = mysqlTable(
+  "direct_conversations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    participantOneId: int("participantOneId").notNull().references(() => users.id),
+    participantTwoId: int("participantTwoId").notNull().references(() => users.id),
+    lastMessageAt: timestamp("lastMessageAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("direct_conversations_participants_unique").on(table.participantOneId, table.participantTwoId),
+    index("direct_conversations_participant_one_updated_idx").on(table.participantOneId, table.updatedAt),
+    index("direct_conversations_participant_two_updated_idx").on(table.participantTwoId, table.updatedAt),
+  ],
+);
+
+/** Private member messages. Visibility and read state are server-controlled. */
+export const directMessages = mysqlTable(
+  "direct_messages",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    conversationId: int("conversationId").notNull().references(() => directConversations.id, { onDelete: "cascade" }),
+    senderId: int("senderId").notNull().references(() => users.id),
+    content: varchar("content", { length: 2_000 }).notNull(),
+    status: mysqlEnum("status", ["visible", "removed"]).default("visible").notNull(),
+    readAt: timestamp("readAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("direct_messages_conversation_created_idx").on(table.conversationId, table.createdAt),
+    index("direct_messages_conversation_read_idx").on(table.conversationId, table.readAt),
+    index("direct_messages_sender_created_idx").on(table.senderId, table.createdAt),
   ],
 );
 

@@ -328,3 +328,14 @@ Ein Community-Beitrag ist auf Web und Native nicht nur eine Feed-Karte. Jede Kar
 ### 15.3 Erkennen und Katalog-Navigation
 
 Die Botanikaktion **Pflanze bestimmen** führt auf beiden Plattformen in den vorhandenen KI-Bestimmungsworkflow. Der Webpfad `/assistant#plant` öffnet direkt das Pflanzenwerkzeug; `/catalog` ist ein stabiler Alias für den quellengebundenen Katalog-/Suchzugang. Ein Eintrag darf nicht als „nicht verfügbar“ markiert werden, wenn bereits ein echter, geschützter Workflow existiert.
+
+
+### 15.4 Privates Postfach und Benachrichtigungen
+Das Postfach ist ein geschützter, persönlicher Bereich unter `/messages`. Web und Native verwenden denselben serverseitigen Vertrag für Unterhaltungen, Nachrichten, Lesestatus und ungelesene Zähler. Eine Unterhaltung enthält ausschließlich zwei aktive Konten; Selbstnachrichten, suspendierte Empfänger und Gespräche zwischen gegenseitig blockierten Konten werden abgewiesen. Feed, Profil, Notification-Center und Header müssen jeweils in diesen Bereich führen, ohne private Inhalte öffentlich zu rendern.
+
+Nachrichten werden serverseitig auf Sichtbarkeit, Moderationsregeln und eine kontobezogene Rate-Grenze geprüft. Jede eingehende Nachricht erzeugt einen privaten Notification-Eintrag vom Typ `message`; ein Klick öffnet das Postfach. Native zeigt zusätzlich die aktuellen ungelesenen Werte als kompakte Header-Badges. Empty-, locked-, loading- und error-Zustände bleiben echt und enthalten keine Ersatznachrichten.
+
+Der vollständige Nachrichteninhalt darf nur in der autorisierten Unterhaltung erscheinen. Öffentliche Profile dürfen lediglich den Einstieg `NACHRICHT` anbieten; private Anlagen, Care-Daten, exakte Standorte und unveröffentlichte Community-Inhalte dürfen niemals in das Postfach oder eine Notification kopiert werden.
+
+### 15.5 Bewusst nicht aktivierte Infrastruktur
+Eine Funktion darf nicht als aktiv erscheinen, solange ihre externe Infrastruktur fehlt. Das gilt derzeit für die produktive IONOS/MediaMTX-Origin, für Community-Video-Uploads und für externe Smart-Device-Herstellerfreigaben. Diese Zustände müssen sichtbar, technisch wahr und ohne Fake-Daten bleiben. Bereits implementierte Wege – Pflanzenbestimmung, Benachrichtigungen, Community-Diskussionen, Postfach und externe Live-Provider – dürfen dagegen nicht länger als „vorbereitet“ oder „nicht verfügbar“ markiert werden.

@@ -155,7 +155,7 @@ export type CommunityComment = {
 };
 export type NativeNotification = {
   id: number;
-  type: "comment" | "like" | "report" | "moderation" | "system";
+  type: "comment" | "like" | "report" | "moderation" | "system" | "message";
   postId: number | null;
   commentId: number | null;
   message: string;
@@ -164,6 +164,14 @@ export type NativeNotification = {
   actorName: string;
   isRead: boolean;
 };
+export type DirectConversation = {
+  id: string;
+  member: { id: string; name: string; username: string | null; avatarUrl: string | null };
+  lastMessage: { id: string; content: string; senderId: string; createdAt: string } | null;
+  unreadCount: number;
+  updatedAt: string;
+};
+export type DirectMessage = { id: string; senderId: string; content: string; createdAt: string };
 export type OwnCommunityPost = {
   id: number;
   content: string;
@@ -347,8 +355,22 @@ export const unblockCommunityUser = (token: string, userId: number) =>
   trpcPost<{ blocked: false; userId: number }>("community.unblockUser", { userId }, token);
 export const notificationFeed = (token: string) =>
   trpcGet<NativeNotification[]>("notifications.feed", undefined, token);
+export const notificationUnreadCount = (token: string) =>
+  trpcGet<{ count: number }>("notifications.unreadCount", undefined, token);
 export const markNotificationsRead = (token: string, notificationId?: number) =>
   trpcPost<{ success: true }>("notifications.markRead", { notificationId }, token);
+export const directUnreadCount = (token: string) =>
+  trpcGet<{ count: number }>("messages.unreadCount", undefined, token);
+export const directConversations = (token: string) =>
+  trpcGet<DirectConversation[]>("messages.conversations", undefined, token);
+export const directMessages = (token: string, conversationId: number) =>
+  trpcGet<{ items: DirectMessage[]; nextCursor: string | null }>("messages.messages", { conversationId, limit: 50 }, token);
+export const startDirectConversation = (token: string, input: { recipientId: number; content: string }) =>
+  trpcPost<{ conversationId: string; messageId: string }>("messages.start", input, token);
+export const sendDirectMessage = (token: string, input: { conversationId: number; content: string }) =>
+  trpcPost<{ messageId: string; sent: true }>("messages.send", input, token);
+export const markDirectConversationRead = (token: string, conversationId: number) =>
+  trpcPost<{ success: true }>("messages.markRead", { conversationId }, token);
 export const myCommunityPosts = (token: string) =>
   trpcGet<OwnCommunityPost[]>("community.myPosts", undefined, token);
 export const knowledge = () =>

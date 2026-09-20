@@ -22,6 +22,7 @@ import { searchRouter } from "./routers/search";
 import { socialRouter } from "./routers/social";
 import { challengesRouter } from "./routers/challenges";
 import { liveRouter } from "./routers/live";
+import { messagesRouter } from "./routers/messages";
 import { listActiveSessions, revokeAllSessions, revokeSessionForRequest } from "./sessionRegistry";
 
 export const appRouter = router({
@@ -46,6 +47,7 @@ export const appRouter = router({
   social: socialRouter,
   challenges: challengesRouter,
   live: liveRouter,
+  messages: messagesRouter,
   auth: router({
     ...localAuthRouter._def.record,
     me: publicProcedure.query(opts => opts.ctx.user),

@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound } from "lucide-react";
+import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -23,7 +23,7 @@ function isPortalNavigationActive(location: string, hash: string, href: string) 
   if (href === "/community") return location.startsWith("/community");
   if (href === "/flow/foto") return location.startsWith("/flow/") || location === "/assistant" || location === "/habitat-builder";
   if (href === "/search") return location.startsWith("/search") || location.startsWith("/catalog") || location.startsWith("/knowledge") || location.startsWith("/plant/") || location.startsWith("/aquarium-fish/");
-  if (href === "/profile") return location.startsWith("/profile") || location.startsWith("/saved") || location.startsWith("/ranking") || location.startsWith("/today") || location.startsWith("/notifications");
+  if (href === "/profile") return location.startsWith("/profile") || location.startsWith("/saved") || location.startsWith("/ranking") || location.startsWith("/today") || location.startsWith("/notifications") || location.startsWith("/messages");
   return location.startsWith(href);
 }
 
@@ -36,6 +36,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const profile = trpc.profile.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const unreadNotifications = trpc.notifications.unreadCount.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const unreadMessages = trpc.messages.unreadCount.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const dailyCheckIn = trpc.gamification.dailyCheckIn.useMutation({
     onSuccess: () => void utils.gamification.summary.invalidate(),
   });
@@ -95,7 +96,7 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   useEffect(() => {
-    const noIndex = location === "/search" || location === "/saved" || location.startsWith("/member/") || location.startsWith("/community") || location.startsWith("/profile") || location.startsWith("/today") || location.startsWith("/notifications") || location.startsWith("/flow/") || location.startsWith("/admin");
+    const noIndex = location === "/search" || location === "/saved" || location.startsWith("/member/") || location.startsWith("/community") || location.startsWith("/profile") || location.startsWith("/today") || location.startsWith("/notifications") || location.startsWith("/messages") || location.startsWith("/flow/") || location.startsWith("/admin");
     let robots = document.querySelector('meta[name="robots"]');
     if (!robots) { robots = document.createElement("meta"); robots.setAttribute("name", "robots"); document.head.appendChild(robots); }
     robots.setAttribute("content", noIndex ? "noindex, nofollow, noarchive" : "index, follow");
@@ -121,12 +122,17 @@ export function AppShell({ children }: PropsWithChildren) {
             <Bell size={18} />
             {auth.isAuthenticated && unreadNotifications.data?.count ? <span className="notification-badge" aria-label={`${unreadNotifications.data.count} ungelesene Benachrichtigungen`}>{unreadNotifications.data.count > 9 ? "9+" : unreadNotifications.data.count}</span> : null}
           </Link>
+          <Link href="/messages" className="icon-button messages-header-button" aria-label="Postfach">
+            <Mail size={18} />
+            {auth.isAuthenticated && unreadMessages.data?.count ? <span className="notification-badge" aria-label={`${unreadMessages.data.count} ungelesene Nachrichten`}>{unreadMessages.data.count > 9 ? "9+" : unreadMessages.data.count}</span> : null}
+          </Link>
           <details className="profile-header-menu">
             <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
             <div className="profile-header-menu__panel">
               <span className="profile-header-menu__eyebrow">PROFIL · EINSTELLUNGEN</span>
               <Link href="/profile">Profil öffnen</Link>
               <Link href="/today">Heute · Pflegeaufgaben</Link>
+              <Link href="/messages">Postfach</Link>
               <Link href="/profile/private">Privatbereich & Profil bearbeiten</Link>
               <Link href="/profile/habitats">Meine Anlagen</Link>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>

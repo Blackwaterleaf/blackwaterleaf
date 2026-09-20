@@ -65,6 +65,7 @@ import {
   markNotificationsRead,
   myCommunityPosts,
   notificationFeed,
+  notificationUnreadCount,
   platformAvailability,
   privateHabitats,
   privateObservations,
@@ -97,6 +98,12 @@ import {
   liveCapabilities,
   liveList,
   liveMessages,
+  directConversations,
+  directMessages,
+  directUnreadCount,
+  startDirectConversation,
+  sendDirectMessage,
+  markDirectConversationRead,
   liveRotateSelfHostedKey,
   liveSendMessage,
   liveUpdate,
@@ -134,6 +141,8 @@ import {
   type LiveMessage,
   type LiveSession,
   type LiveTrack,
+  type DirectConversation,
+  type DirectMessage,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -203,6 +212,7 @@ type Screen =
   | "saved"
   | "ranking"
   | "notifications"
+  | "messages"
   | "care";
 type BottomTab =
   | "discover"
@@ -429,6 +439,14 @@ const TONES: Record<Screen, Tone> = {
     label: "BENACHRICHTIGUNGEN",
     active: "community",
   },
+  messages: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "PRIVAT · POSTFACH",
+    active: "profile",
+  },
   care: {
     accent: c.botany,
     surface: c.botanySurface,
@@ -461,6 +479,12 @@ function NaturApp() {
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [notifications, setNotifications] = useState<NativeNotification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [conversations, setConversations] = useState<DirectConversation[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [messageTargetProfile, setMessageTargetProfile] = useState<PublicProfile | null>(null);
+  const [directThread, setDirectThread] = useState<DirectMessage[]>([]);
   const [careTasks, setCareTasks] = useState<CareTask[]>([]);
   const [carePlans, setCarePlans] = useState<CarePlan[]>([]);
   const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
@@ -513,6 +537,7 @@ function NaturApp() {
           profileConsents(sessionToken),
           gamificationSummary(sessionToken),
         ]);
+        const [notificationSummary, messageSummary] = await Promise.all([notificationUnreadCount(sessionToken), directUnreadCount(sessionToken)]);
         setAccount(me);
         setHabitats(mine);
         setPrivateObservationRows(observations);
@@ -520,6 +545,8 @@ function NaturApp() {
         setObservationSync(await observationOutboxSummary());
         setConsents(permissions);
         setExperience(summary);
+        setUnreadNotifications(notificationSummary.count);
+        setUnreadMessages(messageSummary.count);
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -543,6 +570,17 @@ function NaturApp() {
       if (screen === "community" && token) setPosts(await communityFeed(token));
       if (screen === "community" && !token) setPosts([]);
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
+      if (screen === "messages" && token) {
+        const rows = await directConversations(token);
+        setConversations(rows);
+        const selected = selectedConversationId ? rows.find(item => item.id === selectedConversationId) ?? rows[0] : rows[0];
+        setSelectedConversationId(selected?.id ?? null);
+        if (selected) {
+          const thread = await directMessages(token, Number(selected.id));
+          setDirectThread(thread.items);
+          await markDirectConversationRead(token, Number(selected.id));
+        } else setDirectThread([]);
+      }
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
         setCareTasks(today.tasks);
@@ -607,6 +645,12 @@ function NaturApp() {
     setCareTasks([]);
     setCarePlans([]);
     setCareJournal([]);
+    setUnreadNotifications(0);
+    setUnreadMessages(0);
+    setConversations([]);
+    setSelectedConversationId(null);
+    setMessageTargetProfile(null);
+    setDirectThread([]);
     navigate("home");
   }, [navigate]);
 
@@ -636,6 +680,10 @@ function NaturApp() {
     if (token) navigate("notifications");
     else void signIn();
   }, [navigate, signIn, token]);
+  const messageInfo = useCallback(() => {
+    if (token) navigate("messages");
+    else void signIn();
+  }, [navigate, signIn, token]);
 
   const seasonSurface =
     screen === "home"
@@ -660,6 +708,9 @@ function NaturApp() {
         onSearch={() => navigate("search")}
         onMarketplace={() => navigate("marketplace")}
         onNotifications={notificationInfo}
+        onMessages={messageInfo}
+        unreadNotifications={unreadNotifications}
+        unreadMessages={unreadMessages}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
         onProfileTarget={target => {
           if (target === "progress") {
@@ -920,6 +971,45 @@ function NaturApp() {
             error={error}
             refresh={loadScreen}
             navigate={navigate}
+            onUnreadChange={async () => { if (token) setUnreadNotifications((await notificationUnreadCount(token)).count); }}
+          />
+        )}
+        {screen === "messages" && (
+          <MessagesScreen
+            tone={TONES.messages}
+            token={token}
+            account={account}
+            conversations={conversations}
+            selectedConversationId={selectedConversationId}
+            thread={directThread}
+            targetProfile={messageTargetProfile}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            onSelect={async conversation => {
+              if (!token) return;
+              setSelectedConversationId(conversation.id);
+              setDirectThread((await directMessages(token, Number(conversation.id))).items);
+              await markDirectConversationRead(token, Number(conversation.id));
+              setUnreadMessages((await directUnreadCount(token)).count);
+              setConversations(current => current.map(item => item.id === conversation.id ? { ...item, unreadCount: 0 } : item));
+            }}
+            onStart={async content => {
+              if (!token || !messageTargetProfile) return;
+              const result = await startDirectConversation(token, { recipientId: messageTargetProfile.id, content });
+              setMessageTargetProfile(null);
+              setSelectedConversationId(result.conversationId);
+              const rows = await directConversations(token);
+              setConversations(rows);
+              setDirectThread((await directMessages(token, Number(result.conversationId))).items);
+            }}
+            onSend={async content => {
+              if (!token || !selectedConversationId) return;
+              await sendDirectMessage(token, { conversationId: Number(selectedConversationId), content });
+              setDirectThread((await directMessages(token, Number(selectedConversationId))).items);
+              setConversations(await directConversations(token));
+            }}
+            onSignIn={signIn}
           />
         )}
         {screen === "care" && (
@@ -991,7 +1081,7 @@ function NaturApp() {
             onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
           />
         )}
-        {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} /> : null}
+        {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} onMessage={profile => { setMessageTargetProfile(profile); navigate("messages"); }} /> : null}
         {screen === "taxon" && selectedTaxonId ? <TaxonScreen tone={TONES.taxon} token={token} taxonId={selectedTaxonId} onBack={() => navigate("search")} /> : null}
         {screen === "aquariumTaxon" && selectedAquariumTaxonId ? <AquariumTaxonScreen tone={TONES.aquariumTaxon} token={token} taxonId={selectedAquariumTaxonId} onBack={() => navigate("search")} /> : null}
         {screen === "saved" ? <SavedScreen tone={TONES.saved} token={token} onBack={() => navigate("profile")} onSignIn={signIn} navigate={navigate} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }} /> : null}
@@ -1012,6 +1102,9 @@ function Header({
   onSearch,
   onMarketplace,
   onNotifications,
+  onMessages,
+  unreadNotifications,
+  unreadMessages,
   onCare,
   onProfileTarget,
 }: {
@@ -1020,6 +1113,9 @@ function Header({
   onSearch: () => void;
   onMarketplace: () => void;
   onNotifications: () => void;
+  onMessages: () => void;
+  unreadNotifications: number;
+  unreadMessages: number;
   onCare: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
@@ -1058,7 +1154,15 @@ function Header({
           icon="notifications-outline"
           color={tone.accent}
           label="Benachrichtigungen"
+          badge={unreadNotifications}
           onPress={onNotifications}
+        />
+        <HeaderAction
+          icon="mail-outline"
+          color={tone.accent}
+          label="Postfach"
+          badge={unreadMessages}
+          onPress={onMessages}
         />
         <HeaderAction
           icon={account ? "person" : "person-outline"}
@@ -1088,11 +1192,13 @@ function HeaderAction({
   icon,
   color,
   label,
+  badge = 0,
   onPress,
 }: {
   icon: IconName;
   color: string;
   label: string;
+  badge?: number;
   onPress: () => void;
 }) {
   return (
@@ -1103,7 +1209,7 @@ function HeaderAction({
       hitSlop={4}
       style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}
     >
-      <Ionicons name={icon} size={19} color={color} />
+      <View style={styles.headerActionIconWrap}><Ionicons name={icon} size={19} color={color} />{badge > 0 ? <Text style={[styles.headerUnreadBadge, { backgroundColor: color }]}>{badge > 9 ? "9+" : badge}</Text> : null}</View>
     </Pressable>
   );
 }
@@ -2960,16 +3066,17 @@ function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh,
   </Page>;
 }
 
-function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void }) {
+function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate, onUnreadChange }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onUnreadChange: () => Promise<void> }) {
   const markAllRead = async () => {
     if (!token) return;
     await markNotificationsRead(token);
     await refresh();
+    await onUnreadChange();
   };
   return <Page refresh={refresh} refreshing={state === "loading"}>
     <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
-    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.postId) navigate("community"); await refresh(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
 }
 
@@ -3252,7 +3359,7 @@ function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, on
   return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
 }
 
-function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void> }) {
+function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn, onMessage }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void>; onMessage: (profile: PublicProfile) => void }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [relationship, setRelationship] = useState<SocialRelationship | null>(null);
   const [posts, setPosts] = useState<PublicProfilePost[]>([]);
@@ -3260,7 +3367,7 @@ function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { ton
   const [busy, setBusy] = useState(false);
   useEffect(() => { let active = true; setState("loading"); void Promise.all([publicProfile(profileId), socialRelationship(token, profileId), publicProfilePosts(profileId)]).then(([nextProfile, nextRelationship, nextPosts]) => { if (active) { setProfile(nextProfile); setRelationship(nextRelationship); setPosts(nextPosts); setState(nextProfile ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [profileId, token]);
   const toggleFollow = async () => { if (!token) { await onSignIn(); return; } setBusy(true); try { if (relationship?.isFollowing) await unfollowProfile(token, profileId); else await followProfile(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.observatoryContextTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.observatoryContextTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="NACHRICHT" icon="mail-outline" onPress={() => onMessage(profile)} /><PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /></View> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
 }
 
 function TaxonMediaAttribution({ taxon, tone }: { taxon: PublicPlantTaxon; tone: Tone }) {
@@ -4168,7 +4275,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     paddingLeft: 1,
   },
-  headerActions: { flexDirection: "row", gap: 4 },
+  headerActions: { flexDirection: "row", gap: 2 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
   nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
   nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
@@ -4182,6 +4289,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,.18)",
   },
+  headerActionIconWrap: { position: "relative" },
+  headerUnreadBadge: { position: "absolute", top: -8, right: -11, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, color: c.bg, fontSize: 8, lineHeight: 15, textAlign: "center", fontWeight: "900" },
   page: { padding: 16, paddingBottom: 118 },
   stack: { gap: 13 },
   flex: { flex: 1 },
@@ -4684,6 +4793,18 @@ const styles = StyleSheet.create({
   notificationRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
   notificationCopy: { flex: 1, gap: 3 },
   unreadDot: { width: 8, height: 8, borderRadius: 4 },
+  messageTargetPanel: { gap: 7, padding: 13, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
+  messageConversationPanel: { gap: 9, padding: 13, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
+  messageConversationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 11, borderWidth: 1 },
+  messageAvatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  messageConversationCopy: { flex: 1, gap: 2 },
+  messageUnread: { minWidth: 21, paddingHorizontal: 6, paddingVertical: 4, textAlign: "center", borderRadius: 10, fontSize: 10, fontWeight: "900" },
+  messageThreadPanel: { gap: 8, padding: 13, borderRadius: 14, borderWidth: 1 },
+  messageThreadBody: { gap: 8, minHeight: 150, maxHeight: 330 },
+  messageBubble: { alignSelf: "flex-start", maxWidth: "82%", padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(12,45,23,.62)", gap: 4 },
+  messageBubbleOwn: { alignSelf: "flex-end", backgroundColor: "rgba(199,243,91,.12)" },
+  messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
+  messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },
   postImage: {
     width: "100%",
@@ -4897,3 +5018,29 @@ const styles = StyleSheet.create({
   communityMediaRemove: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
 });
+
+function MessagesScreen({ tone, token, account, conversations, selectedConversationId, thread, targetProfile, state, error, refresh, onSelect, onStart, onSend, onSignIn }: { tone: Tone; token: string | null; account: Account | null; conversations: DirectConversation[]; selectedConversationId: string | null; thread: DirectMessage[]; targetProfile: PublicProfile | null; state: State; error: string | null; refresh: () => Promise<void>; onSelect: (conversation: DirectConversation) => Promise<void>; onStart: (content: string) => Promise<void>; onSend: (content: string) => Promise<void>; onSignIn: () => Promise<void> }) {
+  const [draft, setDraft] = useState("");
+  const selected = conversations.find(item => item.id === selectedConversationId) ?? null;
+  const recipientName = targetProfile?.name ?? targetProfile?.username ?? "BlackWaterLeaf-Nutzer";
+  const submit = async () => {
+    const content = draft.trim();
+    if (!content) return;
+    try {
+      if (selected) await onSend(content);
+      else if (targetProfile) await onStart(content);
+      setDraft("");
+    } catch (cause) {
+      Alert.alert("Nachricht konnte nicht gesendet werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen.");
+    }
+  };
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · POSTFACH" title="DEINE NACHRICHTEN." subtitle={account ? "Geschützte 1:1-Unterhaltungen. Nur aktive Mitglieder können dir schreiben." : "Private Nachrichten bleiben nach der sicheren Anmeldung geschützt."} icon="mail-outline" />
+    {!token ? <PrivateFeature tone={tone} title="POSTFACH FÜR MITGLIEDER" text="Private Nachrichten und Gesprächsverläufe werden nur nach einer sicheren Anmeldung geladen." onSignIn={onSignIn} /> : <>
+      {error ? <ErrorNotice text={error} /> : null}
+      {targetProfile && !selected ? <View style={[styles.messageTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>NEUE UNTERHALTUNG</Text><Text style={styles.cardTitle}>{recipientName}</Text><Text style={styles.miniCopy}>Keine privaten Daten oder exakten Standorte automatisch teilen.</Text></View> : null}
+      <View style={[styles.messageConversationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.careSectionHeader}><Text style={[styles.eyebrow, { color: tone.accent }]}>UNTERHALTUNGEN</Text><Text style={styles.careCount}>{conversations.length}</Text></View>{conversations.length ? conversations.map(item => <Pressable key={item.id} onPress={() => void onSelect(item)} style={[styles.messageConversationRow, { borderColor: `${tone.accent}44`, backgroundColor: item.id === selectedConversationId ? `${tone.accent}18` : "transparent" }]}><View style={[styles.messageAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}><Ionicons name="person-outline" size={17} color={tone.accent} /></View><View style={styles.messageConversationCopy}><Text style={styles.cardTitle}>{item.member.name}</Text><Text style={styles.miniCopy} numberOfLines={1}>{item.lastMessage?.content ?? "Noch keine Nachricht"}</Text></View>{item.unreadCount > 0 ? <Text style={[styles.messageUnread, { backgroundColor: tone.accent, color: c.bg }]}>{item.unreadCount > 9 ? "9+" : item.unreadCount}</Text> : null}</Pressable>) : <StatusPanel tone={tone} icon="mail-outline" code="POSTFACH / LEER" title="NOCH KEINE UNTERHALTUNG" text="Öffne ein öffentliches Profil, um eine private Nachricht zu starten." />}</View>
+      {selected || (targetProfile && !selected) ? <View style={[styles.messageThreadPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>{selected ? `GESPRÄCH · ${selected.member.name}` : `AN ${recipientName.toUpperCase()}`}</Text><Text style={styles.miniCopy}>Privat · serverseitig geprüft · blockierte Konten bleiben ausgeschlossen</Text><View style={styles.messageThreadBody}>{thread.length ? thread.map(item => <View key={item.id} style={[styles.messageBubble, item.senderId === String(account?.id) ? styles.messageBubbleOwn : null, { borderColor: `${tone.accent}55` }]}><Text style={styles.copy}>{item.content}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>) : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTFACH / NEU" title="NOCH KEINE NACHRICHT" text="Schreibe eine respektvolle erste Nachricht." />}</View><View style={styles.messageComposer}><TextInput value={draft} onChangeText={setDraft} placeholder="Nachricht schreiben …" placeholderTextColor={c.muted} multiline maxLength={2000} style={styles.messageInput} /><PrimaryButton tone={tone} label="SENDEN" icon="send-outline" onPress={() => void submit()} disabled={!draft.trim()} /></View></View> : <StatusPanel tone={tone} icon="mail-outline" code="POSTFACH / AUSWAHL" title="UNTERHALTUNG AUSWÄHLEN" text="Wähle links eine Unterhaltung oder öffne ein öffentliches Profil." />}
+    </>}
+  </Page>;
+}

@@ -24,6 +24,7 @@ import MarketplaceShop from "./pages/MarketplaceShop";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
 import MerchantMarketplace from "./pages/MerchantMarketplace";
 import Notifications from "./pages/Notifications";
+import Messages from "./pages/Messages";
 import CareToday from "./pages/CareToday";
 import Search from "./pages/Search";
 import PlantTaxon from "./pages/PlantTaxon";
@@ -62,6 +63,7 @@ function Router() {
         <Route path={"/live"} component={LiveHub} />
         <Route path={"/live/:id"} component={LiveSession} />
         <Route path={"/notifications"} component={Notifications} />
+        <Route path={"/messages"} component={Messages} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
