@@ -343,10 +343,20 @@ export const communityComments = (token: string, postId: number) =>
   trpcGet<CommunityComment[]>("community.comments", { postId }, token);
 export const addCommunityComment = (
   token: string,
-  input: { postId: number; content: string; parentId?: number | null },
+  input: { postId: number; parentId?: number | null; content: string }
 ) => trpcPost<{ success: true }>("community.addComment", input, token);
+export const updateCommunityComment = (
+  token: string,
+  input: { commentId: number; content: string }
+) => trpcPost<{ id: number; updated: true }>("community.updateComment", input, token);
+export const deleteCommunityComment = (token: string, commentId: number) =>
+  trpcPost<{ id: number; deleted: boolean }>("community.deleteComment", { commentId }, token);
+export const reportCommunityComment = (
+  token: string,
+  input: { commentId: number; reason: "sexual_content" | "harassment" | "misinformation" | "copyright" | "other"; note?: string }
+) => trpcPost<{ id: number; status: "pending" }>("community.report", input, token);
 export const likeCommunityPost = (token: string, postId: number) =>
-  trpcPost<{ liked: true }>("community.like", { postId }, token);
+  trpcPost<{ liked: boolean }>("community.like", { postId }, token);
 export const reportCommunityPost = (token: string, input: { postId?: number; commentId?: number; reason: "sexual_content" | "harassment" | "misinformation" | "copyright" | "other"; note?: string }) =>
   trpcPost<{ id: number; status: "pending" }>("community.report", input, token);
 export const blockCommunityUser = (token: string, userId: number) =>

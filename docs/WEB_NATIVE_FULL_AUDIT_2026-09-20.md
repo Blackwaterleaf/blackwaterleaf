@@ -69,3 +69,16 @@ Web-TypeScript, die vollständige Vitest-Suite mit **86 Testdateien und 333 Test
 Der Community-Composer unterstützt auf Web und Native neben Bildern nun auch MP4- und WebM-Videos. Uploads bleiben an die Einwilligung zur Medienverarbeitung und an den ausdrücklichen Veröffentlichungs-Schalter gebunden. Der Server prüft MIME-Typ, Base64-Kodierung, Container-Signatur und ein Limit von 16 MB; pro Beitrag ist höchstens ein Video zulässig. Feed und Diskussionsdetail verwenden kontrolliertes Playback ohne Autoplay. Die additive Migration `drizzle/0036_lumpy_omega_sentinel.sql` ist erzeugt und geprüft, wurde aber entsprechend dem Deployment-Vertrag nicht automatisch auf einer verbundenen Produktionsdatenbank ausgeführt.
 
 Die Smart-Device-Anbindung bleibt absichtlich herstellerneutral: Die Web-Auswahl, private Zuordnung, manuelle Messwerte und der Status `awaiting_authorization` sind vorhanden; es werden keine Herstellerzugangsdaten erfragt und keine automatische Verbindung behauptet. Eine echte Synchronisierung benötigt vor Aktivierung eine konkret freigegebene Hersteller-API, OAuth-/Webhook-Spezifikation und sichere Secret-Verwaltung. Bis dahin zeigt die Oberfläche den ehrlichen Nicht-verbunden-Zustand.
+
+
+## Vollständigkeitsnachtrag 23. September 2026
+
+Die erneute Prüfung hat vier konkrete Lücken geschlossen. Community-Likes sind jetzt echte Umschalter und prüfen beide Richtungen der Blockbeziehung. Neue Kommentare sowie Post- und Kommentar-Meldungen werden bei einer Blockbeziehung serverseitig abgewiesen; damit kann eine lokale UI-Aktion keine blockierte Person wieder erreichen. Die Unified-Suche gibt Community-Inhalte Gästen nicht mehr zurück und filtert bei angemeldeten Konten gegenseitige Blockbeziehungen ebenfalls aus.
+
+Der Consent-Widerruf setzt öffentliche Beobachtungen, Community-Beiträge und zugehörige Medien im Rahmen der jeweiligen Freigabe atomar zurück. Der Vorgang bleibt serverseitig und ist nicht nur eine UI-Präferenz. Die Repository-Migrationsbaseline wurde auf Migration `0036_lumpy_omega_sentinel.sql` und 37 Journal-Einträge aktualisiert. Die lokale Baseline-Prüfung besteht; eine produktive Datenbankmigration wird weiterhin nicht behauptet, weil kein Backup-/Restore-Nachweis vorliegt und der `db:push`-Guard geschlossen bleibt.
+
+Die Web-Diskussion und die Native-Diskussion unterstützen nun auch Bearbeiten und Löschen eigener Kommentare sowie das Melden fremder Kommentare. Die Taxon-Herkunftskarte bleibt ausdrücklich schematisch: Sie zeigt ausschließlich vorhandene, quellengebundene Herkunfts-, Habitat-, Wasser- oder Temperaturfelder aus dem Datensatz und nie erfundene Koordinaten. Fehlt eine Quelle, bleibt der Zustand sichtbar offen.
+
+### Noch nicht als erledigt behauptet
+
+Eine fachlich belastbare Punktkarte mit exakten Wildfundorten für jedes Taxon ist absichtlich nicht freigeschaltet. Dafür fehlen in den veröffentlichten Datensätzen strukturierte, separat geprüfte Verbreitungsgeometrien und eine Sensitivitätsregel für gefährdete Arten. Ebenso ist die Ziel-Datenbank nicht als migrationsgleich bestätigt, solange der erforderliche isolierte Restore-Test fehlt.

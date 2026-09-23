@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, like, lt, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
+import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, userBlocks, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, isStoredCatalogueTaxonImage, isVerifiedOpenCatalogueMediaSource, officialTaxonSource } from "../../shared/taxon-source-policy";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
@@ -90,7 +90,7 @@ export const searchRouter = router({
       cursor: z.string().optional(),
       limit: z.number().int().min(1).max(30).default(12),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
       const match = `%${input.q}%`;
       const cursor = cursorValue(input.cursor);
@@ -191,13 +191,18 @@ export const searchRouter = router({
       }
 
       if (wants("community")) {
-        const rows = await db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, userId: communityPosts.userId, createdAt: communityPosts.createdAt }).from(communityPosts).where(and(
-          eq(communityPosts.status, "published"),
-          eq(communityPosts.visibility, "public"),
-          input.realm ? eq(communityPosts.realm, input.realm) : undefined,
-          like(communityPosts.content, match),
-        )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
-        result.community = rows.map(row => ({ ...row, type: "community" as const, id: String(row.id) }));
+        if (ctx.user) {
+          const viewerId = ctx.user.id;
+          const blockedIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, viewerId), eq(userBlocks.blockedId, viewerId)))).map(item => item.blockerId === viewerId ? item.blockedId : item.blockerId);
+          const rows = await db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, userId: communityPosts.userId, createdAt: communityPosts.createdAt }).from(communityPosts).where(and(
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+            input.realm ? eq(communityPosts.realm, input.realm) : undefined,
+            blockedIds.length ? notInArray(communityPosts.userId, blockedIds) : undefined,
+            like(communityPosts.content, match),
+          )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
+          result.community = rows.map(row => ({ ...row, type: "community" as const, id: String(row.id) }));
+        }
       }
 
       if (wants("product")) {

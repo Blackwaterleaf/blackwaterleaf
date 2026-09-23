@@ -44,6 +44,9 @@ import {
   assistantChat,
   assistantPlantIdentify,
   addCommunityComment,
+  updateCommunityComment,
+  deleteCommunityComment,
+  reportCommunityComment,
   blockCommunityUser,
   API_ORIGIN,
   careAddJournal,
@@ -3021,6 +3024,7 @@ function CommunityScreen({
               tone={tone}
               post={post}
               isOwner={Boolean(account?.id && String(account.id) === String(post.author.id))}
+              accountId={account?.id ? Number(account.id) : null}
               onEdit={() => navigate("post")}
               onDelete={async () => {
                 if (!token) return;
@@ -3691,13 +3695,15 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; token: string | null }) {
+function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; accountId: number | null; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [commentPending, setCommentPending] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
   const loadComments = async () => { if (token) setComments(await communityComments(token, Number(post.id))); };
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
@@ -3708,6 +3714,20 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
       setReplyTo(null);
       await loadComments();
     } finally { setCommentPending(false); }
+  };
+  const saveComment = async () => {
+    if (!token || !editingCommentId || !editingCommentText.trim()) return;
+    setCommentPending(true);
+    try { await updateCommunityComment(token, { commentId: editingCommentId, content: editingCommentText.trim() }); setEditingCommentId(null); setEditingCommentText(""); await loadComments(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setCommentPending(false); }
+  };
+  const removeComment = async (commentId: number) => {
+    if (!token) return;
+    setCommentPending(true);
+    try { await deleteCommunityComment(token, commentId); await loadComments(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gelöscht werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setCommentPending(false); }
   };
   return (
     <View
@@ -3746,7 +3766,7 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
         <Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text>
       </Pressable></View>
       {commentsOpen ? <View style={styles.commentPanel}>
-        {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
+        {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text>{editingCommentId === comment.id ? <><TextInput value={editingCommentText} onChangeText={setEditingCommentText} style={styles.commentInput} multiline maxLength={2000} /><View style={styles.commentActionRow}><Pressable disabled={commentPending || !editingCommentText.trim()} onPress={() => void saveComment()}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>SPEICHERN</Text></Pressable><Pressable onPress={() => { setEditingCommentId(null); setEditingCommentText(""); }}><Text style={styles.commentReplyAction}>ABBRECHEN</Text></Pressable></View></> : <Text style={styles.miniCopy}>{comment.content}</Text>}{comment.authorId === accountId ? <View style={styles.commentActionRow}><Pressable onPress={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); }}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>BEARBEITEN</Text></Pressable><Pressable disabled={commentPending} onPress={() => Alert.alert("Kommentar löschen", "Diesen eigenen Kommentar wirklich löschen?", [{ text: "Abbrechen", style: "cancel" }, { text: "Löschen", style: "destructive", onPress: () => void removeComment(comment.id) }])}><Text style={styles.commentReplyAction}>LÖSCHEN</Text></Pressable></View> : <Pressable onPress={() => Alert.alert("Kommentar melden", "Warum möchtest du diesen Kommentar melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => token ? void reportCommunityComment(token, { commentId: comment.id, reason: "other" }).then(() => Alert.alert("Meldung gespeichert", "Der Kommentar wurde zur Prüfung weitergeleitet.")) : undefined }])}><Text style={styles.commentReplyAction}>MELDEN</Text></Pressable>}{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
         {replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}
         {token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder="Kommentar schreiben…" placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} /><Pressable style={[styles.commentSend, commentPending && { opacity: 0.55 }]} disabled={commentPending} onPress={() => void submitComment()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Text style={styles.miniCopy}>Zum Kommentieren bitte sicher anmelden.</Text>}
       </View> : null}

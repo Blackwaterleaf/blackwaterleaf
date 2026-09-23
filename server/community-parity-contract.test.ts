@@ -17,6 +17,8 @@ describe("AP-17 community parity contract", () => {
     expect(community).toContain("deleteComment: protectedProcedure");
     expect(community).toContain("community_report_submitted");
     expect(community).toContain("community_user_blocked");
+    expect(community).toContain("assertNoBlockingRelationship");
+    expect(community).toContain('return { liked: false } as const');
   });
 
   it("uses cursor pagination and count(*) for notification state", () => {

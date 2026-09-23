@@ -1880,3 +1880,8 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .live-control-telemetry__stop:hover { border-color: rgba(255, 135, 152, .8); background: rgba(126, 23, 46, .5); }
 .is-spinning { animation: rotate 1s linear infinite; }
 @media (max-width: 780px) { .live-control-telemetry__actions { align-items: stretch; flex-direction: column; } .live-control-telemetry__buttons { justify-content: stretch; } .live-control-telemetry__buttons button { flex: 1 1 170px; } }
+
+/* Source-bound habitat facts: no inferred coordinates, only fields supplied by the catalogue. */
+.taxon-range-map__facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 7px 12px; margin: 10px 0 0; padding: 0; list-style: none; color: #d5f3d9; font-size: .72rem; line-height: 1.45; }
+.taxon-range-map__facts li { padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--range-accent) 22%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--range-accent) 6%, transparent); }
+@media (max-width: 640px) { .taxon-range-map__facts { grid-template-columns: 1fr; } }

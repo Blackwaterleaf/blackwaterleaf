@@ -345,3 +345,12 @@ Eine Funktion darf nicht als aktiv erscheinen, solange ihre externe Infrastruktu
 Community-Beiträge dürfen optional genau ein Video im Format MP4 oder WebM bis 16 MB enthalten. Web und Native zeigen Medien mit kontrolliertem Playback ohne Autoplay; Upload, Verarbeitung und Veröffentlichung bleiben getrennte, ausdrücklich bestätigte Schritte. Der Server validiert Container-Signatur und MIME-Typ und speichert Videos unter demselben geschützten Medienkontext wie Bilder.
 
 Smart-Device-Auswahl, private Aquarium-Zuordnung und manuelle Messwerte sind echte Funktionen. Ohne konkrete Herstellerfreigabe darf die Oberfläche jedoch keine Verbindung, Synchronisierung oder Herstellerdaten behaupten. Der verbindliche Status bleibt `awaiting_authorization`, bis OAuth-/Webhook-Vertrag, Secret-Verwaltung und Hersteller-API geprüft und aktiviert sind.
+
+
+### 15.6 Sicherheits- und Herkunftsnachtrag 23. September 2026
+
+Community-Aktionen sind beidseitig blockbewusst. Feed, Suche, Detail, Like, Kommentar, Meldung und Live-Chat dürfen eine blockierte Beziehung nicht wieder sichtbar oder interaktiv machen. Ein Like ist ein echter Umschalter und darf nicht als einmalige, nicht rückgängig machbare UI-Aktion erscheinen. Eigene Kommentare müssen auf Web und Native bearbeitbar und löschbar sein; fremde Kommentare dürfen gemeldet werden.
+
+Consent-Widerrufe sind serverseitige Zustandsänderungen. Der Widerruf von Beobachtungs-, Community- oder Medienverarbeitungseinwilligungen setzt betroffene öffentliche Sichtbarkeit atomar zurück; die UI darf keine erfolgreiche Veröffentlichung vortäuschen. Die Migrationsbaseline dokumentiert Repository- und Zielumgebungsstand getrennt. Ohne isolierten Backup-/Restore-Nachweis wird keine Zielmigration behauptet.
+
+Taxon-Herkunftskarten sind keine dekorativen Punktkarten. Sie dürfen nur geprüfte Herkunftsregionen, Habitat- und Haltungsfelder aus den Quellen zeigen und müssen kenntlich machen, dass keine exakten Wildfundkoordinaten ausgegeben werden. Fehlt ein strukturiertes Feld, wird „Verbreitung noch offen“ angezeigt. Bildquelle und Verbreitungsquelle bleiben getrennte Provenienzfelder.

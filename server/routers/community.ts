@@ -32,6 +32,21 @@ async function enforceCommunityContentPolicy(db: Awaited<ReturnType<typeof requi
   if (sexualContentPattern.test(content.normalize("NFKC"))) await suspendForSexualContent(db, userId, content);
 }
 
+async function assertNoBlockingRelationship(db: Awaited<ReturnType<typeof requireDatabase>>, firstUserId: number, secondUserId: number) {
+  if (firstUserId === secondUserId) return;
+  const relation = await db
+    .select({ blockerId: userBlocks.blockerId })
+    .from(userBlocks)
+    .where(
+      or(
+        and(eq(userBlocks.blockerId, firstUserId), eq(userBlocks.blockedId, secondUserId)),
+        and(eq(userBlocks.blockerId, secondUserId), eq(userBlocks.blockedId, firstUserId)),
+      ),
+    )
+    .limit(1);
+  if (relation[0]) throw new TRPCError({ code: "FORBIDDEN", message: "blocked_relationship" });
+}
+
 async function publicMediaForPost(postId: number, userId: number) {
   const db = await requireDatabase();
   const rows = await db
@@ -317,13 +332,20 @@ export const communityRouter = router({
       )
       .limit(1);
     if (!visible[0]) throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+    await assertNoBlockingRelationship(db, ctx.user.id, visible[0].userId);
 
     const existing = await db
       .select({ id: postLikes.id })
       .from(postLikes)
       .where(and(eq(postLikes.postId, input.postId), eq(postLikes.userId, ctx.user.id)))
       .limit(1);
-    if (existing[0]) return { liked: true } as const;
+    if (existing[0]) {
+      await db.transaction(async tx => {
+        await tx.delete(postLikes).where(and(eq(postLikes.postId, input.postId), eq(postLikes.userId, ctx.user.id)));
+        await tx.update(communityPosts).set({ likesCount: sql`GREATEST(${communityPosts.likesCount} - 1, 0)` }).where(eq(communityPosts.id, input.postId));
+      });
+      return { liked: false } as const;
+    }
 
     await db.transaction(async tx => {
       await tx.insert(postLikes).values({ postId: input.postId, userId: ctx.user.id });
@@ -402,6 +424,7 @@ export const communityRouter = router({
         )
         .limit(1);
       if (!visible[0]) throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+      await assertNoBlockingRelationship(db, ctx.user.id, visible[0].userId);
 
       if (input.parentId) {
         const parents = await db
@@ -471,12 +494,14 @@ export const communityRouter = router({
       if (Boolean(input.postId) === Boolean(input.commentId)) throw new TRPCError({ code: "BAD_REQUEST", message: "exactly_one_report_target_required" });
       const db = await requireDatabase();
       if (input.postId) {
-        const [post] = await db.select({ id: communityPosts.id, status: communityPosts.status, visibility: communityPosts.visibility }).from(communityPosts).where(eq(communityPosts.id, input.postId)).limit(1);
+        const [post] = await db.select({ id: communityPosts.id, userId: communityPosts.userId, status: communityPosts.status, visibility: communityPosts.visibility }).from(communityPosts).where(eq(communityPosts.id, input.postId)).limit(1);
         if (!post || post.status !== "published" || post.visibility !== "public") throw new TRPCError({ code: "NOT_FOUND", message: "post_not_found" });
+        await assertNoBlockingRelationship(db, ctx.user.id, post.userId);
       }
       if (input.commentId) {
-        const [comment] = await db.select({ id: postComments.id, postId: postComments.postId, status: postComments.status }).from(postComments).where(eq(postComments.id, input.commentId)).limit(1);
+        const [comment] = await db.select({ id: postComments.id, postId: postComments.postId, userId: postComments.userId, status: postComments.status }).from(postComments).where(eq(postComments.id, input.commentId)).limit(1);
         if (!comment || comment.status !== "visible") throw new TRPCError({ code: "NOT_FOUND", message: "comment_not_found" });
+        await assertNoBlockingRelationship(db, ctx.user.id, comment.userId);
       }
       const inserted = await db.insert(communityReports).values({ reporterId: ctx.user.id, postId: input.postId ?? null, commentId: input.commentId ?? null, reason: input.reason, note: input.note?.trim() || null });
       await appendAuditEntry({ actorId: ctx.user.id, action: "community_report_submitted", targetType: input.postId ? "community_post" : "comment", targetId: input.postId ?? input.commentId!, payload: { reason: input.reason, hasNote: Boolean(input.note?.trim()) } });

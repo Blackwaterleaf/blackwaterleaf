@@ -7,16 +7,16 @@ const schema = resolve(root, "drizzle/schema.ts");
 const journal = resolve(root, "drizzle/meta/_journal.json");
 const migrationsDir = resolve(root, "drizzle");
 const expected = {
-  schema: "a041ffa9cf7c9fa1108d6c93ede6957fa2ee6b788fc3313a23506cd04ab310c6",
-  journal: "2b0856a23a0141bac3212dc24ab9356a9dba171ecf3cde28a9a425ff59fe606d",
-  head: "13e5f8182e9d45fe0ff6a8142d15d436b95a5983cf8634ee851d4446a1ac2ba6",
+  schema: "552cac5123aa2f85bd00ee1146c7c9be1560fcd60f69233d1b12b81be00f122c",
+  journal: "4f8828297d442c830c442e8bf48a3700f6b57ac5941ceb8727d27b704be46d46",
+  head: "c0718546f8f953e7a98f7eddd1b5fae44b6b97af2852818b92b12b0e4d575d64",
 };
 const hash = file => createHash("sha256").update(readFileSync(file)).digest("hex");
 const journalData = JSON.parse(readFileSync(journal, "utf8"));
 const sqlFiles = readdirSync(migrationsDir).filter(file => /^\d{4}_.*\.sql$/.test(file)).sort();
 const head = resolve(migrationsDir, sqlFiles.at(-1));
 const actual = { schema: hash(schema), journal: hash(journal), head: hash(head) };
-if (sqlFiles.length !== 27 || journalData.entries.length !== 27 || journalData.entries.at(-1)?.tag !== "0026_sticky_dazzler") {
+if (sqlFiles.length !== 37 || journalData.entries.length !== 37 || journalData.entries.at(-1)?.tag !== "0036_lumpy_omega_sentinel") {
   throw new Error("migration_baseline_mismatch: migration count, journal or head changed");
 }
 for (const [key, value] of Object.entries(expected)) {
