@@ -1,6 +1,6 @@
 import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
 import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
@@ -19,8 +19,11 @@ const tabs: Array<{ key: SearchKind; label: string; icon: typeof Leaf }> = [
 function ResultCard({ type, item }: { type: SearchKind; item: Record<string, unknown> }) {
   const id = String(item.id);
   const commonName = Array.isArray(item.commonNames) ? item.commonNames[0] : undefined;
-  if (type === "plant") return <Link className="search-result-card" href={`/plant/${id}`}><span className="search-result-icon search-result-icon--plant"><Leaf size={19} /></span><span><strong>{String(item.scientificName)}</strong><small>{String(item.acceptedScientificName ?? item.family ?? "Taxon-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "Nachweis offen")}</em></span><ArrowRight size={16} /></Link>;
-  if (type === "aquarium") return <Link className="search-result-card" href={`/aquarium-fish/${id}`}><span className="search-result-icon search-result-icon--aquarium"><Fish size={19} /></span><span><strong>{String(item.scientificName)}</strong><small>{String(commonName ?? item.family ?? "Aquaristik-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "Nachweis offen")}</em></span><ArrowRight size={16} /></Link>;
+  const imageUrl = typeof item.imageUrl === "string" && item.imageUrl ? item.imageUrl : null;
+  const icon = type === "aquarium" ? <Fish size={19} /> : <Leaf size={19} />;
+  const media = type === "plant" || type === "aquarium" ? <span className={`search-result-icon search-result-icon--${type}`}>{imageUrl ? <img src={imageUrl} alt="" loading="lazy" /> : icon}</span> : null;
+  if (type === "plant") return <Link className="search-result-card" href={`/plant/${id}`}>{media}<span><strong>{String(item.scientificName)}</strong><small>{String(item.acceptedScientificName ?? item.family ?? "Taxon-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "Nachweis offen")}</em></span><ArrowRight size={16} /></Link>;
+  if (type === "aquarium") return <Link className="search-result-card" href={`/aquarium-fish/${id}`}>{media}<span><strong>{String(item.scientificName)}</strong><small>{String(commonName ?? item.family ?? "Aquaristik-Datensatz")}</small><em><ShieldCheck size={12} />{String(item.evidenceState ?? "Nachweis offen")}</em></span><ArrowRight size={16} /></Link>;
   if (type === "knowledge") return <Link className="search-result-card" href="/knowledge"><span className="search-result-icon"><BookOpen size={19} /></span><span><strong>{String(item.title)}</strong><small>{String(item.excerpt ?? "")}</small><em>{String(item.realm ?? "Wissen")}</em></span><ArrowRight size={16} /></Link>;
   if (type === "profile") return <Link className="search-result-card" href={`/member/${id}`}><span className="search-result-icon"><UserRound size={19} /></span><span><strong>{String(item.name ?? item.username ?? "Profilname nicht hinterlegt")}</strong><small>{item.username ? `@${String(item.username)}` : "Öffentliches Profil"}</small><em>Profil öffnen</em></span><ArrowRight size={16} /></Link>;
   if (type === "community") return <Link className="search-result-card" href={`/community?post=${id}`}><span className="search-result-icon"><MessageCircle size={19} /></span><span><strong>{String(item.realm ?? "Community")}</strong><small>{String(item.content)}</small><em>Öffentlicher Beitrag</em></span><ArrowRight size={16} /></Link>;
@@ -29,16 +32,20 @@ function ResultCard({ type, item }: { type: SearchKind; item: Record<string, unk
 }
 
 export default function Search() {
+  const [location] = useLocation();
+  const initialParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
-  const [kind, setKind] = useState<SearchKind>("all");
+  const [kind, setKind] = useState<SearchKind>(() => (initialParams?.get("kind") as SearchKind) || "all");
   const [cursor, setCursor] = useState<string | undefined>();
+  const realm = initialParams?.get("realm") === "botany" || initialParams?.get("realm") === "aquarium" || initialParams?.get("realm") === "terrarium" ? initialParams.get("realm") as "botany" | "aquarium" | "terrarium" : undefined;
+  useEffect(() => { const next = new URLSearchParams(typeof window !== "undefined" ? window.location.search : location.split("?")[1] ?? ""); const nextQuery = next.get("q") ?? ""; if (nextQuery && !draft) { setDraft(nextQuery); setQuery(nextQuery); } }, [location, draft]);
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(draft.trim()), 240);
     return () => window.clearTimeout(timer);
   }, [draft]);
   useEffect(() => setCursor(undefined), [query, kind]);
-  const search = trpc.search.unified.useQuery({ q: query, kind, locale: "de", limit: 18, cursor: kind === "all" ? undefined : cursor }, { enabled: query.length >= 2, retry: false, staleTime: 15_000 });
+  const search = trpc.search.unified.useQuery({ q: query, kind, locale: "de", realm, limit: 18, cursor: kind === "all" ? undefined : cursor }, { enabled: query.length >= 2, retry: false, staleTime: 15_000 });
   const data = search.data;
   const selected = kind === "plant" ? data?.taxa : kind === "aquarium" ? data?.aquarium : kind === "knowledge" ? data?.knowledge : kind === "profile" ? data?.profiles : kind === "community" ? data?.community : kind === "product" ? data?.products : [];
   const groups = kind === "all" ? [

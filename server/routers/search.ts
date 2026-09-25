@@ -123,6 +123,7 @@ export const searchRouter = router({
           evidenceState: plantTaxa.evidenceState,
         }).from(plantTaxa).where(and(
           eq(plantTaxa.status, "published"),
+          input.realm && input.realm !== "botany" ? sql`1 = 0` : undefined,
           cursor ? lt(plantTaxa.id, cursor) : undefined,
           or(
             like(plantTaxa.scientificName, match),
@@ -156,6 +157,7 @@ export const searchRouter = router({
           evidenceState: aquariumTaxa.evidenceState,
         }).from(aquariumTaxa).where(and(
           eq(aquariumTaxa.status, "published"),
+          input.realm && input.realm !== "aquarium" ? sql`1 = 0` : undefined,
           cursor ? lt(aquariumTaxa.id, cursor) : undefined,
           or(
             like(aquariumTaxa.scientificName, match),

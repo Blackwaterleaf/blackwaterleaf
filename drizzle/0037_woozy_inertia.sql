@@ -1,0 +1,2 @@
+CREATE INDEX `aquarium_taxa_genus_family_idx` ON `aquarium_taxa` (`status`,`genus`,`family`);--> statement-breakpoint
+CREATE INDEX `plant_taxa_genus_family_idx` ON `plant_taxa` (`status`,`genus`,`family`);

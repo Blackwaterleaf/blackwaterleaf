@@ -630,6 +630,7 @@ export const plantTaxa = mysqlTable(
   table => [
     uniqueIndex("plant_taxa_source_record_unique").on(table.source, table.sourceVersion, table.sourceRecordId),
     index("plant_taxa_scientific_name_idx").on(table.scientificName),
+    index("plant_taxa_genus_family_idx").on(table.status, table.genus, table.family),
     index("plant_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
   ],
 );
@@ -670,6 +671,7 @@ export const aquariumTaxa = mysqlTable(
   table => [
     uniqueIndex("aquarium_taxa_source_record_unique").on(table.source, table.sourceVersion, table.sourceRecordId),
     index("aquarium_taxa_scientific_name_idx").on(table.scientificName),
+    index("aquarium_taxa_genus_family_idx").on(table.status, table.genus, table.family),
     index("aquarium_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
   ],
 );

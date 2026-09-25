@@ -82,3 +82,9 @@ Die Web-Diskussion und die Native-Diskussion unterstützen nun auch Bearbeiten u
 ### Noch nicht als erledigt behauptet
 
 Eine fachlich belastbare Punktkarte mit exakten Wildfundorten für jedes Taxon ist absichtlich nicht freigeschaltet. Dafür fehlen in den veröffentlichten Datensätzen strukturierte, separat geprüfte Verbreitungsgeometrien und eine Sensitivitätsregel für gefährdete Arten. Ebenso ist die Ziel-Datenbank nicht als migrationsgleich bestätigt, solange der erforderliche isolierte Restore-Test fehlt.
+
+## Kategorie- und KI-Nachtrag 25. September 2026
+
+Die drei Fachbereiche wurden erneut geprüft. Botanik und Aquaristik liefern veröffentlichte Taxa mit vollständigen strukturellen KI-Feldern (`scientificName`, `genus`, `commonNames`, `synonyms`, `summary`, `careProfile`); die Realm-Kataloge zeigen nur verifizierte Bilder mit Provenienz. Terraristik bleibt korrekt als leerer Katalogzustand ausgewiesen, weil keine quellengebundenen Terrarium-Taxa vorliegen. Die Suche wurde um Realm-Deep-Links, partielle Gattungs-/Namenssuche und echte Taxonbilder erweitert. Channa liefert veröffentlichte Treffer mit Bildnachweisen; Alocasia liefert veröffentlichte Treffer, einzelne Datensätze bleiben bis zur individuellen Bildprüfung ohne Bild.
+
+Der KI-Katalogabgleich verwendet nun zusätzlich Gattung, gebräuchliche Namen, Synonyme, kompakte Habitatfakten und ausgewählte Pflegefelder. Der Kontext bleibt auf maximal sechs relevante Referenzen begrenzt, um Antworten stärker an die Datenbank zu binden und unnötigen Modellverbrauch zu reduzieren. Migration 0037 ergänzt dafür schnelle Gattungs-/Familienindizes.

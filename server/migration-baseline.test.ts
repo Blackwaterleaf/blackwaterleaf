@@ -11,7 +11,7 @@ const baseline = readFileSync(resolve(root, "docs/BLACKWATERLEAF_MIGRATION_BASEL
 describe("AP-06 migration baseline", () => {
   it("provides a deterministic baseline verification command", () => {
     expect(packageJson.scripts["db:baseline:verify"]).toBe("node scripts/verify-migration-baseline.mjs");
-    expect(verifier).toContain("0036_lumpy_omega_sentinel");
+    expect(verifier).toContain("0037_woozy_inertia");
     expect(verifier).toContain("migration_baseline_hash_mismatch");
   });
 

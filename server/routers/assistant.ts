@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, like, or } from "drizzle-orm";
+import { and, eq, inArray, like, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { aiIdentificationCorrections, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
@@ -48,6 +48,11 @@ type CatalogReference = {
   scientificName: string;
   acceptedScientificName: string | null;
   family: string | null;
+  genus?: string | null;
+  commonNames?: unknown;
+  synonyms?: unknown;
+  summary?: string | null;
+  careProfile?: unknown;
   source: string;
   sourceRecordUrl: string | null;
   sourceCitation: string | null;
@@ -69,6 +74,11 @@ function catalogReferenceFrom(row: CatalogReference): CatalogReference {
     scientificName: row.scientificName,
     acceptedScientificName: row.acceptedScientificName,
     family: row.family,
+    genus: row.genus,
+    commonNames: row.commonNames,
+    synonyms: row.synonyms,
+    summary: row.summary,
+    careProfile: row.careProfile,
     source: row.source,
     sourceRecordUrl: row.sourceRecordUrl,
     sourceCitation: row.sourceCitation,
@@ -85,7 +95,15 @@ export function formatCatalogReferences(references: CatalogReference[]) {
       : "";
     const confidence = reference.matchConfidence === null ? "" : `; Abgleich: ${reference.matchConfidence} %`;
     const source = reference.sourceRecordUrl ? `; Fachquelle: ${reference.sourceRecordUrl}` : `; Fachquelle: ${reference.source}`;
-    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${accepted}${confidence}${source}`;
+    const names = [...(Array.isArray(reference.commonNames) ? reference.commonNames : []), ...(Array.isArray(reference.synonyms) ? reference.synonyms : [])].filter((name): name is string => typeof name === "string" && Boolean(name.trim())).slice(0, 3);
+    const habitat = reference.summary?.match(/(?:Lebensraum|Fundort|Verbreitung|Habitat)\s*:\s*([^\n]+)/i)?.[1]?.trim();
+    const profile = reference.careProfile && typeof reference.careProfile === "object" ? reference.careProfile as Record<string, unknown> : {};
+    const care = [
+      typeof profile.water === "string" ? `Wasser: ${profile.water}` : null,
+      typeof profile.temperature === "string" ? `Temperatur: ${profile.temperature}` : null,
+      typeof profile.careLevel === "string" ? `Anspruch: ${profile.careLevel}` : null,
+    ].filter(Boolean).slice(0, 2).join(", ");
+    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${reference.genus ? `; Gattung: ${reference.genus}` : ""}${names.length ? `; Namen: ${names.join(", ")}` : ""}${habitat ? `; Habitat: ${habitat}` : ""}${care ? `; ${care}` : ""}${accepted}${confidence}${source}`;
   }).join("\n");
 }
 
@@ -101,17 +119,30 @@ async function catalogContextForQuery(db: Database, query: string) {
     like(plantTaxa.scientificName, `%${term}%`),
     like(plantTaxa.acceptedScientificName, `%${term}%`),
     like(plantTaxa.family, `%${term}%`),
+    like(plantTaxa.genus, `%${term}%`),
+    like(plantTaxa.summary, `%${term}%`),
+    sql`JSON_SEARCH(${plantTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+    sql`JSON_SEARCH(${plantTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
   ]);
   const aquariumConditions = terms.flatMap(term => [
     like(aquariumTaxa.scientificName, `%${term}%`),
     like(aquariumTaxa.acceptedScientificName, `%${term}%`),
     like(aquariumTaxa.family, `%${term}%`),
+    like(aquariumTaxa.genus, `%${term}%`),
+    like(aquariumTaxa.summary, `%${term}%`),
+    sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+    sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
   ]);
   const [plants, aquarium] = await Promise.all([
     db.select({
       scientificName: plantTaxa.scientificName,
       acceptedScientificName: plantTaxa.acceptedScientificName,
       family: plantTaxa.family,
+      genus: plantTaxa.genus,
+      commonNames: plantTaxa.commonNames,
+      synonyms: plantTaxa.synonyms,
+      summary: plantTaxa.summary,
+      careProfile: plantTaxa.careProfile,
       source: plantTaxa.source,
       sourceRecordUrl: plantTaxa.sourceRecordUrl,
       sourceCitation: plantTaxa.sourceCitation,
@@ -122,6 +153,11 @@ async function catalogContextForQuery(db: Database, query: string) {
       scientificName: aquariumTaxa.scientificName,
       acceptedScientificName: aquariumTaxa.acceptedScientificName,
       family: aquariumTaxa.family,
+      genus: aquariumTaxa.genus,
+      commonNames: aquariumTaxa.commonNames,
+      synonyms: aquariumTaxa.synonyms,
+      summary: aquariumTaxa.summary,
+      careProfile: aquariumTaxa.careProfile,
       source: aquariumTaxa.source,
       sourceRecordUrl: aquariumTaxa.sourceRecordUrl,
       sourceCitation: aquariumTaxa.sourceCitation,
@@ -142,6 +178,11 @@ async function catalogReferencesForCandidates(db: Database, candidates: PlantIde
     scientificName: plantTaxa.scientificName,
     acceptedScientificName: plantTaxa.acceptedScientificName,
     family: plantTaxa.family,
+    genus: plantTaxa.genus,
+    commonNames: plantTaxa.commonNames,
+    synonyms: plantTaxa.synonyms,
+    summary: plantTaxa.summary,
+    careProfile: plantTaxa.careProfile,
     source: plantTaxa.source,
     sourceRecordUrl: plantTaxa.sourceRecordUrl,
     sourceCitation: plantTaxa.sourceCitation,

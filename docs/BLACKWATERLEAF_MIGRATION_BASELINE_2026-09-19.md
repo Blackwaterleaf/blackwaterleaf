@@ -38,3 +38,7 @@ Nach Vorlage des Backup-/Restore-Nachweises wird zuerst die Zielumgebung adoptie
 
 [1]: https://orm.drizzle.team/docs/kit-overview "Drizzle Kit documentation"
 [2]: https://dev.mysql.com/doc/refman/8.0/en/backup-and-recovery.html "MySQL backup and recovery documentation"
+
+## Nachtrag 25. September 2026
+
+Migration **0037_woozy_inertia** ergänzt additive Suchindizes auf `status`, `genus` und `family` für `plant_taxa` und `aquarium_taxa`. Die Migration wurde kontrolliert auf der verbundenen Datenbank ausgeführt und die Baseline-Prüfung auf 38 Migrationen aktualisiert. Es wurden keine Datensätze gelöscht oder Testdaten eingefügt.
