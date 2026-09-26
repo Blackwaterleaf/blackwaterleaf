@@ -131,15 +131,22 @@ export function AppShell({ children }: PropsWithChildren) {
             <div className="profile-header-menu__panel">
               <span className="profile-header-menu__eyebrow">PROFIL · EINSTELLUNGEN</span>
               <Link href="/profile">Profil öffnen</Link>
+              <span className="profile-header-menu__group-label">PFLEGE & ANLAGEN</span>
               <Link href="/today">Heute · Pflegeaufgaben</Link>
-              <Link href="/messages">Postfach</Link>
-              <Link href="/profile/private">Privatbereich & Profil bearbeiten</Link>
               <Link href="/profile/habitats">Meine Anlagen</Link>
+              <span className="profile-header-menu__group-label">KOMMUNIKATION</span>
+              <Link href="/messages">Postfach</Link>
+              <Link href="/notifications">Benachrichtigungen</Link>
+              <span className="profile-header-menu__group-label">FORTSCHRITT & MERKLISTE</span>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>
               <Link href="/saved">Gespeichert</Link>
-              <Link href="/profile/privacy">Datenschutz & Freigaben</Link>
-              <Link href="/profile/preferences">Sprache & Einheiten</Link>
-              <Link href="/profile/tools">Weitere Werkzeuge</Link>
+              <details className="profile-header-menu__settings-group">
+                <summary>Einstellungen</summary>
+                <Link href="/profile/private">Profil & Privatbereich</Link>
+                <Link href="/profile/privacy">Datenschutz & Freigaben</Link>
+                <Link href="/profile/preferences">Sprache & Einheiten</Link>
+                <Link href="/profile/tools">Weitere Werkzeuge</Link>
+              </details>
             </div>
           </details>
         </div>

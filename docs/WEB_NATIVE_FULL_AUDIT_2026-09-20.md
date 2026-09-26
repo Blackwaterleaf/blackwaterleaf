@@ -94,3 +94,14 @@ Der KI-Katalogabgleich verwendet nun zusätzlich Gattung, gebräuchliche Namen, 
 Das bestehende Admin-Dashboard wurde um eine belastbare Host-Übersicht erweitert. BlackWaterLeaf kann im Bereich `Analytics` jetzt die Gesamtzahl registrierter Konten, Seitenaufrufe, eindeutige Besuche, Logins im gewählten Zeitraum, durchschnittliche Aufenthaltsdauer, Absprungrate, beliebte Seiten und Länderaggregate sehen.
 
 Die Reichweitenmessung läuft automatisch ohne Zustimmungsdialog, wie für den Host gewünscht. Sie speichert ausschließlich eine temporäre Session-Kennung aus `sessionStorage` sowie aggregierbare Ereignisdaten. IP-Adressen, Namen, Konto-IDs, User-Agents und Seiteninhalte werden nicht gespeichert. Die Analytics-Abfrage bleibt serverseitig auf das Eigentümerkonto `blackwaterleaf@gmail.com` beschränkt. Livestream-Zähler bleiben davon getrennt und werden erst später freigeschaltet.
+
+## Profilmenü-Hierarchie 26. September 2026
+
+Die mobile Profil-/Einstellungsauswahl wurde von einer flachen Liste auf vier verständliche Bereiche umgestellt:
+
+1. **Pflege & Anlagen:** „Heute · Pflegeaufgaben“ und „Meine Anlagen“.
+2. **Kommunikation:** „Postfach“ und „Benachrichtigungen“.
+3. **Fortschritt & Merkliste:** „Punkte & Fortschritt“ und „Gespeichert“.
+4. **Einstellungen:** „Profil & Privatbereich“, „Datenschutz & Freigaben“, „Sprache & Einheiten“ und „Weitere Werkzeuge“ in einem einklappbaren Untermenü.
+
+„Profil öffnen“ bleibt als eigenständiger Identitäts-Einstieg oben. Dadurch werden keine Routen entfernt, aber die zehn gleichrangigen Menüpunkte aus dem Screenshot nicht mehr als ungeordnete Liste präsentiert. Die Benennungen bleiben mit den bestehenden Web-Routen und der Observatory-Informationshierarchie verbunden.

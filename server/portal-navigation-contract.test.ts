@@ -31,4 +31,14 @@ describe("AP-13 Observatory primary navigation", () => {
     expect(app).toContain('path={"/community"}');
     expect(app).toContain('path={"/habitat-builder"}');
   });
+
+  it("groups profile-menu destinations instead of presenting a flat settings list", () => {
+    const shell = read("client/src/components/AppShell.tsx");
+    for (const label of ["PFLEGE & ANLAGEN", "KOMMUNIKATION", "FORTSCHRITT & MERKLISTE", "Einstellungen", "Profil & Privatbereich"]) {
+      expect(shell).toContain(label);
+    }
+    expect(shell).toContain('href="/notifications"');
+    expect(shell).toContain('className="profile-header-menu__settings-group"');
+    expect(shell).not.toContain("Privatbereich & Profil bearbeiten");
+  });
 });

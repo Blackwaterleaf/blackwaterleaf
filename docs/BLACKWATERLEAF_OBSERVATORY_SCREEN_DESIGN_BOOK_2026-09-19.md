@@ -354,3 +354,7 @@ Community-Aktionen sind beidseitig blockbewusst. Feed, Suche, Detail, Like, Komm
 Consent-Widerrufe sind serverseitige Zustandsänderungen. Der Widerruf von Beobachtungs-, Community- oder Medienverarbeitungseinwilligungen setzt betroffene öffentliche Sichtbarkeit atomar zurück; die UI darf keine erfolgreiche Veröffentlichung vortäuschen. Die Migrationsbaseline dokumentiert Repository- und Zielumgebungsstand getrennt. Ohne isolierten Backup-/Restore-Nachweis wird keine Zielmigration behauptet.
 
 Taxon-Herkunftskarten sind keine dekorativen Punktkarten. Sie dürfen nur geprüfte Herkunftsregionen, Habitat- und Haltungsfelder aus den Quellen zeigen und müssen kenntlich machen, dass keine exakten Wildfundkoordinaten ausgegeben werden. Fehlt ein strukturiertes Feld, wird „Verbreitung noch offen“ angezeigt. Bildquelle und Verbreitungsquelle bleiben getrennte Provenienzfelder.
+
+### Profilmenü-Gruppierung 26. September 2026
+
+Das Drei-Striche-Profilmenü verwendet keine flache Liste mit gleichrangigen Aktionen. „Profil öffnen“ steht als Identitäts-Einstieg oben. Die übrigen Ziele werden in **Pflege & Anlagen**, **Kommunikation**, **Fortschritt & Merkliste** und ein einklappbares **Einstellungen**-Untermenü mit Profil/Privatbereich, Datenschutz/Freigaben, Sprache/Einheiten und weiteren Werkzeugen geordnet. Alle Gruppen verweisen auf echte bestehende Routen; kein Menüpunkt darf als reine Dekoration oder nicht verbundene Aktion erscheinen.
