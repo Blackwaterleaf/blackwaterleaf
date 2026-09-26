@@ -493,3 +493,11 @@ Aktuelle Plattformrichtlinien stützen drei Entscheidungen: Mobile Navigation bl
 [1]: https://developer.apple.com/design/human-interface-guidelines/tab-bars "Apple Human Interface Guidelines: Tab bars"
 [2]: https://m3.material.io/foundations/layout/breakpoints "Material Design 3: Adaptive breakpoints"
 [3]: https://www.nngroup.com/articles/designing-ai-study-guide/ "Nielsen Norman Group: Designing AI Products and Features"
+
+
+## 15.16 Native-Home-Umsetzung
+Die Native-App verwendet jetzt einen bildstarken Home-Einstieg mit neuem BlackWaterLeaf-Observatory-Hero, dunkler Textsicherheitsfläche, direkter Entdecken-/Profilaktion und einer kompakten Statusleiste für Wasser, Luft, pH-Wert und Wetter. Statuswerte zeigen ohne echte Messquelle ausschließlich „BEREIT“ und erfinden keine Messdaten.
+
+Die vier Home-Fachkarten zeigen echte Bereichsbilder und führen in Botanik, Aquaristik, Terraristik und den KI-Assistenten. Die Native-Hauptnavigation wurde auf **Home · Entdecken · Community · Profil** vereinheitlicht. Karte, Erfassen und Katalog bleiben als fachliche Ziele innerhalb der jeweiligen Bereiche erreichbar und konkurrieren nicht mehr mit der persönlichen Home-Navigation.
+
+Der KI-Tone verwendet jetzt ausschließlich Violett/Indigo als Primärakzent. Botanik, Aquaristik, Terraristik und Community behalten ihre eigenen Bereichsfarben. Die Home- und KI-Bildwelt bleibt voneinander unterscheidbar.

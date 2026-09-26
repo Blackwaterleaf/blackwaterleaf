@@ -165,6 +165,7 @@ import {
 import { getBlackWaterLeafSeason } from "./src/season";
 
 const ASSETS = {
+  home: require("./assets/home-observatory-hero-mobile.jpg"),
   botany: require("./assets/botany-reference.jpg"),
   aquarium: require("./assets/aquarium-reference.jpg"),
   terrarium: require("./assets/terrarium-reference.jpg"),
@@ -183,9 +184,11 @@ const c = {
   text: "#F3FFF5",
   muted: "#9BB39F",
   danger: "#FF9EA8",
+  ai: "#B96CFF",
   botanySurface: "#061b0d",
   aquariumSurface: "#04303e",
   terrariumSurface: "#3e3812",
+  aiSurface: "#170C2A",
   marketSurface: "#432f14",
 };
 
@@ -269,7 +272,7 @@ const TONES: Record<Screen, Tone> = {
     accent: c.botany,
     surface: c.bg,
     panel: c.surface,
-    image: ASSETS.botany,
+    image: ASSETS.home,
     label: "NATUR APP",
     active: "home",
   },
@@ -346,9 +349,9 @@ const TONES: Record<Screen, Tone> = {
     active: "home",
   },
   assistant: {
-    accent: c.botany,
-    surface: c.botanySurface,
-    panel: c.surface,
+    accent: c.ai,
+    surface: c.aiSurface,
+    panel: "#24113D",
     image: ASSETS.ai,
     label: "BLACKWATERLEAF KI",
     active: "capture",
@@ -1275,6 +1278,7 @@ function Home({
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <HomeHero tone={TONES.home} navigate={navigate} />
+      <HomeStatusStrip tone={TONES.home} />
       {state === "error" ? (
         <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
       ) : null}
@@ -1302,6 +1306,26 @@ function Home({
   );
 }
 
+function HomeStatusStrip({ tone }: { tone: Tone }) {
+  const items = [
+    { icon: "water-outline" as IconName, label: "WASSER", value: "BEREIT" },
+    { icon: "leaf-outline" as IconName, label: "LUFT", value: "BEREIT" },
+    { icon: "flask-outline" as IconName, label: "pH-WERT", value: "BEREIT" },
+    { icon: "rainy-outline" as IconName, label: "WETTER", value: "BEREIT" },
+  ];
+  return (
+    <View style={[styles.homeStatusStrip, { borderColor: `${tone.accent}55`, backgroundColor: "rgba(4,20,11,.9)" }]}>
+      {items.map(item => (
+        <View key={item.label} style={styles.homeStatusItem}>
+          <Ionicons name={item.icon} size={18} color={tone.accent} />
+          <Text style={[styles.homeStatusLabel, { color: tone.accent }]}>{item.label}</Text>
+          <Text style={styles.homeStatusValue}>{item.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function HomeHero({
   tone,
   navigate,
@@ -1320,11 +1344,11 @@ function HomeHero({
         <View style={[styles.observatoryContextIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
           <Ionicons name="leaf-outline" size={24} color={tone.accent} />
         </View>
-        <Text style={[styles.eyebrow, { color: tone.accent }]}>UNSER OBSERVATORIUM</Text>
-        <Text style={styles.observatoryContextTitle}>WASSER VERBINDET.</Text>
-        <Text style={styles.observatoryContextText}>Forschen, entdecken und schützen – mit verlässlichen Daten, geschützten Orten und lebendiger Natur.</Text>
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · HOME</Text>
+        <Text style={styles.observatoryContextTitle}>NATUR, DIE DU SPÜRST.</Text>
+        <Text style={styles.observatoryContextText}>Dein persönlicher Einstieg in Wasserwelten, Artenwissen und echte Beobachtungen.</Text>
         <View style={styles.homeContextActions}>
-          <PrimaryButton tone={tone} label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
+          <PrimaryButton tone={tone} label="ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
           <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
         </View>
       </View>
@@ -1386,7 +1410,7 @@ function LiveHomeWorlds({
     <View style={styles.liveWorlds}>
       <View style={styles.grid}>
         {worlds.map(world => (
-          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} />
+          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} imageMode />
         ))}
       </View>
       {selected ? (
@@ -1396,7 +1420,7 @@ function LiveHomeWorlds({
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
           </View>
           <View style={[styles.grid, styles.gridCompact]}>
-            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact />)}
+            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact imageMode />)}
           </View>
         </View>
       ) : null}
@@ -3662,11 +3686,13 @@ function ObservatoryActionRow({
   action,
   compact = false,
   active = false,
+  imageMode = false,
 }: {
   tone: Tone;
   action: Action;
   compact?: boolean;
   active?: boolean;
+  imageMode?: boolean;
 }) {
   const cardTone = action.area ? TONES[action.area] : tone;
   return (
@@ -3687,6 +3713,7 @@ function ObservatoryActionRow({
       }}
     >
       <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact]}>
+          {imageMode ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact]} /> : null}
           <View
             style={[
               styles.observatoryActionIcon,
@@ -4099,57 +4126,13 @@ function BottomNavigation({
   inset: number;
   onSelect: (screen: Screen) => void;
 }) {
-  const tabs: Array<{
-    id: BottomTab;
-    screen: Screen;
-    label: string;
-    icon: IconName;
-    color: string;
-  }> = [
-    {
-      id: "discover",
-      screen: "home",
-      label: "Entdecken",
-      icon: "compass-outline",
-      color: c.botany,
-    },
-    {
-      id: "map",
-      screen: "explore",
-      label: "Karte",
-      icon: "map-outline",
-      color: c.botany,
-    },
-    {
-      id: "capture",
-      screen: "photo",
-      label: "Erfassen",
-      icon: "camera-outline",
-      color: c.botany,
-    },
-      {
-        id: "catalog",
-        screen: "search",
-        label: "Katalog",
-        icon: "book-outline",
-        color: c.botany,
-      },
-      {
-        id: "community",
-        screen: "community",
-        label: "Community",
-        icon: "people-outline",
-        color: c.botany,
-      },
-      {
-        id: "profile",
-      screen: "profile",
-      label: "Profil",
-      icon: "person-outline",
-      color: c.botany,
-    },
+  const tabs: Array<{ id: BottomTab; screen: Screen; label: string; icon: IconName; color: string }> = [
+    { id: "home", screen: "home", label: "Home", icon: "home-outline", color: c.botany },
+    { id: "discover", screen: "explore", label: "Entdecken", icon: "compass-outline", color: c.botany },
+    { id: "community", screen: "community", label: "Community", icon: "people-outline", color: c.botany },
+    { id: "profile", screen: "profile", label: "Profil", icon: "person-outline", color: c.botany },
   ];
-  const activeId: BottomTab = active === "home" ? "discover" : active === "explore" ? "map" : active === "marketplace" ? "discover" : active === "builder" ? "profile" : active;
+  const activeId: BottomTab = active === "home" ? "home" : active === "community" ? "community" : active === "profile" || active === "marketplace" || active === "builder" ? "profile" : "discover";
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
@@ -4448,7 +4431,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     justifyContent: "center",
   },
-  homeContextHeader: { minHeight: 168 },
+  homeContextHeader: { minHeight: 276 },
   observatoryContextImage: { borderRadius: 15 },
   observatoryContextShade: {
     ...StyleSheet.absoluteFill,
@@ -4487,6 +4470,10 @@ const styles = StyleSheet.create({
   },
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
   homeContextActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  homeStatusStrip: { minHeight: 72, borderRadius: 16, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 6, flexDirection: "row", justifyContent: "space-around", gap: 2 },
+  homeStatusItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, borderRightWidth: 1, borderRightColor: "rgba(199,243,91,.12)" },
+  homeStatusLabel: { fontSize: 7, fontWeight: "900", letterSpacing: 0.7 },
+  homeStatusValue: { color: c.muted, fontSize: 8, fontWeight: "800" },
   liveWorlds: { gap: 10 },
   liveTrackPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 8 },
   liveTrackButtons: { flexDirection: "row", gap: 8, marginTop: 4 },
@@ -4554,6 +4541,8 @@ const styles = StyleSheet.create({
     padding: 8,
     gap: 7,
   },
+  observatoryActionMedia: { width: 72, height: 72, borderRadius: 9, backgroundColor: "rgba(0,0,0,.28)" },
+  observatoryActionMediaCompact: { width: 54, height: 54, borderRadius: 7 },
   observatoryActionIcon: {
     width: 30,
     height: 30,
