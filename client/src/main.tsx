@@ -47,7 +47,9 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: window.location.hostname === "bwlparity-nearrhpw.manus.space" || window.location.hostname === "blackwaterleaf.com" || window.location.hostname === "www.blackwaterleaf.com"
+        ? "https://3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer/api/trpc"
+        : "/api/trpc",
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies

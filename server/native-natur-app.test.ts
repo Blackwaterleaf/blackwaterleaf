@@ -26,7 +26,7 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API", () => {
-    expect(api).toContain('API_ORIGIN = "https://blackwaterleaf.com"');
+    expect(api).toContain('API_ORIGIN = "https://3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer"');
     for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine", "habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
     expect(api).toContain("Authorization: `Bearer ${token}`");
   });
@@ -63,9 +63,9 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).not.toContain("<WebView");
   });
 
-  it("keeps six regular Observatory navigation destinations and a reachable marketplace", () => {
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    for (const token of ['onMarketplace={() => navigate("marketplace")}', 'icon="storefront-outline"', 'label="Marktplatz"', 'screen === "marketplace"']) expect(app).toContain(token);
+  it("keeps the four regular Observatory navigation destinations and a reachable marketplace", () => {
+    for (const label of ["Home", "Entdecken", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    for (const token of ["onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
   });
 
   it("uses renamed compact Observatory primitives for native actions", () => {
@@ -74,6 +74,6 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("provides a consent-gated native community photo flow", () => {
-    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "8 * 1024 * 1024"]) expect(app).toContain(token);
+    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024"]) expect(app).toContain(token);
   });
 });

@@ -4,6 +4,11 @@ import helmet from "helmet";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
+const TRUSTED_APP_ORIGINS = new Set([
+  "blackwaterleaf.com",
+  "www.blackwaterleaf.com",
+  "bwlparity-nearrhpw.manus.space",
+]);
 
 export function isSessionPayloadBoundToApp(
   payload: Record<string, unknown>,
@@ -53,7 +58,7 @@ export function sameOriginMutationGuard(req: Request, res: Response, next: NextF
 
   try {
     const originUrl = new URL(origin);
-    if (originUrl.host !== forwardedHost(req)) {
+    if (originUrl.host !== forwardedHost(req) && !TRUSTED_APP_ORIGINS.has(originUrl.hostname)) {
       res.status(403).json({ error: "origin_mismatch" });
       return;
     }

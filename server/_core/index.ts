@@ -27,6 +27,23 @@ async function startServer() {
   const server = createServer(app);
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    const origin = req.header("origin");
+    const trusted = origin && [
+      "https://blackwaterleaf.com",
+      "https://www.blackwaterleaf.com",
+      "https://bwlparity-nearrhpw.manus.space",
+    ].includes(origin);
+    if (trusted) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(trusted ? 204 : 403);
+    next();
+  });
   app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok", releaseId: process.env.RELEASE_ID ?? "development" }));
   app.get("/livez", (_req, res) => res.status(200).json({ status: "ok" }));
   app.get("/readyz", async (_req, res) => {
