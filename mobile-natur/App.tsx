@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useVideoPlayer, VideoView } from "expo-video";
+import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import {
   useCallback,
@@ -1414,7 +1415,7 @@ function LiveHomeWorlds({
         ))}
       </View>
       {selected ? (
-        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: selectedTone.panel }]}>
+        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: `${selectedTone.panel}E6`, shadowColor: selectedTone.accent, shadowOpacity: 0.42, shadowRadius: 18, elevation: 9 }]}>
           <View style={styles.inlineChoiceHeader}>
             <Text style={[styles.chip, { color: selectedTone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
@@ -3612,7 +3613,7 @@ function ObservatoryContextHeader({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99` }]}
+      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99`, shadowColor: tone.accent, shadowOpacity: 0.36, shadowRadius: 18, elevation: 8 }]}
       imageStyle={styles.observatoryContextImage}
     >
       <View style={styles.observatoryContextShade} />
@@ -3703,7 +3704,7 @@ function ObservatoryActionRow({
       style={({ pressed }) => [
         styles.observatoryActionRow,
         compact && styles.observatoryActionRowCompact,
-        { borderColor: `${cardTone.accent}77`, backgroundColor: cardTone.panel },
+        { borderColor: `${cardTone.accent}77`, backgroundColor: `${cardTone.panel}D9`, shadowColor: cardTone.accent, shadowOpacity: 0.38, shadowRadius: 14, elevation: 7 },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
       ]}
@@ -4098,22 +4099,26 @@ function Page({
   refreshing?: boolean;
 }) {
   return (
-    <FlatList
-      data={["content"]}
-      keyExtractor={item => item}
-      contentContainerStyle={styles.page}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={
-        refresh ? (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refresh}
-            tintColor={c.botany}
-          />
-        ) : undefined
-      }
-      renderItem={() => <View style={styles.stack}>{children}</View>}
-    />
+    <ImageBackground source={ASSETS.home} style={styles.pageBackdrop} imageStyle={styles.pageBackdropImage}>
+      <View style={styles.pageBackdropShade} />
+      <BlurView intensity={22} tint="dark" style={styles.pageBackdropBlur} />
+      <FlatList
+        data={["content"]}
+        keyExtractor={item => item}
+        contentContainerStyle={styles.page}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          refresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor={c.botany}
+            />
+          ) : undefined
+        }
+        renderItem={() => <View style={styles.stack}>{children}</View>}
+      />
+    </ImageBackground>
   );
 }
 
@@ -4421,7 +4426,11 @@ const styles = StyleSheet.create({
   },
   headerActionIconWrap: { position: "relative" },
   headerUnreadBadge: { position: "absolute", top: -8, right: -11, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, color: c.bg, fontSize: 8, lineHeight: 15, textAlign: "center", fontWeight: "900" },
-  page: { padding: 16, paddingBottom: 118 },
+  pageBackdrop: { flex: 1, backgroundColor: c.bg },
+  pageBackdropImage: { opacity: 0.42 },
+  pageBackdropShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.58)" },
+  pageBackdropBlur: { ...StyleSheet.absoluteFill, opacity: 0.5 },
+  page: { padding: 16, paddingBottom: 142 },
   stack: { gap: 13 },
   flex: { flex: 1 },
   observatoryContextHeader: {
@@ -4430,6 +4439,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     justifyContent: "center",
+    shadowColor: c.botany,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 5,
   },
   homeContextHeader: { minHeight: 276 },
   observatoryContextImage: { borderRadius: 15 },
@@ -4496,7 +4509,7 @@ const styles = StyleSheet.create({
   liveMessage: { padding: 10, borderRadius: 10, backgroundColor: "rgba(0,0,0,.16)", gap: 5 },
   liveMessageMeta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   commentActionRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignItems: "center" },
-  inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9 },
+  inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9, backgroundColor: "rgba(8,20,14,.78)", shadowColor: c.aqua, shadowOpacity: 0.28, shadowRadius: 18, elevation: 8 },
   inlineChoiceHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   analysisLoading: {
     minHeight: 66,
@@ -4506,6 +4519,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
+    backgroundColor: "rgba(23,12,42,.72)",
+    shadowColor: c.ai,
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6,
   },
   analysisLoadingCopy: { flex: 1, gap: 4 },
   headingTitle: {
@@ -4524,6 +4542,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
     backgroundColor: c.surface,
+    shadowColor: c.botany,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
   },
   observatoryActionRowCompact: {
     minHeight: 58,
@@ -4651,6 +4673,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     textAlign: "center",
+    backgroundColor: "rgba(8,22,14,.72)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.22,
+    shadowRadius: 16,
+    elevation: 6,
   },
   emptyTitle: {
     color: c.text,
@@ -4740,7 +4767,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0.5,
   },
-  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1 },
+  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, shadowOpacity: 0.3, shadowRadius: 18, elevation: 7 },
   toolTabs: { flexDirection: "row", gap: 7 },
   toolTab: {
     flex: 1,
@@ -4992,6 +5019,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,
+    backgroundColor: "rgba(8,20,14,.62)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
+    elevation: 5,
   },
   realmText: { color: c.text, fontSize: 8, fontWeight: "900", textAlign: "center" },
   switchRow: {
@@ -5051,7 +5083,11 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 1,
     color: c.text,
-    backgroundColor: "rgba(0,0,0,.2)",
+    backgroundColor: "rgba(12,25,17,.58)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
+    elevation: 4,
     fontSize: 13,
   },
   tabs: {
@@ -5066,6 +5102,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(199,243,91,.24)",
     backgroundColor: "rgba(2,12,6,.96)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.3,
+    shadowRadius: 18,
+    elevation: 10,
   },
   tab: {
     flex: 1,
@@ -5174,12 +5214,12 @@ const styles = StyleSheet.create({
   explorePanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 10 },
   explorePanelHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   exploreStatus: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 9, borderWidth: 1 },
-  exploreStatusDot: { width: 7, height: 7, borderRadius: 4 },
+  exploreStatusDot: { width: 8, height: 8, borderRadius: 4, shadowColor: c.gold, shadowOpacity: 0.9, shadowRadius: 9, elevation: 6 },
   exploreFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   exploreFilter: { paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
   exploreFilterText: { fontSize: 9, fontWeight: "900" },
   exploreViewRow: { flexDirection: "row", gap: 6 },
-  exploreViewButton: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
+  exploreViewButton: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11, borderWidth: 1, backgroundColor: "rgba(8,20,14,.62)" },
   exploreMap: { height: 248, overflow: "hidden", borderRadius: 14, borderWidth: 1 },
   exploreMapImage: { flex: 1 },
   exploreMapImageStyle: { borderRadius: 13 },

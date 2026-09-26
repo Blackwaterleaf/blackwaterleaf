@@ -501,3 +501,11 @@ Die Native-App verwendet jetzt einen bildstarken Home-Einstieg mit neuem BlackWa
 Die vier Home-Fachkarten zeigen echte Bereichsbilder und führen in Botanik, Aquaristik, Terraristik und den KI-Assistenten. Die Native-Hauptnavigation wurde auf **Home · Entdecken · Community · Profil** vereinheitlicht. Karte, Erfassen und Katalog bleiben als fachliche Ziele innerhalb der jeweiligen Bereiche erreichbar und konkurrieren nicht mehr mit der persönlichen Home-Navigation.
 
 Der KI-Tone verwendet jetzt ausschließlich Violett/Indigo als Primärakzent. Botanik, Aquaristik, Terraristik und Community behalten ihre eigenen Bereichsfarben. Die Home- und KI-Bildwelt bleibt voneinander unterscheidbar.
+
+
+## 15.17 Expo-Visual-QA und verbindliche Oberflächenkorrekturen
+Die Expo-Aufnahme vom 26.09.2026 zeigte auf mehreren Native-Screens flache Vollflächen, fehlende atmosphärische Hintergründe, nur teilweise sichtbare Bereichsfarben, fehlende Neon-Bloom-Effekte, opake statt gläserne Karten und zu wenig vertikale Freifläche über der schwebenden Navigation.
+
+Die Native-App verwendet deshalb auf jeder Page eine dunkle, bildgebundene Observatory-Grundschicht mit kontrollierter Abdunklung und BlurView. Zentrale Kontext-Header, Fachkarten, Status-/Empty-States, KI-Workflowflächen, Suche, Modalauswahl und Navigation erhalten transparente Glasflächen, weiche bereichsabhängige Schatten und sichtbare Neon-Glows. Lime bleibt Botanik/Home, Cyan Aquaristik/Karte, Naturgold Terraristik/Sync und Violett/Indigo ausschließlich KI.
+
+Die Karte/Liste-Steuerung erhält größere Touch-Flächen. Sync-Punkte werden als leuchtende Status-LED dargestellt. Page-Inhalte erhalten zusätzlichen unteren Abstand, damit „Echte Daten“ und andere Statusbanner nicht hinter der schwebenden Navigation verschwinden. Überschriften werden in leeren Zuständen zurückhaltender skaliert; Bildflächen und Bereichsfarben bleiben die primäre visuelle Orientierung.
