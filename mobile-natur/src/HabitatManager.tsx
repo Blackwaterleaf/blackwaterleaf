@@ -64,6 +64,8 @@ const backgrounds: Record<HabitatKind, ImageSourcePropType> = {
   aquarium: require("../assets/aquarium-reference.jpg"),
   terrarium: require("../assets/terrarium-reference.jpg"),
 };
+type CareStatus = Habitat["careStatus"];
+const careStatusLabels: Record<CareStatus, string> = { unknown: "UNBEKANNT", stable: "STABIL", attention: "ACHTUNG", critical: "KRITISCH" };
 
 type Props = {
   token: string;
@@ -88,6 +90,7 @@ export function HabitatManager({
   const [temperature, setTemperature] = useState("");
   const [humidity, setHumidity] = useState("");
   const [ph, setPh] = useState("");
+  const [careStatus, setCareStatus] = useState<CareStatus>("unknown");
   const [equipment, setEquipment] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
@@ -111,6 +114,7 @@ export function HabitatManager({
     setTemperature("");
     setHumidity("");
     setPh("");
+    setCareStatus("unknown");
     setEquipment("");
     setNotes("");
     setPhotos([]);
@@ -154,6 +158,7 @@ export function HabitatManager({
     setTemperature(value(item.kind === "terrarium" ? "dayTemperatureC" : "temperatureC"));
     setHumidity(value("humidityPercent"));
     setPh(value("ph"));
+    setCareStatus(item.careStatus ?? "unknown");
     setEquipment(value("equipment"));
     setNotes(value("notes"));
     setPhotos([]);
@@ -191,6 +196,7 @@ export function HabitatManager({
         ? {
             kind,
             name: name.trim(),
+            careStatus,
             details: {
               scientificName: nullable(scientificName),
               quantity: null,
@@ -209,6 +215,7 @@ export function HabitatManager({
           ? {
               kind,
               name: name.trim(),
+              careStatus,
               details: {
                 volumeLiters: null,
                 lengthCm: null,
@@ -230,6 +237,7 @@ export function HabitatManager({
           : {
               kind,
               name: name.trim(),
+              careStatus,
               details: {
                 volumeLiters: null,
                 lengthCm: null,
@@ -470,6 +478,10 @@ export function HabitatManager({
                 placeholder="optional"
                 multiline
               />
+              <View style={styles.careStatusBlock} accessibilityLabel="Pflegezustand">
+                <Text style={[styles.label, { color: accent }]}>PFLEGEZUSTAND</Text>
+                <View style={styles.careStatusRow}>{(Object.keys(careStatusLabels) as CareStatus[]).map(status => <Pressable key={status} accessibilityRole="button" accessibilityState={{ selected: careStatus === status }} onPress={() => setCareStatus(status)} style={[styles.careStatusOption, { borderColor: `${accent}88`, backgroundColor: careStatus === status ? `${accent}30` : surface.page }]}><Text style={[styles.careStatusOptionText, { color: careStatus === status ? accent : c.text }]}>{careStatusLabels[status]}</Text></Pressable>)}</View>
+              </View>
               <Pressable
                 style={[styles.photoButton, { borderColor: `${accent}88`, backgroundColor: surface.page }]}
                 onPress={() => void choosePhotos()}
@@ -560,6 +572,8 @@ function statusChips(item: Habitat) {
   if (temperature) chips.push({ label: "TEMP", value: `${temperature} °C` });
   if (humidity) chips.push({ label: "LUFT", value: `${humidity} %` });
   if (ph) chips.push({ label: "pH", value: ph });
+  if (item.careStatus !== "unknown") chips.push({ label: "PFLEGE", value: careStatusLabels[item.careStatus] });
+  if (item.updatedAt) chips.push({ label: "AKTUALISIERT", value: new Date(item.updatedAt).toLocaleDateString("de-DE") });
   return chips;
 }
 function Field({
@@ -686,6 +700,10 @@ const styles = StyleSheet.create({
   imageDeleteOverlay: { position: "absolute", right: 4, bottom: 4, width: 25, height: 25, borderRadius: 7, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.88)", borderWidth: 1, borderColor: c.danger },
   cardActions: { position: "absolute", top: 12, right: 12 },
   cardIconButton: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.86)", borderWidth: 1, borderColor: c.border },
+  careStatusBlock: { marginTop: 8 },
+  careStatusRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
+  careStatusOption: { borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 7 },
+  careStatusOptionText: { fontSize: 9, fontWeight: "900" },
   statusRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
   statusChip: { flexDirection: "row", gap: 4, alignItems: "center", paddingHorizontal: 7, paddingVertical: 4, borderRadius: 99, borderWidth: 1, backgroundColor: "rgba(3,17,8,.68)" },
   statusLabel: { fontSize: 8, fontWeight: "900" },

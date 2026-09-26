@@ -1,9 +1,11 @@
+import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 
-// The custom domain is protected by an edge rule that can return a non-JSON
-// 1010/HTML response to native clients. Use the stable project origin for API
-// calls; the public web domains continue to serve the same deployed project.
-export const API_ORIGIN = "https://3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer";
+// The build may override this with EXPO_PUBLIC_API_ORIGIN. EAS builds read the
+// same value from app.json extra.apiOrigin, so no temporary sandbox URL is baked
+// into the native binary.
+const configuredApiOrigin = process.env.EXPO_PUBLIC_API_ORIGIN?.trim() || String(Constants.expoConfig?.extra?.apiOrigin ?? "").trim();
+export const API_ORIGIN = (configuredApiOrigin || "https://blackwaterleaf.com").replace(/\/+$/, "");
 export const NATIVE_TOKEN_KEY = "blackwaterleaf.session_token.v1";
 
 export type LiveTrack = "community" | "expert";
@@ -45,6 +47,7 @@ export type HabitatPayload =
   | {
       kind: "plant";
       name: string;
+      careStatus: "unknown" | "stable" | "attention" | "critical";
       details: {
         scientificName: string | null;
         quantity: number | null;
@@ -62,6 +65,7 @@ export type HabitatPayload =
   | {
       kind: "aquarium";
       name: string;
+      careStatus: "unknown" | "stable" | "attention" | "critical";
       details: {
         volumeLiters: number | null;
         lengthCm: number | null;
@@ -83,6 +87,7 @@ export type HabitatPayload =
   | {
       kind: "terrarium";
       name: string;
+      careStatus: "unknown" | "stable" | "attention" | "critical";
       details: {
         volumeLiters: number | null;
         lengthCm: number | null;
@@ -218,6 +223,7 @@ export type Habitat = {
   id: number;
   kind: HabitatKind;
   name: string;
+  careStatus: "unknown" | "stable" | "attention" | "critical";
   details: Record<string, unknown>;
   images?: Array<{ id: string; accessUrl: string; mimeType: string }>;
   updatedAt: string;

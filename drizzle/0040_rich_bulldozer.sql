@@ -1,0 +1,1 @@
+ALTER TABLE `private_habitats` ADD `careStatus` enum('unknown','stable','attention','critical') DEFAULT 'unknown' NOT NULL;

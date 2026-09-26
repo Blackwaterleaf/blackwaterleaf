@@ -11,12 +11,13 @@ type HabitatRecord = {
   ownerId: string;
   kind: HabitatKind;
   name: string;
+  careStatus: "unknown" | "stable" | "attention" | "critical";
   details: Record<string, unknown>;
   images?: Array<{ id: string; accessUrl: string; mimeType: string }>;
   createdAt: string;
   updatedAt: string;
 };
-type FormValues = Record<string, string> & { kind: HabitatKind; name: string };
+type FormValues = Record<string, string> & { kind: HabitatKind; name: string; careStatus: HabitatRecord["careStatus"] };
 
 const META: Record<HabitatKind, { accent: string; icon: typeof Fish }> = {
   aquarium: { accent: "cyan", icon: Fish },
@@ -71,7 +72,7 @@ const FIELDS: Record<HabitatKind, { label: string; key: string; kind?: "number" 
 };
 
 function blankForm(kind: HabitatKind): FormValues {
-  return { kind, name: "" };
+  return { kind, name: "", careStatus: "unknown" };
 }
 
 function stringValue(value: unknown) {
@@ -80,7 +81,7 @@ function stringValue(value: unknown) {
 
 function recordToForm(record: HabitatRecord): FormValues {
   const details = record.details as Record<string, unknown>;
-  const form: FormValues = { kind: record.kind, name: record.name };
+  const form: FormValues = { kind: record.kind, name: record.name, careStatus: record.careStatus ?? "unknown" };
   for (const field of FIELDS[record.kind]) {
     if (field.key !== "name") form[field.key] = stringValue(details[field.key]);
   }
@@ -112,7 +113,7 @@ function dimensions(value: string) {
 function inputFromForm(form: FormValues): PrivateHabitatInput {
   if (form.kind === "aquarium") {
     return {
-      kind: "aquarium", name: form.name.trim(),
+      kind: "aquarium", name: form.name.trim(), careStatus: form.careStatus ?? "unknown",
       details: {
         volumeLiters: numberOrNull(form.volumeLiters ?? ""), ...dimensions(form.dimensions ?? ""),
         occupants: textOrNull(form.occupants ?? ""), plants: textOrNull(form.plants ?? ""),
@@ -125,7 +126,7 @@ function inputFromForm(form: FormValues): PrivateHabitatInput {
   }
   if (form.kind === "plant") {
     return {
-      kind: "plant", name: form.name.trim(),
+      kind: "plant", name: form.name.trim(), careStatus: form.careStatus ?? "unknown",
       details: {
         scientificName: textOrNull(form.scientificName ?? ""), quantity: numberOrNull(form.quantity ?? ""),
         location: textOrNull(form.location ?? ""), substrate: textOrNull(form.substrate ?? ""),
@@ -136,7 +137,7 @@ function inputFromForm(form: FormValues): PrivateHabitatInput {
     };
   }
   return {
-    kind: "terrarium", name: form.name.trim(),
+    kind: "terrarium", name: form.name.trim(), careStatus: form.careStatus ?? "unknown",
     details: {
       volumeLiters: numberOrNull(form.volumeLiters ?? ""), ...dimensions(form.dimensions ?? ""),
       occupants: textOrNull(form.occupants ?? ""), plants: textOrNull(form.plants ?? ""),
@@ -159,8 +160,9 @@ function habitatStatusChips(record: HabitatRecord) {
   if (record.kind === "terrarium") add("TAG", "dayTemperatureC", " °C");
   add("LUFTFEUCHTE", "humidityPercent", " %");
   add("PH", "ph");
-  add("PFLEGE", "careStatus");
-  add("PFLEGE", "careState");
+  const careLabels: Record<HabitatRecord["careStatus"], string> = { unknown: "UNBEKANNT", stable: "STABIL", attention: "ACHTUNG", critical: "KRITISCH" };
+  if (record.careStatus !== "unknown") chips.push({ label: "PFLEGE", value: careLabels[record.careStatus] });
+  if (record.updatedAt) chips.push({ label: "AKTUALISIERT", value: new Date(record.updatedAt).toLocaleDateString("de-DE") });
   return chips.slice(0, 4);
 }
 
@@ -253,7 +255,7 @@ export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visible
 
         {form ? <form className="habitat-editor" onSubmit={save}>
           <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>
-          <div className="form-grid">{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
+          <div className="form-grid"><label className="field"><span>Pflegezustand</span><select value={form.careStatus} onChange={event => setForm(current => current ? { ...current, careStatus: event.target.value as FormValues["careStatus"] } : current)}><option value="unknown">Noch nicht bewertet</option><option value="stable">Stabil</option><option value="attention">Achtung erforderlich</option><option value="critical">Kritisch</option></select></label>{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
           {editingId ? <div className="habitat-existing-images"><span>Gespeicherte Bilder</span>{(records.find(record => Number(record.id) === editingId)?.images ?? []).map(image => <div key={image.id}><button type="button" className="habitat-image-thumb" onClick={() => openGallery(records.find(record => Number(record.id) === editingId)?.images ?? [], (records.find(record => Number(record.id) === editingId)?.images ?? []).findIndex(candidate => candidate.id === image.id))}><img src={image.accessUrl} alt="Privates Anlagenbild" /></button><button type="button" className="icon-button" aria-label="Bild und Datei entfernen" onClick={() => void removeImage(String(editingId), image.id)} disabled={deleteImage.isPending}>{deleteImage.isPending ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}</button></div>)}</div> : null}
           <label className="habitat-image-picker"><span>Private Bilder hinzufügen · maximal 3</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={event => { setImageError(null); setImageFiles(Array.from(event.target.files ?? []).slice(0, 3)); }} />{imageFiles.length ? <small>{imageFiles.length} Bild{imageFiles.length === 1 ? "" : "er"} ausgewählt</small> : <small>JPG, PNG oder WebP · bleibt privat</small>}</label>
           {imageError ? <p className="form-status" role="alert">{imageError}</p> : null}

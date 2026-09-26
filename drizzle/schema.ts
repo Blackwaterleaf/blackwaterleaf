@@ -483,6 +483,7 @@ export const privateHabitats = mysqlTable(
       .references(() => users.id),
     kind: mysqlEnum("kind", ["aquarium", "plant", "terrarium"]).notNull(),
     name: varchar("name", { length: 128 }).notNull(),
+    careStatus: mysqlEnum("careStatus", ["unknown", "stable", "attention", "critical"]).default("unknown").notNull(),
     details: json("details").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

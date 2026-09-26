@@ -281,6 +281,13 @@
       "when": 1790462116572,
       "tag": "0039_condemned_violations",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1790465916563,
+      "tag": "0040_rich_bulldozer",
+      "breakpoints": true
     }
   ]
 }

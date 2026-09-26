@@ -16,7 +16,8 @@ describe("AP-21 shared realm map and catalogue surface", () => {
     expect(realm).toContain("KARTE &amp; LISTE");
     expect(realm).toContain("realm-observation-surface--${realm.tone}");
     expect(router).toContain("catalogByRealm: publicProcedure");
-    expect(router).toContain('if (input.realm === "terrarium") return []');
+    expect(router).toContain('if (input.realm === "terrarium")');
+    expect(router).toContain("terrariumTaxa");
   });
 
   it("does not invent geolocation pins and exposes protected-location wording", () => {

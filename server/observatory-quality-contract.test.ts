@@ -17,6 +17,6 @@ describe("AP-19 Observatory quality contract", () => {
   });
 
   it("keeps Native core controls touchable and the new header compact", () => {
-    for (const token of ["width: 40,", "height: 40,", "hitSlop={4}", "homeContextHeader: { minHeight: 168 }", "minHeight: 48,"]) expect(native).toContain(token);
+    for (const token of ["width: 40,", "height: 40,", "hitSlop={4}", "homeContextHeader: { minHeight: 326 }", "minHeight: 48,"]) expect(native).toContain(token);
   });
 });

@@ -257,6 +257,7 @@ export const partnerProductSchema = partnerProductInputSchema.extend({
 });
 
 export const privateHabitatKindSchema = z.enum(["aquarium", "plant", "terrarium"]);
+export const privateHabitatCareStatusSchema = z.enum(["unknown", "stable", "attention", "critical"]);
 
 const nullableNumber = (min: number, max: number) => z.number().finite().min(min).max(max).nullable();
 const nullableText = (max: number) => z.string().trim().max(max).nullable();
@@ -315,15 +316,16 @@ export const terrariumDetailsSchema = z
   .strict();
 
 export const privateHabitatInputSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("aquarium"), name: z.string().trim().min(1).max(128), details: aquariumDetailsSchema }),
-  z.object({ kind: z.literal("plant"), name: z.string().trim().min(1).max(128), details: plantDetailsSchema }),
-  z.object({ kind: z.literal("terrarium"), name: z.string().trim().min(1).max(128), details: terrariumDetailsSchema }),
+  z.object({ kind: z.literal("aquarium"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: aquariumDetailsSchema }),
+  z.object({ kind: z.literal("plant"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: plantDetailsSchema }),
+  z.object({ kind: z.literal("terrarium"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: terrariumDetailsSchema }),
 ]);
 
 export const privateHabitatSchema = privateHabitatInputSchema.and(
   z.object({
     id: z.string().min(1),
     ownerId: z.string().min(1),
+    careStatus: privateHabitatCareStatusSchema,
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   }),

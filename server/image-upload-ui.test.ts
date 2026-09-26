@@ -10,7 +10,7 @@ const realm = readFileSync(resolve(root, "client/src/pages/Realm.tsx"), "utf8");
 
 describe("mobile image upload contract", () => {
   it("resizes oversized phone photos before enforcing the server upload limit", () => {
-    expect(files).toContain("MAX_IMAGE_DIMENSION = 2400");
+    expect(files).toContain("MAX_IMAGE_DIMENSION = 4000");
     expect(files).toContain("ANALYSIS_IMAGE_DIMENSION = 1800");
     expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", quality)');
     expect(files).toContain("image_too_large_after_resize");
@@ -33,6 +33,6 @@ describe("mobile image upload contract", () => {
     expect(files).toContain('if (declared === "image/jpg") return "image/jpeg";');
     expect(files).toContain('if (extension === "jpg" || extension === "jpeg") return "image/jpeg";');
     expect(community).toContain("composeRef.current?.scrollIntoView");
-    expect(community).toContain("Android-Dateien mit fehlender Typkennung");
+    expect(community).toContain("Bild optional auswählen");
   });
 });

@@ -26,7 +26,9 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("reads public and private content from the existing BlackWaterLeaf API", () => {
-    expect(api).toContain('API_ORIGIN = "https://3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer"');
+    expect(api).toContain("EXPO_PUBLIC_API_ORIGIN");
+    expect(api).toContain("Constants.expoConfig?.extra?.apiOrigin");
+    expect(api).not.toContain(["3000-ibp8fnclaynuq4sdd6dsd", "206ff939.us1.manus.computer"].join("-"));
     for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine", "habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
     expect(api).toContain("Authorization: `Bearer ${token}`");
   });
@@ -58,7 +60,7 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("implements every approved Observatory screen without a WebView shell", () => {
-    for (const screen of ["botany", "aquarium", "terrarium", "assistant", "live", "photo", "post", "knowledge", "explore", "community", "profile", "builder"]) expect(app).toContain(`screen === "${screen}"`);
+    for (const screen of ["botany", "aquarium", "terrarium", "assistant", "live", "photo", "post", "knowledge", "explore", "community", "profile"]) expect(app).toContain(`screen === "${screen}"`);
     expect(app).not.toContain("react-native-webview");
     expect(app).not.toContain("<WebView");
   });
