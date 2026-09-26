@@ -2038,3 +2038,13 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .habitat-status-chip strong { color:inherit; font-size:.54rem; letter-spacing:.08em; }
 .habitat-status-chip em { color:#f3ffe9; font-style:normal; font-weight:700; }
 .habitat-record--cyan .habitat-status-chip { color:#70e9ff; } .habitat-record--gold .habitat-status-chip { color:#f1dd72; } .habitat-record--mint .habitat-status-chip { color:#c7f35b; }
+
+/* Compact staff controls: action icons stay legible without bulky text buttons. */
+.admin-icon-action { display:grid; width:34px; height:34px; padding:0; color:#dfffdc; border:1px solid rgba(178,245,158,.32); border-radius:9px; background:rgba(7,28,13,.88); place-items:center; }
+.admin-icon-action:hover { border-color:#bafa85; color:#bafa85; }
+.admin-icon-action--danger { color:#ffc0cf; border-color:rgba(255,91,150,.42); }
+.admin-icon-action:disabled { opacity:.5; cursor:not-allowed; }
+@media (min-width:520px) { .admin-grid:not(.admin-grid--single) { grid-template-columns:repeat(2,minmax(0,1fr)); } .admin-grid:not(.admin-grid--single) > .admin-panel:last-child { grid-column:1 / -1; } }
+@media (max-width:519px) { .admin-panel { padding:14px; } .admin-row { padding:11px; } }
+
+@media (min-width:360px) and (max-width:519px) { .admin-grid:not(.admin-grid--single) { grid-template-columns:repeat(2,minmax(0,1fr)); } .admin-grid:not(.admin-grid--single) > .admin-panel:last-child { grid-column:1 / -1; } .admin-grid:not(.admin-grid--single) .admin-panel { padding:12px; } .admin-grid:not(.admin-grid--single) .admin-panel h2 { font-size:1.45rem; } }

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   Image,
   ImageBackground,
   Pressable,
@@ -16,7 +17,9 @@ import {
 } from "react-native";
 import {
   createHabitat,
+  updateHabitat,
   uploadHabitatImage,
+  deleteHabitatImage,
   type Habitat,
   type HabitatKind,
   type HabitatPayload,
@@ -89,6 +92,9 @@ export function HabitatManager({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [photos, setPhotos] = useState<Array<{ uri: string; base64: string; mimeType: string }>>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [gallery, setGallery] = useState<{ images: NonNullable<Habitat["images"]>; index: number } | null>(null);
+  const [imagePending, setImagePending] = useState(false);
   const items = useMemo(
     () => habitats.filter(item => item.kind === kind),
     [habitats, kind]
@@ -108,6 +114,7 @@ export function HabitatManager({
     setEquipment("");
     setNotes("");
     setPhotos([]);
+    setEditingId(null);
   };
   const choosePhotos = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -133,6 +140,39 @@ export function HabitatManager({
   const nullable = (value: string) => value.trim() || null;
   const validNumber = (value: string) =>
     value.trim() === "" || Number.isFinite(number(value));
+
+  const openEdit = (item: Habitat) => {
+    const d = item.details;
+    const value = (key: string) => d[key] == null ? "" : String(d[key]);
+    setEditingId(item.id);
+    setKind(item.kind);
+    setName(item.name);
+    setScientificName(value("scientificName"));
+    setLocation(value("location"));
+    setOccupants(value("occupants"));
+    setPlants(value("plants"));
+    setTemperature(value(item.kind === "terrarium" ? "dayTemperatureC" : "temperatureC"));
+    setHumidity(value("humidityPercent"));
+    setPh(value("ph"));
+    setEquipment(value("equipment"));
+    setNotes(value("notes"));
+    setPhotos([]);
+    setOpen(true);
+  };
+  const openGallery = (images: NonNullable<Habitat["images"]>, index: number) => setGallery({ images, index });
+  const removeImage = async (habitatId: number, imageId: string) => {
+    const numericImageId = Number(imageId);
+    if (!Number.isInteger(numericImageId)) return;
+    Alert.alert("Bild löschen", "Dieses private Anlagenbild wirklich löschen?", [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Löschen", style: "destructive", onPress: async () => {
+        setImagePending(true);
+        try { await deleteHabitatImage(token, { habitatId, imageId: numericImageId }); await onSaved(); }
+        catch (cause) { Alert.alert("Bild konnte nicht gelöscht werden", cause instanceof Error ? cause.message : "Bitte versuche es später erneut."); }
+        finally { setImagePending(false); }
+      } },
+    ]);
+  };
 
   const submit = async () => {
     if (!name.trim()) {
@@ -207,7 +247,7 @@ export function HabitatManager({
             };
     setSaving(true);
     try {
-      const saved = await createHabitat(token, payload);
+      const saved = editingId ? await updateHabitat(token, { id: editingId, ...payload }) : await createHabitat(token, payload);
       for (const photo of photos) {
         await uploadHabitatImage(token, {
           habitatId: saved.id,
@@ -231,6 +271,7 @@ export function HabitatManager({
   };
 
   return (
+    <>
     <FlatList
       data={open ? [] : items}
       keyExtractor={item => String(item.id)}
@@ -302,7 +343,7 @@ export function HabitatManager({
               ]}
             >
               <View style={styles.formTop}>
-                <Text style={styles.formTitle}>{labels[kind]} ANLEGEN</Text>
+                <Text style={styles.formTitle}>{editingId ? `${labels[kind]} BEARBEITEN` : `${labels[kind]} ANLEGEN`}</Text>
                 <Pressable
                   onPress={() => {
                     setOpen(false);
@@ -451,7 +492,7 @@ export function HabitatManager({
                 disabled={saving}
               >
                 <Text style={styles.addText}>
-                  {saving ? "WIRD GESPEICHERT …" : "SICHER SPEICHERN"}
+                  {saving ? "WIRD GESPEICHERT …" : editingId ? "ÄNDERUNG SPEICHERN" : "SICHER SPEICHERN"}
                 </Text>
               </Pressable>
             </View>
@@ -493,15 +534,34 @@ export function HabitatManager({
                 {labels[item.kind]} · aktualisiert{" "}
                 {new Date(item.updatedAt).toLocaleDateString("de-DE")}
               </Text>
-              {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" />)}</View> : null}
+              {statusChips(item).length ? <View style={styles.statusRow} accessibilityLabel="Anlagenstatus">{statusChips(item).map(chip => <View key={chip.label} style={[styles.statusChip, { borderColor: accents[item.kind] }]}><Text style={[styles.statusLabel, { color: accents[item.kind] }]}>{chip.label}</Text><Text style={styles.statusValue}>{chip.value}</Text></View>)}</View> : null}
+              {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map((image, imageIndex) => <View key={image.id} style={styles.savedPhotoFrame}><Pressable accessibilityRole="button" accessibilityLabel="Anlagenbild vergrößern" onPress={() => openGallery(item.images ?? [], imageIndex)}><Image source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" /></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Anlagenbild löschen" style={styles.imageDeleteOverlay} disabled={imagePending} onPress={() => void removeImage(item.id, image.id)}><Ionicons name="trash-outline" size={13} color={c.danger} /></Pressable></View>)}</View> : null}
+              <View style={styles.cardActions}><Pressable accessibilityRole="button" accessibilityLabel={`${item.name} bearbeiten`} style={styles.cardIconButton} onPress={() => openEdit(item)}><Ionicons name="create-outline" size={15} color={accents[item.kind]} /></Pressable></View>
             </View>
           </View>
         </ImageBackground>
       )}
     />
+    <Modal visible={Boolean(gallery)} transparent animationType="fade" onRequestClose={() => setGallery(null)}>
+      <View style={styles.gallery}><Pressable style={styles.galleryClose} onPress={() => setGallery(null)} accessibilityLabel="Galerie schließen"><Ionicons name="close" size={23} color={c.text} /></Pressable>{gallery ? <><Image source={{ uri: gallery.images[gallery.index].accessUrl }} style={styles.galleryImage} resizeMode="contain" /><Text style={styles.galleryCount}>{gallery.index + 1} / {gallery.images.length}</Text>{gallery.images.length > 1 ? <><Pressable style={[styles.galleryNav, styles.galleryPrev]} onPress={() => setGallery(current => current ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length } : current)} accessibilityLabel="Vorheriges Bild"><Ionicons name="chevron-back" size={28} color={c.text} /></Pressable><Pressable style={[styles.galleryNav, styles.galleryNext]} onPress={() => setGallery(current => current ? { ...current, index: (current.index + 1) % current.images.length } : current)} accessibilityLabel="Nächstes Bild"><Ionicons name="chevron-forward" size={28} color={c.text} /></Pressable></> : null}</> : null}</View>
+    </Modal>
+    </>
   );
 }
 
+
+function statusChips(item: Habitat) {
+  const d = item.details;
+  const value = (key: string) => d[key] == null || d[key] === "" ? null : String(d[key]);
+  const chips: Array<{ label: string; value: string }> = [];
+  const temperature = value(item.kind === "terrarium" ? "dayTemperatureC" : "temperatureC");
+  const humidity = value("humidityPercent");
+  const ph = value("ph");
+  if (temperature) chips.push({ label: "TEMP", value: `${temperature} °C` });
+  if (humidity) chips.push({ label: "LUFT", value: `${humidity} %` });
+  if (ph) chips.push({ label: "pH", value: ph });
+  return chips;
+}
 function Field({
   accent,
   surface,
@@ -621,7 +681,15 @@ const styles = StyleSheet.create({
   photoStrip: { flexDirection: "row", gap: 8 },
   photoThumb: { width: 96, height: 96, borderRadius: 10, borderWidth: 1, borderColor: c.border },
   savedPhotoStrip: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9, width: "100%" },
-  savedPhotoThumb: { width: "31%", aspectRatio: 1, borderRadius: 10, borderWidth: 1, borderColor: c.border },
+  savedPhotoFrame: { width: "31%", aspectRatio: 1, position: "relative" },
+  savedPhotoThumb: { width: "100%", height: "100%", borderRadius: 10, borderWidth: 1, borderColor: c.border },
+  imageDeleteOverlay: { position: "absolute", right: 4, bottom: 4, width: 25, height: 25, borderRadius: 7, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.88)", borderWidth: 1, borderColor: c.danger },
+  cardActions: { position: "absolute", top: 12, right: 12 },
+  cardIconButton: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.86)", borderWidth: 1, borderColor: c.border },
+  statusRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
+  statusChip: { flexDirection: "row", gap: 4, alignItems: "center", paddingHorizontal: 7, paddingVertical: 4, borderRadius: 99, borderWidth: 1, backgroundColor: "rgba(3,17,8,.68)" },
+  statusLabel: { fontSize: 8, fontWeight: "900" },
+  statusValue: { color: c.text, fontSize: 10, fontWeight: "800" },
   empty: {
     minHeight: 165,
     padding: 22,
@@ -661,4 +729,11 @@ const styles = StyleSheet.create({
   },
   itemBody: { flex: 1, gap: 3 },
   itemTitle: { color: c.text, fontSize: 14, fontWeight: "800" },
+  gallery: { flex: 1, backgroundColor: "rgba(1,8,4,.97)", alignItems: "center", justifyContent: "center" },
+  galleryImage: { width: "100%", height: "78%" },
+  galleryClose: { position: "absolute", zIndex: 2, top: 48, right: 20, width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,18,9,.86)", borderWidth: 1, borderColor: c.border },
+  galleryCount: { position: "absolute", bottom: 44, color: c.mint, fontSize: 12, fontWeight: "900" },
+  galleryNav: { position: "absolute", top: "48%", width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,18,9,.86)", borderWidth: 1, borderColor: c.border },
+  galleryPrev: { left: 16 },
+  galleryNext: { right: 16 },
 });

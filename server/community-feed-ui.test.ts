@@ -8,7 +8,7 @@ const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 describe("Observatory community feed interface", () => {
   it("keeps the existing realm selection while presenting a public, moderated feed", () => {
     const page = read("client/src/pages/Community.tsx");
-    for (const token of ["ObservatoryContextHeader", "ÖFFENTLICHER FACHFEED", "community-feed-command", "community-feed-filters", "aria-pressed", "QUELLENBASIERT", "Nur veröffentlichte Beiträge aktiver Konten"]) expect(page).toContain(token);
+    for (const token of ["ObservatoryContextHeader", "ÖFFENTLICHER FACHFEED", "community-feed-command", "community-feed-filters", "aria-pressed", "QUELLENBASIERT", "Aktive · veröffentlichte Beiträge"]) expect(page).toContain(token);
     for (const filter of ["Feed", "Botanik", "Aquaristik", "Terraristik"]) expect(page).toContain(filter);
   });
 

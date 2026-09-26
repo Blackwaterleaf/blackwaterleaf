@@ -428,10 +428,14 @@ export const privateHabitats = (token: string) =>
   trpcGet<Habitat[]>("habitats.mine", undefined, token);
 export const createHabitat = (token: string, input: HabitatPayload) =>
   trpcPost<Habitat>("habitats.create", input, token);
+export const updateHabitat = (token: string, input: HabitatPayload & { id: number }) =>
+  trpcPost<Habitat>("habitats.update", input, token);
 export const uploadHabitatImage = (
   token: string,
   input: { habitatId: number; base64: string; mimeType: string }
 ) => trpcPost<{ id: string; accessUrl: string }>("habitats.uploadImage", input, token);
+export const deleteHabitatImage = (token: string, input: { habitatId: number; imageId: number }) =>
+  trpcPost<{ ok: true }>("habitats.deleteImage", input, token);
 export const privateObservations = (token: string) =>
   trpcGet<Observation[]>("observations.mine", undefined, token);
 export const publicObservations = (realm?: "botany" | "aquarium" | "terrarium") =>
