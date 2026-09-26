@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 
 /** AP-01: release freeze for unresolved P0 paths. Gates fail closed. */
 export const P0_SAFETY_GATES = {
-  mediaUpload: { active: true, packageId: "AP-03/AP-04", messageKey: "media_upload_safety_review_active", summary: "Medien-Uploads sind während der Sicherheitsprüfung vorübergehend pausiert." },
+  mediaUpload: { active: false, packageId: "AP-03/AP-04", messageKey: "media_upload_enabled", summary: "Medien-Uploads sind mit Ownership-, MIME-, Signatur-, Größen- und Consent-Prüfung aktiv." },
   publicPublication: { active: true, packageId: "AP-07/AP-08", messageKey: "public_publication_safety_review_active", summary: "Öffentliche Veröffentlichungen sind während der Moderationsprüfung vorübergehend pausiert." },
   marketplaceActivation: { active: true, packageId: "AP-09", messageKey: "marketplace_compliance_review_active", summary: "Neue öffentliche Marktplatzaktivierungen sind bis zur Compliance-Prüfung pausiert." },
   accountErasure: { active: true, packageId: "AP-05", messageKey: "account_erasure_safety_review_active", summary: "Die Kontolöschung ist bis zum vollständigen Löschprozess pausiert." },

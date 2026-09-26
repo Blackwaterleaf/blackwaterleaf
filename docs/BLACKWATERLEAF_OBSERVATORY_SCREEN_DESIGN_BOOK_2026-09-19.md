@@ -13,3 +13,7 @@ Die Karten verwenden eine opake bzw. getönte Fallbackstruktur und keine dauerha
 Das Host-Dashboard ist in Web und Native ausschließlich für das serverseitig geprüfte Eigentümerkonto `blackwaterleaf@gmail.com` zugänglich. Der Native-Management-Hub öffnet keine externe Web-Weiterleitung mehr, sondern eine eigene Dashboard-Ansicht mit denselben aggregierten Analytics-Daten wie Web: registrierte Konten, Seitenaufrufe, Besuche, Logins, Aufenthaltsdauer, Absprungrate und Top-Seiten. Diagramme werden als sparsame, zugängliche Balken dargestellt; Werte werden niemals simuliert.
 
 Native-Seiten mit fester Observatory-Bottom-Navigation reservieren ausreichend unteren Inhaltsabstand. Upload-Fortschritt, Medieneditor, Communitykarten und weitere Inhaltsflächen dürfen nicht hinter der Navigation liegen. Marketplace- und andere Leerzustände bleiben klar sichtbar und quellengetreu; es werden keine Platzhalterangebote oder erfundenen Grafiken ergänzt.
+
+## 15.21 Medienupload wieder aktiv
+
+Der bisherige Uploadfehler lag in der serverseitigen P0-Konfiguration: `mediaUpload` war trotz fertiger Uploadoberflächen global auf aktivem Blockierstatus. Dieser Gate ist jetzt deaktiviert. Bild- und Video-Uploads laufen weiterhin durch Eigentumsprüfung, aktuelle Medien-Einwilligung, MIME-/Container- und Signaturprüfung, Größenlimit, Metadatenbereinigung sowie geschützte Speicherung. Die Sperre für öffentliche Veröffentlichung bleibt davon getrennt bestehen.
