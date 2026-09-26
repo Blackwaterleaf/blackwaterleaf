@@ -1,4 +1,4 @@
-import { ExternalLink, ImageOff, Maximize2, X, ZoomIn } from "lucide-react";
+import { ExternalLink, ImageOff, Loader2, Maximize2, X, ZoomIn } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 type TaxonImageModalProps = {
@@ -26,6 +26,7 @@ export function TaxonImageModal({
 }: TaxonImageModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -76,7 +77,7 @@ export function TaxonImageModal({
       className="taxon-image-trigger"
       aria-haspopup="dialog"
       aria-label={`Detailansicht des Bildes von ${scientificName} öffnen`}
-      onClick={() => setIsOpen(true)}
+      onClick={() => { setImageFailed(false); setImageLoaded(false); setIsOpen(true); }}
     >
       <img src={imageUrl} alt={scientificName} onError={() => setImageFailed(true)} />
       <span className="taxon-image-trigger__veil" aria-hidden="true"><ZoomIn size={18} /><span>DETAILANSICHT</span></span>
@@ -89,7 +90,10 @@ export function TaxonImageModal({
           <button ref={closeRef} type="button" className="taxon-image-modal__close" onClick={close} aria-label="Bilddetailansicht schließen"><X size={21} /><span>SCHLIESSEN</span></button>
         </header>
         <figure className="taxon-image-modal__figure">
-          <img src={imageUrl} alt={`${scientificName} – verifiziertes Katalogbild in voller Ansicht`} onError={() => setImageFailed(true)} />
+          <div className={`taxon-image-modal__stage${imageLoaded ? " is-loaded" : ""}`}>
+            {!imageLoaded && !imageFailed ? <div className="taxon-image-modal__loading" role="status"><Loader2 size={24} className="spin" /><span>HOCHAUFLÖSENDES BILD WIRD GELADEN …</span></div> : null}
+            {imageFailed ? <div className="taxon-image-modal__failed" role="img" aria-label={`Bild von ${scientificName} konnte nicht geladen werden`}><ImageOff size={34} /><strong>BILD NICHT VERFÜGBAR</strong><span>Der Bildnachweis bleibt erhalten.</span></div> : <img src={imageUrl} alt={`${scientificName} – verifiziertes Katalogbild in voller Ansicht`} onLoad={() => setImageLoaded(true)} onError={() => { setImageFailed(true); setImageLoaded(false); }} />}
+          </div>
           <figcaption id={descriptionId}>
             <div><span>BILDNACHWEIS</span><strong>{imageAttribution ?? "Attribution hinterlegt"}</strong></div>
             {imageSourceUrl ? <a href={imageSourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} />Quellbeobachtung öffnen · {imageLicense ?? "Lizenzangabe"}</a> : <span className="taxon-image-modal__source-pending">Quellbeobachtung wird noch dokumentiert.</span>}

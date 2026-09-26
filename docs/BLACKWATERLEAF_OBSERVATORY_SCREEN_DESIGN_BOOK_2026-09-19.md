@@ -23,3 +23,7 @@ Der bisherige Uploadfehler lag in der serverseitigen P0-Konfiguration: `mediaUpl
 Alle fachlichen Aktionskarten verwenden vorhandene, verifizierte Bereichsbilder: Botanik grün, Aquaristik cyan, Terraristik gold und KI indigo/violett. Bildflächen erhalten eine dunkle Leseschicht, damit Text und Icons auf kleinen Displays sicher lesbar bleiben. Native Karten rendern die zugewiesene Medienquelle auch in visuellen Clusterkarten; Web-Karten verwenden dieselbe Quelle als Cover-Hintergrund.
 
 Mobile Layouts wechseln kontrolliert zwischen zwei und einer Spalte, reduzieren Innenabstände ohne Inhalte zu beschneiden, halten Filter und Kartensteuerungen tappbar und reservieren Abstand für die feste Bottom-Navigation. Es werden keine künstlichen Ersatzbilder oder erfundene Katalogdaten ergänzt; wenn ein Bildnachweis fehlt, bleibt der fachliche Leerzustand sichtbar.
+
+
+## 15.23 Bilddetailflächen · kein kollabierender Ladezustand
+Alle Bilddetailansichten verwenden eine stabile, responsive Bildfläche mit Mindesthöhe, `object-fit: contain`, sichtbarem Ladezustand und ehrlichem Fehlerfallback. Das gilt verbindlich für Katalog-/Taxonbilder, Community-Lightboxen, private Anlagenbilder und öffentliche Medien. Das Bild wird erst nach erfolgreichem Laden eingeblendet; ein fehlgeschlagener Abruf darf weder ein leeres Modal noch eine kollabierte Fläche erzeugen. Web und Native behalten Bildnachweis und Schließen-Aktion auch im Fehlerzustand.

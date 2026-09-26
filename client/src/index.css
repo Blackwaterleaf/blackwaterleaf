@@ -1966,3 +1966,15 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 }
 /* Contract marker: Community remains a first-class responsive destination. */
 @media (min-width: 901px) { .bottom-navigation { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+
+/* Global image-detail hardening: never allow a loading or failed image to collapse its surface. */
+.taxon-image-modal__stage { position:relative; display:grid; place-items:center; min-height:min(56dvh,560px); overflow:hidden; border:1px solid rgba(196,255,148,.28); border-radius:14px; background:radial-gradient(circle at center,rgba(25,74,36,.28),#021008 72%); }
+.taxon-image-modal__stage > img { display:block; width:100%; height:min(66dvh,760px); object-fit:contain; opacity:0; transition:opacity .18s ease; }
+.taxon-image-modal__stage.is-loaded > img { opacity:1; }
+.taxon-image-modal__loading, .taxon-image-modal__failed { display:grid; place-items:center; gap:9px; min-height:180px; padding:24px; color:#baf47f; text-align:center; font:800 .62rem/1.4 "JetBrains Mono",monospace; letter-spacing:.08em; }
+.taxon-image-modal__failed { color:#d8e8d8; }
+.taxon-image-modal__failed span { color:#a6c49d; font:500 .75rem/1.4 system-ui,sans-serif; letter-spacing:0; }
+.media-lightbox, .habitat-image-lightbox { padding:clamp(12px,3vw,42px); }
+.media-lightbox > img, .habitat-image-lightbox > img { display:block; width:min(100%,1100px); height:min(82dvh,820px); min-height:220px; object-fit:contain; margin:auto; border-radius:14px; background:#021008; }
+@media(max-width:640px){ .taxon-image-modal__stage { min-height:48dvh; } .taxon-image-modal__stage > img { height:57dvh; } .media-lightbox > img, .habitat-image-lightbox > img { height:76dvh; min-height:180px; } }

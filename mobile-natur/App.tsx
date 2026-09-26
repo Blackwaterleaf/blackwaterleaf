@@ -3579,11 +3579,13 @@ function TaxonMediaAttribution({ taxon, tone }: { taxon: PublicPlantTaxon; tone:
 
 function TaxonImageDetail({ taxon, tone, category }: { taxon: PublicPlantTaxon; tone: Tone; category: "PFLANZE" | "FISCH" }) {
   const [open, setOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   if (!taxon.imageUrl) return null;
-  const close = () => setOpen(false);
+  const close = () => { setOpen(false); setImageLoaded(false); setImageFailed(false); };
   return <>
-    <Pressable accessibilityRole="button" accessibilityLabel={`Detailansicht des Bildes von ${taxon.scientificName} öffnen`} onPress={() => setOpen(true)} style={({ pressed }) => [styles.taxonImageButton, { borderColor: `${tone.accent}88` }, pressed && styles.pressed]}>
-      <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} />
+    <Pressable accessibilityRole="button" accessibilityLabel={`Detailansicht des Bildes von ${taxon.scientificName} öffnen`} onPress={() => { setImageFailed(false); setImageLoaded(false); setOpen(true); }} style={({ pressed }) => [styles.taxonImageButton, { borderColor: `${tone.accent}88` }, pressed && styles.pressed]}>
+      <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} onError={() => setImageFailed(true)} />
       <View pointerEvents="none" style={styles.taxonImageDetailLabel}><Ionicons name="expand-outline" size={14} color="#effff0" /><Text style={styles.taxonImageDetailText}>DETAILANSICHT</Text></View>
     </Pressable>
     <Modal visible={open} animationType="fade" transparent statusBarTranslucent onRequestClose={close}>
@@ -3591,7 +3593,10 @@ function TaxonImageDetail({ taxon, tone, category }: { taxon: PublicPlantTaxon; 
         <Pressable accessibilityRole="button" accessibilityLabel="Bilddetailansicht schließen" style={StyleSheet.absoluteFill} onPress={close} />
         <View style={[styles.taxonImageModalCard, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]} accessibilityViewIsModal>
           <View style={styles.taxonImageModalHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>{category} · HOCHAUFLÖSENDES KATALOGBILD</Text><Text style={styles.taxonImageModalTitle}>{taxon.scientificName}</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Bilddetailansicht schließen" onPress={close} style={[styles.taxonImageModalClose, { borderColor: `${tone.accent}66` }]}><Ionicons name="close-outline" size={23} color={tone.accent} /></Pressable></View>
-          <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImageModalImage} resizeMode="contain" accessibilityLabel={`${taxon.scientificName} – verifiziertes Katalogbild in voller Ansicht`} />
+          <View style={styles.taxonImageModalStage}>
+            {!imageLoaded && !imageFailed ? <View style={styles.taxonImageModalLoading}><ActivityIndicator size="small" color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>HOCHAUFLÖSENDES BILD WIRD GELADEN …</Text></View> : null}
+            {imageFailed ? <View style={styles.taxonImageModalLoading}><Ionicons name="image-outline" size={34} color={tone.accent} /><Text style={styles.cardTitle}>BILD NICHT VERFÜGBAR</Text><Text style={styles.miniCopy}>Der Bildnachweis bleibt erhalten.</Text></View> : <Image source={{ uri: taxon.imageUrl }} style={[styles.taxonImageModalImage, !imageLoaded && { opacity: 0 }]} onLoad={() => setImageLoaded(true)} onError={() => { setImageFailed(true); setImageLoaded(false); }} resizeMode="contain" accessibilityLabel={`${taxon.scientificName} – verifiziertes Katalogbild in voller Ansicht`} />}
+          </View>
           <View style={[styles.taxonImageModalEvidence, { borderColor: `${tone.accent}33` }]}><Text style={[styles.chip, { color: tone.accent }]}>BILDNACHWEIS</Text><Text style={styles.miniCopy}>{taxon.imageAttribution ?? "Attribution hinterlegt"}</Text>{taxon.imageSourceUrl ? <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(taxon.imageSourceUrl!)}><Text style={[styles.taxonImageSourceLink, { color: tone.accent }]}>QUELLBEOBACHTUNG ÖFFNEN · {taxon.imageLicense ?? "LIZENZANGABE"}</Text></Pressable> : null}</View>
           <Text style={styles.taxonImageModalHint}>Originalbild lokal gespeichert · Zum Schließen außerhalb antippen oder X wählen.</Text>
         </View>
@@ -5241,6 +5246,8 @@ const styles = StyleSheet.create({
   taxonImageModalHeader: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
   taxonImageModalTitle: { color: c.text, fontSize: 25, lineHeight: 29, fontWeight: "900", letterSpacing: 0.3 },
   taxonImageModalClose: { width: 42, height: 42, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: 1 },
+  taxonImageModalStage: { minHeight: 300, width: "100%", borderRadius: 13, overflow: "hidden", backgroundColor: "#021008", alignItems: "center", justifyContent: "center" },
+  taxonImageModalLoading: { minHeight: 220, width: "100%", alignItems: "center", justifyContent: "center", gap: 9, padding: 20 },
   taxonImageModalImage: { width: "100%", height: 390, borderRadius: 13, backgroundColor: "#021008" },
   taxonImageModalEvidence: { gap: 6, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.16)" },
   taxonImageSourceLink: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
