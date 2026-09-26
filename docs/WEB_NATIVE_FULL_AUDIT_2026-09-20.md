@@ -105,3 +105,14 @@ Die mobile Profil-/Einstellungsauswahl wurde von einer flachen Liste auf vier ve
 4. **Einstellungen:** „Profil & Privatbereich“, „Datenschutz & Freigaben“, „Sprache & Einheiten“ und „Weitere Werkzeuge“ in einem einklappbaren Untermenü.
 
 „Profil öffnen“ bleibt als eigenständiger Identitäts-Einstieg oben. Dadurch werden keine Routen entfernt, aber die zehn gleichrangigen Menüpunkte aus dem Screenshot nicht mehr als ungeordnete Liste präsentiert. Die Benennungen bleiben mit den bestehenden Web-Routen und der Observatory-Informationshierarchie verbunden.
+
+
+## Karten- und Bildreparatur 26. September 2026
+
+Die erneute Mobile-Abnahme der Taxondetails bestätigt: Die verifizierten Alocasia-Bilder werden wieder vollständig und responsiv dargestellt, inklusive Detailansicht, Lizenz, Attribution und Quelllink. Die quellengebundene Reparatur hat **121 von 121** vorhandenen Bildkandidaten erneut gegen iNaturalist verifiziert, lokal gespeichert und ohne Fehler in den Katalog zurückgeschrieben (`open-taxon-image-import-receipt-2026-09.json`).
+
+Die Google-Kartenbasis war in der Preview-Umgebung nicht konfiguriert. Taxon-Herkunftskarten und `/explore` verwenden deshalb automatisch eine echte OpenStreetMap-Kartenfläche als schlüssellosen Fallback. Regionale Marker werden ausschließlich aus vorhandenen Habitat-/Herkunftsfeldern erzeugt; exakte Wildfundorte und private Beobachtungsorte bleiben geschützt. OpenStreetMap-Attribution ist sichtbar. Ein roter leerer Kartenfehler wird nicht mehr gezeigt, wenn die nutzbare Fallback-Karte geladen werden kann.
+
+Nicht für jede veröffentlichte Art existiert ein zulässiger, hochauflösender CC0-/CC-BY-Nachweis. Diese Datensätze behalten bewusst ihren offenen Bildnachweiszustand und erhalten keinen erfundenen Ersatz. Die direkte Suche `Alocasia odora`, `Alocasia macrorrhizos` und `Channa` liefert nach der Reparatur echte lokale Bild-URLs, sofern für den jeweiligen Datensatz ein verifizierter Kandidat vorliegt.
+
+Validierung dieses Nachtrags: Web-TypeScript, Karten-/Quellenregressionen und die vollständige Suite mit **87 Testdateien und 339 Tests** erfolgreich; Produktionsbuild und `git diff --check` sind erfolgreich.

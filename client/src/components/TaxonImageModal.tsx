@@ -1,4 +1,4 @@
-import { ExternalLink, Maximize2, X, ZoomIn } from "lucide-react";
+import { ExternalLink, ImageOff, Maximize2, X, ZoomIn } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 type TaxonImageModalProps = {
@@ -25,6 +25,7 @@ export function TaxonImageModal({
   category,
 }: TaxonImageModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -69,7 +70,7 @@ export function TaxonImageModal({
   }, [isOpen]);
 
   return <>
-    <button
+    {imageFailed ? <div className="plant-taxon-placeholder plant-taxon-placeholder--failed" role="img" aria-label={`Bild von ${scientificName} konnte nicht geladen werden`}><ImageOff size={38} /><span>Bild konnte nicht geladen werden</span><small>Der Bildnachweis bleibt erhalten; bitte später erneut versuchen.</small></div> : <button
       ref={triggerRef}
       type="button"
       className="taxon-image-trigger"
@@ -77,9 +78,9 @@ export function TaxonImageModal({
       aria-label={`Detailansicht des Bildes von ${scientificName} öffnen`}
       onClick={() => setIsOpen(true)}
     >
-      <img src={imageUrl} alt={scientificName} />
+      <img src={imageUrl} alt={scientificName} onError={() => setImageFailed(true)} />
       <span className="taxon-image-trigger__veil" aria-hidden="true"><ZoomIn size={18} /><span>DETAILANSICHT</span></span>
-    </button>
+    </button>}
 
     {isOpen ? <div className="taxon-image-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) close(); }}>
       <section ref={modalRef} className="taxon-image-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descriptionId}>
@@ -88,7 +89,7 @@ export function TaxonImageModal({
           <button ref={closeRef} type="button" className="taxon-image-modal__close" onClick={close} aria-label="Bilddetailansicht schließen"><X size={21} /><span>SCHLIESSEN</span></button>
         </header>
         <figure className="taxon-image-modal__figure">
-          <img src={imageUrl} alt={`${scientificName} – verifiziertes Katalogbild in voller Ansicht`} />
+          <img src={imageUrl} alt={`${scientificName} – verifiziertes Katalogbild in voller Ansicht`} onError={() => setImageFailed(true)} />
           <figcaption id={descriptionId}>
             <div><span>BILDNACHWEIS</span><strong>{imageAttribution ?? "Attribution hinterlegt"}</strong></div>
             {imageSourceUrl ? <a href={imageSourceUrl} target="_blank" rel="noreferrer"><ExternalLink size={15} />Quellbeobachtung öffnen · {imageLicense ?? "Lizenzangabe"}</a> : <span className="taxon-image-modal__source-pending">Quellbeobachtung wird noch dokumentiert.</span>}

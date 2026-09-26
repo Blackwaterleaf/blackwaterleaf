@@ -67,6 +67,9 @@ describe("scientific taxon source policy", () => {
     expect(router).toContain("unapproved_media_source");
     expect(router).toContain("catalog_image_license_not_reusable");
     expect(rangeMap).toContain("officialTaxonSource(source)");
-    expect(rangeMap).toContain("Quellengebundene Region · keine exakten Koordinaten");
+    expect(rangeMap).toContain("Regionale Orientierung · keine exakten Koordinaten");
+    expect(rangeMap).toContain("<MapView");
+    expect(rangeMap).toContain("regionale Orientierung");
+    expect(rangeMap).not.toContain("taxon-range-map__contour");
   });
 });

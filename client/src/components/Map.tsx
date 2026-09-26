@@ -76,9 +76,10 @@
 
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
+import { OpenStreetMap, type OpenStreetMapPoint } from "@/components/OpenStreetMap";
 
 declare global {
   interface Window {
@@ -125,6 +126,7 @@ interface MapViewProps {
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
   onMapError?: (error: Error) => void;
+  fallbackPoints?: OpenStreetMapPoint[];
 }
 
 export function MapView({
@@ -133,9 +135,11 @@ export function MapView({
   initialZoom = 12,
   onMapReady,
   onMapError,
+  fallbackPoints = [],
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
+  const [useOpenStreetMap, setUseOpenStreetMap] = useState(false);
 
   const init = usePersistFn(async () => {
     try {
@@ -156,7 +160,9 @@ export function MapView({
     } catch (error) {
       const normalized = error instanceof Error ? error : new Error("Kartenbasis konnte nicht initialisiert werden.");
       console.error(normalized);
-      onMapError?.(normalized);
+      setUseOpenStreetMap(true);
+      // The OSM surface is the truthful, keyless fallback. Do not turn a
+      // usable map fallback into a red error state in the parent surface.
     }
   });
 
@@ -164,7 +170,8 @@ export function MapView({
     init();
   }, [init]);
 
-  return (
-    <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />
-  );
+  if (useOpenStreetMap) {
+    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints} />;
+  }
+  return <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />;
 }

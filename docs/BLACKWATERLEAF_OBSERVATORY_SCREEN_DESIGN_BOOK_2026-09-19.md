@@ -358,3 +358,10 @@ Taxon-Herkunftskarten sind keine dekorativen Punktkarten. Sie dürfen nur geprü
 ### Profilmenü-Gruppierung 26. September 2026
 
 Das Drei-Striche-Profilmenü verwendet keine flache Liste mit gleichrangigen Aktionen. „Profil öffnen“ steht als Identitäts-Einstieg oben. Die übrigen Ziele werden in **Pflege & Anlagen**, **Kommunikation**, **Fortschritt & Merkliste** und ein einklappbares **Einstellungen**-Untermenü mit Profil/Privatbereich, Datenschutz/Freigaben, Sprache/Einheiten und weiteren Werkzeugen geordnet. Alle Gruppen verweisen auf echte bestehende Routen; kein Menüpunkt darf als reine Dekoration oder nicht verbundene Aktion erscheinen.
+
+
+### 15.7 Kartenanbieter-Fallback und Taxonmedien
+
+Die Kartenflächen bevorzugen die konfigurierte Google-Kartenbasis. Fehlt der Provider-Schlüssel oder kann Google nicht geladen werden, zeigt die Oberfläche automatisch eine echte OpenStreetMap-Karte über Leaflet statt eines dekorativen Hintergrunds oder eines leeren roten Containers. Die OpenStreetMap-Attribution bleibt sichtbar. Taxonkarten dürfen regionale Marker nur aus vorhandenen, quellengebundenen Habitat-/Herkunftsfeldern ableiten; sie dürfen keine exakten oder erfundenen Wildfundorte suggerieren. Öffentliche Beobachtungskarten zeigen ausschließlich ausdrücklich freigegebene generalisierte Ortsdaten.
+
+Verifizierte Katalogbilder werden lokal mit Quellenlink, Lizenz, Attribution und Prüfzeitpunkt dargestellt und bleiben responsiv mit stabiler Bildfläche. Fehlende Bildnachweise bleiben als offener Evidenzzustand sichtbar; unlizenzierte oder erfundene Ersatzbilder sind ausgeschlossen.
