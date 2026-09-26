@@ -36,14 +36,39 @@ export const adminRouter = router({
   }),
 
   broadcast: adminProcedure
-    .input(z.object({ content: z.string().trim().min(1).max(10_000), realm: z.enum(["botany", "aquarium", "terrarium"]).nullable() }))
+    .input(z.object({ content: z.string().trim().min(1).max(10_000), realm: z.enum(["botany", "aquarium", "terrarium"]).nullable(), publishAt: z.coerce.date().optional(), expiresAt: z.coerce.date().optional() }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const [inserted] = await db.insert(communityPosts).values({ userId: ctx.user.id, content: input.content, realm: input.realm, visibility: "public", status: "published" }).$returningId();
+      const publishAt = input.publishAt ?? new Date();
+      const status = publishAt > new Date() ? "draft" : "published";
+      const [inserted] = await db.insert(communityPosts).values({ userId: ctx.user.id, content: input.content, realm: input.realm, visibility: "public", status, publishAt, expiresAt: input.expiresAt }).$returningId();
       const postId = Number(inserted?.id);
       if (!postId) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "broadcast_not_created" });
       await appendAuditEntry({ actorId: ctx.user.id, action: "admin_feed_broadcast_created", targetType: "community_post", targetId: postId, payload: { realm: input.realm ?? "all", visibility: "public" } });
-      return { id: postId, realm: input.realm, visibility: "public" } as const;
+      return { id: postId, realm: input.realm, visibility: "public", status, publishAt: publishAt.toISOString(), expiresAt: input.expiresAt?.toISOString() ?? null } as const;
+    }),
+
+  broadcasts: adminProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, status: communityPosts.status, publishAt: communityPosts.publishAt, expiresAt: communityPosts.expiresAt, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt }).from(communityPosts).where(eq(communityPosts.userId, ctx.user.id)).orderBy(desc(communityPosts.createdAt)).limit(50);
+  }),
+
+  updateBroadcast: adminProcedure
+    .input(z.object({ id: z.number().int().positive(), content: z.string().trim().min(1).max(10_000), realm: z.enum(["botany", "aquarium", "terrarium"]).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const result = await db.update(communityPosts).set({ content: input.content, realm: input.realm }).where(and(eq(communityPosts.id, input.id), eq(communityPosts.userId, ctx.user.id)));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "admin_feed_broadcast_updated", targetType: "community_post", targetId: input.id, payload: { realm: input.realm ?? "all" } });
+      return { id: input.id, updated: result[0].affectedRows > 0 };
+    }),
+
+  retractBroadcast: adminProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const result = await db.update(communityPosts).set({ status: "hidden", visibility: "private" }).where(and(eq(communityPosts.id, input.id), eq(communityPosts.userId, ctx.user.id), eq(communityPosts.status, "published")));
+      await appendAuditEntry({ actorId: ctx.user.id, action: "admin_feed_broadcast_retracted", targetType: "community_post", targetId: input.id, payload: { after: "hidden" } });
+      return { id: input.id, retracted: result[0].affectedRows > 0 };
     }),
 
   publicPosts: staffProcedure.query(async () => {

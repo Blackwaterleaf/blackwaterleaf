@@ -267,6 +267,13 @@
       "when": 1790365622422,
       "tag": "0037_woozy_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1790447183522,
+      "tag": "0038_aspiring_strong_guy",
+      "breakpoints": true
     }
   ]
 }

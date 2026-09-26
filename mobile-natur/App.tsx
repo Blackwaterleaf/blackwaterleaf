@@ -2545,6 +2545,7 @@ function PostScreen({
   const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ percent: number; etaSeconds: number; label: string } | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
   const [showOwnPosts, setShowOwnPosts] = useState(false);
@@ -2606,6 +2607,7 @@ function PostScreen({
       return;
     }
     setSaving(true);
+    setUploadProgress({ percent: 8, etaSeconds: 5, label: "ENTWURF WIRD VORBEREITET" });
     setStatus(null);
     try {
       if (publishNow)
@@ -2625,18 +2627,25 @@ function PostScreen({
         realm,
       });
       if (postImage) {
+        setUploadProgress({ percent: 32, etaSeconds: 4, label: "BILD WIRD VERARBEITET" });
         const prepared = await ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true });
         if (!prepared.base64) throw new Error("image_read_failed");
+        setUploadProgress({ percent: 65, etaSeconds: 2, label: "BILD WIRD HOCHGELADEN" });
         await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
       }
       if (postVideo) {
+        setUploadProgress({ percent: 65, etaSeconds: 2, label: "VIDEO WIRD HOCHGELADEN" });
         const base64 = await FileSystem.readAsStringAsync(postVideo.uri, { encoding: FileSystem.EncodingType.Base64 });
         await uploadCommunityDraftVideo(token, { postId: Number(draft.id), base64, mimeType: postVideo.mimeType });
       }
-      if (publishNow)
+      if (publishNow) {
+        setUploadProgress({ percent: 88, etaSeconds: 1, label: "BEITRAG WIRD VERÖFFENTLICHT" });
         await publishCommunityDraft(token, { postId: Number(draft.id) });
+      }
+      setUploadProgress({ percent: 100, etaSeconds: 0, label: "UPLOAD ABGESCHLOSSEN" });
       setContent("");
       setPostImage(null);
+      setUploadProgress(null);
       setPostAspect("original");
       setPostQuality(92);
       setEstimatedPostBytes(null);
@@ -2650,6 +2659,7 @@ function PostScreen({
           : "Privater Entwurf gespeichert."
       );
     } catch (cause) {
+      setUploadProgress(null);
       setStatus(
         cause instanceof Error
           ? cause.message
@@ -2785,6 +2795,7 @@ function PostScreen({
             disabled={saving || !content.trim()}
             onPress={() => void (editingPostId !== null ? savePostEdit() : save())}
           />
+          {uploadProgress ? <View style={styles.nativeUploadProgress}><View style={styles.uploadProgressHeading}><Text style={[styles.chip, { color: tone.accent }]}>{uploadProgress.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{uploadProgress.percent}%</Text></View><View style={styles.nativeUploadTrack}><View style={[styles.nativeUploadFill, { width: `${uploadProgress.percent}%`, backgroundColor: tone.accent }]} /></View><Text style={styles.miniCopy}>{uploadProgress.etaSeconds > 0 ? `Noch etwa ${uploadProgress.etaSeconds} Sek.` : "Fertig"}</Text></View> : null}
           {status ? (
             <Text style={[styles.formMessage, { color: tone.accent }]}>
               {status}
@@ -3464,10 +3475,16 @@ function CatalogOverviewScreen({ tone, realm, onBack, onOpenTaxon, onOpenAquariu
   const [items, setItems] = useState<PublicCatalogTaxon[]>([]);
   const [state, setState] = useState<State>("loading");
   const [term, setTerm] = useState("");
+  const [catalogLetter, setCatalogLetter] = useState("Alle");
+  const [familyFilter, setFamilyFilter] = useState("Alle");
+  const [genusFilter, setGenusFilter] = useState("Alle");
+  const [imageFilter, setImageFilter] = useState("Alle");
   useEffect(() => { let active = true; setState("loading"); void catalogByRealm(realm, 200).then(value => { if (active) { setItems(value); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [realm]);
-  const filtered = items.filter(item => `${item.commonNames.join(" ")} ${item.scientificName} ${item.acceptedScientificName ?? ""}`.toLocaleLowerCase().includes(term.trim().toLocaleLowerCase()));
+  const filtered = items.filter(item => { const name = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; const extended = item as PublicCatalogTaxon & { genus?: string | null }; const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); return `${item.commonNames.join(" ")} ${item.scientificName} ${item.acceptedScientificName ?? ""}`.toLocaleLowerCase().includes(term.trim().toLocaleLowerCase()) && (catalogLetter === "Alle" || name.toLocaleUpperCase().startsWith(catalogLetter)) && (familyFilter === "Alle" || item.family === familyFilter) && (genusFilter === "Alle" || extended.genus === genusFilter) && (imageFilter === "Alle" || (imageFilter === "Verifiziert" ? verified : !verified)); });
+  const families = Array.from(new Set(items.map(item => item.family).filter(Boolean))).sort();
+  const genera = Array.from(new Set(items.map(item => (item as PublicCatalogTaxon & { genus?: string | null }).genus).filter(Boolean))).sort();
   const realmTitle = realm === "botany" ? "BOTANIK" : realm === "aquarium" ? "AQUARISTIK" : "TERRARISTIK";
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUM KATALOG" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow={`ALPHABETISCH · ${realmTitle}`} title={realmTitle} subtitle="Große Bilder, gebräuchlicher Name und botanischer Name in einer klaren Fachbereichsliste." icon={realm === "aquarium" ? "fish-outline" : realm === "terrarium" ? "bug-outline" : "leaf-outline"} /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={setTerm} placeholder="Im Katalog filtern …" placeholderTextColor={c.muted} /><Text style={[styles.chip, { color: tone.accent }]}>{state === "ready" ? `${filtered.length} EINTRÄGE · ALPHABETISCH` : "ECHTE KATALOGDATEN"}</Text>{state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Der Katalog konnte nicht geladen werden." /> : !filtered.length ? <StatusPanel tone={tone} icon="leaf-outline" code="KATALOG / LEER" title="KEINE VERÖFFENTLICHTEN TAXA" text="Es werden keine Beispiel-Datensätze angezeigt." /> : <View style={styles.catalogNativeGrid}>{filtered.map(item => { const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); const common = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; return <Pressable key={`${item.type}-${item.id}`} onPress={() => item.type === "aquarium" ? onOpenAquariumTaxon(item.id) : onOpenTaxon(item.id)} style={({ pressed }) => [styles.catalogNativeCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.catalogNativeImage, { backgroundColor: `${tone.accent}13` }]}>{verified ? <Image source={{ uri: item.imageUrl! }} style={styles.catalogNativeImageAsset} accessibilityLabel={`${common} – ${item.scientificName}`} /> : <Ionicons name={item.type === "aquarium" ? "fish-outline" : "leaf-outline"} size={30} color={tone.accent} />}</View><Text style={styles.catalogNativeName} numberOfLines={2}>{common}</Text><Text style={[styles.catalogNativeScientific, { color: tone.accent }]} numberOfLines={2}>{item.scientificName}</Text></Pressable>; })}</View>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUM KATALOG" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow={`ALPHABETISCH · ${realmTitle}`} title={realmTitle} subtitle="Große Bilder, gebräuchlicher Name und botanischer Name in einer klaren Fachbereichsliste." icon={realm === "aquarium" ? "fish-outline" : realm === "terrarium" ? "bug-outline" : "leaf-outline"} /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={setTerm} placeholder="Im Katalog filtern …" placeholderTextColor={c.muted} /><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catalogNativeFilterRow}>{["Alle", ...Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index))].map(letter => <Pressable key={letter} onPress={() => setCatalogLetter(letter)} style={[styles.catalogNativeFilterChip, { borderColor: catalogLetter === letter ? tone.accent : `${tone.accent}44`, backgroundColor: catalogLetter === letter ? `${tone.accent}22` : tone.panel }]}><Text style={[styles.miniCopy, { color: tone.accent }]}>{letter}</Text></Pressable>)}</ScrollView><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catalogNativeFilterRow}>{["Alle", ...families].map(value => <Pressable key={`f-${value}`} onPress={() => setFamilyFilter(String(value))} style={[styles.catalogNativeFilterChip, { borderColor: familyFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}{["Alle", ...genera].map(value => <Pressable key={`g-${value}`} onPress={() => setGenusFilter(String(value))} style={[styles.catalogNativeFilterChip, { borderColor: genusFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}{["Alle", "Verifiziert", "Ohne Bild"].map(value => <Pressable key={`i-${value}`} onPress={() => setImageFilter(value)} style={[styles.catalogNativeFilterChip, { borderColor: imageFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}</ScrollView><Text style={[styles.chip, { color: tone.accent }]}>{state === "ready" ? `${filtered.length} EINTRÄGE · ALPHABETISCH` : "ECHTE KATALOGDATEN"}</Text>{state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Der Katalog konnte nicht geladen werden." /> : !filtered.length ? <StatusPanel tone={tone} icon="leaf-outline" code="KATALOG / LEER" title="KEINE VERÖFFENTLICHTEN TAXA" text="Es werden keine Beispiel-Datensätze angezeigt." /> : <View style={styles.catalogNativeGrid}>{filtered.map(item => { const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); const common = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; return <Pressable key={`${item.type}-${item.id}`} onPress={() => item.type === "aquarium" ? onOpenAquariumTaxon(item.id) : onOpenTaxon(item.id)} style={({ pressed }) => [styles.catalogNativeCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.catalogNativeImage, { backgroundColor: `${tone.accent}13` }]}>{verified ? <Image source={{ uri: item.imageUrl! }} style={styles.catalogNativeImageAsset} accessibilityLabel={`${common} – ${item.scientificName}`} /> : <Ionicons name={item.type === "aquarium" ? "fish-outline" : "leaf-outline"} size={30} color={tone.accent} />}</View><Text style={styles.catalogNativeName} numberOfLines={2}>{common}</Text><Text style={[styles.catalogNativeScientific, { color: tone.accent }]} numberOfLines={2}>{item.scientificName}</Text></Pressable>; })}</View>}</Page>;
 }
 function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn, onMessage }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void>; onMessage: (profile: PublicProfile) => void }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
@@ -4936,6 +4953,8 @@ const styles = StyleSheet.create({
   catalogRealmButtons: { flexDirection: "row", gap: 7, marginBottom: 10 },
   catalogRealmButton: { flex: 1, minHeight: 48, paddingHorizontal: 8, borderWidth: 1, borderRadius: 11, flexDirection: "row", alignItems: "center", gap: 6 },
   catalogNativeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  catalogNativeFilterRow: { gap: 6, paddingVertical: 6 },
+  catalogNativeFilterChip: { minHeight: 30, paddingHorizontal: 9, borderWidth: 1, borderRadius: 7, justifyContent: "center" },
   catalogNativeCard: { width: "48%", borderWidth: 1, borderRadius: 13, overflow: "hidden", paddingBottom: 10 },
   catalogNativeImage: { width: "100%", aspectRatio: 1.05, alignItems: "center", justifyContent: "center" },
   catalogNativeImageAsset: { width: "100%", height: "100%" },
@@ -4944,6 +4963,10 @@ const styles = StyleSheet.create({
   mediaAspectEditorNative: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 7, paddingVertical: 8 },
   mediaAspectOptionNative: { minHeight: 34, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, justifyContent: "center" },
   mediaQualityNative: { gap: 4, paddingVertical: 7 },
+  nativeUploadProgress: { gap: 6, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(185,251,127,.28)", backgroundColor: "rgba(2,16,8,.62)" },
+  uploadProgressHeading: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  nativeUploadTrack: { height: 5, overflow: "hidden", borderRadius: 99, backgroundColor: "rgba(185,251,127,.16)" },
+  nativeUploadFill: { height: "100%", borderRadius: 99 },
   messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
   messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },

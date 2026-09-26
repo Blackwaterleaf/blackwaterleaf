@@ -72,8 +72,25 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
       <section className="admin-panel"><p className="eyebrow">[KONTEN]</p><h2>Rollen & Status</h2><p>Aktive Admins können reale Kontorollen und Kontostatus ändern. Jede Änderung wird revisionssicher protokolliert.</p><button className="primary-action" type="button" onClick={onOpenAccounts}>KONTEN ÖFFNEN</button></section>
       <section className="admin-panel"><p className="eyebrow">[PARTNER]</p><h2>Werbeplätze</h2><p>Nur reale, autorisierte und ausdrücklich aktivierte Partner erscheinen sichtbar als Werbung auf der Startseite.</p><button className="primary-action" type="button" onClick={onOpenPartners}>PARTNER ÖFFNEN</button></section>
     </section>
+    <BroadcastPanel />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
+}
+
+function BroadcastPanel() {
+  const utils = trpc.useUtils();
+  const broadcasts = trpc.admin.broadcasts.useQuery();
+  const create = trpc.admin.broadcast.useMutation({ onSuccess: () => { void utils.admin.broadcasts.invalidate(); setNewContent(""); setNewPublishAt(""); setNewExpiresAt(""); } });
+  const update = trpc.admin.updateBroadcast.useMutation({ onSuccess: () => void utils.admin.broadcasts.invalidate() });
+  const retract = trpc.admin.retractBroadcast.useMutation({ onSuccess: () => { void utils.admin.broadcasts.invalidate(); void utils.admin.auditTrail.invalidate(); } });
+  const [editing, setEditing] = useState<number | null>(null);
+  const [draft, setDraft] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newPublishAt, setNewPublishAt] = useState("");
+  const [newExpiresAt, setNewExpiresAt] = useState("");
+  if (broadcasts.isLoading) return <section className="admin-panel"><p>Broadcasts werden geladen …</p></section>;
+  if (broadcasts.isError || !broadcasts.data) return <section className="admin-panel"><p>Broadcasts sind derzeit nicht verfügbar.</p></section>;
+  return <section className="admin-panel"><p className="eyebrow">[ADMIN_FEED_BROADCASTS]</p><h2>Feed-Informationen verwalten</h2><p>Bereits gesendete Admin-Informationen können bearbeitet oder aus allen Feeds zurückgezogen werden.</p><form className="admin-broadcast-form" onSubmit={event => { event.preventDefault(); if (!newContent.trim()) return; void create.mutateAsync({ content: newContent.trim(), realm: null, publishAt: newPublishAt ? new Date(newPublishAt) : undefined, expiresAt: newExpiresAt ? new Date(newExpiresAt) : undefined }); }}><textarea value={newContent} onChange={event => setNewContent(event.target.value)} rows={3} placeholder="Neue Information an alle Feeds …" required /><div className="admin-broadcast-form__times"><label>Veröffentlichen ab<input type="datetime-local" value={newPublishAt} onChange={event => setNewPublishAt(event.target.value)} /></label><label>Ausblenden ab<input type="datetime-local" value={newExpiresAt} onChange={event => setNewExpiresAt(event.target.value)} /></label></div><button className="primary-action" type="submit" disabled={create.isPending}>BROADCAST PLANEN / SENDEN</button></form>{broadcasts.data.length === 0 ? <p>Noch keine Admin-Broadcasts.</p> : <div className="admin-list">{broadcasts.data.map(item => <article className="admin-row" key={item.id}><div><strong>#{item.id} · {item.realm ?? "Alle Feeds"} · {item.status}</strong>{editing === item.id ? <textarea value={draft} onChange={event => setDraft(event.target.value)} rows={3} /> : <p>{item.content}</p>}<small>{new Date(item.createdAt).toLocaleString("de-DE")} · {item.publishAt ? `ab ${new Date(item.publishAt).toLocaleString("de-DE")}` : "sofort"}{item.expiresAt ? ` · bis ${new Date(item.expiresAt).toLocaleString("de-DE")}` : ""}</small></div><div className="admin-row__actions">{editing === item.id ? <button className="secondary-action" disabled={update.isPending} onClick={() => void update.mutateAsync({ id: item.id, content: draft, realm: item.realm }) .then(() => setEditing(null))}>SPEICHERN</button> : <button className="secondary-action" onClick={() => { setEditing(item.id); setDraft(item.content); }}>BEARBEITEN</button>}{item.status === "published" ? <button className="secondary-action danger-action" disabled={retract.isPending} onClick={() => { if (window.confirm("Diese Information wirklich aus allen Feeds zurückziehen?")) void retract.mutateAsync({ id: item.id }); }}>ZURÜCKZIEHEN</button> : null}</div></article>)}</div>}</section>;
 }
 
 function ModerationPanel() {

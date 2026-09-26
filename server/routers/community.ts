@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, isNull, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, isNull, lt, lte, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { communityPosts, communityReports, mediaAssets, notifications, postComments, postLikes, userBlocks, userFollows, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
@@ -90,14 +90,17 @@ export const communityRouter = router({
     .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
       const blockedAuthorIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, ctx.user.id)))).map(item => item.blockerId === ctx.user.id ? item.blockedId : item.blockerId);
+      const now = new Date();
       const rows = await db
         .select({ post: communityPosts, author: users })
         .from(communityPosts)
         .innerJoin(users, eq(communityPosts.userId, users.id))
         .where(
           and(
-            eq(communityPosts.status, "published"),
+            or(eq(communityPosts.status, "published"), and(eq(communityPosts.status, "draft"), lte(communityPosts.publishAt, now))),
             eq(communityPosts.visibility, "public"),
+            or(isNull(communityPosts.publishAt), lte(communityPosts.publishAt, now)),
+            or(isNull(communityPosts.expiresAt), gt(communityPosts.expiresAt, now)),
             eq(users.status, "active"),
             ...(blockedAuthorIds.length ? [notInArray(communityPosts.userId, blockedAuthorIds)] : []),
           ),
@@ -111,7 +114,7 @@ export const communityRouter = router({
             canReadCommunityPost({
               authorStatus: author.status,
               visibility: post.visibility,
-              publicationStatus: post.status,
+              publicationStatus: post.status === "draft" ? "published" : post.status,
             }),
           )
           .map(async ({ post, author }) => ({

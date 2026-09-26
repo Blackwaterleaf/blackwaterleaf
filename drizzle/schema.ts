@@ -275,6 +275,8 @@ export const communityPosts = mysqlTable(
     status: mysqlEnum("status", ["draft", "published", "hidden", "removed"])
       .default("draft")
       .notNull(),
+    publishAt: timestamp("publishAt"),
+    expiresAt: timestamp("expiresAt"),
     likesCount: int("likesCount").default(0).notNull(),
     commentsCount: int("commentsCount").default(0).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
