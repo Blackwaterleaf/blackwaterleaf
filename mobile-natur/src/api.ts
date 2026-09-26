@@ -1,6 +1,9 @@
 import * as SecureStore from "expo-secure-store";
 
-export const API_ORIGIN = "https://blackwaterleaf.com";
+// The custom domain is protected by an edge rule that can return a non-JSON
+// 1010/HTML response to native clients. Use the stable project origin for API
+// calls; the public web domains continue to serve the same deployed project.
+export const API_ORIGIN = "https://bwlparity-nearrhpw.manus.space";
 export const NATIVE_TOKEN_KEY = "blackwaterleaf.session_token.v1";
 
 export type LiveTrack = "community" | "expert";
@@ -300,7 +303,17 @@ async function trpc<T>(
           request
         )
       : await fetch(url, request);
-  const payload = (await response.json()) as TrpcEnvelope<T>;
+  const raw = await response.text();
+  let payload: TrpcEnvelope<T>;
+  try {
+    payload = JSON.parse(raw) as TrpcEnvelope<T>;
+  } catch {
+    throw new Error(
+      response.status === 403
+        ? "Die API verweigert die Anfrage. Bitte starte die App nach dem nächsten Update neu."
+        : `API antwortete nicht im erwarteten JSON-Format (HTTP ${response.status}).`
+    );
+  }
   if (!response.ok)
     throw new Error(payload.error?.json?.message ?? `HTTP ${response.status}`);
   return unwrap(payload);
