@@ -509,3 +509,9 @@ Die Expo-Aufnahme vom 26.09.2026 zeigte auf mehreren Native-Screens flache Vollf
 Die Native-App verwendet deshalb auf jeder Page eine dunkle, bildgebundene Observatory-Grundschicht mit kontrollierter Abdunklung und BlurView. Zentrale Kontext-Header, Fachkarten, Status-/Empty-States, KI-Workflowflächen, Suche, Modalauswahl und Navigation erhalten transparente Glasflächen, weiche bereichsabhängige Schatten und sichtbare Neon-Glows. Lime bleibt Botanik/Home, Cyan Aquaristik/Karte, Naturgold Terraristik/Sync und Violett/Indigo ausschließlich KI.
 
 Die Karte/Liste-Steuerung erhält größere Touch-Flächen. Sync-Punkte werden als leuchtende Status-LED dargestellt. Page-Inhalte erhalten zusätzlichen unteren Abstand, damit „Echte Daten“ und andere Statusbanner nicht hinter der schwebenden Navigation verschwinden. Überschriften werden in leeren Zuständen zurückhaltender skaliert; Bildflächen und Bereichsfarben bleiben die primäre visuelle Orientierung.
+
+
+## 15.18 Performance-Profil für Glassmorphism und Neon
+Für ältere Android-Geräte ist die Vollflächen-Blur-Schicht deaktiviert. Die Atmosphäre bleibt über ein gedimmtes, komprimiertes Hintergrundbild erhalten; BlurView läuft nur auf Plattformen, auf denen die zusätzliche GPU-/Renderlast vertretbar ist. Die Native-App verwendet adaptive Schattenprofile: Android erhält minimale Elevation und praktisch keinen Soft-Shadow, iOS/Web behalten den stärkeren Observatory-Glow.
+
+Schwere Effekte werden nicht animiert, nicht pro Listenzeile vervielfacht und nicht auf Medienflächen gelegt. Bereichs-Glows bleiben als statische, kleine Rand-/Elevationsakzente sichtbar. Die Page verwendet unten zusätzlichen Raum für die Floating-Navigation, ohne weitere Overdraw-Layer einzuführen.

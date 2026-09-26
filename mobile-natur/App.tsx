@@ -42,6 +42,14 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+
+const USE_BACKGROUND_BLUR = Platform.OS !== "android";
+const NATIVE_GLOW = Platform.OS === "android"
+  ? { shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }
+  : { shadowOpacity: 0.34, shadowRadius: 14, elevation: 7 };
+const NATIVE_SOFT_SHADOW = Platform.OS === "android"
+  ? { shadowOpacity: 0.04, shadowRadius: 2, elevation: 1 }
+  : { shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 };
 import {
   assistantAquariumAnalyze,
   assistantChat,
@@ -1415,7 +1423,7 @@ function LiveHomeWorlds({
         ))}
       </View>
       {selected ? (
-        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: `${selectedTone.panel}E6`, shadowColor: selectedTone.accent, shadowOpacity: 0.42, shadowRadius: 18, elevation: 9 }]}>
+        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: `${selectedTone.panel}E6`, shadowColor: selectedTone.accent, ...NATIVE_GLOW }]}>
           <View style={styles.inlineChoiceHeader}>
             <Text style={[styles.chip, { color: selectedTone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
@@ -3613,7 +3621,7 @@ function ObservatoryContextHeader({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99`, shadowColor: tone.accent, shadowOpacity: 0.36, shadowRadius: 18, elevation: 8 }]}
+      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99`, shadowColor: tone.accent, ...NATIVE_GLOW }]}
       imageStyle={styles.observatoryContextImage}
     >
       <View style={styles.observatoryContextShade} />
@@ -3704,7 +3712,7 @@ function ObservatoryActionRow({
       style={({ pressed }) => [
         styles.observatoryActionRow,
         compact && styles.observatoryActionRowCompact,
-        { borderColor: `${cardTone.accent}77`, backgroundColor: `${cardTone.panel}D9`, shadowColor: cardTone.accent, shadowOpacity: 0.38, shadowRadius: 14, elevation: 7 },
+        { borderColor: `${cardTone.accent}77`, backgroundColor: `${cardTone.panel}D9`, shadowColor: cardTone.accent, ...NATIVE_GLOW },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
       ]}
@@ -4099,9 +4107,9 @@ function Page({
   refreshing?: boolean;
 }) {
   return (
-    <ImageBackground source={ASSETS.home} style={styles.pageBackdrop} imageStyle={styles.pageBackdropImage}>
-      <View style={styles.pageBackdropShade} />
-      <BlurView intensity={22} tint="dark" style={styles.pageBackdropBlur} />
+    <ImageBackground source={ASSETS.home} style={styles.pageBackdrop} imageStyle={[styles.pageBackdropImage, Platform.OS === "android" && styles.pageBackdropImageAndroid]}>
+      <View style={[styles.pageBackdropShade, Platform.OS === "android" && styles.pageBackdropShadeAndroid]} />
+      {USE_BACKGROUND_BLUR ? <BlurView intensity={16} tint="dark" style={styles.pageBackdropBlur} /> : null}
       <FlatList
         data={["content"]}
         keyExtractor={item => item}
@@ -4428,7 +4436,9 @@ const styles = StyleSheet.create({
   headerUnreadBadge: { position: "absolute", top: -8, right: -11, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, color: c.bg, fontSize: 8, lineHeight: 15, textAlign: "center", fontWeight: "900" },
   pageBackdrop: { flex: 1, backgroundColor: c.bg },
   pageBackdropImage: { opacity: 0.42 },
+  pageBackdropImageAndroid: { opacity: 0.26 },
   pageBackdropShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.58)" },
+  pageBackdropShadeAndroid: { backgroundColor: "rgba(1,10,5,.72)" },
   pageBackdropBlur: { ...StyleSheet.absoluteFill, opacity: 0.5 },
   page: { padding: 16, paddingBottom: 142 },
   stack: { gap: 13 },
@@ -4521,9 +4531,7 @@ const styles = StyleSheet.create({
     gap: 11,
     backgroundColor: "rgba(23,12,42,.72)",
     shadowColor: c.ai,
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
-    elevation: 6,
+    ...NATIVE_SOFT_SHADOW,
   },
   analysisLoadingCopy: { flex: 1, gap: 4 },
   headingTitle: {
@@ -4767,7 +4775,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0.5,
   },
-  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, shadowOpacity: 0.3, shadowRadius: 18, elevation: 7 },
+  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, ...NATIVE_SOFT_SHADOW },
   toolTabs: { flexDirection: "row", gap: 7 },
   toolTab: {
     flex: 1,
@@ -5085,9 +5093,7 @@ const styles = StyleSheet.create({
     color: c.text,
     backgroundColor: "rgba(12,25,17,.58)",
     shadowColor: c.botany,
-    shadowOpacity: 0.24,
-    shadowRadius: 12,
-    elevation: 4,
+    ...NATIVE_SOFT_SHADOW,
     fontSize: 13,
   },
   tabs: {
@@ -5103,9 +5109,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(199,243,91,.24)",
     backgroundColor: "rgba(2,12,6,.96)",
     shadowColor: c.botany,
-    shadowOpacity: 0.3,
-    shadowRadius: 18,
-    elevation: 10,
+    ...NATIVE_SOFT_SHADOW,
   },
   tab: {
     flex: 1,
@@ -5214,7 +5218,7 @@ const styles = StyleSheet.create({
   explorePanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 10 },
   explorePanelHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   exploreStatus: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 9, borderWidth: 1 },
-  exploreStatusDot: { width: 8, height: 8, borderRadius: 4, shadowColor: c.gold, shadowOpacity: 0.9, shadowRadius: 9, elevation: 6 },
+  exploreStatusDot: { width: 8, height: 8, borderRadius: 4, shadowColor: c.gold, ...NATIVE_SOFT_SHADOW },
   exploreFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   exploreFilter: { paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
   exploreFilterText: { fontSize: 9, fontWeight: "900" },
