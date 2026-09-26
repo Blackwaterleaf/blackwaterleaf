@@ -124,3 +124,8 @@ Der vorherige Screenshot zeigte weiterhin die alte native Profilansicht. Dieser 
 Der Native-Hub bündelt Konto/Profil, Anlagen/Pflege, Kommunikation, Datenschutz/Sicherheit, Sprache/Barrierefreiheit, Fortschritt/Merkliste und Werkzeuge in zwei 2×2-Gruppen. Das Host-Dashboard erscheint ausschließlich beim serverseitig gelieferten Eigentümerkonto und öffnet die geschützte Host-Webseite; es wird nicht als Nutzerfunktion ausgegeben.
 
 Validiert: Web-TypeScript, Native-TypeScript und die aktualisierten Profil-/Portalverträge erfolgreich; veraltete Tests wurden auf den neuen verbindlichen Creatorprofil- und Hub-Vertrag aktualisiert.
+
+
+## Größere Kategorie- und Anlagenbilder · 26. September 2026
+
+Die privaten Anlagenkarten zeigen auf Web und Native nun bis zu drei gut erkennbare Bilder nebeneinander. Auf schmalen Web-Ansichten wechselt die Galerie auf zwei Spalten, damit die Medien nicht zu kleinen Miniaturen schrumpfen. Native verwendet große quadratische Medienflächen mit maximal drei Bildern pro Anlage und barrierearmen Bildbeschriftungen. Es werden ausschließlich tatsächlich gespeicherte Bilder dargestellt; fehlende Bilder bleiben ohne erfundene Platzhaltermedien. Validiert: Web-TypeScript, Native-TypeScript, relevante Profil-/Karten-/Taxon-Verträge, Produktionsbuild und `git diff --check`.

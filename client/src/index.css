@@ -867,13 +867,17 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .habitat-image-strip { align-items: center; gap: .6rem; }
 .habitat-image-thumb { display: block; padding: 0; overflow: hidden; border: 1px solid currentColor; border-radius: .7rem; background: transparent; cursor: zoom-in; }
 .habitat-image-thumb img { display: block; width: 5.5rem; height: 5.5rem; object-fit: cover; opacity: 1; }
+/* Private habitat media: large, readable gallery with up to three images in a row. */
+.habitat-image-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; width: 100%; max-width: 34rem; overflow: visible; }
+.habitat-image-thumb { width: 100%; aspect-ratio: 1 / 1; }
+.habitat-image-thumb img { width: 100%; height: 100%; min-height: 7rem; object-fit: cover; }
 .habitat-existing-images { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; padding: .7rem; border: 1px solid color-mix(in srgb, var(--obs-accent) 28%, transparent); border-radius: .7rem; color: var(--muted-foreground); font-size: .72rem; }
 .habitat-existing-images > span { flex-basis: 100%; color: var(--foreground); font-weight: 700; }
 .habitat-existing-images > div { display: inline-flex; align-items: center; gap: .3rem; }
 .habitat-image-lightbox { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 5vh 5vw; background: rgba(0, 8, 4, .88); backdrop-filter: blur(9px); }
 .habitat-image-lightbox img { max-width: min(92vw, 900px); max-height: 84vh; object-fit: contain; border: 1px solid rgba(199,243,91,.48); border-radius: 1rem; box-shadow: 0 18px 60px rgba(0,0,0,.5); }
 .habitat-lightbox-close { position: absolute; top: 1.4rem; right: 1.4rem; display: grid; width: 2.4rem; height: 2.4rem; place-items: center; color: var(--foreground); border: 1px solid rgba(199,243,91,.52); border-radius: 50%; background: rgba(4,20,10,.88); cursor: pointer; }
-@media (max-width: 520px) { .habitat-image-thumb img { width: 4.6rem; height: 4.6rem; } }
+@media (max-width: 680px) { .habitat-image-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 25rem; } .habitat-image-thumb img { min-height: 8rem; } }
 
 /* Profile actions from the top-right menu: sensitive account closure stays explicit and contained. */
 .account-danger-zone { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid rgba(255, 91, 150, .28); border-radius: 12px; background: rgba(39, 8, 21, .2); }

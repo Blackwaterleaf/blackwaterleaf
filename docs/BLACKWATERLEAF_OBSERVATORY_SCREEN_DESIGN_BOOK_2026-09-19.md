@@ -412,3 +412,8 @@ Alle für Nutzer relevanten Bereiche müssen konfigurierbar sein: Profil, Benach
 Die Profilstartseite ist eine sichtbare Identitäts- und Creatorfläche, nicht nur ein Zugang zu Einstellungen. Sie zeigt Avatar, Namen, Username, Bio, E-Mail- beziehungsweise Social-Link-Chips, Fortschrittskennzahlen und freigegebene Medien direkt im ersten Profilfluss. Öffentliche Medien werden in einem responsiven Raster dargestellt; private Entwürfe, private Anlagen, Nachrichteninhalte und genaue Orte erscheinen niemals in diesem Raster.
 
 Der primäre Einstieg **Verwalten** öffnet einen zentralen Management-Hub. Konto/Profil, Anlagen/Pflege, Kommunikation, Datenschutz/Sicherheit, Sprache/Barrierefreiheit, Fortschritt/Merkliste und Werkzeuge werden in verständlichen 2×2-Gruppen gebündelt. Das Host-Dashboard ist ausschließlich für das verifizierte Eigentümerkonto sichtbar. Diese Fassung ersetzt frühere flache Profilmenüs und frühere reine Textauszüge als verbindlicher Web-/Native-Standard.
+
+
+### 15.8 Kategorie- und Anlagenmedien
+
+Private Anlagen- und Profilmedien werden nicht als kleine Einzelsymbole dargestellt. Web verwendet auf breiten Ansichten bis zu drei große quadratische Bilder nebeneinander und auf schmalen Ansichten zwei Spalten. Native verwendet dieselbe Priorität mit bis zu drei großen quadratischen Medienflächen. Es werden nur echte, gespeicherte Bilder gerendert; fehlende Medien erhalten keinen erfundenen Ersatz. Jede Bildfläche bleibt antippbar und öffnet die vorhandene Detailansicht, sofern diese für den jeweiligen Datentyp vorgesehen ist.

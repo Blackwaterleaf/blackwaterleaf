@@ -485,7 +485,7 @@ export function HabitatManager({
               {labels[item.kind]} · aktualisiert{" "}
               {new Date(item.updatedAt).toLocaleDateString("de-DE")}
             </Text>
-            {item.images?.length ? <View style={styles.savedPhotoStrip}>{item.images.map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} />)}</View> : null}
+            {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" />)}</View> : null}
           </View>
         </View>
       )}
@@ -608,9 +608,9 @@ const styles = StyleSheet.create({
   photoButtonCopy: { flex: 1, gap: 3 },
   photoButtonTitle: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
   photoStrip: { flexDirection: "row", gap: 8 },
-  photoThumb: { width: 64, height: 64, borderRadius: 9, borderWidth: 1, borderColor: c.border },
-  savedPhotoStrip: { flexDirection: "row", gap: 6, marginTop: 4 },
-  savedPhotoThumb: { width: 42, height: 42, borderRadius: 7, borderWidth: 1, borderColor: c.border },
+  photoThumb: { width: 96, height: 96, borderRadius: 10, borderWidth: 1, borderColor: c.border },
+  savedPhotoStrip: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9, width: "100%" },
+  savedPhotoThumb: { width: "31%", aspectRatio: 1, borderRadius: 10, borderWidth: 1, borderColor: c.border },
   empty: {
     minHeight: 165,
     padding: 22,
