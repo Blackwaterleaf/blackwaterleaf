@@ -1729,7 +1729,8 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .community-post .post-metrics button { min-height: 32px; padding: 0 8px; color: #b9cdbb; border: 1px solid transparent; border-radius: 7px; font: 800 .55rem/1 "JetBrains Mono", monospace; }
 .community-post .post-metrics button:hover { color: var(--obs-text); border-color: rgba(185, 251, 127, .25); background: rgba(185, 251, 127, .08); }
 .community-post-owner-actions { display: flex; gap: 6px; margin-left: auto; }
-.community-post-owner-actions .icon-button { width: 32px; height: 32px; }
+.community-post-owner-actions .icon-button { min-width: 27px; min-height: 27px; width: 27px; height: 27px; padding: 0; border-radius: 6px; }
+.community-post-owner-actions .icon-button svg { width: 14px; height: 14px; }
 .community-comments { margin: 0; padding: 13px 16px 16px; border-top: 1px solid rgba(185, 251, 127, .12); background: rgba(1, 13, 7, .48); }
 .community-refresh svg { transition: transform 180ms cubic-bezier(.23,1,.32,1); }
 .community-refresh:disabled svg { animation: community-refresh-spin .85s linear infinite; }

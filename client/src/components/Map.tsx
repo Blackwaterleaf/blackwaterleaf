@@ -93,16 +93,16 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-let mapScriptPromise: Promise<void> | null = null;
+let mapScriptPromise: { locale: "de" | "en"; promise: Promise<void> } | null = null;
 
-function loadMapScript() {
+function loadMapScript(locale: "de" | "en") {
   if (window.google?.maps) return Promise.resolve();
   if (!API_KEY) return Promise.reject(new Error("Kartenbasis ist nicht konfiguriert."));
-  if (mapScriptPromise) return mapScriptPromise;
+  if (mapScriptPromise?.locale === locale) return mapScriptPromise.promise;
 
-  mapScriptPromise = new Promise<void>((resolve, reject) => {
+  const promise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&language=${locale}&region=${locale === "de" ? "DE" : "US"}&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
@@ -117,7 +117,8 @@ function loadMapScript() {
     };
     document.head.appendChild(script);
   });
-  return mapScriptPromise;
+  mapScriptPromise = { locale, promise };
+  return promise;
 }
 
 interface MapViewProps {
@@ -127,6 +128,7 @@ interface MapViewProps {
   onMapReady?: (map: google.maps.Map) => void;
   onMapError?: (error: Error) => void;
   fallbackPoints?: OpenStreetMapPoint[];
+  locale?: "de" | "en";
 }
 
 export function MapView({
@@ -136,6 +138,7 @@ export function MapView({
   onMapReady,
   onMapError,
   fallbackPoints = [],
+  locale = "de",
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
@@ -143,7 +146,7 @@ export function MapView({
 
   const init = usePersistFn(async () => {
     try {
-      await loadMapScript();
+      await loadMapScript(locale);
       if (!mapContainer.current || !window.google?.maps) {
         throw new Error("Kartencontainer ist nicht verfügbar.");
       }
@@ -171,7 +174,7 @@ export function MapView({
   }, [init]);
 
   if (useOpenStreetMap) {
-    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints} />;
+    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints} locale={locale} />;
   }
   return <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />;
 }

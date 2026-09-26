@@ -16,15 +16,17 @@ type OpenStreetMapProps = {
   initialZoom: number;
   points?: OpenStreetMapPoint[];
   ariaLabel?: string;
-};
+  locale?: "de" | "en";
+}
 
-export function OpenStreetMap({ className, initialCenter, initialZoom, points = [], ariaLabel }: OpenStreetMapProps) {
+export function OpenStreetMap({ className, initialCenter, initialZoom, points = [], ariaLabel, locale = "de" }: OpenStreetMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const map = L.map(containerRef.current, { zoomControl: true, attributionControl: true }).setView([initialCenter.lat, initialCenter.lng], initialZoom);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    const tileHost = locale === "de" ? "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    L.tileLayer(tileHost, {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
     }).addTo(map);
@@ -45,7 +47,7 @@ export function OpenStreetMap({ className, initialCenter, initialZoom, points = 
       markers.forEach(marker => marker.remove());
       map.remove();
     };
-  }, [initialCenter.lat, initialCenter.lng, initialZoom, points]);
+  }, [initialCenter.lat, initialCenter.lng, initialZoom, points, locale]);
 
   return <div ref={containerRef} className={cn("openstreetmap-map", className)} role="img" aria-label={ariaLabel ?? "OpenStreetMap-Karte"} />;
 }

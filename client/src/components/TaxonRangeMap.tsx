@@ -2,6 +2,7 @@ import { Globe2, MapPin, ShieldCheck } from "lucide-react";
 import { officialTaxonSource } from "@shared/taxon-source-policy";
 import { MapView } from "@/components/Map";
 import { useState } from "react";
+import { useI18n } from "@/i18n";
 
 type TaxonRangeMapProps = {
   realm: "botany" | "aquarium" | "terrarium";
@@ -18,9 +19,16 @@ type RegionPoint = {
 };
 
 const realmCopy = {
-  botany: { label: "BOTANIK", title: "NATÜRLICHER FUNDORT", empty: "Für dieses Taxon liegt noch keine quellengebundene Verbreitungsangabe vor." },
-  aquarium: { label: "AQUARISTIK", title: "FUNDORT & VERBREITUNG", empty: "Für diesen Fisch liegt noch keine quellengebundene Verbreitungsangabe vor." },
-  terrarium: { label: "TERRARISTIK", title: "NATÜRLICHER FUNDORT", empty: "Für dieses Tier liegt noch keine quellengebundene Verbreitungsangabe vor." },
+  de: {
+    botany: { label: "BOTANIK", title: "NATÜRLICHER FUNDORT", empty: "Für dieses Taxon liegt noch keine quellengebundene Verbreitungsangabe vor." },
+    aquarium: { label: "AQUARISTIK", title: "FUNDORT & VERBREITUNG", empty: "Für diesen Fisch liegt noch keine quellengebundene Verbreitungsangabe vor." },
+    terrarium: { label: "TERRARISTIK", title: "NATÜRLICHER FUNDORT", empty: "Für dieses Tier liegt noch keine quellengebundene Verbreitungsangabe vor." },
+  },
+  en: {
+    botany: { label: "BOTANY", title: "NATIVE RANGE", empty: "No source-bound distribution record is available for this taxon yet." },
+    aquarium: { label: "AQUATICS", title: "RANGE & DISTRIBUTION", empty: "No source-bound distribution record is available for this fish yet." },
+    terrarium: { label: "TERRARIUM", title: "NATIVE RANGE", empty: "No source-bound distribution record is available for this animal yet." },
+  },
 } as const;
 
 /**
@@ -80,17 +88,18 @@ function regionPoints(text: string | null) {
 }
 
 export function TaxonRangeMap({ realm, summary, careProfile, source, sourceUrl }: TaxonRangeMapProps) {
-  const copy = realmCopy[realm];
+  const { locale } = useI18n();
+  const copy = realmCopy[locale][realm];
   const profile = careProfile ?? {};
   const habitat = extractHabitat(summary) ?? textValue(profile.habitat) ?? textValue(profile.nativeHabitat) ?? textValue(profile.distribution);
   const origin = textValue(profile.nativeRange) ?? textValue(profile.origin) ?? textValue(profile.nativeRegion);
   const regionText = [origin, habitat].filter(Boolean).join(" · ");
   const points = regionPoints(regionText || null);
   const conditions = [
-    origin ? `Herkunft: ${origin}` : null,
-    habitat ? `Habitat: ${habitat}` : null,
-    textValue(profile.water) ? `Wasser: ${textValue(profile.water)}` : null,
-    textValue(profile.temperature) ? `Temperatur: ${textValue(profile.temperature)}` : null,
+    origin ? `${locale === "de" ? "Herkunft" : "Origin"}: ${origin}` : null,
+    habitat ? `${locale === "de" ? "Habitat" : "Habitat"}: ${habitat}` : null,
+    textValue(profile.water) ? `${locale === "de" ? "Wasser" : "Water"}: ${textValue(profile.water)}` : null,
+    textValue(profile.temperature) ? `${locale === "de" ? "Temperatur" : "Temperature"}: ${textValue(profile.temperature)}` : null,
   ].filter(Boolean) as string[];
   const officialSource = officialTaxonSource(source);
   const verifiedSourceUrl = officialSource?.homepageUrl ?? sourceUrl ?? null;
@@ -112,6 +121,7 @@ export function TaxonRangeMap({ realm, summary, careProfile, source, sourceUrl }
             initialCenter={initialCenter}
             initialZoom={points.length === 1 ? 5 : 3}
             fallbackPoints={points}
+            locale={locale}
             onMapError={error => setMapError(error.message)}
             onMapReady={map => {
               const bounds = new google.maps.LatLngBounds();
@@ -122,11 +132,11 @@ export function TaxonRangeMap({ realm, summary, careProfile, source, sourceUrl }
               if (points.length > 1) map.fitBounds(bounds, 42);
             }}
           />
-          {mapError ? <div className="taxon-range-map__map-error"><MapPin size={16} /><strong>Kartenbasis derzeit nicht verfügbar</strong><span>{mapError}</span></div> : null}
+          {mapError ? <div className="taxon-range-map__map-error"><MapPin size={16} /><strong>{locale === "de" ? "Kartenbasis derzeit nicht verfügbar" : "Map base currently unavailable"}</strong><span>{mapError}</span></div> : null}
           <div className="taxon-range-map__map-caption"><MapPin size={14} />{points.map(point => point.label).join(" · ")}</div>
         </div>
       ) : (
-        <div className="taxon-range-map__empty"><MapPin size={24} /><strong>{copy.empty}</strong><span>Keine Schätzung und kein erfundener Fundort werden angezeigt.</span></div>
+        <div className="taxon-range-map__empty"><MapPin size={24} /><strong>{copy.empty}</strong><span>{locale === "de" ? "Keine Schätzung und kein erfundener Fundort werden angezeigt." : "No estimate or invented occurrence is shown."}</span></div>
       )}
       {conditions.length ? <ul className="taxon-range-map__facts">{conditions.map(fact => <li key={fact}>{fact}</li>)}</ul> : null}
       <div className="taxon-range-map__meta">

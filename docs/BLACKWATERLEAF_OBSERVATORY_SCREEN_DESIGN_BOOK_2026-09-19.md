@@ -440,3 +440,10 @@ Medienkacheln erzwingen kein einheitliches Seitenverhältnis. Web und Native üb
 Der Medieneditor zeigt vor dem Upload die Originalgröße, die erwartete vorbereitete Dateigröße und einen Qualitätsregler von 50–100 %. Der Regler wirkt tatsächlich auf die JPEG-Kompression in Web und Native; die gewählte Qualität wird beim Upload verwendet. Die erwartete Größe ist eine Schätzung und wird nach der Verarbeitung serverseitig erneut validiert.
 
 Das Feld **„Bereich“** hat für normale Konten weiterhin nur die fachliche Zuordnung eines eigenen Beitrags. Für aktive Admins wird derselbe Einstieg als **Admin-Feedverteiler** beschriftet: „Alle Feeds“ sendet eine öffentliche Information an den allgemeinen Community-Feed, Botanik/Aquaristik/Terraristik sendet sie gezielt an den jeweiligen Bereich. Admin-Broadcasts umgehen keine Sicherheitsprüfung, werden serverseitig admin-only erzwungen und im Audit protokolliert.
+
+
+## 15.12 Sprachbindung und kompakte Eigentümeraktionen
+
+Die Kartenbasis folgt der ausgewählten UI-Sprache. Google Maps wird mit dem passenden `language`-/`region`-Parameter geladen; der OSM-Fallback verwendet für Deutsch den deutschen OpenStreetMap-Kartenlayer und für Englisch den internationalen Layer. Taxon-Kartenüberschrift, Herkunftsbedingungen, Leerzustände und Kartenfehler werden ebenfalls lokalisiert. Quellengebundene Eigennamen und wissenschaftliche Taxonnamen bleiben unverändert.
+
+Bearbeiten und Löschen sind als kompakte, vollständig sichtbare Icon-Aktionen ausgeführt. Eigentümeraktionen verwenden 27 px Rahmen, 14–15 px Icons, reduzierte Rundung und keinen überstehenden oder abgeschnittenen Rahmen. Die Touch-Zielgröße bleibt semantisch erreichbar, ohne das visuelle Raster zu überladen.

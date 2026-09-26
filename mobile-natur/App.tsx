@@ -4903,7 +4903,7 @@ const styles = StyleSheet.create({
   postHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
   postHeadCopy: { flex: 1, gap: 3 },
   postOwnerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
-  postOwnerButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
+  postOwnerButton: { width: 27, height: 27, borderRadius: 6, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
   postOwnerDelete: { borderColor: "rgba(255,171,176,.42)" },
   postInteractionRow: { flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 8, borderTopWidth: 1, borderTopColor: `${c.muted}22` },
   commentToggle: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10, paddingVertical: 7 },
