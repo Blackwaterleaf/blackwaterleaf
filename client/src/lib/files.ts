@@ -1,6 +1,6 @@
-const CLIENT_IMAGE_LIMIT_BYTES = 8 * 1024 * 1024;
+const CLIENT_IMAGE_LIMIT_BYTES = 24 * 1024 * 1024;
 const CLIENT_VIDEO_LIMIT_BYTES = 16 * 1024 * 1024;
-const MAX_IMAGE_DIMENSION = 2400;
+const MAX_IMAGE_DIMENSION = 4000;
 const ANALYSIS_IMAGE_DIMENSION = 1800;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 type AllowedImageType = "image/jpeg" | "image/png" | "image/webp";
@@ -25,29 +25,34 @@ function fileToDataUrl(file: Blob): Promise<string> {
   });
 }
 
-async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
+type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
+async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original"): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return { blob: file, mimeType: fallbackMimeType };
-  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const targetRatio = aspectRatio === "original" ? bitmap.width / bitmap.height : ({ "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "16:9": 16 / 9 } as const)[aspectRatio];
+  const sourceRatio = bitmap.width / bitmap.height;
+  const cropWidth = sourceRatio > targetRatio ? Math.round(bitmap.height * targetRatio) : bitmap.width;
+  const cropHeight = sourceRatio > targetRatio ? bitmap.height : Math.round(bitmap.width / targetRatio);
+  const scale = Math.min(1, maxDimension / Math.max(cropWidth, cropHeight));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.width = Math.max(1, Math.round(cropWidth * scale));
+  canvas.height = Math.max(1, Math.round(cropHeight * scale));
   const context = canvas.getContext("2d");
   if (!context) return { blob: file, mimeType: fallbackMimeType };
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, Math.round((bitmap.width - cropWidth) / 2), Math.round((bitmap.height - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
   if (!blob) return { blob: file, mimeType: fallbackMimeType };
   return { blob, mimeType: "image/jpeg" };
 }
 
-export async function readImageAsBase64(file: File, options: { forAnalysis?: boolean } = {}): Promise<{ base64: string; mimeType: string }> {
+export async function readImageAsBase64(file: File, options: { forAnalysis?: boolean; aspectRatio?: ImageAspect } = {}): Promise<{ base64: string; mimeType: string }> {
   const mimeType = imageMimeType(file);
   if (!mimeType) throw new Error("unsupported_image_type");
   if (file.size <= 0) throw new Error("image_size_invalid");
   const forAnalysis = options.forAnalysis === true;
-  const prepared = forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES
-    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, forAnalysis ? 0.82 : 0.86, mimeType)
+  const prepared = forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES || options.aspectRatio && options.aspectRatio !== "original"
+    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, forAnalysis ? 0.82 : 0.92, mimeType, options.aspectRatio)
     : { blob: file, mimeType };
   if (prepared.blob.size > CLIENT_IMAGE_LIMIT_BYTES) throw new Error("image_too_large_after_resize");
   const dataUrl = await fileToDataUrl(prepared.blob);
@@ -75,7 +80,7 @@ export function imageErrorMessage(error: unknown, locale: "de" | "en" = "de") {
     image_size_invalid: "Das Bild konnte nicht gelesen werden.",
     image_too_large_after_resize: "Das Bild ist auch nach der Verkleinerung zu groß. Bitte wähle ein kleineres Foto.",
     image_read_failed: "Das Bild konnte nicht gelesen werden. Bitte versuche es erneut.",
-    invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 8 MB.",
+    invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 24 MB.",
     image_signature_mismatch: "Die Bilddatei passt nicht zu ihrem Dateiformat. Bitte speichere sie erneut als JPG, PNG oder WebP.",
     media_processing_consent_required: "Für den Bildupload ist deine ausdrückliche Bildverarbeitungsfreigabe erforderlich.",
     unsupported_video_type: "Bitte wähle ein MP4- oder WebM-Video.",
@@ -89,7 +94,7 @@ export function imageErrorMessage(error: unknown, locale: "de" | "en" = "de") {
     image_size_invalid: "The image could not be read.",
     image_too_large_after_resize: "The image is still too large after resizing. Choose a smaller photo.",
     image_read_failed: "The image could not be read. Please try again.",
-    invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 8 MB are supported.",
+    invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 24 MB are supported.",
     image_signature_mismatch: "The image data does not match its file type. Save it again as JPG, PNG, or WebP.",
     media_processing_consent_required: "Explicit image-processing consent is required for uploads.",
     unsupported_video_type: "Choose an MP4 or WebM video.",

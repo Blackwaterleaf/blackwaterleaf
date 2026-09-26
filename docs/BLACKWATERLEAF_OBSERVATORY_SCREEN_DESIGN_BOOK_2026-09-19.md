@@ -424,3 +424,12 @@ Private Anlagen- und Profilmedien werden nicht als kleine Einzelsymbole dargeste
 Der Einstieg **„Mehr anzeigen“** aus Botanik, Aquaristik und Terraristik öffnet eine eigene Fachkatalogseite und nicht die allgemeine Suche. Diese Seite lädt alle veröffentlichten Datensätze des gewählten Bereichs aus `catalogByRealm` und ordnet sie alphabetisch nach akzeptiertem wissenschaftlichem Namen, anschließend nach wissenschaftlichem Namen.
 
 Jede Katalogkarte folgt dem Screenshot-Raster: ein großes, scharfes, quellengebundenes Bild, darunter der gebräuchliche Name in großer Schrift und der botanische beziehungsweise wissenschaftliche Name als eigene Zeile. Web nutzt drei Spalten auf breiten Ansichten und zwei Spalten auf schmalen Ansichten; Native verwendet dasselbe zweispaltige Kartenprinzip. Botanik bleibt lime/grün, Aquaristik aqua/cyan und Terraristik naturgold. Fehlende verifizierte Bilder werden nicht erfunden; der Datensatz bleibt sichtbar mit einem ehrlichen Bildnachweis-Zustand. Die Native-App besitzt dafür einen eigenen Vollkatalogscreen mit identischen Daten, Begriffen und Zuständen.
+
+
+## 15.10 Medienupload, Zuschnitt und Kachelproportion
+
+Community-, Profil- und Anlagenmedien werden in hoher Qualität verarbeitet. Bilder dürfen bis 24 MB groß sein; die serverseitige Signaturprüfung, EXIF-/Metadatenbereinigung und MIME-Prüfung bleiben verpflichtend. Web bereitet Bilder verlustarm bis maximal 4000 px vor, Native verwendet die höchste verfügbare Auswahlqualität.
+
+Vor dem Upload muss die Person das Bild bearbeiten beziehungsweise zuschneiden können. Unterstützte Formate sind **Original**, **9:16** (TikTok-/Reel-Hochformat), **4:5**, **1:1** und **16:9**. Der Zuschnitt darf nur vorhandene Bildinhalte neu anordnen; keine künstlichen Bildinhalte oder Fake-Flächen werden erzeugt. Die gewählte Form wird vor der Verarbeitung klar angezeigt.
+
+Medienkacheln erzwingen kein einheitliches Seitenverhältnis. Web und Native übernehmen die tatsächliche Bildproportion beziehungsweise die gewählte Zuschnittproportion, damit Hochformat, Quadrat und Querformat vollständig und hochwertig erkennbar bleiben. `object-fit: cover` darf nicht unbemerkt wichtige Bildteile abschneiden; die Kachel passt sich dem Medium an. Videos behalten dieselbe Regel über ihre geladenen Abmessungen.

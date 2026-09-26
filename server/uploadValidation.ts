@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 export const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type AllowedImageMimeType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 24 * 1024 * 1024;
 
 const signatures: Record<AllowedImageMimeType, (buffer: Buffer) => boolean> = {
   "image/jpeg": buffer => buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
