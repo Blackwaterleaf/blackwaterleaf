@@ -1,4 +1,4 @@
-import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck, Sprout } from "lucide-react";
+import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, Bug, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck, Sprout } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -33,8 +33,9 @@ function CatalogCard({ item, realm }: { item: Record<string, unknown>; realm: Ca
   const botanical = String(item.scientificName);
   const common = Array.isArray(item.commonNames) ? String(item.commonNames[0] ?? "") : "";
   const verified = hasVerifiedImage(item as never);
-  return <Link className={`catalog-card catalog-card--${realm}`} href={realm === "aquarium" ? `/aquarium-fish/${id}` : `/plant/${id}`}>
-    <div className="catalog-card__image">{verified ? <img src={String(item.imageUrl)} alt={`${common || scientific} – ${botanical}`} loading="lazy" /> : realm === "aquarium" ? <Fish size={34} aria-label="Kein verifiziertes Bild" /> : <Leaf size={34} aria-label="Kein verifiziertes Bild" />}</div>
+  const href = realm === "aquarium" ? `/aquarium-fish/${id}` : realm === "terrarium" ? `/terrarium/${id}` : `/plant/${id}`;
+  return <Link className={`catalog-card catalog-card--${realm}`} href={href}>
+    <div className="catalog-card__image">{verified ? <img src={String(item.imageUrl)} alt={`${common || scientific} – ${botanical}`} loading="lazy" /> : realm === "aquarium" ? <Fish size={34} aria-label="Kein verifiziertes Bild" /> : realm === "terrarium" ? <Bug size={34} aria-label="Kein verifiziertes Bild" /> : <Leaf size={34} aria-label="Kein verifiziertes Bild" />}</div>
     <div className="catalog-card__body"><strong>{common || scientific}</strong><em>{botanical}</em><small>{scientific !== botanical ? scientific : String(item.family ?? "Katalogtaxon")}</small></div><ArrowRight className="catalog-card__arrow" size={17} />
   </Link>;
 }

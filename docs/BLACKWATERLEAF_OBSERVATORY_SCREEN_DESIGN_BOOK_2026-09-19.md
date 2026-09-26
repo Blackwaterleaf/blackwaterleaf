@@ -37,4 +37,15 @@ Web und Native verwenden dieselbe Feldlogik. Auf kleinen Displays werden die Fak
 
 ### Terraristik-Regel
 
-Terraristik ist als eigener Fachbereich und Steckbrief-Typ vorbereitet. Da derzeit keine veröffentlichten Terraristik-Taxa in der Datenbank vorhanden sind, bleibt der Katalog leer und informiert transparent über fehlende geprüfte Datensätze. Es werden keine erfundenen Tierarten, Bilder, Herkunftsorte oder Pflegewerte angezeigt. Sobald geprüfte Terraristik-Taxa importiert werden, erscheinen sie automatisch in derselben Cover → Name → wissenschaftlicher Name → Faktenblatt → Herkunftskarte-Struktur.
+Terraristik ist als eigener Fachbereich und Steckbrief-Typ aktiv. Der Katalog enthält derzeit drei veröffentlichte, geprüfte Erstdatensätze und informiert weiterhin transparent, wenn für eine weitere Art kein geprüfter Datensatz vorliegt. Es werden keine erfundenen Tierarten, Bilder, Herkunftsorte oder Pflegewerte angezeigt. Neue geprüfte Terraristik-Taxa erscheinen automatisch in derselben Cover → Name → wissenschaftlicher Name → Faktenblatt → Herkunfts-/Habitatbezug-Struktur.
+
+
+## 15.25 Terraristik-Erstbestand und Herkunftsnachweis
+
+Der Terrarium-Katalog enthält jetzt drei veröffentlichte, quellengebundene Taxa: *Eublepharis macularius* (Leopardgecko), *Correlophus ciliatus* (Kronengecko) und *Pantherophis guttatus* (Kornnatter). Jede Kachel beginnt mit einem hochwertigen Coverbild und führt in einen eigenständigen Steckbrief mit wissenschaftlichem Namen, gebräuchlichen Namen, Kurzprofil, Pflegeprofil, Quellenangabe und Herkunftsbezug. Der Fachbereich nutzt Gold als eigenen Akzent; Botanik, Aquaristik und die KI bleiben visuell getrennt.
+
+Die Bildmedien stammen nicht aus Wikipedia-Artikelseiten, sondern aus Wikimedia Commons und werden nur zusammen mit Lizenz, Attribution, Quellseite und Abrufdatum veröffentlicht. Die Quellen- und Austauschdokumentation liegt in `docs/TERRARIUM_IMPORT_SOURCES_2026-09-27.md`. Eigene Bilder können später pro Datensatz ersetzt werden, ohne die Taxonomie- oder Steckbriefstruktur zu verändern.
+
+## 15.26 OAuth-Zugang
+
+Der Manus-Login startet Web und Preview künftig über `/api/oauth/start`. Portaladresse und App-ID bleiben serverseitig; der Server setzt das HttpOnly-CSRF-Cookie und erzeugt die Rücksprungadresse aus dem tatsächlich geöffneten Host. Dadurch kann eine veraltete oder fehlende Vite-Umgebungsvariable keinen ungültigen Login-Link mehr erzeugen. Bei fehlender OAuth-Konfiguration wird ein klarer JSON-Status `oauth_not_configured` zurückgegeben, statt eine leere Weiterleitung aufzubauen.

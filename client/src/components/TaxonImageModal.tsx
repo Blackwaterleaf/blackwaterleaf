@@ -7,7 +7,7 @@ type TaxonImageModalProps = {
   imageSourceUrl?: string | null;
   imageLicense?: string | null;
   imageAttribution?: string | null;
-  category: "Pflanze" | "Fisch";
+  category: "Pflanze" | "Fisch" | "Terrarium";
 };
 
 /**

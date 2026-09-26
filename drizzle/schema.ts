@@ -678,6 +678,47 @@ export const aquariumTaxa = mysqlTable(
   ],
 );
 
+/** Source-traceable public terrarium organism catalogue, kept separate from plants and aquarium organisms. */
+export const terrariumTaxa = mysqlTable(
+  "terrarium_taxa",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    source: varchar("source", { length: 96 }).notNull(),
+    sourceVersion: varchar("sourceVersion", { length: 96 }).notNull(),
+    sourceRecordId: varchar("sourceRecordId", { length: 160 }).notNull(),
+    sourceRecordUrl: varchar("sourceRecordUrl", { length: 1_000 }),
+    sourceLicense: varchar("sourceLicense", { length: 128 }),
+    sourceCitation: text("sourceCitation"),
+    sourceRetrievedAt: timestamp("sourceRetrievedAt"),
+    taxonomicStatus: varchar("taxonomicStatus", { length: 48 }),
+    matchConfidence: int("matchConfidence"),
+    scientificName: varchar("scientificName", { length: 240 }).notNull(),
+    acceptedScientificName: varchar("acceptedScientificName", { length: 240 }),
+    rank: varchar("rank", { length: 48 }),
+    family: varchar("family", { length: 160 }),
+    genus: varchar("genus", { length: 160 }),
+    commonNames: json("commonNames").notNull(),
+    synonyms: json("synonyms").notNull(),
+    summary: text("summary"),
+    careProfile: json("careProfile"),
+    imageUrl: varchar("imageUrl", { length: 1_000 }),
+    imageSourceUrl: varchar("imageSourceUrl", { length: 1_000 }),
+    imageLicense: varchar("imageLicense", { length: 128 }),
+    imageAttribution: text("imageAttribution"),
+    imageVerifiedAt: timestamp("imageVerifiedAt"),
+    evidenceState: mysqlEnum("evidenceState", ["confirmed", "contextual", "unverified", "conflicting", "insufficient"]).default("confirmed").notNull(),
+    status: mysqlEnum("status", ["draft", "published", "retired"]).default("draft").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("terrarium_taxa_source_record_unique").on(table.source, table.sourceVersion, table.sourceRecordId),
+    index("terrarium_taxa_scientific_name_idx").on(table.scientificName),
+    index("terrarium_taxa_genus_family_idx").on(table.status, table.genus, table.family),
+    index("terrarium_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+  ],
+);
+
 /** Server-synchronised following relationship; private accounts never leak through public search. */
 export const userFollows = mysqlTable(
   "user_follows",

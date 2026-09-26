@@ -30,6 +30,7 @@ import CareToday from "./pages/CareToday";
 import Search from "./pages/Search";
 import PlantTaxon from "./pages/PlantTaxon";
 import AquariumTaxon from "./pages/AquariumTaxon";
+import TerrariumTaxon from "./pages/TerrariumTaxon";
 import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
 import NotFound from "./pages/NotFound";
@@ -72,6 +73,7 @@ function Router() {
         <Route path={"/member/:id"} component={PublicProfile} />
         <Route path={"/plant/:id"} component={PlantTaxon} />
         <Route path={"/aquarium-fish/:id"} component={AquariumTaxon} />
+        <Route path={"/terrarium/:id"} component={TerrariumTaxon} />
         <Route path={"/saved"} component={SavedItems} />
         <Route path={"/ranking"} component={Ranking} />
         <Route path={"/profile/settings"} component={Profile} />
