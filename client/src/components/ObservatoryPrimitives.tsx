@@ -20,7 +20,7 @@ type ContextHeaderProps = {
   image?: string;
   eyebrow: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon?: LucideIcon;
   badge?: string;
   children?: ReactNode;
@@ -35,7 +35,7 @@ export function ObservatoryContextHeader({ tone, image, eyebrow, title, subtitle
         <div>
           <span className="eyebrow">{eyebrow}</span>
           <h1>{title}</h1>
-          <p>{subtitle}</p>
+          {subtitle ? <p>{subtitle}</p> : null}
         </div>
       </div>
       {badge ? <span className="observatory-context-header__badge">{badge}</span> : null}

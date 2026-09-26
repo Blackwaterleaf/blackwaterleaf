@@ -2020,3 +2020,21 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .habitat-image-thumb { flex:0 0 62px; width:62px; height:62px; padding:0; overflow:hidden; border:1px solid rgba(237,255,211,.62); border-radius:10px; background:rgba(2,13,7,.55); }
 .habitat-image-thumb img { width:100%; height:100%; object-fit:cover; }
 @media (max-width:760px) { .habitat-list { grid-template-columns:1fr; } .habitat-record { min-height:280px; } }
+
+/* Full-screen habitat gallery: navigation remains compact and touch-friendly. */
+.habitat-image-lightbox { position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(1,8,4,.94); }
+.habitat-lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); display:grid; place-items:center; width:44px; height:44px; border:1px solid rgba(199,243,91,.55); border-radius:50%; color:#d9ff9b; background:rgba(3,25,12,.72); }
+.habitat-lightbox-nav--prev { left:clamp(12px,4vw,56px); } .habitat-lightbox-nav--next { right:clamp(12px,4vw,56px); }
+.habitat-lightbox-count { position:absolute; bottom:22px; color:#d9ff9b; font:700 .72rem/1.2 system-ui,sans-serif; letter-spacing:.12em; }
+
+.habitat-image-frame { position:relative; flex:0 0 82px; width:82px; height:82px; }
+.habitat-image-frame .habitat-image-thumb { width:100%; height:100%; }
+.habitat-image-overlay { position:absolute; right:4px; bottom:4px; z-index:2; display:grid; place-items:center; width:24px; height:24px; padding:0; border:1px solid rgba(2,12,6,.8); border-radius:7px; color:#eafbdc; background:rgba(3,18,9,.82); }
+.habitat-image-overlay--delete { color:#ffb2a8; }
+.habitat-image-overlay:disabled { opacity:.6; }
+
+.habitat-status-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.habitat-status-chip { display:inline-flex; align-items:center; gap:5px; padding:5px 7px; border:1px solid currentColor; border-radius:999px; color:#d9ff9b; background:rgba(2,14,7,.62); font-size:.68rem; }
+.habitat-status-chip strong { color:inherit; font-size:.54rem; letter-spacing:.08em; }
+.habitat-status-chip em { color:#f3ffe9; font-style:normal; font-weight:700; }
+.habitat-record--cyan .habitat-status-chip { color:#70e9ff; } .habitat-record--gold .habitat-status-chip { color:#f1dd72; } .habitat-record--mint .habitat-status-chip { color:#c7f35b; }

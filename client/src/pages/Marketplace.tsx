@@ -30,7 +30,7 @@ export default function Marketplace() {
 
   return (
     <div className="observatory-route observatory-route--marketplace marketplace-page marketplace-hub">
-      <ObservatoryContextHeader tone="marketplace" image={REFERENCE_ASSETS.aquarium} eyebrow="MARKTPLATZ · BLACKWATERLEAF" title="DEIN WEG. DEIN SHOP." subtitle="Wähle zuerst einen freigegebenen Händler. Danach öffnet sich sein eigener Bereich mit Kategorien, Produkten und transparenten Partnerinformationen." icon={Store} badge="PARTNERANGEBOTE" />
+      <ObservatoryContextHeader tone="marketplace" image={REFERENCE_ASSETS.aquarium} eyebrow="MARKTPLATZ · BLACKWATERLEAF" title="DEIN WEG. DEIN SHOP." icon={Store} badge="PARTNERANGEBOTE" />
 
       <section className="marketplace-hub__intro observatory-data-panel">
         <div className="marketplace-hub__intro-icon"><Store size={22} /></div>

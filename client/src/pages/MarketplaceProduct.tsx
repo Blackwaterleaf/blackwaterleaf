@@ -73,7 +73,6 @@ export default function MarketplaceProduct() {
         icon={ShoppingBag}
         eyebrow={heroEyebrow}
         title={heroTitle}
-        subtitle={heroSubtitle}
         image={activeImage?.imageUrl}
         badge={item?.disclosureLabel ?? "PARTNER-ANGEBOT"}
       />

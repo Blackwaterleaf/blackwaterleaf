@@ -1,5 +1,5 @@
 import type { PrivateHabitatInput } from "@shared/blackwaterleaf-contract-v1";
-import { Box, Fish, Loader2, Pencil, Plus, Save, Sprout, Trash2, X } from "lucide-react";
+import { Box, ChevronLeft, ChevronRight, Fish, Loader2, Pencil, Plus, Save, Sprout, Trash2, X } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
@@ -151,6 +151,19 @@ function numericSummary(value: unknown, suffix: string) {
   return typeof value === "number" && Number.isFinite(value) ? `${value} ${suffix}` : null;
 }
 
+function habitatStatusChips(record: HabitatRecord) {
+  const details = record.details as Record<string, unknown>;
+  const chips: Array<{ label: string; value: string }> = [];
+  const add = (label: string, key: string, suffix = "") => { const value = details[key]; if (value !== null && value !== undefined && String(value).trim()) chips.push({ label, value: `${String(value)}${suffix}` }); };
+  add("TEMPERATUR", "temperatureC", " °C");
+  if (record.kind === "terrarium") add("TAG", "dayTemperatureC", " °C");
+  add("LUFTFEUCHTE", "humidityPercent", " %");
+  add("PH", "ph");
+  add("PFLEGE", "careStatus");
+  add("PFLEGE", "careState");
+  return chips.slice(0, 4);
+}
+
 export function summarizeHabitat(record: Pick<HabitatRecord, "kind" | "details">, copy: HabitatCopy) {
   const details = record.details as Record<string, unknown>;
   if (record.kind === "aquarium") return [numericSummary(details.volumeLiters, "L"), numericSummary(details.temperatureC, "°C"), typeof details.ph === "number" && Number.isFinite(details.ph) ? `pH ${details.ph}` : null].filter(Boolean).join(" · ");
@@ -173,6 +186,9 @@ export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visible
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<NonNullable<HabitatRecord["images"]>[number] | null>(null);
+  const [previewGallery, setPreviewGallery] = useState<NonNullable<HabitatRecord["images"]>>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const openGallery = (images: NonNullable<HabitatRecord["images"]>, index: number) => { setPreviewGallery(images); setPreviewIndex(index); setPreviewImage(images[index] ?? null); };
   const records = (habitats.data ?? []) as unknown as HabitatRecord[];
   const shownKinds = visibleKinds?.length ? visibleKinds : (Object.keys(META) as HabitatKind[]);
   const visibleRecords = records.filter(record => shownKinds.includes(record.kind));
@@ -232,18 +248,18 @@ export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visible
         {habitats.isLoading ? <p className="form-status">{copy.loading}</p> : null}
         {visibleRecords.length ? <div className="habitat-list">{visibleRecords.map(record => {
           const meta = META[record.kind]; const Icon = meta.icon;
-          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent} ${record.images?.length ? "habitat-record--has-image" : ""}`} style={record.images?.[0]?.accessUrl ? { backgroundImage: `linear-gradient(180deg, rgba(2,12,6,.08), rgba(2,12,6,.94)), url("${record.images[0].accessUrl}")` } : undefined}><div className="habitat-record__shade" aria-hidden="true" /><div className="habitat-record__content"><div className="habitat-record__icon"><Icon size={19} /></div><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map(image => <button type="button" className="habitat-image-thumb" key={image.id} onClick={() => setPreviewImage(image)} aria-label="Privates Bild vergrößern"><img src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" /></button>)}</div> : null}</div></div><button type="button" className="icon-button habitat-record__edit" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
+          return <article key={record.id} className={`habitat-record habitat-record--${meta.accent} ${record.images?.length ? "habitat-record--has-image" : ""}`} style={record.images?.[0]?.accessUrl ? { backgroundImage: `linear-gradient(180deg, rgba(2,12,6,.08), rgba(2,12,6,.94)), url("${record.images[0].accessUrl}")` } : undefined}><div className="habitat-record__shade" aria-hidden="true" /><div className="habitat-record__content"><div className="habitat-record__icon"><Icon size={19} /></div><div><small>{copy.kinds[record.kind].label.toUpperCase()}</small><strong>{record.name}</strong><p>{summarizeHabitat(record, copy) || copy.noValues}</p>{habitatStatusChips(record).length ? <div className="habitat-status-chips" aria-label="Anlagenstatus">{habitatStatusChips(record).map(chip => <span className="habitat-status-chip" key={`${chip.label}-${chip.value}`}><strong>{chip.label}</strong><em>{chip.value}</em></span>)}</div> : null}{record.images?.length ? <div className="habitat-image-strip" aria-label="Private Bilder">{record.images.map((image, imageIndex) => <div className="habitat-image-frame" key={image.id}><button type="button" className="habitat-image-thumb" onClick={() => openGallery(record.images ?? [], imageIndex)} aria-label="Privates Bild vergrößern"><img src={image.accessUrl} alt="Privates Anlagenbild" loading="lazy" /></button><button type="button" className="habitat-image-overlay habitat-image-overlay--delete" onClick={() => void removeImage(record.id, image.id)} disabled={deleteImage.isPending} aria-label="Privates Bild löschen">{deleteImage.isPending ? <Loader2 size={12} className="spin" /> : <Trash2 size={12} />}</button></div>)}</div> : null}</div></div><button type="button" className="icon-button habitat-record__edit" aria-label={`${record.name} ${copy.editSuffix}`} onClick={() => startEdit(record)}><Pencil size={15} /></button></article>;
         })}</div> : <p className="habitat-empty">{copy.empty}</p>}
 
         {form ? <form className="habitat-editor" onSubmit={save}>
           <div className="form-heading"><div><p className="eyebrow">[{editingId ? copy.privateEdit : copy.privateSetup}]</p><h2>{editingId ? `${copy.kinds[form.kind].label} ${copy.editSuffix}` : `${copy.kinds[form.kind].label} ${copy.createTitle}`}</h2></div><button type="button" className="secondary-action" onClick={() => { setForm(null); setEditingId(null); }}>{copy.cancel}</button></div>
           <div className="form-grid">{FIELDS[form.kind].map(field => { const fieldCopy = copy.fields[form.kind][field.key]; return <label className={`field ${field.kind === "textarea" ? "field--wide" : ""}`} key={field.key}><span>{fieldCopy.label}{fieldCopy.hint ? ` · ${fieldCopy.hint}` : ""}</span>{field.kind === "textarea" ? <textarea rows={3} value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} /> : <input type={field.kind === "number" ? "number" : "text"} step="any" value={form[field.key] ?? ""} onChange={event => setForm(current => current ? { ...current, [field.key]: event.target.value } : current)} />}</label>; })}</div>
-          {editingId ? <div className="habitat-existing-images"><span>Gespeicherte Bilder</span>{(records.find(record => Number(record.id) === editingId)?.images ?? []).map(image => <div key={image.id}><button type="button" className="habitat-image-thumb" onClick={() => setPreviewImage(image)}><img src={image.accessUrl} alt="Privates Anlagenbild" /></button><button type="button" className="icon-button" aria-label="Bild und Datei entfernen" onClick={() => void removeImage(String(editingId), image.id)} disabled={deleteImage.isPending}>{deleteImage.isPending ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}</button></div>)}</div> : null}
+          {editingId ? <div className="habitat-existing-images"><span>Gespeicherte Bilder</span>{(records.find(record => Number(record.id) === editingId)?.images ?? []).map(image => <div key={image.id}><button type="button" className="habitat-image-thumb" onClick={() => openGallery(records.find(record => Number(record.id) === editingId)?.images ?? [], (records.find(record => Number(record.id) === editingId)?.images ?? []).findIndex(candidate => candidate.id === image.id))}><img src={image.accessUrl} alt="Privates Anlagenbild" /></button><button type="button" className="icon-button" aria-label="Bild und Datei entfernen" onClick={() => void removeImage(String(editingId), image.id)} disabled={deleteImage.isPending}>{deleteImage.isPending ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}</button></div>)}</div> : null}
           <label className="habitat-image-picker"><span>Private Bilder hinzufügen · maximal 3</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={event => { setImageError(null); setImageFiles(Array.from(event.target.files ?? []).slice(0, 3)); }} />{imageFiles.length ? <small>{imageFiles.length} Bild{imageFiles.length === 1 ? "" : "er"} ausgewählt</small> : <small>JPG, PNG oder WebP · bleibt privat</small>}</label>
           {imageError ? <p className="form-status" role="alert">{imageError}</p> : null}
           <button type="submit" className={`primary-action ${create.isPending || update.isPending || uploadImage.isPending ? "action-loading" : ""}`} disabled={create.isPending || update.isPending || uploadImage.isPending}>{create.isPending || update.isPending || uploadImage.isPending ? <Loader2 size={16} className="spin" /> : <Save size={16} />}{create.isPending || update.isPending || uploadImage.isPending ? copy.saving : editingId ? copy.update : copy.save}</button>
         </form> : null}
-        {previewImage ? <div className="habitat-image-lightbox" role="dialog" aria-modal="true" aria-label="Privates Bild"><button type="button" className="habitat-lightbox-close" onClick={() => setPreviewImage(null)} aria-label="Bild schließen"><X size={20} /></button><img src={previewImage.accessUrl} alt="Privates Anlagenbild vergrößert" /></div> : null}
+        {previewImage ? <div className="habitat-image-lightbox" role="dialog" aria-modal="true" aria-label="Privates Bild"><button type="button" className="habitat-lightbox-close" onClick={() => { setPreviewImage(null); setPreviewGallery([]); }} aria-label="Bild schließen"><X size={20} /></button>{previewGallery.length > 1 ? <button type="button" className="habitat-lightbox-nav habitat-lightbox-nav--prev" onClick={() => { const next = (previewIndex - 1 + previewGallery.length) % previewGallery.length; setPreviewIndex(next); setPreviewImage(previewGallery[next]); }} aria-label="Vorheriges Bild"><ChevronLeft size={28} /></button> : null}<img src={previewImage.accessUrl} alt="Privates Anlagenbild vergrößert" />{previewGallery.length > 1 ? <button type="button" className="habitat-lightbox-nav habitat-lightbox-nav--next" onClick={() => { const next = (previewIndex + 1) % previewGallery.length; setPreviewIndex(next); setPreviewImage(previewGallery[next]); }} aria-label="Nächstes Bild"><ChevronRight size={28} /></button> : null}<span className="habitat-lightbox-count">{previewGallery.length > 1 ? `${previewIndex + 1} / ${previewGallery.length}` : ""}</span></div> : null}
         {status ? <p className="form-status" role="status">{status}</p> : null}
       </div>
     </details>
