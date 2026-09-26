@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { StatusBar } from "expo-status-bar";
@@ -2537,6 +2539,8 @@ function PostScreen({
   const [realm, setRealm] = useState<Realm>("botany");
   const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
   const [postAspect, setPostAspect] = useState<"original" | "9:16" | "4:5" | "1:1" | "16:9">("original");
+  const [postQuality, setPostQuality] = useState(92);
+  const [estimatedPostBytes, setEstimatedPostBytes] = useState<number | null>(null);
   const [postVideo, setPostVideo] = useState<{ uri: string; mimeType: "video/mp4" | "video/webm"; fileSize: number | null } | null>(null);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
@@ -2546,6 +2550,12 @@ function PostScreen({
   const [showOwnPosts, setShowOwnPosts] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
+  useEffect(() => {
+    if (!postImage) { setEstimatedPostBytes(null); return; }
+    let active = true;
+    void ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
+    return () => { active = false; };
+  }, [postImage, postQuality]);
   useEffect(() => {
     if (!token || !showOwnPosts) return;
     void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
@@ -2558,7 +2568,7 @@ function PostScreen({
       return;
     }
     const aspect = requestedAspect === "9:16" ? [9, 16] as [number, number] : requestedAspect === "4:5" ? [4, 5] as [number, number] : requestedAspect === "1:1" ? [1, 1] as [number, number] : requestedAspect === "16:9" ? [16, 9] as [number, number] : undefined;
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 1, allowsEditing: true, aspect });
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: requestedAspect === postAspect ? postQuality / 100 : 0.92, allowsEditing: true, aspect });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     const rawMimeType = asset.mimeType?.toLowerCase();
@@ -2569,6 +2579,7 @@ function PostScreen({
       return;
     }
     setPostAspect(requestedAspect);
+    setPostQuality(requestedAspect === postAspect ? postQuality : 92);
     setPostImage({ uri: asset.uri, mimeType, fileSize });
     setMediaConsent(false);
   };
@@ -2614,8 +2625,9 @@ function PostScreen({
         realm,
       });
       if (postImage) {
-        const base64 = await FileSystem.readAsStringAsync(postImage.uri, { encoding: FileSystem.EncodingType.Base64 });
-        await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64, mimeType: postImage.mimeType });
+        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+        if (!prepared.base64) throw new Error("image_read_failed");
+        await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
       }
       if (postVideo) {
         const base64 = await FileSystem.readAsStringAsync(postVideo.uri, { encoding: FileSystem.EncodingType.Base64 });
@@ -2626,6 +2638,8 @@ function PostScreen({
       setContent("");
       setPostImage(null);
       setPostAspect("original");
+      setPostQuality(92);
+      setEstimatedPostBytes(null);
       setPostVideo(null);
       setMediaConsent(false);
       setPublishNow(false);
@@ -2747,7 +2761,7 @@ function PostScreen({
             {postImage ? <>
               <Image source={{ uri: postImage.uri }} style={[styles.communityMediaPreview, postAspect === "9:16" ? { aspectRatio: 9 / 16 } : postAspect === "4:5" ? { aspectRatio: 4 / 5 } : postAspect === "1:1" ? { aspectRatio: 1 } : postAspect === "16:9" ? { aspectRatio: 16 / 9 } : null]} />
               <View style={styles.communityMediaMeta}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>BILD BEREIT</Text><Text style={styles.miniCopy}>{postImage.fileSize ? `${Math.ceil(postImage.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Bild entfernen" onPress={() => { setPostImage(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View>
-              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><View style={styles.mediaAspectEditorNative}><Text style={[styles.chip, { color: tone.accent }]}>FORMAT VOR DEM UPLOAD</Text>{(["original", "9:16", "4:5", "1:1", "16:9"] as const).map(aspect => <Pressable key={aspect} onPress={() => { setPostAspect(aspect); void choosePostImage(aspect); }} style={[styles.mediaAspectOptionNative, { borderColor: postAspect === aspect ? tone.accent : `${tone.accent}55`, backgroundColor: postAspect === aspect ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: postAspect === aspect ? tone.accent : c.muted }]}>{aspect === "original" ? "Original" : aspect}</Text></Pressable>)}</View><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>Das Medium bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
+              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><View style={styles.mediaAspectEditorNative}><Text style={[styles.chip, { color: tone.accent }]}>FORMAT VOR DEM UPLOAD</Text>{(["original", "9:16", "4:5", "1:1", "16:9"] as const).map(aspect => <Pressable key={aspect} onPress={() => { setPostAspect(aspect); void choosePostImage(aspect); }} style={[styles.mediaAspectOptionNative, { borderColor: postAspect === aspect ? tone.accent : `${tone.accent}55`, backgroundColor: postAspect === aspect ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: postAspect === aspect ? tone.accent : c.muted }]}>{aspect === "original" ? "Original" : aspect}</Text></Pressable>)}</View><View style={styles.mediaQualityNative}><View style={styles.careSectionHeader}><Text style={[styles.chip, { color: tone.accent }]}>BILDQUALITÄT {postQuality}%</Text><Text style={styles.miniCopy}>{estimatedPostBytes === null ? "Berechne …" : `ca. ${(estimatedPostBytes / 1024 / 1024).toFixed(2)} MB · Original ${postImage?.fileSize ? (postImage.fileSize / 1024 / 1024).toFixed(2) : "—"} MB`}</Text></View><Slider minimumValue={50} maximumValue={100} step={1} value={postQuality} onValueChange={value => setPostQuality(Math.round(value))} minimumTrackTintColor={tone.accent} maximumTrackTintColor={`${tone.accent}44`} thumbTintColor={tone.accent} accessibilityLabel="Bildqualität" /></View><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>Das Medium bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
             </> : postVideo ? <><View style={[styles.communityMediaMeta, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>VIDEO BEREIT</Text><Text style={styles.miniCopy}>{postVideo.fileSize ? `${Math.ceil(postVideo.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Video entfernen" onPress={() => { setPostVideo(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View><View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>MP4 oder WebM bis 16 MB. Das Video bleibt privat, bis du veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View></> : <View style={styles.communityMediaPickerRow}><Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 24 MB · hohe Qualität · 9:16 möglich</Text></View></Pressable><Pressable accessibilityLabel="Video für Community-Beitrag auswählen" onPress={() => void choosePostVideo()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="videocam-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>VIDEO</Text><Text style={styles.copy}>MP4/WebM bis 16 MB</Text></View></Pressable></View>}
           </View> : null}
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
@@ -4925,6 +4939,7 @@ const styles = StyleSheet.create({
   catalogNativeScientific: { fontSize: 12, fontStyle: "italic", lineHeight: 16, marginHorizontal: 10, marginTop: 4 },
   mediaAspectEditorNative: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 7, paddingVertical: 8 },
   mediaAspectOptionNative: { minHeight: 34, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, justifyContent: "center" },
+  mediaQualityNative: { gap: 4, paddingVertical: 7 },
   messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
   messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },

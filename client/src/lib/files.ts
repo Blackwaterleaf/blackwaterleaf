@@ -25,7 +25,7 @@ function fileToDataUrl(file: Blob): Promise<string> {
   });
 }
 
-type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
+export type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
 async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original"): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return { blob: file, mimeType: fallbackMimeType };
@@ -46,14 +46,24 @@ async function resizeImage(file: File, maxDimension: number, quality: number, fa
   return { blob, mimeType: "image/jpeg" };
 }
 
-export async function readImageAsBase64(file: File, options: { forAnalysis?: boolean; aspectRatio?: ImageAspect } = {}): Promise<{ base64: string; mimeType: string }> {
+type ImagePreparationOptions = { forAnalysis?: boolean; aspectRatio?: ImageAspect; quality?: number };
+async function prepareImage(file: File, options: ImagePreparationOptions = {}): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   const mimeType = imageMimeType(file);
   if (!mimeType) throw new Error("unsupported_image_type");
   if (file.size <= 0) throw new Error("image_size_invalid");
   const forAnalysis = options.forAnalysis === true;
-  const prepared = forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES || options.aspectRatio && options.aspectRatio !== "original"
-    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, forAnalysis ? 0.82 : 0.92, mimeType, options.aspectRatio)
+  const quality = Math.min(1, Math.max(0.5, options.quality ?? (forAnalysis ? 0.82 : 0.92)));
+  return forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES || quality < 0.99 || options.aspectRatio && options.aspectRatio !== "original"
+    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, quality, mimeType, options.aspectRatio)
     : { blob: file, mimeType };
+}
+
+export async function estimateImageBytes(file: File, options: ImagePreparationOptions = {}): Promise<number> {
+  return (await prepareImage(file, options)).blob.size;
+}
+
+export async function readImageAsBase64(file: File, options: ImagePreparationOptions = {}): Promise<{ base64: string; mimeType: string }> {
+  const prepared = await prepareImage(file, options);
   if (prepared.blob.size > CLIENT_IMAGE_LIMIT_BYTES) throw new Error("image_too_large_after_resize");
   const dataUrl = await fileToDataUrl(prepared.blob);
   const base64 = dataUrl.split(",", 2)[1];

@@ -433,3 +433,10 @@ Community-, Profil- und Anlagenmedien werden in hoher Qualität verarbeitet. Bil
 Vor dem Upload muss die Person das Bild bearbeiten beziehungsweise zuschneiden können. Unterstützte Formate sind **Original**, **9:16** (TikTok-/Reel-Hochformat), **4:5**, **1:1** und **16:9**. Der Zuschnitt darf nur vorhandene Bildinhalte neu anordnen; keine künstlichen Bildinhalte oder Fake-Flächen werden erzeugt. Die gewählte Form wird vor der Verarbeitung klar angezeigt.
 
 Medienkacheln erzwingen kein einheitliches Seitenverhältnis. Web und Native übernehmen die tatsächliche Bildproportion beziehungsweise die gewählte Zuschnittproportion, damit Hochformat, Quadrat und Querformat vollständig und hochwertig erkennbar bleiben. `object-fit: cover` darf nicht unbemerkt wichtige Bildteile abschneiden; die Kachel passt sich dem Medium an. Videos behalten dieselbe Regel über ihre geladenen Abmessungen.
+
+
+## 15.11 Uploadqualität und Admin-Feedverteiler
+
+Der Medieneditor zeigt vor dem Upload die Originalgröße, die erwartete vorbereitete Dateigröße und einen Qualitätsregler von 50–100 %. Der Regler wirkt tatsächlich auf die JPEG-Kompression in Web und Native; die gewählte Qualität wird beim Upload verwendet. Die erwartete Größe ist eine Schätzung und wird nach der Verarbeitung serverseitig erneut validiert.
+
+Das Feld **„Bereich“** hat für normale Konten weiterhin nur die fachliche Zuordnung eines eigenen Beitrags. Für aktive Admins wird derselbe Einstieg als **Admin-Feedverteiler** beschriftet: „Alle Feeds“ sendet eine öffentliche Information an den allgemeinen Community-Feed, Botanik/Aquaristik/Terraristik sendet sie gezielt an den jeweiligen Bereich. Admin-Broadcasts umgehen keine Sicherheitsprüfung, werden serverseitig admin-only erzwungen und im Audit protokolliert.

@@ -35,6 +35,17 @@ export const adminRouter = router({
     };
   }),
 
+  broadcast: adminProcedure
+    .input(z.object({ content: z.string().trim().min(1).max(10_000), realm: z.enum(["botany", "aquarium", "terrarium"]).nullable() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [inserted] = await db.insert(communityPosts).values({ userId: ctx.user.id, content: input.content, realm: input.realm, visibility: "public", status: "published" }).$returningId();
+      const postId = Number(inserted?.id);
+      if (!postId) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "broadcast_not_created" });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "admin_feed_broadcast_created", targetType: "community_post", targetId: postId, payload: { realm: input.realm ?? "all", visibility: "public" } });
+      return { id: postId, realm: input.realm, visibility: "public" } as const;
+    }),
+
   publicPosts: staffProcedure.query(async () => {
     const db = await requireDatabase();
     return db
