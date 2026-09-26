@@ -81,6 +81,7 @@ import {
   myCommunityPosts,
   notificationFeed,
   notificationUnreadCount,
+  analyticsOverview,
   platformAvailability,
   privateHabitats,
   privateObservations,
@@ -140,6 +141,7 @@ import {
   type Observation,
   type OwnCommunityPost,
   type NativeNotification,
+  type NativeAnalyticsOverview,
   type PlatformAvailability,
   type ProfileConsent,
   type UnifiedSearchResult,
@@ -216,6 +218,7 @@ type Screen =
   | "communityDetail"
   | "profile"
   | "management"
+  | "dashboard"
   | "botany"
   | "aquarium"
   | "terrarium"
@@ -331,6 +334,14 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "KONTOZENTRUM · VERWALTEN",
+    active: "profile",
+  },
+  dashboard: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "HOST-DASHBOARD",
     active: "profile",
   },
   botany: {
@@ -526,6 +537,7 @@ function NaturApp() {
   const [careTasks, setCareTasks] = useState<CareTask[]>([]);
   const [carePlans, setCarePlans] = useState<CarePlan[]>([]);
   const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
+  const [analytics, setAnalytics] = useState<NativeAnalyticsOverview | null>(null);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
@@ -620,6 +632,7 @@ function NaturApp() {
           await markDirectConversationRead(token, Number(selected.id));
         } else setDirectThread([]);
       }
+      if (screen === "dashboard" && token) setAnalytics(await analyticsOverview(token, 7));
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
         setCareTasks(today.tasks);
@@ -1074,6 +1087,19 @@ function NaturApp() {
             token={token}
             account={account}
             navigate={navigate}
+            onSignIn={signIn}
+          />
+        )}
+        {screen === "dashboard" && (
+          <NativeDashboardScreen
+            tone={TONES.dashboard}
+            token={token}
+            account={account}
+            analytics={analytics}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            onBack={() => navigate("management")}
             onSignIn={signIn}
           />
         )}
@@ -3199,6 +3225,29 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   </Page>;
 }
 
+function NativeDashboardScreen({ tone, token, account, analytics, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
+  const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
+  if (!token) return <Page><PrivateFeature tone={tone} title="DASHBOARD GESCHÜTZT" text="Melde dich mit dem Eigentümerkonto an, um aggregierte Reichweitenzahlen zu sehen." onSignIn={onSignIn} /></Page>;
+  if (!isOwner) return <Page><StatusPanel tone={tone} icon="shield-checkmark-outline" code="OWNER_ONLY" title="KEIN ZUGRIFF" text="Dieses Dashboard ist ausschließlich für das serverseitig geprüfte BlackWaterLeaf-Eigentümerkonto freigegeben." /></Page>;
+  const metrics: Array<{ label: string; value: number; icon: IconName }> = analytics ? [
+    { label: "KONTEN", value: analytics.registeredAccounts, icon: "people-outline" },
+    { label: "SEITENAUFRUFE", value: analytics.pageViews, icon: "pulse-outline" },
+    { label: "BESUCHE", value: analytics.visitors, icon: "eye-outline" },
+    { label: "LOGINS", value: analytics.logins, icon: "log-in-outline" },
+  ] : [];
+  const maxPage = Math.max(1, ...(analytics?.popularPages ?? []).map(row => row.value));
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />
+    <ObservatoryContextHeader tone={tone} eyebrow="SERVER_VERIFIED · ADMIN" title="KONTROLLZENTRUM" subtitle="Echte, serverseitig aggregierte Nutzung. Keine IP-Adressen, Namen oder Kontoinhalte." icon="analytics-outline" />
+    {state === "loading" ? <Loading tone={tone} /> : state === "error" || !analytics ? <ErrorNotice text={error ?? "Analytics sind derzeit nicht verfügbar."} /> : <>
+      <View style={styles.dashboardGrid}>{metrics.map(metric => <View key={metric.label} style={[styles.dashboardMetric, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Ionicons name={metric.icon} size={22} color={tone.accent} /><Text style={[styles.eyebrow, { color: tone.accent }]}>{metric.label}</Text><Text style={styles.dashboardMetricValue}>{metric.value}</Text></View>)}</View>
+      <View style={[styles.dashboardSummary, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>NUTZUNG · LETZTE 7 TAGE</Text><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Ø Aufenthaltsdauer</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{Math.floor(analytics.averageDurationSec / 60)}m {analytics.averageDurationSec % 60}s</Text></View><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Absprungrate</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{analytics.bounceRate}%</Text></View></View>
+      <View style={[styles.dashboardChart, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>TOP-SEITEN</Text>{analytics.popularPages.length ? analytics.popularPages.slice(0, 6).map(row => <View key={row.label} style={styles.dashboardChartRow}><View style={styles.dashboardChartLabel}><Text style={styles.miniCopy} numberOfLines={1}>{row.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{row.value}</Text></View><View style={styles.dashboardBarTrack}><View style={[styles.dashboardBar, { width: `${Math.max(4, Math.round((row.value / maxPage) * 100))}%`, backgroundColor: tone.accent }]} /></View></View>) : <Text style={styles.copy}>Noch keine Seitenwerte vorhanden.</Text>}</View>
+      <View style={[styles.dashboardPrivacy, { borderColor: `${tone.accent}55` }]}><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>Automatisch anonym und aggregiert. Live-Zuschauerzahlen bleiben getrennt und werden erst bei Freischaltung aktiviert.</Text></View>
+    </>}
+  </Page>;
+}
+
 function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
   const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
   const groups = [
@@ -3211,7 +3260,7 @@ function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: 
     { label: "WEITERE EINSTELLUNGEN", items: [
       ["Sprache & Barrierefreiheit", "Sprache, Einheiten und Darstellung", "language-outline", () => navigate("profile")],
       ["Fortschritt & Merkliste", "XP, Level und gespeicherte Inhalte", "trophy-outline", () => navigate("ranking")],
-      ...(isOwner ? [["Host-Dashboard", "Nur Eigentümerkonto · blackwaterleaf.com", "analytics-outline", () => void Linking.openURL("https://blackwaterleaf.com/admin")] as const] : []),
+      ...(isOwner ? [["Host-Dashboard", "Echte Reichweite und Konten · nur Eigentümer", "analytics-outline", () => navigate("dashboard")] as const] : []),
       ["Hilfe, Daten & Werkzeuge", "Quellen, Builder und Smart-Werte", "construct-outline", () => navigate("builder")],
     ] as const },
   ];
@@ -4438,7 +4487,7 @@ const styles = StyleSheet.create({
   pageBackdropShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.58)" },
   pageBackdropShadeAndroid: { backgroundColor: "rgba(1,10,5,.72)" },
   pageBackdropBlur: { ...StyleSheet.absoluteFill, opacity: 0.5 },
-  page: { padding: 16, paddingBottom: 142 },
+  page: { padding: 16, paddingBottom: 196 },
   stack: { gap: 13 },
   flex: { flex: 1 },
   observatoryContextHeader: {
@@ -5167,6 +5216,17 @@ const styles = StyleSheet.create({
   stat: { alignItems: "center", gap: 4 },
   statValue: { fontSize: 16, fontWeight: "900" },
   statLabel: { color: c.muted, fontSize: 8, fontWeight: "800" },
+  dashboardGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  dashboardMetric: { width: "48%", minHeight: 112, padding: 13, borderRadius: 16, borderWidth: 1, gap: 7 },
+  dashboardMetricValue: { color: c.text, fontSize: 28, lineHeight: 32, fontWeight: "900" },
+  dashboardSummary: { padding: 15, borderRadius: 16, borderWidth: 1, gap: 12 },
+  dashboardSummaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
+  dashboardChart: { padding: 15, borderRadius: 16, borderWidth: 1, gap: 12 },
+  dashboardChartRow: { gap: 5 },
+  dashboardChartLabel: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  dashboardBarTrack: { height: 8, borderRadius: 99, overflow: "hidden", backgroundColor: "rgba(199,243,91,.12)" },
+  dashboardBar: { height: "100%", borderRadius: 99 },
+  dashboardPrivacy: { flexDirection: "row", gap: 9, padding: 13, borderRadius: 14, borderWidth: 1, backgroundColor: "rgba(2,12,6,.55)" },
   taxonCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 8 },
   taxonImageButton: { position: "relative", overflow: "hidden", borderRadius: 13, borderWidth: 1 },
   taxonImage: { width: "100%", height: 180, borderRadius: 13, borderWidth: 1, borderColor: "rgba(199,243,91,.3)" },

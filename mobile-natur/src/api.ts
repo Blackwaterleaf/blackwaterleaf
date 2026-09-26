@@ -106,6 +106,16 @@ export type PlatformAvailability = {
   aiAssistant: "available" | "not_connected" | "temporarily_unavailable";
   aiReason: string;
 };
+export type NativeAnalyticsOverview = {
+  registeredAccounts: number;
+  pageViews: number;
+  visitors: number;
+  logins: number;
+  averageDurationSec: number;
+  bounceRate: number;
+  popularPages: Array<{ label: string; value: number; detail?: string }>;
+  countries: Array<{ label: string; value: number; detail?: string }>;
+};
 export type OutdoorWeather = {
   temperatureC: number;
   humidityPercent: number;
@@ -310,6 +320,8 @@ export const writeToken = (token: string) =>
 export const clearToken = () => SecureStore.deleteItemAsync(NATIVE_TOKEN_KEY);
 export const platformAvailability = () =>
   trpcGet<PlatformAvailability>("platform.availability", null);
+export const analyticsOverview = (token: string, days: 1 | 7 | 30 = 7) =>
+  trpcGet<NativeAnalyticsOverview>("analytics.overview", { days }, token);
 export const liveCapabilities = (token: string) =>
   trpcGet<LiveCapabilities>("live.capabilities", undefined, token);
 export const liveList = (token: string, track?: LiveTrack) =>
