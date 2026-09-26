@@ -27,3 +27,14 @@ Mobile Layouts wechseln kontrolliert zwischen zwei und einer Spalte, reduzieren 
 
 ## 15.23 Bilddetailflächen · kein kollabierender Ladezustand
 Alle Bilddetailansichten verwenden eine stabile, responsive Bildfläche mit Mindesthöhe, `object-fit: contain`, sichtbarem Ladezustand und ehrlichem Fehlerfallback. Das gilt verbindlich für Katalog-/Taxonbilder, Community-Lightboxen, private Anlagenbilder und öffentliche Medien. Das Bild wird erst nach erfolgreichem Laden eingeblendet; ein fehlgeschlagener Abruf darf weder ein leeres Modal noch eine kollabierte Fläche erzeugen. Web und Native behalten Bildnachweis und Schließen-Aktion auch im Fehlerzustand.
+
+
+## 15.24 Einheitlicher Arten-Steckbrief · Web und Native
+
+Jede veröffentlichte Katalogkachel führt in einen eigenständigen Steckbrief mit Coverbild, gebräuchlichem Namen, wissenschaftlichem Namen, Nachweisstatus, Kurzprofil, Quellenangabe, Herkunfts-/Habitatkarte und strukturierten Faktenfeldern. Die Faktenfelder werden ausschließlich aus dem geprüften `careProfile` des Datensatzes befüllt: Pflegeaufwand, Licht, Wasser, Temperatur, Luftfeuchte, Substrat, Größe, Ernährung, Verhalten, Lebensraum, natürliches Habitat, natürliche Verbreitung, Herkunft und Verbreitung.
+
+Web und Native verwenden dieselbe Feldlogik. Auf kleinen Displays werden die Fakten zweispaltig und bei sehr schmalen Breiten einspaltig dargestellt; lange Werte umbrechen und dürfen keine Karte oder Navigation überdecken. Nicht vorhandene Felder werden nicht mit Schätzwerten ersetzt. Der Steckbrief zeigt stattdessen einen quellengebundenen Leerzustand.
+
+### Terraristik-Regel
+
+Terraristik ist als eigener Fachbereich und Steckbrief-Typ vorbereitet. Da derzeit keine veröffentlichten Terraristik-Taxa in der Datenbank vorhanden sind, bleibt der Katalog leer und informiert transparent über fehlende geprüfte Datensätze. Es werden keine erfundenen Tierarten, Bilder, Herkunftsorte oder Pflegewerte angezeigt. Sobald geprüfte Terraristik-Taxa importiert werden, erscheinen sie automatisch in derselben Cover → Name → wissenschaftlicher Name → Faktenblatt → Herkunftskarte-Struktur.

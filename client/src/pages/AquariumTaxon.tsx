@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
 import { TaxonRangeMap } from "@/components/TaxonRangeMap";
 import { TaxonImageModal } from "@/components/TaxonImageModal";
+import { TaxonFactSheet } from "@/components/TaxonFactSheet";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 function textValue(value: unknown) {
@@ -40,6 +41,7 @@ export default function AquariumTaxon() {
     </section>
     <section className="plant-taxon-content observatory-data-panel"><div className="section-heading"><div><span className="eyebrow">FISHBASE · VALIDIERTE QUELLE</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
     <TaxonRangeMap realm="aquarium" summary={item.summary} careProfile={profile} source={item.source} sourceUrl={item.sourceRecordUrl} />
+    <TaxonFactSheet realm="aquarium" profile={profile} />
     {(careLevel || water) ? <section className="plant-taxon-content observatory-data-panel"><div className="section-heading"><div><span className="eyebrow">AQUARISTIK</span><h2>HALTUNGSHINWEISE</h2></div><Thermometer size={22} /></div><div className="taxon-care-grid">{careLevel ? <div className="taxon-meta"><strong>ANSPRUCH</strong><span>{careLevel}</span></div> : null}{water ? <div className="taxon-meta"><strong>WASSER</strong><span>{water}</span></div> : null}</div><p className="taxon-disclaimer">Die Hinweise sind ein kompakter Katalogauszug. Vor einer Haltung bitte Größe, Herkunft, Verhalten und gesetzliche Vorgaben individuell prüfen.</p></section> : null}
   </div>;
 }

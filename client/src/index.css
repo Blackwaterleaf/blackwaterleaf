@@ -1978,3 +1978,18 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .media-lightbox, .habitat-image-lightbox { padding:clamp(12px,3vw,42px); }
 .media-lightbox > img, .habitat-image-lightbox > img { display:block; width:min(100%,1100px); height:min(82dvh,820px); min-height:220px; object-fit:contain; margin:auto; border-radius:14px; background:#021008; }
 @media(max-width:640px){ .taxon-image-modal__stage { min-height:48dvh; } .taxon-image-modal__stage > img { height:57dvh; } .media-lightbox > img, .habitat-image-lightbox > img { height:76dvh; min-height:180px; } }
+
+
+/* Structured organism fact sheets: shared across botany, aquatics and terrarium records. */
+.taxon-facts { display:grid; gap:16px; }
+.taxon-facts__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.taxon-fact { display:flex; align-items:flex-start; gap:10px; min-width:0; padding:13px; border:1px solid color-mix(in srgb,var(--route-accent,#aafb72) 28%,transparent); border-radius:12px; background:rgba(3,21,10,.42); }
+.taxon-fact > svg { flex:0 0 auto; color:var(--route-accent,#aafb72); margin-top:2px; }
+.taxon-fact > div { display:grid; gap:4px; min-width:0; }
+.taxon-fact strong { color:#b9f987; font:800 .58rem/1.2 "JetBrains Mono",monospace; letter-spacing:.08em; }
+.taxon-fact span { color:#e1f3e0; font-size:.88rem; line-height:1.35; overflow-wrap:anywhere; }
+.taxon-facts--aquarium { --route-accent:#58d8e4; }
+.taxon-facts--terrarium { --route-accent:#e5c66e; }
+.taxon-facts__empty { margin:0; color:#aec4b0; line-height:1.55; }
+@media(max-width:760px){ .taxon-facts__grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .taxon-fact { padding:11px; } .taxon-fact span { font-size:.78rem; } }
+@media(max-width:440px){ .taxon-facts__grid { grid-template-columns:1fr; } .taxon-fact { min-height:58px; } }

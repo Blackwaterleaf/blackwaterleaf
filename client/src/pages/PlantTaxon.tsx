@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { StatePanel } from "@/components/StatePanel";
 import { TaxonRangeMap } from "@/components/TaxonRangeMap";
 import { TaxonImageModal } from "@/components/TaxonImageModal";
+import { TaxonFactSheet } from "@/components/TaxonFactSheet";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function PlantTaxon() {
@@ -33,5 +34,6 @@ export default function PlantTaxon() {
     </section>
     <section className="plant-taxon-content observatory-data-panel"><div className="section-heading"><div><span className="eyebrow">DATENBASIS</span><h2>KURZPROFIL</h2></div><CheckCircle2 size={22} /></div><p>{item.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</p>{commonNames.length ? <div className="taxon-meta"><strong>GEBRÄUCHLICHE NAMEN</strong><span>{commonNames.join(" · ")}</span></div> : null}{synonyms.length ? <div className="taxon-meta"><strong>SYNONYME</strong><span>{synonyms.join(" · ")}</span></div> : null}</section>
     <TaxonRangeMap realm="botany" summary={item.summary} careProfile={item.careProfile && typeof item.careProfile === "object" ? item.careProfile as Record<string, unknown> : null} source={item.source} sourceUrl={item.sourceRecordUrl} />
+    <TaxonFactSheet realm="botany" profile={item.careProfile && typeof item.careProfile === "object" ? item.careProfile as Record<string, unknown> : null} />
   </div>;
 }
