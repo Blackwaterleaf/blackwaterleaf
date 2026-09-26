@@ -1207,24 +1207,11 @@ function Header({
           onPress={onSearch}
         />
         <HeaderAction
-          icon="storefront-outline"
-          color={c.aqua}
-          label="Marktplatz"
-          onPress={onMarketplace}
-        />
-        <HeaderAction
           icon="notifications-outline"
           color={tone.accent}
           label="Benachrichtigungen"
           badge={unreadNotifications}
           onPress={onNotifications}
-        />
-        <HeaderAction
-          icon="mail-outline"
-          color={tone.accent}
-          label="Postfach"
-          badge={unreadMessages}
-          onPress={onMessages}
         />
         <HeaderAction
           icon={account ? "person" : "person-outline"}
@@ -1237,6 +1224,8 @@ function Header({
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMessages(); }}><Ionicons name="mail-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Postfach</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={17} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
@@ -1317,10 +1306,10 @@ function Home({
 
 function HomeStatusStrip({ tone }: { tone: Tone }) {
   const items = [
-    { icon: "water-outline" as IconName, label: "WASSER", value: "BEREIT" },
-    { icon: "leaf-outline" as IconName, label: "LUFT", value: "BEREIT" },
-    { icon: "flask-outline" as IconName, label: "pH-WERT", value: "BEREIT" },
-    { icon: "rainy-outline" as IconName, label: "WETTER", value: "BEREIT" },
+    { icon: "water-outline" as IconName, label: "WASSER", value: "KEINE QUELLE" },
+    { icon: "leaf-outline" as IconName, label: "LUFT", value: "KEINE QUELLE" },
+    { icon: "flask-outline" as IconName, label: "pH-WERT", value: "NICHT VERFÜGBAR" },
+    { icon: "rainy-outline" as IconName, label: "WETTER", value: "NICHT VERFÜGBAR" },
   ];
   return (
     <View style={[styles.homeStatusStrip, { borderColor: `${tone.accent}55`, backgroundColor: "rgba(4,20,11,.9)" }]}>
@@ -1353,9 +1342,9 @@ function HomeHero({
         <View style={[styles.observatoryContextIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
           <Ionicons name="leaf-outline" size={24} color={tone.accent} />
         </View>
-        <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · HOME</Text>
-        <Text style={styles.observatoryContextTitle}>NATUR, DIE DU SPÜRST.</Text>
-        <Text style={styles.observatoryContextText}>Dein persönlicher Einstieg in Wasserwelten, Artenwissen und echte Beobachtungen.</Text>
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · OBSERVATORY</Text>
+        <Text style={styles.observatoryContextTitle}>WASSER. WISSEN. LEBEN.</Text>
+        <Text style={styles.observatoryContextText}>Dein bildstarker Einstieg in Wasserwelten, Artenwissen und echte Beobachtungen.</Text>
         <View style={styles.homeContextActions}>
           <PrimaryButton tone={tone} label="ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
           <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
@@ -1419,7 +1408,7 @@ function LiveHomeWorlds({
     <View style={styles.liveWorlds}>
       <View style={styles.grid}>
         {worlds.map(world => (
-          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} imageMode />
+          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} imageMode visual />
         ))}
       </View>
       {selected ? (
@@ -1429,7 +1418,7 @@ function LiveHomeWorlds({
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
           </View>
           <View style={[styles.grid, styles.gridCompact]}>
-            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact imageMode />)}
+            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact imageMode visual />)}
           </View>
         </View>
       ) : null}
@@ -1518,7 +1507,7 @@ function WorldScreen({
         overline="DEINE AUSWAHL"
         title="WÄHLE EINEN BEREICH"
       />
-      <ObservatoryActionCluster tone={tone} actions={actions} />
+      <ObservatoryActionCluster tone={tone} actions={actions} visual />
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · SYNCHRONISIERT</Text><Text style={styles.cardTitle}>BEOBACHTEN. EINORDNEN. TEILEN.</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: tone.accent }]} /><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View></View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
@@ -3669,11 +3658,13 @@ function ObservatoryActionCluster({
   actions,
   compact = false,
   activeTitle,
+  visual = false,
 }: {
   tone: Tone;
   actions: Action[];
   compact?: boolean;
   activeTitle?: string;
+  visual?: boolean;
 }) {
   return (
     <View style={[styles.grid, compact && styles.gridCompact]}>
@@ -3683,6 +3674,7 @@ function ObservatoryActionCluster({
           tone={tone}
           action={action}
           compact={compact}
+          visual={visual}
           active={activeTitle === action.title.toUpperCase()}
         />
       ))}
@@ -3696,12 +3688,14 @@ function ObservatoryActionRow({
   compact = false,
   active = false,
   imageMode = false,
+  visual = false,
 }: {
   tone: Tone;
   action: Action;
   compact?: boolean;
   active?: boolean;
   imageMode?: boolean;
+  visual?: boolean;
 }) {
   const cardTone = action.area ? TONES[action.area] : tone;
   return (
@@ -3712,6 +3706,7 @@ function ObservatoryActionRow({
       style={({ pressed }) => [
         styles.observatoryActionRow,
         compact && styles.observatoryActionRowCompact,
+        visual && styles.observatoryActionRowVisual,
         { borderColor: `${cardTone.accent}77`, backgroundColor: `${cardTone.panel}D9`, shadowColor: cardTone.accent, ...NATIVE_GLOW },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
@@ -3721,8 +3716,9 @@ function ObservatoryActionRow({
         action.onPress();
       }}
     >
-      <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact]}>
-          {imageMode ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact]} /> : null}
+      <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact, visual && styles.observatoryActionContentVisual]}>
+          {imageMode ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact, visual && styles.observatoryActionMediaVisual]} /> : null}
+          {visual ? <View pointerEvents="none" style={styles.observatoryActionMediaShade} /> : null}
           <View
             style={[
               styles.observatoryActionIcon,
@@ -3735,11 +3731,12 @@ function ObservatoryActionRow({
           >
             <Ionicons name={action.icon} size={20} color={cardTone.accent} />
           </View>
-          <View style={styles.flex}>
+          <View style={[styles.flex, visual && styles.observatoryActionCopyVisual]}>
             <Text
               style={[
                 styles.observatoryActionTitle,
                 compact && styles.observatoryActionTitleCompact,
+                visual && styles.observatoryActionTitleVisual,
               ]}
               numberOfLines={2}
             >
@@ -3749,6 +3746,7 @@ function ObservatoryActionRow({
               style={[
                 styles.observatoryActionNote,
                 compact && styles.observatoryActionNoteCompact,
+                visual && styles.observatoryActionNoteVisual,
               ]}
               numberOfLines={2}
             >
@@ -3760,7 +3758,7 @@ function ObservatoryActionRow({
               </Text>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={21} color={cardTone.accent} />
+          <Ionicons name="chevron-forward" size={21} color={cardTone.accent} style={visual ? styles.observatoryActionChevronVisual : undefined} />
       </View>
     </Pressable>
   );
@@ -4454,7 +4452,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 5,
   },
-  homeContextHeader: { minHeight: 276 },
+  homeContextHeader: { minHeight: 326 },
   observatoryContextImage: { borderRadius: 15 },
   observatoryContextShade: {
     ...StyleSheet.absoluteFill,
@@ -4559,6 +4557,11 @@ const styles = StyleSheet.create({
     minHeight: 58,
     borderRadius: 9,
   },
+  observatoryActionRowVisual: {
+    width: "47.8%",
+    minHeight: 188,
+    borderRadius: 16,
+  },
   observatoryActionContent: {
     minHeight: 64,
     padding: 10,
@@ -4571,8 +4574,21 @@ const styles = StyleSheet.create({
     padding: 8,
     gap: 7,
   },
+  observatoryActionContentVisual: {
+    minHeight: 186,
+    padding: 11,
+    width: "100%",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "flex-end",
+    position: "relative",
+  },
   observatoryActionMedia: { width: 72, height: 72, borderRadius: 9, backgroundColor: "rgba(0,0,0,.28)" },
   observatoryActionMediaCompact: { width: 54, height: 54, borderRadius: 7 },
+  observatoryActionMediaVisual: { ...StyleSheet.absoluteFill, borderRadius: 0, opacity: 0.92 },
+  observatoryActionMediaShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.42)" },
+  observatoryActionCopyVisual: { width: "100%", justifyContent: "flex-end" },
+  observatoryActionChevronVisual: { position: "absolute", right: 11, bottom: 11 },
   observatoryActionIcon: {
     width: 30,
     height: 30,
@@ -4596,6 +4612,7 @@ const styles = StyleSheet.create({
     paddingRight: 2,
   },
   observatoryActionTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
+  observatoryActionTitleVisual: { fontSize: 15, lineHeight: 19, textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 8, textShadowOffset: { width: 0, height: 2 } },
   observatoryActionNote: {
     color: "#D4E1D6",
     fontSize: 9,
@@ -4603,6 +4620,7 @@ const styles = StyleSheet.create({
     paddingRight: 2,
   },
   observatoryActionNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
+  observatoryActionNoteVisual: { fontSize: 10, lineHeight: 13, color: "#E7F5EA", textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
   observatoryUnavailableLabel: {
     fontSize: 7,
     fontWeight: "900",
