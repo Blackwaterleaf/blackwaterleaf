@@ -47,9 +47,10 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: window.location.hostname === "bwlparity-nearrhpw.manus.space" || window.location.hostname === "blackwaterleaf.com" || window.location.hostname === "www.blackwaterleaf.com"
-        ? "https://3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer/api/trpc"
-        : "/api/trpc",
+      // Keep auth requests same-origin. The OAuth callback sets app_session_id
+      // on the active host; sending auth.me to a sandbox host would omit that
+      // cookie and make a successful Manus login appear to fail.
+      url: "/api/trpc",
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies
