@@ -14,6 +14,7 @@ import Home from "./pages/Home";
 import Knowledge from "./pages/Knowledge";
 import Profile from "./pages/Profile";
 import ProfileHome from "./pages/ProfileHome";
+import ManagementHub from "./pages/ManagementHub";
 import Ranking from "./pages/Ranking";
 import Realm from "./pages/Realm";
 import FlowDestination from "./pages/FlowDestination";
@@ -67,6 +68,7 @@ function Router() {
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
+        <Route path={"/profile/manage"} component={ManagementHub} />
         <Route path={"/member/:id"} component={PublicProfile} />
         <Route path={"/plant/:id"} component={PlantTaxon} />
         <Route path={"/aquarium-fish/:id"} component={AquariumTaxon} />

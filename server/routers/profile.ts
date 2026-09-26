@@ -137,7 +137,7 @@ export const profileRouter = router({
 
   publicPosts: protectedProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
     const db = await requireDatabase();
-    return db
+    const posts = await db
       .select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt })
       .from(communityPosts)
       .innerJoin(users, eq(communityPosts.userId, users.id))
@@ -149,6 +149,10 @@ export const profileRouter = router({
       ))
       .orderBy(desc(communityPosts.createdAt))
       .limit(input.limit);
+    return Promise.all(posts.map(async post => ({
+      ...post,
+      media: await Promise.all((await db.select({ id: mediaAssets.id, kind: mediaAssets.kind, mimeType: mediaAssets.mimeType, storageKey: mediaAssets.storageKey }).from(mediaAssets).where(and(eq(mediaAssets.postId, post.id), eq(mediaAssets.userId, input.userId), eq(mediaAssets.visibility, "public")))).map(async media => ({ id: String(media.id), kind: media.kind, mimeType: media.mimeType, url: await storageGetSignedUrl(media.storageKey).catch(() => null) }))),
+    })));
   }),
 
   update: protectedProcedure

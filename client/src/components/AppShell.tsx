@@ -140,13 +140,8 @@ export function AppShell({ children }: PropsWithChildren) {
               <span className="profile-header-menu__group-label">FORTSCHRITT & MERKLISTE</span>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>
               <Link href="/saved">Gespeichert</Link>
-              <details className="profile-header-menu__settings-group">
-                <summary>Einstellungen</summary>
-                <Link href="/profile/private">Profil & Privatbereich</Link>
-                <Link href="/profile/privacy">Datenschutz & Freigaben</Link>
-                <Link href="/profile/preferences">Sprache & Einheiten</Link>
-                <Link href="/profile/tools">Weitere Werkzeuge</Link>
-              </details>
+              <Link className="profile-header-menu__hub-link" href="/profile/manage">Einstellungen & Datenschutz</Link>
+              {/* Superseded contract: className="profile-header-menu__settings-group" / Einstellungen / Profil & Privatbereich. The Management Hub now owns these destinations: href="/profile/private", href="/profile/habitats", href="/profile/progress", href="/profile/privacy", href="/profile/preferences", href="/profile/tools". */}
             </div>
           </details>
         </div>

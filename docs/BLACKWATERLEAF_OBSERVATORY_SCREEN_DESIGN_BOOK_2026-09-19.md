@@ -365,3 +365,44 @@ Das Drei-Striche-Profilmenü verwendet keine flache Liste mit gleichrangigen Akt
 Die Kartenflächen bevorzugen die konfigurierte Google-Kartenbasis. Fehlt der Provider-Schlüssel oder kann Google nicht geladen werden, zeigt die Oberfläche automatisch eine echte OpenStreetMap-Karte über Leaflet statt eines dekorativen Hintergrunds oder eines leeren roten Containers. Die OpenStreetMap-Attribution bleibt sichtbar. Taxonkarten dürfen regionale Marker nur aus vorhandenen, quellengebundenen Habitat-/Herkunftsfeldern ableiten; sie dürfen keine exakten oder erfundenen Wildfundorte suggerieren. Öffentliche Beobachtungskarten zeigen ausschließlich ausdrücklich freigegebene generalisierte Ortsdaten.
 
 Verifizierte Katalogbilder werden lokal mit Quellenlink, Lizenz, Attribution und Prüfzeitpunkt dargestellt und bleiben responsiv mit stabiler Bildfläche. Fehlende Bildnachweise bleiben als offener Evidenzzustand sichtbar; unlizenzierte oder erfundene Ersatzbilder sind ausgeschlossen.
+
+
+## 17. Verbindliche Design-Book-Ersetzung: Management, Profil und Karte · 26. September 2026
+
+Dieser Abschnitt **ersetzt alle früheren Profilmenü-, Einstellungen-, Profil-Home- und Kartenlayout-Regeln**, sofern sie diesem Abschnitt widersprechen. Frühere Einzelkarten, lange Profil-Popover-Listen, doppelte Einstellungswege und verstreute Profilaktionen sind nicht mehr autoritativ.
+
+### 17.1 Einheitlicher Management-Hub
+
+Web und Native verwenden denselben Management-Hub unter **Verwalten**. Der Hub zeigt zwei klar beschriftete Gruppen mit jeweils einem **2×2-Raster**:
+
+**Konto & Alltag:** Konto & Profil · Anlagen & Pflege · Kommunikation · Datenschutz & Sicherheit.
+**Weitere Einstellungen:** Sprache & Barrierefreiheit · Fortschritt & Merkliste · Host-Dashboard · Hilfe, Daten & Werkzeuge.
+
+Jede Kachel besitzt ein semantisches Icon, Titel, Unterzeile, Status/Schutzinformation und eine vollständig antippbare Fläche. Die Detailrouten bleiben technisch bestehen, werden aber ausschließlich über die passende Hub-Kachel geöffnet. Die alte Zusammenstellung „Profil öffnen / Profil bearbeiten / Privatbereich / Weitere Werkzeuge“ darf nicht als parallele zweite Navigation erscheinen.
+
+Das **Host-Dashboard** wird ausschließlich für das serverseitig geprüfte Eigentümerkonto `blackwaterleaf@gmail.com` und die Domain `blackwaterleaf.com` angezeigt. Normale Nutzer und andere Staff-Konten erhalten keine Host-Dashboard-Kachel. Die Kennzahlen bleiben datensparsam und zeigen nur aggregierte Reichweite, registrierte Konten, Besuche, Seitenaufrufe, Logins und Moderationsstatus.
+
+### 17.2 Professionelles Profil
+
+Das Profil ist eine sichtbare Fach-/Creator-Profilseite und kein Einstellungsformular. Direkt sichtbar sind:
+
+- verifiziert geladenes Profilbild oder ein klarer leerer Bildzustand,
+- Anzeigename und Benutzername,
+- Bio,
+- E-Mail als bewusst sichtbarer `mailto:`-Kontakt nur im eigenen geschützten Profil,
+- verknüpfte Instagram-, TikTok-, YouTube-, Facebook- und Website-Links,
+- XP/Level/Anlagen als kompakte Kennzahlen,
+- private Fachbereiche,
+- ein direkt sichtbares Raster der freigegebenen eigenen Beiträge und Bilder.
+
+Private Entwürfe, private Anlagen, genaue Standorte und private Nachrichten dürfen nie in diesem Raster erscheinen. Medien werden nur aus serverseitig als öffentlich freigegebenen Assets geladen. Fehlende Medien erhalten einen ehrlichen Text-/Iconzustand und keine erfundene Bildquelle.
+
+### 17.3 Eigenständige Karten-Seite
+
+Die Karte ist ein eigener primärer Modus und nicht länger ein dekorativer Abschnitt im Profil oder Realm. Das Zielmodell ist **2×1**: eine dominante echte Kartenfläche plus eine synchronisierte Filter-/Listenfläche. Mobil werden beide Flächen untereinander gezeigt, die Karte bleibt zuerst sichtbar. Karte und Liste verwenden denselben serverseitig freigegebenen Datensatz.
+
+Standorte bleiben privacy-preserving: private oder nicht freigegebene Orte werden nicht als exakte Marker ausgegeben. Taxon-Herkunftskarten dürfen nur quellengebundene regionale Daten, Habitatfakten und echte Kartenpunkte anzeigen. Es dürfen keine Koordinaten aus Namen, Regionen oder Vermutungen erfunden werden.
+
+### 17.4 Einstellbarkeit
+
+Alle für Nutzer relevanten Bereiche müssen konfigurierbar sein: Profil, Benachrichtigungen, Postfachpräferenzen, Community-Sichtbarkeit, Medienverarbeitung, KI-Verarbeitung, Standortfreigabe, Sprache, Einheiten, Barrierefreiheit, Ruhezeiten, Datenexport, Sitzungen und Kontosicherheit. Eine Funktion mit noch fehlender Infrastruktur wird als ehrlich deaktiviert bzw. „noch nicht verbunden“ angezeigt und nicht als scheinbar aktive Einstellung präsentiert.
