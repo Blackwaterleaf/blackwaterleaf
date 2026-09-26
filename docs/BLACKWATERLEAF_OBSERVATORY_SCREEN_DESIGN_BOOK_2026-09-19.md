@@ -417,3 +417,10 @@ Der primäre Einstieg **Verwalten** öffnet einen zentralen Management-Hub. Kont
 ### 15.8 Kategorie- und Anlagenmedien
 
 Private Anlagen- und Profilmedien werden nicht als kleine Einzelsymbole dargestellt. Web verwendet auf breiten Ansichten bis zu drei große quadratische Bilder nebeneinander und auf schmalen Ansichten zwei Spalten. Native verwendet dieselbe Priorität mit bis zu drei großen quadratischen Medienflächen. Es werden nur echte, gespeicherte Bilder gerendert; fehlende Medien erhalten keinen erfundenen Ersatz. Jede Bildfläche bleibt antippbar und öffnet die vorhandene Detailansicht, sofern diese für den jeweiligen Datentyp vorgesehen ist.
+
+
+## 15.9 Vollständige Fachkataloge
+
+Der Einstieg **„Mehr anzeigen“** aus Botanik, Aquaristik und Terraristik öffnet eine eigene Fachkatalogseite und nicht die allgemeine Suche. Diese Seite lädt alle veröffentlichten Datensätze des gewählten Bereichs aus `catalogByRealm` und ordnet sie alphabetisch nach akzeptiertem wissenschaftlichem Namen, anschließend nach wissenschaftlichem Namen.
+
+Jede Katalogkarte folgt dem Screenshot-Raster: ein großes, scharfes, quellengebundenes Bild, darunter der gebräuchliche Name in großer Schrift und der botanische beziehungsweise wissenschaftliche Name als eigene Zeile. Web nutzt drei Spalten auf breiten Ansichten und zwei Spalten auf schmalen Ansichten; Native verwendet dasselbe zweispaltige Kartenprinzip. Botanik bleibt lime/grün, Aquaristik aqua/cyan und Terraristik naturgold. Fehlende verifizierte Bilder werden nicht erfunden; der Datensatz bleibt sichtbar mit einem ehrlichen Bildnachweis-Zustand. Die Native-App besitzt dafür einen eigenen Vollkatalogscreen mit identischen Daten, Begriffen und Zuständen.

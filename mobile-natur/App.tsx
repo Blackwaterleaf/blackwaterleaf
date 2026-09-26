@@ -55,6 +55,7 @@ import {
   careMine,
   careToday,
   careUpdateTask,
+  catalogByRealm,
   clearToken,
   communityComments,
   communityFeed,
@@ -133,6 +134,7 @@ import {
   type UnifiedSearchResult,
   type PublicPlantTaxon,
   type PublicAquariumTaxon,
+  type PublicCatalogTaxon,
   type PublicProfile,
   type PublicProfilePost,
   type SocialRelationship,
@@ -211,6 +213,7 @@ type Screen =
   | "collection"
   | "builder"
   | "search"
+  | "catalogOverview"
   | "publicProfile"
   | "taxon"
   | "aquariumTaxon"
@@ -404,6 +407,14 @@ const TONES: Record<Screen, Tone> = {
     label: "SUCHE",
     active: "catalog",
   },
+  catalogOverview: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "ALPHABETISCHER KATALOG",
+    active: "catalog",
+  },
   publicProfile: {
     accent: c.botany,
     surface: c.botanySurface,
@@ -512,6 +523,7 @@ function NaturApp() {
   const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<number | null>(null);
   const [selectedTaxonId, setSelectedTaxonId] = useState<number | null>(null);
   const [selectedAquariumTaxonId, setSelectedAquariumTaxonId] = useState<number | null>(null);
+  const [catalogRealm, setCatalogRealm] = useState<Realm>("botany");
   const [selectedCommunityPostId, setSelectedCommunityPostId] = useState<string | null>(null);
 
   const tone =
@@ -1103,6 +1115,16 @@ function NaturApp() {
             refresh={loadScreen}
             navigate={navigate}
             onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
+            onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
+            onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
+            onOpenCatalog={realm => { setCatalogRealm(realm); navigate("catalogOverview"); }}
+          />
+        )}
+        {screen === "catalogOverview" && (
+          <CatalogOverviewScreen
+            tone={TONES[catalogRealm]}
+            realm={catalogRealm}
+            onBack={() => navigate("search")}
             onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
             onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
           />
@@ -3402,7 +3424,7 @@ function BuilderScreen({
   );
 }
 
-function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
+function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon, onOpenCatalog }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void; onOpenCatalog: (realm: Realm) => void }) {
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<UnifiedSearchResult | null>(null);
   const [remoteState, setRemoteState] = useState<State>("ready");
@@ -3418,9 +3440,17 @@ function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, on
   const total = results ? results.taxa.length + results.aquarium.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
   const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "aquarium") onOpenAquariumTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
   const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "aquarium" ? "fish-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
-  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
+  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><View style={styles.catalogRealmButtons}>{([ ["botany", "Botanik", "leaf-outline"], ["aquarium", "Aquaristik", "fish-outline"], ["terrarium", "Terraristik", "bug-outline"] ] as const).map(([realm, label, icon]) => <Pressable key={realm} onPress={() => onOpenCatalog(realm)} style={({ pressed }) => [styles.catalogRealmButton, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><Ionicons name={icon} size={17} color={tone.accent} /><Text style={styles.cardTitle}>{label}</Text><Ionicons name="chevron-forward" size={16} color={tone.accent} /></Pressable>)}</View><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
 }
-
+function CatalogOverviewScreen({ tone, realm, onBack, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; realm: Realm; onBack: () => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
+  const [items, setItems] = useState<PublicCatalogTaxon[]>([]);
+  const [state, setState] = useState<State>("loading");
+  const [term, setTerm] = useState("");
+  useEffect(() => { let active = true; setState("loading"); void catalogByRealm(realm, 200).then(value => { if (active) { setItems(value); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [realm]);
+  const filtered = items.filter(item => `${item.commonNames.join(" ")} ${item.scientificName} ${item.acceptedScientificName ?? ""}`.toLocaleLowerCase().includes(term.trim().toLocaleLowerCase()));
+  const realmTitle = realm === "botany" ? "BOTANIK" : realm === "aquarium" ? "AQUARISTIK" : "TERRARISTIK";
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUM KATALOG" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow={`ALPHABETISCH · ${realmTitle}`} title={realmTitle} subtitle="Große Bilder, gebräuchlicher Name und botanischer Name in einer klaren Fachbereichsliste." icon={realm === "aquarium" ? "fish-outline" : realm === "terrarium" ? "bug-outline" : "leaf-outline"} /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={setTerm} placeholder="Im Katalog filtern …" placeholderTextColor={c.muted} /><Text style={[styles.chip, { color: tone.accent }]}>{state === "ready" ? `${filtered.length} EINTRÄGE · ALPHABETISCH` : "ECHTE KATALOGDATEN"}</Text>{state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Der Katalog konnte nicht geladen werden." /> : !filtered.length ? <StatusPanel tone={tone} icon="leaf-outline" code="KATALOG / LEER" title="KEINE VERÖFFENTLICHTEN TAXA" text="Es werden keine Beispiel-Datensätze angezeigt." /> : <View style={styles.catalogNativeGrid}>{filtered.map(item => { const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); const common = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; return <Pressable key={`${item.type}-${item.id}`} onPress={() => item.type === "aquarium" ? onOpenAquariumTaxon(item.id) : onOpenTaxon(item.id)} style={({ pressed }) => [styles.catalogNativeCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.catalogNativeImage, { backgroundColor: `${tone.accent}13` }]}>{verified ? <Image source={{ uri: item.imageUrl! }} style={styles.catalogNativeImageAsset} accessibilityLabel={`${common} – ${item.scientificName}`} /> : <Ionicons name={item.type === "aquarium" ? "fish-outline" : "leaf-outline"} size={30} color={tone.accent} />}</View><Text style={styles.catalogNativeName} numberOfLines={2}>{common}</Text><Text style={[styles.catalogNativeScientific, { color: tone.accent }]} numberOfLines={2}>{item.scientificName}</Text></Pressable>; })}</View>}</Page>;
+}
 function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn, onMessage }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void>; onMessage: (profile: PublicProfile) => void }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [relationship, setRelationship] = useState<SocialRelationship | null>(null);
@@ -4881,6 +4911,14 @@ const styles = StyleSheet.create({
   messageThreadBody: { gap: 8, minHeight: 150, maxHeight: 330 },
   messageBubble: { alignSelf: "flex-start", maxWidth: "82%", padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(12,45,23,.62)", gap: 4 },
   messageBubbleOwn: { alignSelf: "flex-end", backgroundColor: "rgba(199,243,91,.12)" },
+  catalogRealmButtons: { flexDirection: "row", gap: 7, marginBottom: 10 },
+  catalogRealmButton: { flex: 1, minHeight: 48, paddingHorizontal: 8, borderWidth: 1, borderRadius: 11, flexDirection: "row", alignItems: "center", gap: 6 },
+  catalogNativeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  catalogNativeCard: { width: "48%", borderWidth: 1, borderRadius: 13, overflow: "hidden", paddingBottom: 10 },
+  catalogNativeImage: { width: "100%", aspectRatio: 1.05, alignItems: "center", justifyContent: "center" },
+  catalogNativeImageAsset: { width: "100%", height: "100%" },
+  catalogNativeName: { color: c.text, fontSize: 15, fontWeight: "700", lineHeight: 19, marginHorizontal: 10, marginTop: 9 },
+  catalogNativeScientific: { fontSize: 12, fontStyle: "italic", lineHeight: 16, marginHorizontal: 10, marginTop: 4 },
   messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
   messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, like, lt, notInArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, like, lt, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, userBlocks, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
@@ -220,7 +220,7 @@ export const searchRouter = router({
     }),
 
   catalogByRealm: publicProcedure
-    .input(z.object({ realm: observationRealmSchema, limit: z.number().int().min(1).max(20).default(8) }))
+    .input(z.object({ realm: observationRealmSchema, limit: z.number().int().min(1).max(200).default(8) }))
     .query(async ({ input }) => {
       const db = await requireDatabase();
       if (input.realm === "terrarium") return [];
@@ -229,6 +229,7 @@ export const searchRouter = router({
           id: plantTaxa.id,
           scientificName: plantTaxa.scientificName,
           acceptedScientificName: plantTaxa.acceptedScientificName,
+          commonNames: plantTaxa.commonNames,
           family: plantTaxa.family,
           imageUrl: plantTaxa.imageUrl,
           imageSourceUrl: plantTaxa.imageSourceUrl,
@@ -236,21 +237,22 @@ export const searchRouter = router({
           imageAttribution: plantTaxa.imageAttribution,
           imageVerifiedAt: plantTaxa.imageVerifiedAt,
           evidenceState: plantTaxa.evidenceState,
-        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(desc(plantTaxa.updatedAt)).limit(input.limit);
+        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(asc(plantTaxa.acceptedScientificName), asc(plantTaxa.scientificName)).limit(input.limit);
         return rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
       }
       const rows = await db.select({
         id: aquariumTaxa.id,
-        scientificName: aquariumTaxa.scientificName,
-        acceptedScientificName: aquariumTaxa.acceptedScientificName,
-        family: aquariumTaxa.family,
+          scientificName: aquariumTaxa.scientificName,
+          acceptedScientificName: aquariumTaxa.acceptedScientificName,
+          commonNames: aquariumTaxa.commonNames,
+          family: aquariumTaxa.family,
         imageUrl: aquariumTaxa.imageUrl,
         imageSourceUrl: aquariumTaxa.imageSourceUrl,
         imageLicense: aquariumTaxa.imageLicense,
         imageAttribution: aquariumTaxa.imageAttribution,
         imageVerifiedAt: aquariumTaxa.imageVerifiedAt,
         evidenceState: aquariumTaxa.evidenceState,
-      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(desc(aquariumTaxa.updatedAt)).limit(input.limit);
+      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(asc(aquariumTaxa.acceptedScientificName), asc(aquariumTaxa.scientificName)).limit(input.limit);
       return rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
     }),
 

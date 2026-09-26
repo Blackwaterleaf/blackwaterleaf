@@ -567,11 +567,13 @@ export type PublicProfilePost = { id: number; content: string; realm: "botany" |
 export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "aquarium_taxon" | "product" | "profile"; targetId: number; createdAt: string };
 export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; imageSourceUrl: string | null; imageLicense: string | null; imageAttribution: string | null; evidenceState: string; status: string };
 export type PublicAquariumTaxon = PublicPlantTaxon;
+export type PublicCatalogTaxon = Pick<PublicPlantTaxon, "id" | "scientificName" | "acceptedScientificName" | "family" | "commonNames" | "imageUrl" | "imageSourceUrl" | "imageLicense" | "imageAttribution" | "evidenceState"> & { type: "plant" | "aquarium"; imageVerifiedAt?: string | null };
 export type Challenge = { id: number; title: string; description: string; realm: "botany" | "aquarium" | "terrarium" | null; ruleText: string; startsAt: string; endsAt: string; rewardPoints: number };
 export type ChallengeProgress = { challengeId: number; title: string; realm: string | null; progress: number; status: "joined" | "completed" | "withdrawn"; endsAt: string };
 export const unifiedSearch = (query: string, kind: "all" | "plant" | "aquarium" | "knowledge" | "profile" | "community" | "product" = "all", cursor?: string) => trpcGet<UnifiedSearchResult>("search.unified", { q: query, kind, locale: "de", limit: 18, cursor });
 export const publicPlantTaxon = (id: number) => trpcGet<PublicPlantTaxon | null>("search.plantById", { id });
 export const publicAquariumTaxon = (id: number) => trpcGet<PublicAquariumTaxon | null>("search.aquariumById", { id });
+export const catalogByRealm = (realm: "botany" | "aquarium" | "terrarium", limit = 200) => trpcGet<PublicCatalogTaxon[]>("search.catalogByRealm", { realm, limit });
 export const publicProfile = (id: number) => trpcGet<PublicProfile | null>("profile.publicById", { id });
 export const publicProfilePosts = (id: number) => trpcGet<PublicProfilePost[]>("profile.publicPosts", { userId: id, limit: 12 });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);

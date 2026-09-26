@@ -1,4 +1,4 @@
-import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck } from "lucide-react";
+import { Loader2, Search as SearchIcon, UserRound, BookOpen, Leaf, Fish, MessageCircle, ShoppingBag, ArrowRight, ShieldCheck, Sprout } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -15,6 +15,29 @@ const tabs: Array<{ key: SearchKind; label: string; icon: typeof Leaf }> = [
   { key: "community", label: "Community", icon: MessageCircle },
   { key: "product", label: "Marktplatz", icon: ShoppingBag },
 ];
+
+const realmCopy = {
+  botany: { tone: "botany", title: "BOTANIK", subtitle: "Wasserpflanzen alphabetisch entdecken – mit großem Bild, gebräuchlichem Namen und botanischer Einordnung.", icon: Leaf, label: "PFLANZENKATALOG", back: "/botanik" },
+  aquarium: { tone: "aquarium", title: "AQUARISTIK", subtitle: "Fische und Wirbellose strukturiert nach ihrem wissenschaftlichen Namen entdecken.", icon: Fish, label: "AQUARISTIK-KATALOG", back: "/aquaristik" },
+  terrarium: { tone: "terrarium", title: "TERRARISTIK", subtitle: "Der Katalog wächst ausschließlich mit geprüften, veröffentlichten Terraristik-Datensätzen.", icon: Sprout, label: "TERRARISTIK-KATALOG", back: "/terraristik" },
+} as const;
+type CatalogRealm = keyof typeof realmCopy;
+
+function hasVerifiedImage(item: { imageUrl?: string | null; imageSourceUrl?: string | null; imageLicense?: string | null; imageAttribution?: string | null; imageVerifiedAt?: Date | string | null }) {
+  return Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt);
+}
+
+function CatalogCard({ item, realm }: { item: Record<string, unknown>; realm: CatalogRealm }) {
+  const id = String(item.id);
+  const scientific = String(item.acceptedScientificName ?? item.scientificName);
+  const botanical = String(item.scientificName);
+  const common = Array.isArray(item.commonNames) ? String(item.commonNames[0] ?? "") : "";
+  const verified = hasVerifiedImage(item as never);
+  return <Link className={`catalog-card catalog-card--${realm}`} href={realm === "aquarium" ? `/aquarium-fish/${id}` : `/plant/${id}`}>
+    <div className="catalog-card__image">{verified ? <img src={String(item.imageUrl)} alt={`${common || scientific} – ${botanical}`} loading="lazy" /> : realm === "aquarium" ? <Fish size={34} aria-label="Kein verifiziertes Bild" /> : <Leaf size={34} aria-label="Kein verifiziertes Bild" />}</div>
+    <div className="catalog-card__body"><strong>{common || scientific}</strong><em>{botanical}</em><small>{scientific !== botanical ? scientific : String(item.family ?? "Katalogtaxon")}</small></div><ArrowRight className="catalog-card__arrow" size={17} />
+  </Link>;
+}
 
 function ResultCard({ type, item }: { type: SearchKind; item: Record<string, unknown> }) {
   const id = String(item.id);
@@ -38,13 +61,15 @@ export default function Search() {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<SearchKind>(() => (initialParams?.get("kind") as SearchKind) || "all");
   const [cursor, setCursor] = useState<string | undefined>();
-  const realm = initialParams?.get("realm") === "botany" || initialParams?.get("realm") === "aquarium" || initialParams?.get("realm") === "terrarium" ? initialParams.get("realm") as "botany" | "aquarium" | "terrarium" : undefined;
+  const realm = initialParams?.get("realm") === "botany" || initialParams?.get("realm") === "aquarium" || initialParams?.get("realm") === "terrarium" ? initialParams.get("realm") as CatalogRealm : undefined;
+  const catalogMode = Boolean(realm && !query);
   useEffect(() => { const next = new URLSearchParams(typeof window !== "undefined" ? window.location.search : location.split("?")[1] ?? ""); const nextQuery = next.get("q") ?? ""; if (nextQuery && !draft) { setDraft(nextQuery); setQuery(nextQuery); } }, [location, draft]);
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(draft.trim()), 240);
     return () => window.clearTimeout(timer);
   }, [draft]);
   useEffect(() => setCursor(undefined), [query, kind]);
+  const catalog = trpc.search.catalogByRealm.useQuery({ realm: realm ?? "botany", limit: 200 }, { enabled: catalogMode, retry: false, staleTime: 30_000 });
   const search = trpc.search.unified.useQuery({ q: query, kind, locale: "de", realm, limit: 18, cursor: kind === "all" ? undefined : cursor }, { enabled: query.length >= 2, retry: false, staleTime: 15_000 });
   const data = search.data;
   const selected = kind === "plant" ? data?.taxa : kind === "aquarium" ? data?.aquarium : kind === "knowledge" ? data?.knowledge : kind === "profile" ? data?.profiles : kind === "community" ? data?.community : kind === "product" ? data?.products : [];
@@ -53,6 +78,14 @@ export default function Search() {
   ] as const : [[kind, selected ?? []] as const];
 
   const canLoadMore = kind !== "all" && Boolean(data?.nextCursor);
+  if (catalogMode && realm) {
+    const meta = realmCopy[realm];
+    return <div className={`observatory-route observatory-route--${meta.tone} catalog-page`}>
+      <ObservatoryContextHeader tone={meta.tone} eyebrow={meta.label} title={meta.title} subtitle={meta.subtitle} icon={meta.icon} badge="KATALOG" />
+      <div className="catalog-page__toolbar"><Link className="secondary-action" href={meta.back}>← ZURÜCK ZUM FACHBEREICH</Link><label className="search-input-wrap"><SearchIcon size={18} /><input value={draft} onChange={event => setDraft(event.target.value)} placeholder="Im Katalog suchen …" aria-label="Im Katalog suchen" />{catalog.isFetching ? <Loader2 className="action-spinner" size={18} /> : null}</label></div>
+      {catalog.isLoading ? <StatePanel code="CATALOG/LOAD" state="loading" title="KATALOG WIRD GELADEN" body="Veröffentlichte Taxa werden alphabetisch geordnet …" /> : catalog.isError ? <StatePanel code="CATALOG/ERROR" state="error" title="KATALOG NICHT VERFÜGBAR" body="Der Fachkatalog konnte gerade nicht geladen werden." action={<button type="button" className="secondary-action" onClick={() => void catalog.refetch()}>ERNEUT VERSUCHEN</button>} /> : !catalog.data?.length ? <StatePanel code="CATALOG/EMPTY" state="empty" title="NOCH KEINE VERÖFFENTLICHTEN TAXA" body={realm === "terrarium" ? "Für Terraristik werden erst geprüfte Datensätze angezeigt. Es werden keine Beispieltiere ergänzt." : "Für diesen Fachbereich sind aktuell keine veröffentlichten Datensätze vorhanden."} /> : <section className="catalog-directory"><div className="section-heading"><div><span className="eyebrow">ALPHABETISCH · {meta.title}</span><h2>{catalog.data.length} EINTRÄGE</h2></div><span className="system-chip">ECHTE KATALOGDATEN</span></div><div className="catalog-grid">{catalog.data.filter(item => !draft || `${JSON.stringify(item.commonNames ?? "")} ${item.scientificName} ${item.acceptedScientificName ?? ""}`.toLocaleLowerCase().includes(draft.toLocaleLowerCase())).map(item => <CatalogCard key={`${item.type}-${item.id}`} item={item as unknown as Record<string, unknown>} realm={realm} />)}</div></section>}
+    </div>;
+  }
   return <div className="observatory-route observatory-route--botany search-page">
     <ObservatoryContextHeader tone="botany" eyebrow="KATALOG · DURCHSUCHEN" title="SUCHEN & ENTDECKEN" subtitle="Veröffentlichte Taxa, Quellenwissen, Profile, Community und freigegebene Händler." icon={SearchIcon} badge="KATALOG" />
     <section className="search-workspace observatory-data-panel"><label className="search-input-wrap"><SearchIcon size={20} /><input value={draft} onChange={event => setDraft(event.target.value)} placeholder="Pflanze, Wissen oder Produkt …" aria-label="Suche" autoFocus />{search.isFetching ? <Loader2 className="action-spinner" size={18} /> : null}</label></section>
