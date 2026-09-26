@@ -447,3 +447,10 @@ Das Feld **„Bereich“** hat für normale Konten weiterhin nur die fachliche Z
 Die Kartenbasis folgt der ausgewählten UI-Sprache. Google Maps wird mit dem passenden `language`-/`region`-Parameter geladen; der OSM-Fallback verwendet für Deutsch den deutschen OpenStreetMap-Kartenlayer und für Englisch den internationalen Layer. Taxon-Kartenüberschrift, Herkunftsbedingungen, Leerzustände und Kartenfehler werden ebenfalls lokalisiert. Quellengebundene Eigennamen und wissenschaftliche Taxonnamen bleiben unverändert.
 
 Bearbeiten und Löschen sind als kompakte, vollständig sichtbare Icon-Aktionen ausgeführt. Eigentümeraktionen verwenden 27 px Rahmen, 14–15 px Icons, reduzierte Rundung und keinen überstehenden oder abgeschnittenen Rahmen. Die Touch-Zielgröße bleibt semantisch erreichbar, ohne das visuelle Raster zu überladen.
+
+
+## 15.13 Medienanzeige und Zoom
+
+Community-Bilder werden in ihrer ermittelten Originalproportion dargestellt und nicht mehr pauschal beschnitten oder verschoben. Native nutzt die gemessene Bildproportion; Web verwendet `contain` und die reale Medienratio. Videos übernehmen ihre geladenen Abmessungen, bleiben vollständig sichtbar und erhalten native Browser-/Plattformsteuerung.
+
+Bilder öffnen sich auf Web und Native in einer separaten Zoomansicht mit vollständigem Inhalt und sicherem Schließen. Bei mehreren Medien zeigt eine feine, durchgängige Linie mit Hinweis den weiteren Medienfluss an. Diese Regeln gelten für die gemeinsamen Community-Medienkarten und damit für alle Seiten, die diese Karten verwenden.

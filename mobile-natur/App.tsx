@@ -3783,7 +3783,14 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
   const [commentPending, setCommentPending] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentText, setEditingCommentText] = useState("");
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [postMediaRatio, setPostMediaRatio] = useState<number | null>(null);
   const loadComments = async () => { if (token) setComments(await communityComments(token, Number(post.id))); };
+  useEffect(() => {
+    const media = post.media[0];
+    if (!media || media.mimeType.startsWith("video/")) { setPostMediaRatio(null); return; }
+    Image.getSize(media.accessUrl, (width, height) => setPostMediaRatio(width && height ? width / height : null), () => setPostMediaRatio(null));
+  }, [post.media]);
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
     setCommentPending(true);
@@ -3830,12 +3837,9 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
         </View> : null}
       </View>
       <Text style={styles.copy}>{post.content}</Text>
-      {post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : (
-        <Image
-          source={{ uri: post.media[0].accessUrl }}
-          style={styles.postImage}
-        />
-      ) : null}
+      {post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Pressable accessibilityRole="button" accessibilityLabel="Bild vergrößern" onPress={() => setZoomedImage(post.media[0].accessUrl)}><Image source={{ uri: post.media[0].accessUrl }} style={[styles.postImage, postMediaRatio ? { aspectRatio: postMediaRatio, height: undefined } : null]} resizeMode="contain" /></Pressable> : null}
+      {post.media.length > 1 ? <View style={styles.mediaScrollHintNative}><View style={styles.mediaScrollLineNative} /><Text style={styles.miniCopy}>WEITERE MEDIEN · WISCHEN / SCROLLEN</Text><View style={styles.mediaScrollLineNative} /></View> : null}
+      <Modal visible={Boolean(zoomedImage)} transparent animationType="fade" onRequestClose={() => setZoomedImage(null)}><Pressable style={styles.mediaLightboxNative} onPress={() => setZoomedImage(null)}><Pressable onPress={() => undefined}><Image source={zoomedImage ? { uri: zoomedImage } : undefined} style={styles.mediaLightboxImageNative} resizeMode="contain" /></Pressable><Pressable accessibilityLabel="Zoom schließen" style={styles.mediaLightboxCloseNative} onPress={() => setZoomedImage(null)}><Ionicons name="close" size={20} color={c.text} /></Pressable></Pressable></Modal>
       <View style={styles.postInteractionRow}><Pressable onPress={() => void onLike()} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport() }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{!isOwner ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock() }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View>
       <Text style={styles.date}>
         {post.likesCount} Likes · {post.commentsCount} Kommentare
@@ -4949,6 +4953,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: c.raised,
   },
+  mediaScrollHintNative: { flexDirection: "row", alignItems: "center", gap: 7, paddingVertical: 4 },
+  mediaScrollLineNative: { height: 1, flex: 1, backgroundColor: "rgba(185,251,127,.42)" },
+  mediaLightboxNative: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor: "rgba(0,8,4,.96)" },
+  mediaLightboxImageNative: { width: "100%", height: "82%" },
+  mediaLightboxCloseNative: { position: "absolute", top: 48, right: 18, width: 36, height: 36, borderRadius: 9, borderWidth: 1, borderColor: "rgba(185,251,127,.45)", backgroundColor: "rgba(7,28,13,.92)", alignItems: "center", justifyContent: "center" },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
   profilePostsPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
   profilePostRow: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.16)", backgroundColor: "rgba(0,0,0,.14)", gap: 4 },
