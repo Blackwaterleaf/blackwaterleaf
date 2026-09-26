@@ -231,7 +231,6 @@ type Screen =
   | "photo"
   | "post"
   | "collection"
-  | "builder"
   | "search"
   | "catalogOverview"
   | "publicProfile"
@@ -253,7 +252,7 @@ type BottomTab =
   | "explore"
   | "marketplace"
   | "community"
-  | "builder";
+;
 type State = "loading" | "ready" | "error";
 type Tone = {
   accent: string;
@@ -419,14 +418,6 @@ const TONES: Record<Screen, Tone> = {
     image: ASSETS.botany,
     label: "MEINE ANLAGEN",
     active: "profile",
-  },
-  builder: {
-    accent: c.aqua,
-    surface: c.aquariumSurface,
-    panel: "#032231",
-    image: ASSETS.aquarium,
-    label: "HABITAT BUILDER",
-    active: "builder",
   },
   search: {
     accent: c.botany,
@@ -1144,16 +1135,6 @@ function NaturApp() {
             token={token}
             habitats={habitats}
             initialRealm={collectionRealm}
-            onSignIn={signIn}
-            onSaved={refreshPrivate}
-          />
-        )}
-        {screen === "builder" && (
-          <BuilderScreen
-            tone={TONES.builder}
-            token={token}
-            account={account}
-            habitats={habitats}
             onSignIn={signIn}
             onSaved={refreshPrivate}
           />
@@ -3281,7 +3262,7 @@ function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: 
       ["Sprache & Barrierefreiheit", "Sprache, Einheiten und Darstellung", "language-outline", () => navigate("profile")],
       ["Fortschritt & Merkliste", "XP, Level und gespeicherte Inhalte", "trophy-outline", () => navigate("ranking")],
       ...(isOwner ? [["Host-Dashboard", "Echte Reichweite und Konten · nur Eigentümer", "analytics-outline", () => navigate("dashboard")] as const] : []),
-      ["Hilfe, Daten & Werkzeuge", "Quellen, Builder und Smart-Werte", "construct-outline", () => navigate("builder")],
+      ["Hilfe, Daten & Werkzeuge", "Quellen und Smart-Werte", "link-outline", () => navigate("management")],
     ] as const },
   ];
   if (!token) return <Page><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Das Kontozentrum ist nur für angemeldete Konten verfügbar." onSignIn={onSignIn} /></Page>;
@@ -3381,7 +3362,7 @@ function ProfileScreen({
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
-        {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+        {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
         {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten'], ['location_processing', 'Grobe Region für aktuelles Wetter verwenden']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
         {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
         {menuTarget === "edit" || menuTarget === "private" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
@@ -3472,75 +3453,6 @@ function CollectionScreen({
         onSaved={onSaved}
       />
     </View>
-  );
-}
-
-function BuilderScreen({
-  tone,
-  token,
-  account,
-  habitats,
-  onSignIn,
-  onSaved,
-}: {
-  tone: Tone;
-  token: string | null;
-  account: Account | null;
-  habitats: Habitat[];
-  onSignIn: () => Promise<void>;
-  onSaved: () => Promise<void>;
-}) {
-  if (!token)
-    return (
-      <Page>
-        <PrivateFeature
-          tone={tone}
-          title="HABITAT BUILDER GESCHÜTZT."
-          text="Der Builder ist ausschließlich für das serverseitig bestätigte Administratorkonto zugänglich."
-          onSignIn={onSignIn}
-        />
-      </Page>
-    );
-  if (account?.role !== "admin")
-    return (
-      <Page>
-        <StatusPanel
-          tone={tone}
-          icon="lock-closed-outline"
-          code="BUILDER / GESCHÜTZT"
-          title="KEINE ADMIN-FREIGABE"
-          text="Dieser Bereich ist nur für die serverseitig bestätigte Rolle Admin verfügbar."
-        />
-      </Page>
-    );
-  return (
-    <Page>
-      <ObservatoryContextHeader
-        tone={tone}
-        eyebrow="ADMIN / HABITAT BUILDER"
-        title="HABITAT PLANEN"
-        subtitle="Abstrakte lokale Planungsmarker — keine Arten-, Produkt-, Statik- oder Elektrofreigabe."
-        icon="construct-outline"
-      />
-      <NativePlanner tone={tone} />
-      <View
-        style={[
-          styles.builderData,
-          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
-        ]}
-      >
-        <Text style={[styles.chip, { color: tone.accent }]}>
-          PRIVATE GRUNDLAGE
-        </Text>
-        <Text style={styles.cardTitle}>EIGENE ANLAGEN VERWALTEN</Text>
-        <Text style={styles.copy}>
-          Der Builder verwendet dieselben geschützten Anlagen wie die Web-App.
-          Änderungen am Datenbestand erfolgen nur über die unten stehende
-          private Anlagenverwaltung.
-        </Text>
-      </View>
-      <HabitatManager token={token} habitats={habitats} onSaved={onSaved} />
-    </Page>
   );
 }
 
@@ -4091,98 +4003,6 @@ function Truth({ tone }: { tone: Tone }) {
   );
 }
 
-function NativePlanner({ tone }: { tone: Tone }) {
-  const tools: Array<{ id: string; title: string; icon: IconName }> = [
-    { id: "plant", title: "Pflanze", icon: "leaf-outline" },
-    { id: "stone", title: "Struktur", icon: "layers-outline" },
-    { id: "water", title: "Wasser", icon: "water-outline" },
-    { id: "light", title: "Licht", icon: "bulb-outline" },
-  ];
-  const [selected, setSelected] = useState(tools[0].id);
-  const [markers, setMarkers] = useState<Array<{ id: string; tool: string }>>(
-    []
-  );
-  const insert = () =>
-    setMarkers(current => [
-      ...current,
-      { id: Crypto.randomUUID(), tool: selected },
-    ]);
-  return (
-    <View
-      style={[
-        styles.planner,
-        { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
-      ]}
-    >
-      <Text style={[styles.chip, { color: tone.accent }]}>LOKALE PLANUNG</Text>
-      <Text style={styles.cardTitle}>OBJEKTWERKZEUG WÄHLEN</Text>
-      <View style={styles.plannerTools}>
-        {tools.map(tool => (
-          <Pressable
-            key={tool.id}
-            onPress={() => setSelected(tool.id)}
-            style={({ pressed }) => [
-              styles.plannerTool,
-              {
-                borderColor:
-                  selected === tool.id ? tone.accent : `${tone.accent}44`,
-                backgroundColor:
-                  selected === tool.id ? `${tone.accent}23` : "rgba(0,0,0,.18)",
-              },
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons name={tool.icon} size={18} color={tone.accent} />
-            <Text style={styles.realmText}>{tool.title}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <View style={[styles.planCanvas, { borderColor: `${tone.accent}66` }]}>
-        <Text style={[styles.planCaption, { color: tone.accent }]}>
-          BODENFLÄCHE · LOKALE PLANUNG
-        </Text>
-        <View style={styles.markerLine}>
-          {markers.length ? (
-            markers.map(marker => (
-              <Pressable
-                key={marker.id}
-                onPress={() =>
-                  setMarkers(current =>
-                    current.filter(item => item.id !== marker.id)
-                  )
-                }
-                style={[styles.marker, { borderColor: tone.accent }]}
-              >
-                <Ionicons name="close" size={14} color={tone.accent} />
-              </Pressable>
-            ))
-          ) : (
-            <Text style={styles.copy}>Noch keine Marker platziert.</Text>
-          )}
-        </View>
-      </View>
-      <View style={styles.inlineButtons}>
-        <PrimaryButton
-          tone={tone}
-          label="ZENTRIERT EINFÜGEN"
-          icon="add-outline"
-          onPress={insert}
-        />
-        <SecondaryButton
-          tone={tone}
-          label="ALLES LÖSCHEN"
-          icon="trash-outline"
-          onPress={() => setMarkers([])}
-        />
-      </View>
-      <Text style={styles.miniCopy}>
-        Marker werden nur lokal für diesen Plan verwaltet. Antippen löscht einen
-        Marker. Es handelt sich nicht um Arten-, Kauf- oder Bauvorgaben.
-      </Text>
-    </View>
-  );
-}
-
 function Page({
   children,
   refresh,
@@ -4231,7 +4051,7 @@ function BottomNavigation({
     { id: "community", screen: "community", label: "Community", icon: "people-outline", color: c.botany },
     { id: "profile", screen: "profile", label: "Profil", icon: "person-outline", color: c.botany },
   ];
-  const activeId: BottomTab = active === "home" ? "home" : active === "community" ? "community" : active === "profile" || active === "marketplace" || active === "builder" ? "profile" : "discover";
+  const activeId: BottomTab = active === "home" ? "home" : active === "community" ? "community" : active === "profile" || active === "marketplace" ? "profile" : "discover";
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
@@ -5151,9 +4971,6 @@ const styles = StyleSheet.create({
   },
   collectionShell: { flex: 1 },
   collectionIntro: { paddingHorizontal: 16, paddingTop: 16, gap: 6 },
-  builderData: { padding: 14, gap: 7, borderRadius: 15, borderWidth: 1 },
-  planner: { padding: 14, gap: 10, borderRadius: 16, borderWidth: 1 },
-  plannerTools: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   plannerTool: {
     width: "48.5%",
     minHeight: 56,
@@ -5172,7 +4989,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "rgba(0,0,0,.2)",
   },
-  planCaption: { fontSize: 8, fontWeight: "900", letterSpacing: 0.75 },
   markerLine: {
     flexDirection: "row",
     flexWrap: "wrap",

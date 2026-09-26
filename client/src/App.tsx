@@ -34,14 +34,6 @@ import TerrariumTaxon from "./pages/TerrariumTaxon";
 import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
 import NotFound from "./pages/NotFound";
-import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
-
-const HabitatBuilder = lazy(() => import("./pages/HabitatBuilder"));
-
-function HabitatBuilderRoute() {
-  return <Suspense fallback={<section className="habitat-builder-loading" aria-live="polite"><Loader2 size={22} className="spin" />Planungsansicht wird geladen …</section>}><HabitatBuilder /></Suspense>;
-}
 
 function Router() {
   return (
@@ -95,7 +87,6 @@ function Router() {
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
         <Route path={"/marketplace/manage"} component={MerchantMarketplace} />
         <Route path={"/marketplace"} component={Marketplace} />
-        <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
         <Route path={"/404"} component={NotFound} />

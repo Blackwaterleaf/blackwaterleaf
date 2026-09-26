@@ -6,7 +6,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Ban, Camera, Leaf, Loader2, LockKeyhole, LogOut, Ruler, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Ban, Camera, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -244,7 +244,6 @@ export default function Profile() {
           <details id="profile-tools" className="profile-secondary-tools account-section observatory-data-panel">
             <summary><span>WEITERE WERKZEUGE</span><small>Nur bei Bedarf öffnen</small></summary>
             <div className="profile-secondary-tools__body">
-              <Link className="secondary-action" href="/habitat-builder"><Ruler size={16} />HABITAT PLANEN</Link>
               <div className="profile-secondary-tools__smart"><span className="eyebrow">SMART-WERTE</span><span className="sr-only">Smart-Werte verbinden</span><SmartDeviceDialog /></div>
               <section className="profile-blocked-accounts observatory-data-panel" aria-labelledby="blocked-accounts-title"><div><span className="eyebrow">COMMUNITY-SCHUTZ</span><h2 id="blocked-accounts-title">BLOCKIERTE KONTEN</h2><p>Blockierte Konten erscheinen nicht in deinem Community-Feed, in Diskussionen oder im Live-Chat. Eine Entblockung stellt keine frühere Folgebeziehung wieder her.</p></div>{blockedAccounts.isLoading ? <p className="form-status">Blockliste wird geladen …</p> : blockedAccounts.isError ? <p className="form-status" role="alert">Blockliste konnte nicht geladen werden.</p> : blockedAccounts.data?.length ? <div className="profile-blocked-accounts__list">{blockedAccounts.data.map(account => <div key={account.id}><span><strong>{account.name ?? account.username ?? "Konto"}</strong><small>blockiert am {new Date(account.blockedAt).toLocaleDateString(locale === "de" ? "de-DE" : "en-US")}</small></span><button type="button" className="secondary-action" disabled={unblockAccount.isPending} onClick={() => unblockAccount.mutate({ id: Number(account.id) })}><Ban size={15} />ENTBLOCKEN</button></div>)}</div> : <p className="form-status">Du hast keine Konten blockiert.</p>}</section>
               <section className="account-danger-zone observatory-data-panel" aria-labelledby="account-close-title">

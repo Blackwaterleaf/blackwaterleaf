@@ -14,22 +14,20 @@ describe("AP-13 Observatory primary navigation", () => {
     expect(shell).not.toContain("adminBuilderNavigation");
   });
 
-  it("defines the same six Native destinations and leaves Builder out of global tabs", () => {
+  it("defines the current Native destinations and leaves Builder out of global tabs", () => {
     const app = read("mobile-natur/App.tsx");
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    expect(app).toContain('screen: "photo"');
-    expect(app).toContain('screen: "search"');
-    expect(app).toContain('screen: "community"');
-    expect(app).not.toContain('showBuilder={account?.role === "admin"}');
+    for (const label of ["Home", "Entdecken", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    expect(app).not.toContain('screen: "builder"');
+    expect(app).not.toContain("HABITAT BUILDER");
   });
 
-  it("keeps Marketplace and Builder contextual while Community is a direct route", () => {
+  it("keeps Marketplace contextual while Community is a direct route", () => {
     const shell = read("client/src/components/AppShell.tsx");
     const app = read("client/src/App.tsx");
     expect(shell).toContain('href="/marketplace"');
     expect(shell).toContain('href: "/community"');
     expect(app).toContain('path={"/community"}');
-    expect(app).toContain('path={"/habitat-builder"}');
+    expect(app).not.toContain('path={"/habitat-builder"}');
   });
 
   it("groups profile-menu destinations instead of presenting a flat settings list", () => {
