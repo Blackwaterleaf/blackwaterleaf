@@ -40,13 +40,14 @@ export async function getAnalyticsOverview(days: 1 | 7 | 30) {
     durationSeconds: sql<number>`coalesce(sum(case when ${analyticsEvents.eventType} = 'page_view_end' then ${analyticsEvents.durationSeconds} else 0 end), 0)`,
   }).from(analyticsEvents).where(where);
 
-  const [pageRows, countryRows, loginRows] = await Promise.all([
+  const [pageRows, countryRows, loginRows, accountRows] = await Promise.all([
     db.select({ path: analyticsEvents.path, views: count() })
       .from(analyticsEvents).where(and(where, eq(analyticsEvents.eventType, "page_view")))
       .groupBy(analyticsEvents.path).orderBy(desc(count())).limit(12),
     db.select({ countryCode: analyticsEvents.countryCode, visitors: countDistinct(analyticsEvents.sessionKey), views: count() })
       .from(analyticsEvents).where(where).groupBy(analyticsEvents.countryCode).orderBy(desc(countDistinct(analyticsEvents.sessionKey))).limit(20),
     db.select({ total: count() }).from(users).where(gte(users.lastSignedIn, since)),
+    db.select({ total: count() }).from(users),
   ]);
 
   const pageViews = Number(summary?.pageViews ?? 0);
@@ -57,7 +58,7 @@ export async function getAnalyticsOverview(days: 1 | 7 | 30) {
   const bounceRate = pageViews ? Math.round((Number(bouncedViews[0]?.total ?? 0) / pageViews) * 100) : 0;
 
   return {
-    days, pageViews, visitors, loginCount: Number(loginRows[0]?.total ?? 0), averageDurationSeconds, bounceRate,
+    days, pageViews, visitors, registeredAccounts: Number(accountRows[0]?.total ?? 0), loginCount: Number(loginRows[0]?.total ?? 0), averageDurationSeconds, bounceRate,
     pages: pageRows.map(row => ({ path: row.path ?? "(unbekannt)", views: Number(row.views) })),
     countries: countryRows.map(row => ({ countryCode: row.countryCode ?? "UN", visitors: Number(row.visitors), views: Number(row.views) })),
     since,
