@@ -195,6 +195,7 @@ export type Account = {
   email: string | null;
   bio?: string | null;
   avatarUrl?: string | null;
+  socialLinks?: Record<string, string | null>;
   role: "user" | "moderator" | "admin";
   status: string;
   locale?: "de" | "en";
@@ -562,7 +563,7 @@ export type UnifiedSearchResult = {
 };
 export type PublicProfile = Account & { location?: string | null; profileVisibility?: string; socialLinks?: Record<string, string | null> };
 export type SocialRelationship = { followers: number; following: number; isFollowing: boolean };
-export type PublicProfilePost = { id: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; updatedAt: string };
+export type PublicProfilePost = { id: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; updatedAt: string; media?: Array<{ id: string; kind: string; mimeType: string; url: string | null }> };
 export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "aquarium_taxon" | "product" | "profile"; targetId: number; createdAt: string };
 export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; imageSourceUrl: string | null; imageLicense: string | null; imageAttribution: string | null; evidenceState: string; status: string };
 export type PublicAquariumTaxon = PublicPlantTaxon;

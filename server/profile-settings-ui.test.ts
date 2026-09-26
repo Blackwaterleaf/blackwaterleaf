@@ -38,16 +38,18 @@ describe("profile settings navigation", () => {
     expect(nativeProfile).not.toContain("myCommunityPosts");
     expect(nativeProfile).not.toContain("EIGENE BEITRÄGE");
     expect(nativeProfile).toContain("publicProfilePosts(account.id)");
-    expect(nativeProfile).toContain("VERÖFFENTLICHT");
+    expect(nativeProfile).toContain("BEITRÄGE & BILDER");
+    expect(nativeProfile).toContain("profilePublicPostImage");
   });
 
-  it("uses compact four-item profile excerpts on web and native", () => {
+  it("uses a visible creator media grid on web and native", () => {
     const webProfile = source("client/src/pages/ProfileHome.tsx");
     const styles = source("client/src/index.css");
     const native = source("mobile-natur/App.tsx");
     expect(webProfile).toContain("publicPosts.data.slice(0, 4)");
     expect(styles).toContain(".profile-observatory-post-list");
-    for (const token of ["publicPosts.slice(0, 4)", "profilePublicPostGrid", 'profilePublicPostTile: { width: "48.5%"']) expect(native).toContain(token);
+    expect(native).toContain("publicPosts.slice(0, 9)");
+    for (const token of ["profilePublicPostGrid", "profilePublicPostImage", 'profilePublicPostTile: { width: "48.5%"']) expect(native).toContain(token);
   });
 });
 

@@ -406,3 +406,9 @@ Standorte bleiben privacy-preserving: private oder nicht freigegebene Orte werde
 ### 17.4 Einstellbarkeit
 
 Alle für Nutzer relevanten Bereiche müssen konfigurierbar sein: Profil, Benachrichtigungen, Postfachpräferenzen, Community-Sichtbarkeit, Medienverarbeitung, KI-Verarbeitung, Standortfreigabe, Sprache, Einheiten, Barrierefreiheit, Ruhezeiten, Datenexport, Sitzungen und Kontosicherheit. Eine Funktion mit noch fehlender Infrastruktur wird als ehrlich deaktiviert bzw. „noch nicht verbunden“ angezeigt und nicht als scheinbar aktive Einstellung präsentiert.
+
+## 17. Verbindlicher Creatorprofil- und Management-Standard · 26. September 2026
+
+Die Profilstartseite ist eine sichtbare Identitäts- und Creatorfläche, nicht nur ein Zugang zu Einstellungen. Sie zeigt Avatar, Namen, Username, Bio, E-Mail- beziehungsweise Social-Link-Chips, Fortschrittskennzahlen und freigegebene Medien direkt im ersten Profilfluss. Öffentliche Medien werden in einem responsiven Raster dargestellt; private Entwürfe, private Anlagen, Nachrichteninhalte und genaue Orte erscheinen niemals in diesem Raster.
+
+Der primäre Einstieg **Verwalten** öffnet einen zentralen Management-Hub. Konto/Profil, Anlagen/Pflege, Kommunikation, Datenschutz/Sicherheit, Sprache/Barrierefreiheit, Fortschritt/Merkliste und Werkzeuge werden in verständlichen 2×2-Gruppen gebündelt. Das Host-Dashboard ist ausschließlich für das verifizierte Eigentümerkonto sichtbar. Diese Fassung ersetzt frühere flache Profilmenüs und frühere reine Textauszüge als verbindlicher Web-/Native-Standard.

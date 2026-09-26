@@ -116,3 +116,11 @@ Die Google-Kartenbasis war in der Preview-Umgebung nicht konfiguriert. Taxon-Her
 Nicht für jede veröffentlichte Art existiert ein zulässiger, hochauflösender CC0-/CC-BY-Nachweis. Diese Datensätze behalten bewusst ihren offenen Bildnachweiszustand und erhalten keinen erfundenen Ersatz. Die direkte Suche `Alocasia odora`, `Alocasia macrorrhizos` und `Channa` liefert nach der Reparatur echte lokale Bild-URLs, sofern für den jeweiligen Datensatz ein verifizierter Kandidat vorliegt.
 
 Validierung dieses Nachtrags: Web-TypeScript, Karten-/Quellenregressionen und die vollständige Suite mit **87 Testdateien und 339 Tests** erfolgreich; Produktionsbuild und `git diff --check` sind erfolgreich.
+
+## Creatorprofil- und Native-Management-Korrektur · 26. September 2026
+
+Der vorherige Screenshot zeigte weiterhin die alte native Profilansicht. Dieser konkrete Gap ist nun geschlossen: Das Profil rendert einen sichtbaren Creator-Header mit verifiziertem Avatar, Name, Username, Bio, E-Mail-/Social-Link-Chips, XP/Level/Anlagen-Kennzahlen und direktem Einstieg in den zentralen Management-Hub. Öffentliche Beiträge werden als bis zu 3×3 Raster dargestellt; vorhandene verifizierte Bildmedien werden direkt angezeigt, Video- oder medienlose Beiträge erhalten einen ehrlichen Fallback. Private Entwürfe bleiben ausgeschlossen.
+
+Der Native-Hub bündelt Konto/Profil, Anlagen/Pflege, Kommunikation, Datenschutz/Sicherheit, Sprache/Barrierefreiheit, Fortschritt/Merkliste und Werkzeuge in zwei 2×2-Gruppen. Das Host-Dashboard erscheint ausschließlich beim serverseitig gelieferten Eigentümerkonto und öffnet die geschützte Host-Webseite; es wird nicht als Nutzerfunktion ausgegeben.
+
+Validiert: Web-TypeScript, Native-TypeScript und die aktualisierten Profil-/Portalverträge erfolgreich; veraltete Tests wurden auf den neuen verbindlichen Creatorprofil- und Hub-Vertrag aktualisiert.

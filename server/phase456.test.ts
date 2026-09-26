@@ -46,7 +46,7 @@ describe("private profile boundary and native menu parity", () => {
 
   it("exposes the same three-line menu destinations in Native", () => {
     const source = read("../mobile-natur/App.tsx");
-    for (const label of ["Privatbereich & Profil bearbeiten", "Meine Anlagen", "Punkte & Fortschritt", "Datenschutz & Freigaben", "Sprache & Einheiten", "Weitere Werkzeuge"]) expect(source).toContain(label);
+    for (const label of ["Verwalten · alle Einstellungen", "Konto & Profil", "Anlagen & Pflege", "Kommunikation", "Datenschutz & Sicherheit", "Sprache & Barrierefreiheit", "Fortschritt & Merkliste", "Hilfe, Daten & Werkzeuge"]) expect(source).toContain(label);
     expect(source).toContain("profileConsentPanel");
     expect(source).toContain("profilePreferencesPanel");
   });

@@ -199,6 +199,7 @@ type Screen =
   | "community"
   | "communityDetail"
   | "profile"
+  | "management"
   | "botany"
   | "aquarium"
   | "terrarium"
@@ -240,7 +241,7 @@ type Tone = {
 };
 type IconName = keyof typeof Ionicons.glyphMap;
 type Realm = "botany" | "aquarium" | "terrarium";
-type ProfileMenuTarget = "open" | "edit" | "avatar" | "display" | "private" | "habitats" | "progress" | "privacy" | "preferences" | "tools";
+type ProfileMenuTarget = "open" | "manage" | "edit" | "avatar" | "display" | "private" | "habitats" | "progress" | "privacy" | "preferences" | "tools";
 
 type Action = {
   title: string;
@@ -305,6 +306,14 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "PRIVATER BEREICH",
+    active: "profile",
+  },
+  management: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "KONTOZENTRUM · VERWALTEN",
     active: "profile",
   },
   botany: {
@@ -721,6 +730,10 @@ function NaturApp() {
             navigate("ranking");
             return;
           }
+          if (target === "manage") {
+            navigate("management");
+            return;
+          }
           setProfileMenuTarget(target);
           navigate("profile");
         }}
@@ -1029,6 +1042,15 @@ function NaturApp() {
             onSignIn={signIn}
           />
         )}
+        {screen === "management" && (
+          <ManagementScreen
+            tone={TONES.management}
+            token={token}
+            account={account}
+            navigate={navigate}
+            onSignIn={signIn}
+          />
+        )}
         {screen === "profile" && (
           <ProfileScreen
             tone={TONES.profile}
@@ -1177,16 +1199,9 @@ function Header({
       </View>
       {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: "#07170d" }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.nativeProfileMenuText}>Name & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.nativeProfileMenuText}>Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("private"); }}><Text style={styles.nativeProfileMenuText}>Privatbereich & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("habitats"); }}><Text style={styles.nativeProfileMenuText}>Meine Anlagen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("progress"); }}><Text style={styles.nativeProfileMenuText}>Punkte & Fortschritt</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("privacy"); }}><Text style={styles.nativeProfileMenuText}>Datenschutz & Freigaben</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("preferences"); }}><Text style={styles.nativeProfileMenuText}>Sprache & Einheiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.nativeProfileMenuText}>Weitere Werkzeuge</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -3111,6 +3126,30 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   </Page>;
 }
 
+function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
+  const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
+  const groups = [
+    { label: "KONTO & ALLTAG", items: [
+      ["Konto & Profil", "Name, Bio, Bild und verknüpfte Profile", "person-outline", () => navigate("profile")],
+      ["Anlagen & Pflege", "Botanik, Aquaristik, Terraristik", "leaf-outline", () => navigate("collection")],
+      ["Kommunikation", "Postfach und Benachrichtigungen", "chatbubbles-outline", () => navigate("messages")],
+      ["Datenschutz & Sicherheit", "Freigaben und Kontoschutz", "shield-checkmark-outline", () => navigate("profile")],
+    ] as const },
+    { label: "WEITERE EINSTELLUNGEN", items: [
+      ["Sprache & Barrierefreiheit", "Sprache, Einheiten und Darstellung", "language-outline", () => navigate("profile")],
+      ["Fortschritt & Merkliste", "XP, Level und gespeicherte Inhalte", "trophy-outline", () => navigate("ranking")],
+      ...(isOwner ? [["Host-Dashboard", "Nur Eigentümerkonto · blackwaterleaf.com", "analytics-outline", () => void Linking.openURL("https://blackwaterleaf.com/admin")] as const] : []),
+      ["Hilfe, Daten & Werkzeuge", "Quellen, Builder und Smart-Werte", "construct-outline", () => navigate("builder")],
+    ] as const },
+  ];
+  if (!token) return <Page><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Das Kontozentrum ist nur für angemeldete Konten verfügbar." onSignIn={onSignIn} /></Page>;
+  return <Page>
+    <ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · VERWALTEN" title="EINSTELLUNGEN & WERKZEUGE." subtitle="Ein zentraler Ort für Profil, Anlagen, Kommunikation und Datenschutz." icon="settings-outline" />
+    {groups.map(group => <View key={group.label} style={styles.managementGroup}><View style={styles.managementHeading}><Text style={[styles.eyebrow, { color: tone.accent }]}>{group.label}</Text><Text style={styles.miniCopy}>ALLES AN EINEM ORT</Text></View><View style={styles.managementGrid}>{group.items.map(([title, note, icon, onPress]) => <Pressable key={title} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.managementTile, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.managementTileIcon, { borderColor: `${tone.accent}55`, backgroundColor: `${tone.accent}14` }]}><Ionicons name={icon} size={20} color={tone.accent} /></View><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{note}</Text></View><Ionicons name="chevron-forward" size={18} color={tone.accent} /></Pressable>)}</View></View>)}
+    <View style={[styles.managementPrinciples, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Ionicons name="lock-closed-outline" size={19} color={tone.accent} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>PRIVAT BLEIBT PRIVAT.</Text><Text style={styles.miniCopy}>Private Anlagen, Nachrichten, genaue Standorte und nicht freigegebene Medien bleiben geschützt.</Text></View></View>
+  </Page>;
+}
+
 function ProfileScreen({
   tone,
   token,
@@ -3209,23 +3248,15 @@ function ProfileScreen({
           {profileMessage ? <Text style={styles.miniCopy}>{profileMessage}</Text> : null}
         </View> : null}
       </View> : null}
-      <View style={[styles.profileReferenceIdentity, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
-        <View style={[styles.profileReferenceAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}>
-          {account?.avatarUrl ? <Image source={{ uri: account.avatarUrl }} style={styles.profileReferenceAvatarImage} /> : <Ionicons name="person-outline" size={27} color={tone.accent} />}
+      <View style={[styles.profileCreatorCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
+        <View style={styles.profileCreatorTop}>
+          <View style={[styles.profileCreatorAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}>{account?.avatarUrl ? <Image source={{ uri: account.avatarUrl }} style={styles.profileCreatorAvatarImage} accessibilityLabel={`${account.name ?? account.username ?? "Profil"} Profilbild`} /> : <Ionicons name="person-outline" size={42} color={tone.accent} />}</View>
+          <View style={styles.profileCreatorIdentity}><Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · PROFIL</Text><Text style={styles.profileCreatorName}>{account?.name ?? "Name nicht hinterlegt"}</Text><Text style={styles.profileCreatorHandle}>{account?.username ? `@${account.username}` : "Persönliches Fachprofil"}</Text></View>
         </View>
-        <View style={styles.profileReferenceIdentityCopy}>
-          <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · PROFIL</Text>
-          <Text style={styles.profileReferenceName}>{account?.name ?? account?.username ?? "BlackWaterLeaf"}</Text>
-          <Text style={styles.miniCopy}>{account?.email ?? "@" + (account?.username ?? "blackwaterleaf")}</Text>
-        </View>
-        <Pressable accessibilityLabel="Profil bearbeiten" onPress={() => navigate("profile")} style={[styles.profileReferenceMore, { borderColor: `${tone.accent}55` }]}>
-          <Text style={[styles.profileReferenceMoreText, { color: tone.accent }]}>•••</Text>
-        </Pressable>
-        <View style={styles.profileReferenceStats}>
-          <View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View>
-          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View>
-          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View>
-        </View>
+        <Text style={styles.profileCreatorBio}>{account?.bio ?? "Dein Fachprofil für Pflanzen, Aquaristik und verantwortungsvolle Beobachtungen."}</Text>
+        <View style={styles.profileCreatorLinks}>{account?.email ? <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`mailto:${account.email}`)} style={styles.profileCreatorLink}><Ionicons name="mail-outline" size={15} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]} numberOfLines={1}>{account.email}</Text></Pressable> : null}{Object.entries(account?.socialLinks ?? {}).filter(([, value]) => Boolean(value)).map(([label, value]) => <Pressable key={label} accessibilityRole="link" onPress={() => void Linking.openURL(String(value))} style={styles.profileCreatorLink}><Ionicons name="link-outline" size={15} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>{label}</Text></Pressable>)}</View>
+        <View style={styles.profileCreatorStats}><View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View></View>
+        <SecondaryButton tone={tone} label="VERWALTEN · PROFIL & EINSTELLUNGEN" icon="settings-outline" onPress={() => navigate("management")} />
       </View>
       <SectionLabel tone={tone} overline="PRIVATE SAMMLUNG" title="MEINE ANLAGEN & WERTE" />
       <Text style={styles.profileReferenceSubline}>Privat · Wähle direkt deinen Bereich</Text>
@@ -3239,8 +3270,8 @@ function ProfileScreen({
         ))}
       </View>
       {publicPosts.length ? <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
-        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>FREIGEGEBEN</Text><Text style={styles.sectionTitle}>ÖFFENTLICHE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
-        <View style={styles.profilePublicPostGrid}>{publicPosts.slice(0, 4).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={({ pressed }) => [styles.profilePublicPostTile, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}><Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHT</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy} numberOfLines={1}>{post.realm ?? "COMMUNITY"} · {new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View>
+        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>BEITRÄGE & BILDER</Text><Text style={styles.sectionTitle}>FREIGEGEBENE BEITRÄGE</Text></View><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View>
+        <View style={styles.profilePublicPostGrid}>{publicPosts.slice(0, 9).map(post => { const media = post.media?.find(item => item.url); return <Pressable key={post.id} onPress={() => navigate("community")} style={({ pressed }) => [styles.profilePublicPostTile, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}>{media?.url && media.mimeType.startsWith("image/") ? <Image source={{ uri: media.url }} style={styles.profilePublicPostImage} accessibilityLabel={post.content.slice(0, 90)} /> : <View style={styles.profilePublicPostFallback}><Ionicons name={media?.mimeType.startsWith("video/") ? "play-circle-outline" : "camera-outline"} size={24} color={tone.accent} /><Text style={styles.profilePublicPostFallbackText} numberOfLines={3}>{post.content}</Text></View>}<Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></Pressable>; })}</View>
       </View> : null}
       <SecondaryButton tone={tone} label="ABMELDEN" icon="log-out-outline" onPress={() => void onSignOut()} />
     </Page>
@@ -5011,6 +5042,27 @@ const styles = StyleSheet.create({
   rankingScoreCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
   challengeCard: { padding: 14, borderRadius: 15, borderWidth: 1, gap: 7 },
   leaderboardRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 12, borderWidth: 1 },
+  profileCreatorCard: { padding: 15, borderRadius: 18, borderWidth: 1, gap: 13 },
+  profileCreatorTop: { flexDirection: "row", alignItems: "center", gap: 13 },
+  profileCreatorAvatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  profileCreatorAvatarImage: { width: "100%", height: "100%" },
+  profileCreatorIdentity: { flex: 1, gap: 4 },
+  profileCreatorName: { color: c.text, fontSize: 23, lineHeight: 28, fontWeight: "900" },
+  profileCreatorHandle: { color: c.muted, fontSize: 12, lineHeight: 17 },
+  profileCreatorBio: { color: c.text, fontSize: 13, lineHeight: 19 },
+  profileCreatorLinks: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  profileCreatorLink: { maxWidth: "100%", minHeight: 31, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", flexDirection: "row", alignItems: "center", gap: 6 },
+  profileCreatorStats: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: "rgba(199,243,91,.2)", paddingVertical: 10, justifyContent: "space-around" },
+  profilePublicPostImage: { width: "100%", height: "100%", position: "absolute" },
+  profilePublicPostFallback: { flex: 1, padding: 10, alignItems: "center", justifyContent: "center", gap: 6 },
+  profilePublicPostFallbackText: { color: c.text, fontSize: 10, lineHeight: 14, textAlign: "center" },
+  managementGroup: { gap: 8, marginBottom: 14 },
+  managementHeading: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 2 },
+  managementGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  managementTile: { width: "48.5%", minHeight: 128, padding: 12, borderRadius: 15, borderWidth: 1, gap: 9 },
+  managementTileIcon: { width: 36, height: 36, borderRadius: 11, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  managementTileCopy: { flex: 1, gap: 4 },
+  managementPrinciples: { padding: 14, borderRadius: 15, borderWidth: 1, flexDirection: "row", gap: 10, marginTop: 2 },
   profileReferenceIdentity: { position: "relative", minHeight: 132, padding: 14, borderRadius: 18, borderWidth: 1, flexDirection: "row", alignItems: "flex-start", gap: 10 },
   profileReferenceAvatar: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   profileReferenceAvatarImage: { width: "100%", height: "100%" },
