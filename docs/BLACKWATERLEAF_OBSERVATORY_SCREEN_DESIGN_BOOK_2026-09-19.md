@@ -17,3 +17,9 @@ Native-Seiten mit fester Observatory-Bottom-Navigation reservieren ausreichend u
 ## 15.21 Medienupload wieder aktiv
 
 Der bisherige Uploadfehler lag in der serverseitigen P0-Konfiguration: `mediaUpload` war trotz fertiger Uploadoberflächen global auf aktivem Blockierstatus. Dieser Gate ist jetzt deaktiviert. Bild- und Video-Uploads laufen weiterhin durch Eigentumsprüfung, aktuelle Medien-Einwilligung, MIME-/Container- und Signaturprüfung, Größenlimit, Metadatenbereinigung sowie geschützte Speicherung. Die Sperre für öffentliche Veröffentlichung bleibt davon getrennt bestehen.
+
+## 15.22 Bildstarke Aktionskarten und Mobile-Layout
+
+Alle fachlichen Aktionskarten verwenden vorhandene, verifizierte Bereichsbilder: Botanik grün, Aquaristik cyan, Terraristik gold und KI indigo/violett. Bildflächen erhalten eine dunkle Leseschicht, damit Text und Icons auf kleinen Displays sicher lesbar bleiben. Native Karten rendern die zugewiesene Medienquelle auch in visuellen Clusterkarten; Web-Karten verwenden dieselbe Quelle als Cover-Hintergrund.
+
+Mobile Layouts wechseln kontrolliert zwischen zwei und einer Spalte, reduzieren Innenabstände ohne Inhalte zu beschneiden, halten Filter und Kartensteuerungen tappbar und reservieren Abstand für die feste Bottom-Navigation. Es werden keine künstlichen Ersatzbilder oder erfundene Katalogdaten ergänzt; wenn ein Bildnachweis fehlt, bleibt der fachliche Leerzustand sichtbar.

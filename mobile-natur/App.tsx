@@ -1895,6 +1895,7 @@ function AssistantScreen({
         tone={tone}
         compact={selectionCollapsed}
         activeTitle={activeToolLabel}
+        visual
         actions={[
           {
             title: "Frage stellen",
@@ -2536,6 +2537,7 @@ function PhotoScreen({
       )}
       <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Pflanzenfoto",
@@ -2853,6 +2855,7 @@ function PostScreen({
       )}
       <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Beitrag",
@@ -3094,6 +3097,7 @@ function CommunityScreen({
       />
       <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Beobachten",
@@ -3766,7 +3770,7 @@ function ObservatoryActionRow({
       }}
     >
       <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact, visual && styles.observatoryActionContentVisual]}>
-          {imageMode ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact, visual && styles.observatoryActionMediaVisual]} /> : null}
+          {imageMode || visual ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact, visual && styles.observatoryActionMediaVisual]} /> : null}
           {visual ? <View pointerEvents="none" style={styles.observatoryActionMediaShade} /> : null}
           <View
             style={[

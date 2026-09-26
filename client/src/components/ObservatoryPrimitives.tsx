@@ -62,8 +62,9 @@ export function ObservatoryActionCluster({ tone, actions, heading = "KONTEXTAKTI
         {actions.map(action => {
           const Icon = action.icon;
           const content = <><span className="observatory-action-cluster__icon"><Icon size={17} /></span><span className="observatory-action-cluster__copy"><strong>{action.title}</strong><small>{action.note}</small></span>{action.unavailable ? <span className="observatory-action-cluster__availability">NICHT VERFÜGBAR</span> : <ChevronRight className="observatory-action-cluster__chevron" size={17} aria-hidden="true" />}</>;
-          if (action.href && !action.unavailable) return <Link key={action.title} href={action.href} className="observatory-action-row">{content}</Link>;
-          return <button key={action.title} type="button" className={`observatory-action-row ${activeTitle === action.title ? "is-active" : ""}`} aria-pressed={activeTitle === action.title} aria-disabled={action.unavailable || undefined} onClick={() => activate(action)}>{content}</button>;
+          const imageStyle = action.image ? { backgroundImage: `linear-gradient(90deg, rgba(2, 17, 8, .94), rgba(2, 17, 8, .62)), url("${action.image}")` } : undefined;
+          if (action.href && !action.unavailable) return <Link key={action.title} href={action.href} className="observatory-action-row" style={imageStyle}>{content}</Link>;
+          return <button key={action.title} type="button" className={`observatory-action-row ${activeTitle === action.title ? "is-active" : ""}`} style={imageStyle} aria-pressed={activeTitle === action.title} aria-disabled={action.unavailable || undefined} onClick={() => activate(action)}>{content}</button>;
         })}
       </div>
       {inlinePanel ? <div className="observatory-action-cluster__inline" role="region" aria-label="Werkzeugauswahl">{inlinePanel}</div> : null}
