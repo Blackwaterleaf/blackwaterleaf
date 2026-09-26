@@ -1993,3 +1993,30 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .taxon-facts__empty { margin:0; color:#aec4b0; line-height:1.55; }
 @media(max-width:760px){ .taxon-facts__grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .taxon-fact { padding:11px; } .taxon-fact span { font-size:.78rem; } }
 @media(max-width:440px){ .taxon-facts__grid { grid-template-columns:1fr; } .taxon-fact { min-height:58px; } }
+
+
+/* Observatory habitat surfaces: image-led private habitat cards with realm-specific atmosphere. */
+.habitat-section { position:relative; overflow:hidden; background:radial-gradient(circle at 12% 0%, rgba(199,243,91,.12), transparent 32%), linear-gradient(145deg, rgba(3,25,12,.96), rgba(3,12,8,.9)); }
+.habitat-body { position:relative; z-index:1; }
+.habitat-kind-grid { margin-top:12px; }
+.habitat-kind--cyan { background:linear-gradient(145deg, rgba(4,65,78,.74), rgba(2,27,34,.86)); border-color:rgba(40,216,255,.4); }
+.habitat-kind--gold { background:linear-gradient(145deg, rgba(87,72,20,.7), rgba(32,27,8,.88)); border-color:rgba(225,214,97,.42); }
+.habitat-kind--mint { background:linear-gradient(145deg, rgba(25,92,39,.72), rgba(4,31,15,.88)); border-color:rgba(199,243,91,.42); }
+.habitat-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.habitat-record { position:relative; min-height:260px; overflow:hidden; display:flex; align-items:flex-end; padding:0; background-size:cover; background-position:center; box-shadow:0 18px 45px rgba(0,0,0,.22); transition:transform 180ms ease, border-color 180ms ease; }
+.habitat-record:hover { transform:translateY(-2px); }
+.habitat-record--cyan { background-color:#04303e; background-image:linear-gradient(145deg,rgba(5,68,84,.8),rgba(2,24,31,.94)); }
+.habitat-record--gold { background-color:#3e3812; background-image:linear-gradient(145deg,rgba(83,70,19,.78),rgba(25,23,8,.94)); }
+.habitat-record--mint { background-color:#061b0d; background-image:linear-gradient(145deg,rgba(21,87,32,.78),rgba(3,23,11,.94)); }
+.habitat-record__shade { position:absolute; inset:0; background:radial-gradient(circle at 50% 20%,rgba(255,255,255,.1),transparent 42%); pointer-events:none; }
+.habitat-record__content { position:relative; z-index:1; display:flex; align-items:flex-end; gap:10px; width:100%; min-width:0; padding:14px; }
+.habitat-record__icon { display:grid; place-items:center; flex:0 0 38px; width:38px; height:38px; border:1px solid currentColor; border-radius:12px; background:rgba(2,13,7,.7); }
+.habitat-record__content > div:last-child { min-width:0; }
+.habitat-record small { color:#d5efc7; }
+.habitat-record strong { font-size:1rem; }
+.habitat-record p { white-space:normal; overflow-wrap:anywhere; }
+.habitat-record__edit { position:absolute; z-index:2; top:12px; right:12px; background:rgba(2,13,7,.72); backdrop-filter:blur(8px); }
+.habitat-image-strip { display:flex; gap:7px; max-width:100%; overflow-x:auto; }
+.habitat-image-thumb { flex:0 0 62px; width:62px; height:62px; padding:0; overflow:hidden; border:1px solid rgba(237,255,211,.62); border-radius:10px; background:rgba(2,13,7,.55); }
+.habitat-image-thumb img { width:100%; height:100%; object-fit:cover; }
+@media (max-width:760px) { .habitat-list { grid-template-columns:1fr; } .habitat-record { min-height:280px; } }

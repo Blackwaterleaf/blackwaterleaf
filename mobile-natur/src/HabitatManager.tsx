@@ -6,11 +6,13 @@ import {
   Alert,
   FlatList,
   Image,
+  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
+  type ImageSourcePropType,
 } from "react-native";
 import {
   createHabitat,
@@ -53,6 +55,11 @@ const surfaces: Record<HabitatKind, { page: string; panel: string }> = {
   plant: { page: "#061b0d", panel: "#0b2415" },
   aquarium: { page: "#04303e", panel: "#032231" },
   terrarium: { page: "#3e3812", panel: "#302c0f" },
+};
+const backgrounds: Record<HabitatKind, ImageSourcePropType> = {
+  plant: require("../assets/botany-reference.jpg"),
+  aquarium: require("../assets/aquarium-reference.jpg"),
+  terrarium: require("../assets/terrarium-reference.jpg"),
 };
 
 type Props = {
@@ -230,6 +237,11 @@ export function HabitatManager({
       contentContainerStyle={styles.list}
       ListHeaderComponent={
         <>
+          <ImageBackground
+            source={backgrounds[kind]}
+            style={[styles.headingHero, { borderColor: `${accent}66` }]}
+            imageStyle={styles.headingHeroImage}
+          >
           <View style={styles.heading}>
             <Text style={[styles.eyebrow, { color: accent }]}>
               MEINE ANLAGEN
@@ -240,6 +252,7 @@ export function HabitatManager({
               serverseitig über BlackWaterLeaf gespeichert.
             </Text>
           </View>
+          </ImageBackground>
           <View style={styles.kindRow}>
             {(Object.keys(labels) as HabitatKind[]).map(value => (
               <Pressable
@@ -463,31 +476,27 @@ export function HabitatManager({
         </>
       }
       renderItem={({ item }) => (
-        <View
-          style={[
-            styles.item,
-            {
-              borderColor: `${accents[item.kind]}66`,
-              backgroundColor: surfaces[item.kind].panel,
-            },
-          ]}
+        <ImageBackground
+          source={item.images?.[0]?.accessUrl ? { uri: item.images[0].accessUrl } : backgrounds[item.kind]}
+          style={[styles.item, { borderColor: `${accents[item.kind]}88` }]}
+          imageStyle={styles.itemImage}
+          accessibilityLabel={`${item.name} · ${labels[item.kind]}`}
         >
-          <View style={[styles.itemIcon, { borderColor: accents[item.kind] }]}>
-            <Ionicons
-              name={icons[item.kind]}
-              size={18}
-              color={accents[item.kind]}
-            />
+          <View style={styles.itemShade} />
+          <View style={styles.itemContent}>
+            <View style={[styles.itemIcon, { borderColor: accents[item.kind], backgroundColor: `${surfaces[item.kind].page}cc` }] }>
+              <Ionicons name={icons[item.kind]} size={18} color={accents[item.kind]} />
+            </View>
+            <View style={styles.itemBody}>
+              <Text style={styles.itemTitle}>{item.name}</Text>
+              <Text style={styles.copy}>
+                {labels[item.kind]} · aktualisiert{" "}
+                {new Date(item.updatedAt).toLocaleDateString("de-DE")}
+              </Text>
+              {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" />)}</View> : null}
+            </View>
           </View>
-          <View style={styles.itemBody}>
-            <Text style={styles.itemTitle}>{item.name}</Text>
-            <Text style={styles.copy}>
-              {labels[item.kind]} · aktualisiert{" "}
-              {new Date(item.updatedAt).toLocaleDateString("de-DE")}
-            </Text>
-            {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" />)}</View> : null}
-          </View>
-        </View>
+        </ImageBackground>
       )}
     />
   );
@@ -534,6 +543,8 @@ function Field({
 
 const styles = StyleSheet.create({
   list: { padding: 16, paddingBottom: 112, gap: 12 },
+  headingHero: { minHeight: 174, overflow: "hidden", borderRadius: 18, borderWidth: 1, backgroundColor: c.surface, justifyContent: "flex-end" },
+  headingHeroImage: { opacity: 0.42 },
   heading: { gap: 7, marginBottom: 5 },
   eyebrow: {
     color: c.lime,
@@ -629,16 +640,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   item: {
-    minHeight: 72,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 13,
-    borderRadius: 14,
+    minHeight: 220,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: c.border,
     backgroundColor: c.surface,
   },
+  itemImage: { opacity: 0.9 },
+  itemShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.42)" },
+  itemContent: { flexDirection: "row", alignItems: "flex-end", gap: 12, padding: 15 },
   itemIcon: {
     width: 38,
     height: 38,

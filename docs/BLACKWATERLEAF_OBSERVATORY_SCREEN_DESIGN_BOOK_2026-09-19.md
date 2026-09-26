@@ -49,3 +49,12 @@ Die Bildmedien stammen nicht aus Wikipedia-Artikelseiten, sondern aus Wikimedia 
 ## 15.26 OAuth-Zugang
 
 Der Manus-Login startet Web und Preview künftig über `/api/oauth/start`. Portaladresse und App-ID bleiben serverseitig; der Server setzt das HttpOnly-CSRF-Cookie und erzeugt die Rücksprungadresse aus dem tatsächlich geöffneten Host. Dadurch kann eine veraltete oder fehlende Vite-Umgebungsvariable keinen ungültigen Login-Link mehr erzeugen. Bei fehlender OAuth-Konfiguration wird ein klarer JSON-Status `oauth_not_configured` zurückgegeben, statt eine leere Weiterleitung aufzubauen.
+
+
+## 15.27 Eigene Anlagen · bildstarke Bereichsansicht
+
+Die private Anlagenansicht übernimmt die Home-Farbwelten: Botanik arbeitet mit Mint-/Grünakzent, Aquaristik mit Cyan und Terraristik mit Gold. Kopfbereich, Register und Karten bleiben innerhalb dieser Bereichsatmosphäre; ein flacher olivfarbener Fremdblock ist nicht zulässig. Bereichsbilder werden als ruhige, lebende Hintergrundflächen mit dunkler Leseschicht eingesetzt.
+
+Jede gespeicherte eigene Anlage erscheint als große Bildkarte. Wenn private Medien vorhanden sind, wird das erste echte Anlagenbild als Cover verwendet; weitere Bilder bleiben als gut erkennbare Vorschau erreichbar. Ohne eigenes Bild wird nur das verifizierte Fachbereichsbild als atmosphärischer Hintergrund verwendet und nicht als Anlagenfoto ausgegeben. Name, Bereich, Aktualisierungsdatum und vorhandene Messwerte liegen in einer klaren unteren Informationsschicht.
+
+Die drei Bereichsumschalter sind als zusammengehörige Filtergruppe gestaltet. Leerzustände verwenden verständliche Formulierungen, erklären den privaten Charakter der Daten und führen mit einer klaren Aktion zur ersten Anlage. Karten und Formulare reservieren den Abstand für die feste Native-Navigation und dürfen keine Inhalte hinter System- oder App-Navigation verstecken.
