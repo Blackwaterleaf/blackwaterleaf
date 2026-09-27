@@ -9,6 +9,7 @@ import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { assertSafetyGateAllows } from "../safetyGates";
+import { sendStaffResponseEmail } from "../localAuth";
 import { adminProcedure, merchantProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
@@ -386,6 +387,10 @@ export const partnersRouter = router({
         await tx.update(partnerInquiries).set({ status: input.status, adminNote: input.adminNote?.trim() || null, responseMessage: response }).where(eq(partnerInquiries.id, input.id));
         if (response) await tx.insert(notifications).values({ recipientId: entry.userId, actorId: ctx.user.id, type: "partner_inquiry", partnerInquiryId: input.id, message: `Antwort zu deiner Partneranfrage #${input.id}: ${response.slice(0, 180)}` });
       });
+      if (response) {
+        const [recipient] = await db.select({ email: partnerInquiries.contactEmail }).from(partnerInquiries).where(eq(partnerInquiries.id, input.id)).limit(1);
+        if (recipient?.email) void sendStaffResponseEmail({ to: recipient.email, subject: `Antwort zu deiner Partneranfrage #${input.id} · BlackWaterLeaf`, message: response }).catch(() => undefined);
+      }
       return { id: input.id, status: input.status } as const;
     }),
 

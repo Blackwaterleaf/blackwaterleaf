@@ -4,6 +4,7 @@ import { z } from "zod";
 import { feedbackEntries, notificationPreferences, notifications, users } from "../../drizzle/schema";
 import { protectedProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
+import { sendStaffResponseEmail } from "../localAuth";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -77,6 +78,10 @@ export const feedbackRouter = router({
         await tx.update(feedbackEntries).set({ status: input.status, adminNote: input.adminNote?.trim() || null, responseMessage: response }).where(eq(feedbackEntries.id, input.id));
         if (response) await tx.insert(notifications).values({ recipientId: entry.userId, actorId: ctx.user.id, type: "feedback", feedbackId: input.id, message: `Antwort zu deiner Rückmeldung #${input.id}: ${response.slice(0, 180)}` });
       });
+      if (response) {
+        const [recipient] = await db.select({ email: users.email }).from(users).where(eq(users.id, entry.userId)).limit(1);
+        if (recipient?.email) void sendStaffResponseEmail({ to: recipient.email, subject: `Antwort zu deiner Rückmeldung #${input.id} · BlackWaterLeaf`, message: response }).catch(() => undefined);
+      }
       return { id: input.id, status: input.status } as const;
     }),
 });

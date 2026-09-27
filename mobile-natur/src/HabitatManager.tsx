@@ -303,12 +303,11 @@ export function HabitatManager({
           >
           <View style={styles.heading}>
             <Text style={[styles.eyebrow, { color: accent }]}>
-              MEINE ANLAGEN
+              PRIVAT · OBSERVATORY
             </Text>
-            <Text style={styles.title}>Pflegen. Beobachten. Verstehen.</Text>
+            <Text style={styles.title}>DEINE ANLAGEN.</Text>
             <Text style={styles.copy}>
-              Diese Daten gehören ausschließlich deinem Konto und werden
-              serverseitig über BlackWaterLeaf gespeichert.
+              Pflege, Bilder und Messwerte bleiben geschützt in deinem Konto.
             </Text>
           </View>
           </ImageBackground>
@@ -627,9 +626,9 @@ function Field({
 
 const styles = StyleSheet.create({
   list: { padding: 16, paddingBottom: 112, gap: 12 },
-  headingHero: { minHeight: 174, overflow: "hidden", borderRadius: 18, borderWidth: 1, backgroundColor: c.surface, justifyContent: "flex-end" },
-  headingHeroImage: { opacity: 0.42 },
-  heading: { gap: 7, marginBottom: 5 },
+  headingHero: { minHeight: 186, overflow: "hidden", borderRadius: 18, borderWidth: 1, backgroundColor: c.surface, justifyContent: "flex-end" },
+  headingHeroImage: { opacity: 0.48 },
+  heading: { gap: 7, marginBottom: 5, padding: 16 },
   eyebrow: {
     color: c.lime,
     fontSize: 9,
@@ -638,7 +637,7 @@ const styles = StyleSheet.create({
   },
   title: { color: c.text, fontSize: 28, lineHeight: 33, fontWeight: "800" },
   copy: { color: c.muted, fontSize: 12, lineHeight: 18 },
-  kindRow: { flexDirection: "row", gap: 8 },
+  kindRow: { flexDirection: "row", gap: 8, marginTop: 2 },
   kind: {
     flex: 1,
     minHeight: 76,
@@ -728,6 +727,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
+    marginTop: 2,
   },
   emptyTitle: {
     color: c.text,
