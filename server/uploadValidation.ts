@@ -22,8 +22,10 @@ const extensions: Record<AllowedImageMimeType, "jpg" | "png" | "webp"> = {
   "image/webp": "webp",
 };
 
-function isAllowedImageMimeType(value: string): value is AllowedImageMimeType {
-  return ALLOWED_IMAGE_MIME_TYPES.includes(value as AllowedImageMimeType);
+function normalizeImageMimeType(value: string): AllowedImageMimeType | null {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "image/jpg" || normalized === "image/pjpeg" || normalized === "image/jfif") return "image/jpeg";
+  return ALLOWED_IMAGE_MIME_TYPES.includes(normalized as AllowedImageMimeType) ? normalized as AllowedImageMimeType : null;
 }
 
 function stripJpegMetadata(buffer: Buffer): Buffer {
@@ -93,7 +95,8 @@ export function stripImageMetadata(buffer: Buffer, mimeType: AllowedImageMimeTyp
 }
 
 export function validateImageUpload(base64: string, mimeType: string) {
-  if (!isAllowedImageMimeType(mimeType)) {
+  const normalizedMimeType = normalizeImageMimeType(mimeType);
+  if (!normalizedMimeType) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "unsupported_image_type" });
   }
 
@@ -107,15 +110,15 @@ export function validateImageUpload(base64: string, mimeType: string) {
     throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "invalid_image_size" });
   }
 
-  if (!signatures[mimeType](buffer)) {
+  if (!signatures[normalizedMimeType](buffer)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "image_signature_mismatch" });
   }
 
-  const sanitizedBuffer = stripImageMetadata(buffer, mimeType);
+  const sanitizedBuffer = stripImageMetadata(buffer, normalizedMimeType);
   return {
     buffer: sanitizedBuffer,
     byteSize: sanitizedBuffer.length,
-    extension: extensions[mimeType],
-    mimeType,
+    extension: extensions[normalizedMimeType],
+    mimeType: normalizedMimeType,
   } as const;
 }

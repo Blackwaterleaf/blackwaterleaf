@@ -19,7 +19,9 @@ export default function Legal() {
           <article className="observatory-data-panel legal-card">
             <h2>Anbieter</h2>
             <p><strong>BlackWaterLeaf</strong></p>
-            <p>Die vollständigen ladungsfähigen Anbieter- und Anschriftangaben müssen vor dem öffentlichen Regelbetrieb ergänzt und rechtlich geprüft werden.</p>
+            <address>BlackWaterLeaf<br />Bönninghardtstraße 94<br />46519 Bönninghardt<br />Deutschland</address>
+            <p>BlackWaterLeaf Organisation of Loyalty</p>
+            <p className="legal-card__hint">Bitte ergänze vor dem öffentlichen Regelbetrieb noch die rechtlich verbindliche Betreiberform, den vollständigen Namen der verantwortlichen Person und – falls vorhanden – Register- oder Umsatzsteuerangaben.</p>
           </article>
           <article className="observatory-data-panel legal-card">
             <h2>Kontakt</h2>

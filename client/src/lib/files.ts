@@ -84,7 +84,8 @@ export async function readVideoAsBase64(file: File): Promise<{ base64: string; m
 }
 
 export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
-  const code = error instanceof Error ? error.message : "";
+  const rawCode = error instanceof Error ? error.message : "";
+  const code = rawCode.split(":").pop()?.trim() ?? rawCode;
   const german: Record<string, string> = {
     unsupported_image_type: "Bitte wähle ein JPG-, PNG- oder WebP-Bild.",
     image_size_invalid: "Das Bild konnte nicht gelesen werden.",

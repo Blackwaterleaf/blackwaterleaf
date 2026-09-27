@@ -9,6 +9,7 @@ describe("partner product image validation", () => {
   it("accepts only an allowed MIME type with a matching binary signature", () => {
     expect(validateImageUpload(MINIMAL_PNG, "image/png")).toMatchObject({ extension: "png", mimeType: "image/png", byteSize: 8 });
     expect(validateImageUpload(MINIMAL_JPEG, "image/jpeg")).toMatchObject({ extension: "jpg", mimeType: "image/jpeg" });
+    expect(validateImageUpload(MINIMAL_JPEG, "image/jpg")).toMatchObject({ extension: "jpg", mimeType: "image/jpeg" });
     expect(validateImageUpload(MINIMAL_WEBP, "image/webp")).toMatchObject({ extension: "webp", mimeType: "image/webp" });
   });
 
