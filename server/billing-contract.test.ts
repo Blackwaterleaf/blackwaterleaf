@@ -69,9 +69,13 @@ describe("Free / Pro monetization contract", () => {
     const support = readFileSync(resolve(process.cwd(), "client/src/pages/Support.tsx"), "utf8");
     expect(stripe).toContain('kind === "donation"');
     expect(stripe).toContain('nature_project_support');
+    expect(stripe).toContain("amountCents < 100");
+    expect(stripe).toContain("amountCents > 50000");
     expect(stripe).toContain("getDonationConfirmation");
-    expect(billing).toContain('z.enum(["credits", "pro_monthly", "pro_yearly", "donation"])');
+    expect(billing).toContain('donationAmountEur: z.number().min(1).max(500)');
     expect(support).toContain('kind: "donation"');
+    expect(support).toContain('id="custom-donation"');
+    expect(support).toContain("customAmountValid");
     expect(support).toContain("13 Sprachen vorbereitet");
   });
 });

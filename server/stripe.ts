@@ -68,11 +68,12 @@ export async function createCheckoutSession(input: { userId: number; email: stri
     params.set("line_items[0][quantity]", "1");
   } else if (input.kind === "donation") {
     const amount = input.donationAmountEur;
-    if (!amount || ![5, 10, 25, 50].includes(amount)) throw new Error("donation_amount_invalid");
+    const amountCents = amount === undefined ? 0 : Math.round(amount * 100);
+    if (!Number.isFinite(amountCents) || amountCents < 100 || amountCents > 50000 || Math.abs(amountCents / 100 - amount!) > 0.000001) throw new Error("donation_amount_invalid");
     params.set("metadata[purpose]", "nature_project_support");
-    params.set("metadata[donation_amount_eur]", String(amount));
+    params.set("metadata[donation_amount_eur]", (amountCents / 100).toFixed(2));
     params.set("line_items[0][price_data][currency]", "eur");
-    params.set("line_items[0][price_data][unit_amount]", String(Math.round(amount * 100)));
+    params.set("line_items[0][price_data][unit_amount]", String(amountCents));
     params.set("line_items[0][price_data][product_data][name]", "BlackWaterLeaf · Naturprojekt unterstützen");
     params.set("line_items[0][price_data][product_data][description]", "Freiwillige Unterstützung für Naturwissen, Community und unabhängige Entwicklung");
     params.set("line_items[0][quantity]", "1");

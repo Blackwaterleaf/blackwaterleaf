@@ -3,8 +3,24 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useI18n } from "@/i18n";
 import { trpc } from "@/lib/trpc";
+import { useState } from "react";
 
 const amounts = [5, 10, 25, 50] as const;
+const customLabels = {
+  de: { title: "EIGENEN BETRAG FESTLEGEN", placeholder: "z. B. 12,50", action: "EIGENEN BETRAG SPENDEN", hint: "Mindestens 1 € · maximal 500 €" },
+  en: { title: "CHOOSE YOUR OWN AMOUNT", placeholder: "e.g. 12.50", action: "DONATE CUSTOM AMOUNT", hint: "Minimum €1 · maximum €500" },
+  "zh-CN": { title: "自定义捐赠金额", placeholder: "例如 12.50", action: "捐赠自定义金额", hint: "最低 1 欧元 · 最高 500 欧元" },
+  es: { title: "ELIGE TU IMPORTE", placeholder: "p. ej. 12,50", action: "DONAR IMPORTE PERSONALIZADO", hint: "Mínimo 1 € · máximo 500 €" },
+  fr: { title: "CHOISIR UN MONTANT", placeholder: "ex. 12,50", action: "DONNER CE MONTANT", hint: "Minimum 1 € · maximum 500 €" },
+  it: { title: "SCEGLI UN IMPORTO", placeholder: "es. 12,50", action: "DONA IMPORTO PERSONALIZZATO", hint: "Minimo 1 € · massimo 500 €" },
+  "pt-BR": { title: "ESCOLHA UM VALOR", placeholder: "ex. 12,50", action: "DOAR VALOR PERSONALIZADO", hint: "Mínimo 1 € · máximo 500 €" },
+  ja: { title: "金額を自由に指定", placeholder: "例：12.50", action: "指定額を寄付", hint: "最低1ユーロ · 最高500ユーロ" },
+  ko: { title: "원하는 금액 선택", placeholder: "예: 12.50", action: "원하는 금액 후원", hint: "최소 1유로 · 최대 500유로" },
+  nl: { title: "KIES JE EIGEN BEDRAG", placeholder: "bijv. 12,50", action: "EIGEN BEDRAG STEUNEN", hint: "Minimaal €1 · maximaal €500" },
+  tr: { title: "KENDİ TUTARINI BELİRLE", placeholder: "örn. 12,50", action: "ÖZEL TUTARLA DESTEKLE", hint: "Minimum 1 € · maksimum 500 €" },
+  pl: { title: "WYBIERZ WŁASNĄ KWOTĘ", placeholder: "np. 12,50", action: "WESPRZYJ WŁASNĄ KWOTĄ", hint: "Minimum 1 € · maksimum 500 €" },
+  ar: { title: "اختر مبلغك", placeholder: "مثال: 12.50", action: "تبرع بالمبلغ المحدد", hint: "الحد الأدنى 1 يورو · الحد الأقصى 500 يورو" },
+} as const;
 
 const copy = {
   de: { eyebrow: "NATURPROJEKT · DIREKT UNTERSTÜTZEN", title: "GEMEINSAM NATURWISSEN WEITERTRAGEN.", body: "Deine freiwillige Unterstützung finanziert Pflege, Quellenprüfung, Community-Funktionen und die unabhängige Weiterentwicklung von BlackWaterLeaf.", button: "MIT STRIPE UNTERSTÜTZEN", login: "SICHER ANMELDEN", success: "Danke für deine Unterstützung! Deine Spende wurde von Stripe bestätigt.", cancelled: "Die Zahlung wurde abgebrochen. Du kannst es jederzeit erneut versuchen.", currency: "EUR" },
@@ -26,7 +42,9 @@ export default function Support() {
   const { locale } = useI18n();
   const auth = useAuth();
   const [, setLocation] = useLocation();
+  const [customAmount, setCustomAmount] = useState("");
   const t = copy[locale];
+  const custom = customLabels[locale];
   const checkout = trpc.billing.createCheckout.useMutation({ onSuccess: result => window.open(result.url, "_blank", "noopener,noreferrer") });
   const params = new URLSearchParams(window.location.search);
   const confirmation = trpc.billing.donationConfirmation.useQuery({ sessionId: params.get("session_id") ?? "" }, { enabled: auth.isAuthenticated && params.get("checkout") === "success" && Boolean(params.get("session_id")), retry: false });
@@ -36,6 +54,8 @@ export default function Support() {
     if (!auth.isAuthenticated) { setLocation("/login?returnTo=/support"); return; }
     checkout.mutate({ kind: "donation", donationAmountEur: amount });
   };
+  const customAmountValue = Number(customAmount.replace(",", "."));
+  const customAmountValid = Number.isFinite(customAmountValue) && customAmountValue >= 1 && customAmountValue <= 500;
   return <div className="observatory-route observatory-route--botany support-page">
     <section className="support-hero observatory-context-header">
       <div className="support-hero__icon"><Heart size={32} /></div>
@@ -43,7 +63,7 @@ export default function Support() {
       <div className="support-hero__proof"><span><Leaf size={16} /> Naturwissen</span><span><Globe2 size={16} /> 13 Sprachen vorbereitet</span></div>
     </section>
     {success ? <div className="support-notice support-notice--success"><CheckCircle2 size={20} />{t.success}</div> : cancelled ? <div className="support-notice">{t.cancelled}</div> : null}
-    <section className="support-card observatory-data-panel"><p className="eyebrow">{auth.isAuthenticated ? "BLACKWATERLEAF · STRIPE" : "BLACKWATERLEAF · MEMBER ACCESS"}</p><h2>{auth.isAuthenticated ? "WÄHLE DEINE UNTERSTÜTZUNG" : t.login}</h2><div className="support-amounts">{amounts.map(amount => <button key={amount} className="support-amount" disabled={checkout.isPending} onClick={() => begin(amount)}><strong>€{amount}</strong><span>{auth.isAuthenticated ? t.button : t.login}<ArrowRight size={15} /></span></button>)}</div><small className="support-card__note">Einmalige Zahlung · sicher verarbeitet durch Stripe · keine automatische Verlängerung</small></section>
+    <section className="support-card observatory-data-panel"><p className="eyebrow">{auth.isAuthenticated ? "BLACKWATERLEAF · STRIPE" : "BLACKWATERLEAF · MEMBER ACCESS"}</p><h2>{auth.isAuthenticated ? "WÄHLE DEINE UNTERSTÜTZUNG" : t.login}</h2><div className="support-amounts">{amounts.map(amount => <button key={amount} className="support-amount" disabled={checkout.isPending} onClick={() => begin(amount)}><strong>€{amount}</strong><span>{auth.isAuthenticated ? t.button : t.login}<ArrowRight size={15} /></span></button>)}</div><div className="support-custom"><label htmlFor="custom-donation">{custom.title}</label><div className="support-custom__row"><span className="support-custom__currency">€</span><input id="custom-donation" inputMode="decimal" type="text" value={customAmount} onChange={event => setCustomAmount(event.target.value.replace(/[^0-9,.]/g, ""))} placeholder={custom.placeholder} aria-describedby="custom-donation-hint" /><button className="primary-action" type="button" disabled={checkout.isPending || !customAmountValid} onClick={() => begin(Math.round(customAmountValue * 100) / 100)}>{auth.isAuthenticated ? custom.action : t.login}<ArrowRight size={15} /></button></div><small id="custom-donation-hint">{custom.hint} · Stripe verarbeitet die Zahlung einmalig und sicher.</small></div><small className="support-card__note">Einmalige Zahlung · sicher verarbeitet durch Stripe · keine automatische Verlängerung</small></section>
     <Link href="/pro" className="section-link">{locale === "de" ? "KI-Credits und Pro ansehen" : "View AI credits and Pro"}<ArrowRight size={14} /></Link>
   </div>;
 }

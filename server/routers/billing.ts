@@ -8,7 +8,7 @@ import { createCheckoutSession, getCheckoutConfirmation, getDonationConfirmation
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
-const checkoutInput = z.object({ kind: z.enum(["credits", "pro_monthly", "pro_yearly", "donation"]), packKey: z.string().optional(), donationAmountEur: z.number().int().min(5).max(50).optional() });
+const checkoutInput = z.object({ kind: z.enum(["credits", "pro_monthly", "pro_yearly", "donation"]), packKey: z.string().optional(), donationAmountEur: z.number().min(1).max(500).optional() });
 
 function utcDayKey(date = new Date()) { return date.toISOString().slice(0, 10); }
 function utcMonthKey(date = new Date()) { return date.toISOString().slice(0, 7); }
