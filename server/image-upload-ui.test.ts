@@ -52,4 +52,10 @@ describe("mobile image upload contract", () => {
   it("uses a bounded original-file fallback when Samsung canvas processing fails", () => {
     for (const token of ["originalFallback", "image_decode_failed", "image_resize_failed", "context.imageSmoothingQuality = \"high\""]) expect(files).toContain(token);
   });
+
+  it("shows a persistent animated phase progress card for large community image uploads", () => {
+    for (const token of ["CommunityUploadProgressCard", "pulseTransferProgress", "upload-progress__steps", "BILD WIRD SICHER HOCHGELADEN", "Große Bilder können je nach Verbindung etwas länger übertragen werden.", 'phase: "transfer"']) expect(community).toContain(token);
+    const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
+    for (const token of [".upload-progress", "upload-progress-sheen", ".upload-progress__track", "prefers-reduced-motion"]) expect(css).toContain(token);
+  });
 });

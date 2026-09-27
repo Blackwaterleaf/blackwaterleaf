@@ -128,3 +128,8 @@ Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der 
 - Web und Native bieten denselben speicherbaren Mehrfach-Link-Vertrag. Im öffentlichen Profil erscheinen diese Links erst, wenn das Profil über die bestehende Sichtbarkeitsfreigabe öffentlich ist. Private Anlagen, Nachrichten, Standorte und unveröffentlichte Inhalte bleiben davon getrennt.
 - Die offiziellen Profile sind im Impressum und im offiziellen BlackWaterLeaf-Profil sichtbar: **Instagram BlackWaterLeaf**, **Instagram House of Channa**, **TikTok BlackWaterLeaf** und **TikTok Channa World One**. Externe Links öffnen immer in einem neuen Webkontext und sind klar als externe Profile markiert.
 - Kleine Android- und mobile Web-Ansichten verwenden einspaltige Linkkarten mit 36–40 px Touchflächen, vollständigen Labels und sichtbarer Plattformkennzeichnung; der Editor verzichtet auf dichte, überlappende Steuerelemente.
+
+
+## 15.45 Community · Sichtbarer Großbildupload (2026-09-27)
+
+Web und Native zeigen bei jedem Community-Medienupload eine persistent sichtbare **Phasenkarte**: Entwurf vorbereiten, Bild aufbereiten, sicher übertragen und gegebenenfalls veröffentlichen. Die Karte enthält einen Fortschrittsbalken, aktuelle Prozentanzeige, aktive Phase und während der Übertragung eine klare Ladeanimation. Bei Bildern ab 5 MB erklärt sie ausdrücklich, dass die Optimierung und Übertragung je nach Verbindung länger dauern kann und die Seite beziehungsweise App geöffnet bleiben soll. Die Prozentanzeige beschreibt den tatsächlichen Ablauf der Arbeitsphasen; sie verschwindet bei Erfolg oder Fehler nicht unbemerkt hinter einem unveränderten Button. Beide Clients verwenden dieselben deutschen Begriffe, dieselbe Reihenfolge und denselben geschützten Uploadvertrag.

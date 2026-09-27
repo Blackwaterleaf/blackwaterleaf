@@ -79,6 +79,10 @@ describe("BlackWaterLeaf native application contract", () => {
     for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024", "maxDimension = 4096", "ImageManipulator.SaveFormat.JPEG", "UPLOAD ABGESCHLOSSEN"]) expect(app).toContain(token);
   });
 
+  it("keeps large photo uploads visibly active through processing and transfer", () => {
+    for (const token of ["NativeUploadProgressCard", "pulseNativeTransferProgress", "nativeUploadStages", "BILD WIRD SICHER HOCHGELADEN", "Große Bilder können je nach Verbindung etwas länger übertragen werden.", 'phase: "transfer"', "ActivityIndicator"]) expect(app).toContain(token);
+  });
+
   it("offers explicit realm routing and an admin-only all-feeds recipient", () => {
     for (const token of ['"ALLE FEEDS · ADMIN"', "realm: adminAllFeeds ? null : realm", '(["botany", "aquarium", "terrarium", "all"] as const)', "setRealm(post.realm ?? null)"]) expect(app).toContain(token);
     expect(api).toContain("invalid_image_size");

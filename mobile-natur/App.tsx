@@ -2669,6 +2669,23 @@ function PhotoScreen({
   );
 }
 
+type NativeCommunityUploadProgress = {
+  percent: number;
+  label: string;
+  detail: string;
+  phase: "draft" | "processing" | "transfer" | "publishing" | "complete";
+};
+
+function NativeUploadProgressCard({ tone, progress }: { tone: Tone; progress: NativeCommunityUploadProgress }) {
+  const stages = [["draft", "Entwurf"], ["processing", "Bild aufbereiten"], ["transfer", "Übertragen"], ["publishing", "Veröffentlichen"]] as const;
+  const activeStage = stages.findIndex(([phase]) => phase === progress.phase);
+  return <View style={[styles.nativeUploadProgress, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}10` }]} accessibilityRole="progressbar" accessibilityLabel={`Bildupload: ${progress.label}, ${progress.percent} Prozent`} accessibilityValue={{ min: 0, max: 100, now: progress.percent }}>
+    <View style={styles.nativeUploadProgressTop}><ActivityIndicator size="small" color={tone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>{progress.label}</Text><Text style={styles.miniCopy}>{progress.detail}</Text></View><Text style={[styles.nativeUploadPercent, { color: tone.accent }]}>{progress.percent}%</Text></View>
+    <View style={styles.nativeUploadTrack}><View style={[styles.nativeUploadFill, { width: `${progress.percent}%`, backgroundColor: tone.accent }]} /></View>
+    <View style={styles.nativeUploadStages}>{stages.map(([phase, label], index) => <View key={phase} style={styles.nativeUploadStage}><Ionicons name={index < activeStage || progress.phase === "complete" ? "checkmark-circle" : index === activeStage ? "ellipse" : "ellipse-outline"} size={12} color={index <= activeStage || progress.phase === "complete" ? tone.accent : c.muted} /><Text style={[styles.nativeUploadStageText, { color: index <= activeStage || progress.phase === "complete" ? c.text : c.muted }]}>{label}</Text></View>)}</View>
+  </View>;
+}
+
 function PostScreen({
   token,
   isAdmin,
@@ -2693,7 +2710,7 @@ function PostScreen({
   const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ percent: number; etaSeconds: number; label: string } | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<NativeCommunityUploadProgress | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
   const [showOwnPosts, setShowOwnPosts] = useState(false);
@@ -2712,6 +2729,15 @@ function PostScreen({
     if (!token || !showOwnPosts) return;
     void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
   }, [token, showOwnPosts]);
+
+  const pulseNativeTransferProgress = (start: number, ceiling = 86) => {
+    let percent = start;
+    const handle = setInterval(() => {
+      percent = Math.min(ceiling, percent + (percent < 76 ? 2 : 1));
+      setUploadProgress(current => current?.phase === "transfer" ? { ...current, percent } : current);
+    }, 700);
+    return () => clearInterval(handle);
+  };
 
   const choosePostImage = async (requestedAspect = postAspect) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -2757,8 +2783,9 @@ function PostScreen({
       Alert.alert("Medienfreigabe erforderlich", "Bitte bestätige zuerst die sichere Verarbeitung dieses Mediums.");
       return;
     }
+    let stopTransferPulse: (() => void) | null = null;
     setSaving(true);
-    setUploadProgress({ percent: 8, etaSeconds: 5, label: "ENTWURF WIRD VORBEREITET" });
+    setUploadProgress({ percent: 8, phase: "draft", label: "ENTWURF WIRD VORBEREITET", detail: postImage || postVideo ? "Sichere Upload-Reihenfolge wird angelegt." : "Beitrag wird sicher gespeichert." });
     setStatus(null);
     try {
       let imageXpAwarded = 0;
@@ -2779,26 +2806,31 @@ function PostScreen({
         realm: adminAllFeeds ? null : realm,
       });
       if (postImage) {
-        setUploadProgress({ percent: 32, etaSeconds: 4, label: "BILD WIRD VERARBEITET" });
+        const isLargeImage = Boolean(postImage.fileSize && postImage.fileSize >= 5 * 1024 * 1024);
+        setUploadProgress({ percent: 32, phase: "processing", label: "BILD WIRD FÜR DEN UPLOAD AUFBEREITET", detail: isLargeImage ? "Großes Bild erkannt – Qualität und Format werden sicher optimiert." : "Format und Qualität werden für den sicheren Transport geprüft." });
         const maxDimension = 4096;
         const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
         const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
         const prepared = await ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.86), format: ImageManipulator.SaveFormat.JPEG, base64: true });
         if (!prepared.base64) throw new Error("image_read_failed");
-        setUploadProgress({ percent: 65, etaSeconds: 2, label: "BILD WIRD HOCHGELADEN" });
+        setUploadProgress({ percent: 65, phase: "transfer", label: "BILD WIRD SICHER HOCHGELADEN", detail: isLargeImage ? "Große Bilder können je nach Verbindung etwas länger übertragen werden. Bitte die App geöffnet lassen." : "Verschlüsselte Übertragung an den geschützten Medienserver läuft." });
+        stopTransferPulse = pulseNativeTransferProgress(65);
         const uploadedImage = await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
+        stopTransferPulse(); stopTransferPulse = null;
         imageXpAwarded = uploadedImage.xpAwarded;
       }
       if (postVideo) {
-        setUploadProgress({ percent: 65, etaSeconds: 2, label: "VIDEO WIRD HOCHGELADEN" });
+        setUploadProgress({ percent: 65, phase: "transfer", label: "VIDEO WIRD SICHER HOCHGELADEN", detail: "Verschlüsselte Übertragung an den geschützten Medienserver läuft." });
+        stopTransferPulse = pulseNativeTransferProgress(65);
         const base64 = await FileSystem.readAsStringAsync(postVideo.uri, { encoding: FileSystem.EncodingType.Base64 });
         await uploadCommunityDraftVideo(token, { postId: Number(draft.id), base64, mimeType: postVideo.mimeType });
+        stopTransferPulse(); stopTransferPulse = null;
       }
       if (publishNow) {
-        setUploadProgress({ percent: 88, etaSeconds: 1, label: "BEITRAG WIRD VERÖFFENTLICHT" });
+        setUploadProgress({ percent: 90, phase: "publishing", label: "BEITRAG WIRD VERÖFFENTLICHT", detail: "Sichtbarkeit und gewählter Ziel-Feed werden abschließend gesetzt." });
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       }
-      setUploadProgress({ percent: 100, etaSeconds: 0, label: "UPLOAD ABGESCHLOSSEN" });
+      setUploadProgress({ percent: 100, phase: "complete", label: "UPLOAD ABGESCHLOSSEN", detail: "Bild und Beitrag wurden sicher gespeichert." });
       setContent("");
       setRealm("botany");
       setAdminAllFeeds(false);
@@ -2817,6 +2849,7 @@ function PostScreen({
           : `Privater Entwurf sicher hochgeladen${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
       );
     } catch (cause) {
+      stopTransferPulse?.();
       setUploadProgress(null);
       setStatus(
         cause instanceof Error
@@ -2955,7 +2988,7 @@ function PostScreen({
             disabled={saving || !content.trim()}
             onPress={() => void (editingPostId !== null ? savePostEdit() : save())}
           />
-          {uploadProgress ? <View style={styles.nativeUploadProgress}><View style={styles.uploadProgressHeading}><Text style={[styles.chip, { color: tone.accent }]}>{uploadProgress.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{uploadProgress.percent}%</Text></View><View style={styles.nativeUploadTrack}><View style={[styles.nativeUploadFill, { width: `${uploadProgress.percent}%`, backgroundColor: tone.accent }]} /></View><Text style={styles.miniCopy}>{uploadProgress.etaSeconds > 0 ? `Noch etwa ${uploadProgress.etaSeconds} Sek.` : "Fertig"}</Text></View> : null}
+          {uploadProgress ? <NativeUploadProgressCard tone={tone} progress={uploadProgress} /> : null}
           {status ? (
             <Text style={[styles.formMessage, { color: tone.accent }]}>
               {status}
@@ -5210,10 +5243,15 @@ const styles = StyleSheet.create({
   mediaAspectEditorNative: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 7, paddingVertical: 8 },
   mediaAspectOptionNative: { minHeight: 34, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, justifyContent: "center" },
   mediaQualityNative: { gap: 4, paddingVertical: 7 },
-  nativeUploadProgress: { gap: 6, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(185,251,127,.28)", backgroundColor: "rgba(2,16,8,.62)" },
+  nativeUploadProgress: { gap: 9, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "rgba(185,251,127,.28)", backgroundColor: "rgba(2,16,8,.62)" },
+  nativeUploadProgressTop: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  nativeUploadPercent: { minWidth: 41, paddingVertical: 5, paddingHorizontal: 6, borderRadius: 7, backgroundColor: "rgba(185,251,127,.12)", fontSize: 12, fontWeight: "800", textAlign: "center" },
   uploadProgressHeading: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  nativeUploadTrack: { height: 5, overflow: "hidden", borderRadius: 99, backgroundColor: "rgba(185,251,127,.16)" },
+  nativeUploadTrack: { height: 8, overflow: "hidden", borderRadius: 99, borderWidth: 1, borderColor: "rgba(185,251,127,.2)", backgroundColor: "rgba(0,8,4,.65)" },
   nativeUploadFill: { height: "100%", borderRadius: 99 },
+  nativeUploadStages: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  nativeUploadStage: { flexDirection: "row", alignItems: "center", gap: 4 },
+  nativeUploadStageText: { fontSize: 10, fontWeight: "700", lineHeight: 13 },
   messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
   messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },
