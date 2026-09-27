@@ -17,10 +17,12 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
+import Game from "./pages/Game";
 
 function Router() {
   return (
     <Switch>
+      <Route path={"/game"} component={Game} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/admin/:section"} component={AdminDashboard} />
       <Route path={"/login"} component={AccountAccess} />

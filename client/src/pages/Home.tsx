@@ -8,7 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES, HOME_WORLD_IMAGE_ALTS } from "@/lib/seo";
 import { WORLD_ASSETS, WORLD_CONFIG } from "@/lib/worlds";
 import type { WeatherEffect } from "@shared/current-weather";
-import { ArrowRight, Leaf, RadioTower } from "lucide-react";
+import { ArrowRight, Gamepad2, Leaf, RadioTower } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "wouter";
 
@@ -44,6 +44,7 @@ export default function Home() {
           <p>{t("home.hero.body")}</p>
           <div className="hero-actions">
             <Link href="/explore" className="primary-action">{t("home.hero.action")}<ArrowRight size={16} /></Link>
+            <Link href="/game" className="secondary-action game-home-link"><Gamepad2 size={15} />{locale === "de" ? "Blättertal Run" : "Leaf Valley Run"}</Link>
             <Link href="/profile" className="hero-text-link">{locale === "de" ? "Mein Bereich" : "My area"}</Link>
           </div>
         </div>
