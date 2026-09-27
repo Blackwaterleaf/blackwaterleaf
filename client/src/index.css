@@ -2389,3 +2389,37 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .media-rotate-option { margin-left: 0; flex-basis: 100%; }
 }
 .community-post-card img, .community-detail-record img, .file-field img { image-orientation: none; }
+
+/* Social-feed mode: immersive media first, author/caption left and actions right. */
+.community-post--social { position: relative; max-width: 760px; margin-inline: auto; min-height: min(78svh, 760px); overflow: hidden; border-color: rgba(185,251,127,.28); background: #020804; }
+.community-post--social .post-author { position: absolute; z-index: 4; inset: 0 0 auto; padding: 15px 16px 42px; border: 0; background: linear-gradient(180deg, rgba(0,8,4,.9), rgba(0,8,4,.4), transparent); }
+.community-post--social .post-author-profile { color: #efffeb; }
+.community-post--social .post-author strong, .community-post--social .post-author small, .community-post--social .observatory-post-meta { text-shadow: 0 1px 4px rgba(0,0,0,.85); }
+.community-post--social .community-post-content-link { position: absolute; z-index: 4; left: 15px; right: 105px; bottom: 70px; }
+.community-post--social .community-post-content-link p { padding: 0; color: #f0ffec; font-weight: 800; line-height: 1.45; text-shadow: 0 2px 9px rgba(0,0,0,.9); }
+.community-post--social .community-media-stack { height: min(78svh, 760px); min-height: 520px; background: #020804; }
+.community-post--social .post-media { width: 100%; height: min(78svh, 760px); max-height: none; object-fit: cover; border: 0; }
+.community-post--social .community-image-button { position: relative; display: block; width: 100%; height: 100%; border: 0; padding: 0; background: #020804; }
+.community-post--social .community-image-button > svg { position: absolute; right: 12px; top: 50%; color: #efffeb; filter: drop-shadow(0 1px 5px #000); }
+.community-post--social .post-metrics { position: absolute; z-index: 5; right: 11px; bottom: 58px; width: 82px; flex-direction: column; align-items: stretch; gap: 7px; padding: 0; background: transparent; }
+.community-post--social .post-metrics button, .community-post--social .community-post-discussion-link { justify-content: center; min-height: 38px; padding: 0 6px; color: #efffeb; border-color: rgba(238,255,236,.24); border-radius: 999px; background: rgba(0,8,4,.48); backdrop-filter: blur(10px); text-shadow: 0 1px 4px #000; }
+.community-post--social .media-scroll-hint { position: absolute; z-index: 5; left: 15px; right: 105px; bottom: 43px; color: rgba(238,255,236,.74); background: transparent; }
+@media (max-width: 700px) {
+  .community-post--social { width: 100%; min-height: calc(100svh - 190px); border-radius: 15px; }
+  .community-post--social .community-media-stack, .community-post--social .post-media { height: calc(100svh - 190px); min-height: 500px; }
+  .community-post--social .post-author { padding: 13px 12px 40px; }
+  .community-post--social .community-post-content-link { left: 12px; right: 86px; bottom: 64px; }
+  .community-post--social .post-metrics { right: 7px; bottom: 53px; width: 70px; }
+  .community-post--social .post-metrics button, .community-post--social .community-post-discussion-link { min-height: 35px; font-size: .46rem; }
+}
+
+/* Final visual audit guardrails: one centered social post per feed step. */
+.community-feed { grid-template-columns: minmax(0, 1fr); }
+.community-media-stack { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; }
+.community-post--social .post-author strong { font-size: 1rem; letter-spacing: .01em; }
+.community-post--social .post-author small { font-size: .68rem; }
+.community-post--social .observatory-post-meta { font-size: .56rem; }
+@media (max-width: 700px) {
+  .community-post--social .post-author strong { font-size: .92rem; }
+  .community-post--social .post-author small { font-size: .62rem; }
+}

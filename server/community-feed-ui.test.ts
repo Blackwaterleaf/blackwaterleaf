@@ -60,4 +60,12 @@ describe("Observatory community feed interface", () => {
     expect(native).toContain("toggleBlock");
     expect(native).not.toContain("Konto blockieren");
   });
+
+  it("keeps the immersive social-feed contract in web and native", () => {
+    const web = read("client/src/pages/Community.tsx");
+    const css = read("client/src/index.css");
+    const native = read("mobile-natur/App.tsx");
+    for (const token of ["community-post--social", "hasSocialMedia", "post-metrics", "community-post-content-link"]) expect(web + css).toContain(token);
+    for (const token of ["postSocialStage", "postSocialRail", "postSocialCaption", "share-social-outline", "Share.share"]) expect(native).toContain(token);
+  });
 });
