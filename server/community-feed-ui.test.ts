@@ -26,6 +26,15 @@ describe("Observatory community feed interface", () => {
     expect(native).not.toContain("PRIVATE_DRAFT");
   });
 
+  it("shows specific aquarium plants with actionable care parameters and licensed catalog images", () => {
+    const web = read("client/src/pages/Explore.tsx");
+    const native = read("mobile-natur/App.tsx");
+    for (const token of ["Vallisneria spiralis", "Rotala rotundifolia", "Ludwigia repens", "Limnophila aquatica", "Staurogyne repens", "care", "pH:", "Temperatur:", "CO₂"]) expect(web).toContain(token);
+    for (const token of ["Vallisneria spiralis", "Rotala rotundifolia", "Ludwigia repens", "Limnophila aquatica", "Staurogyne repens", "exploreInspirationCare", "CO₂"]) expect(native).toContain(token);
+    expect(web).toContain("iNaturalist");
+    expect(native).toContain("blackwaterleaf.com/manus-storage/catalog/taxa/plant/4/");
+  });
+
   it("explains the protected community clearly before login", () => {
     const page = read("client/src/pages/Community.tsx");
     const css = read("client/src/index.css");

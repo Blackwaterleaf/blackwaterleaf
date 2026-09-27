@@ -2564,3 +2564,8 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .discover-gallery-lightbox__close { top:22px; right:24px; width:44px; height:44px; }
 .discover-gallery-lightbox__nav { top:50%; width:52px; height:52px; transform:translateY(-50%); }
 .discover-gallery-lightbox__nav--prev { left:22px; }.discover-gallery-lightbox__nav--next { right:22px; }
+
+/* Aquatic plant care parameters: compact, readable facts beneath each named card. */
+.explore-inspiration-card__care { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px 7px; margin-top:2px; padding-top:5px; border-top:1px solid rgba(185,251,127,.16); }
+.explore-inspiration-card__care small { color:#d0e7d0; font-size:.56rem; line-height:1.25; }
+@media (max-width:700px) { .explore-inspiration-card__care { gap:2px 5px; } .explore-inspiration-card__care small { font-size:.5rem; } }
