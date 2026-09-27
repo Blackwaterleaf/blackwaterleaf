@@ -30,6 +30,26 @@ const emptyDetailRoutes: Array<{ path: string; expected: string }> = [
   { path: "/member/999999999", expected: "PROFIL NICHT ÖFFENTLICH" },
 ];
 
+const emptyApiProcedures = [
+  "community.byId", "live.byId", "partners.marketplace", "partners.marketplaceProduct",
+  "search.plantById", "search.aquariumById", "search.terrariumById", "profile.publicById",
+];
+
+async function mockEmptyDetailResponses(page: Page) {
+  await page.route("**/api/trpc/**", async route => {
+    const procedure = new URL(route.request().url()).pathname.split("/api/trpc/")[1] ?? "";
+    if (!emptyApiProcedures.some(name => procedure.includes(name))) return route.continue();
+    let body: unknown = null;
+    if (route.request().method() !== "GET") {
+      try { body = route.request().postDataJSON(); } catch { body = null; }
+    }
+    const response = Array.isArray(body)
+      ? body.map(() => ({ result: { data: { json: null } } }))
+      : { result: { data: { json: null } } };
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(response) });
+  });
+}
+
 async function collectRuntimeErrors(page: Page) {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(`pageerror: ${error.message}`));
@@ -66,6 +86,7 @@ test.describe("BlackWaterLeaf browser route smoke test", () => {
   for (const detail of emptyDetailRoutes) {
     test(`${detail.path} renders a safe empty-response state`, async ({ page }) => {
       const errors = await collectRuntimeErrors(page);
+      await mockEmptyDetailResponses(page);
       await page.goto(detail.path, { waitUntil: "domcontentloaded" });
       await expect(page.getByRole("heading", { name: detail.expected, exact: false }).last()).toBeVisible();
       expect(errors, `${detail.path} runtime errors`).toEqual([]);
