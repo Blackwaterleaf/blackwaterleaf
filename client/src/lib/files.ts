@@ -1,6 +1,6 @@
-const CLIENT_IMAGE_LIMIT_BYTES = 24 * 1024 * 1024;
+const CLIENT_IMAGE_LIMIT_BYTES = 32 * 1024 * 1024;
 const CLIENT_VIDEO_LIMIT_BYTES = 16 * 1024 * 1024;
-const MAX_IMAGE_DIMENSION = 4000;
+const MAX_IMAGE_DIMENSION = 3200;
 const ANALYSIS_IMAGE_DIMENSION = 1800;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 type AllowedImageType = "image/jpeg" | "image/png" | "image/webp";
@@ -27,45 +27,62 @@ function fileToDataUrl(file: Blob): Promise<string> {
 
 export type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
 async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original"): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  let source: CanvasImageSource | null = bitmap;
-  let sourceWidth = bitmap?.width ?? 0;
-  let sourceHeight = bitmap?.height ?? 0;
+  let bitmap: ImageBitmap | null = null;
+  let source: CanvasImageSource | null = null;
+  let sourceWidth = 0;
+  let sourceHeight = 0;
   let objectUrl: string | null = null;
-  if (!source) {
-    objectUrl = URL.createObjectURL(file);
-    source = await new Promise<HTMLImageElement | null>(resolve => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => resolve(null);
-      image.src = objectUrl!;
-    });
-    sourceWidth = source?.naturalWidth ?? 0;
-    sourceHeight = source?.naturalHeight ?? 0;
-  }
-  if (!source || sourceWidth <= 0 || sourceHeight <= 0) {
+  const cleanup = () => {
+    try { bitmap?.close(); } catch { /* Android can close an already-released bitmap. */ }
+    bitmap = null;
     if (objectUrl) URL.revokeObjectURL(objectUrl);
-    return { blob: file, mimeType: fallbackMimeType };
+    objectUrl = null;
+  };
+  const originalFallback = (errorCode: "image_decode_failed" | "image_resize_failed") => {
+    cleanup();
+    if (file.size <= CLIENT_IMAGE_LIMIT_BYTES) return { blob: file, mimeType: fallbackMimeType };
+    throw new Error(errorCode);
+  };
+  try {
+    if (typeof createImageBitmap === "function") {
+      bitmap = await createImageBitmap(file).catch(() => null);
+      source = bitmap;
+      sourceWidth = bitmap?.width ?? 0;
+      sourceHeight = bitmap?.height ?? 0;
+    }
+    if (!source) {
+      objectUrl = URL.createObjectURL(file);
+      const image = await new Promise<HTMLImageElement | null>(resolve => {
+        const next = new Image();
+        next.onload = () => resolve(next);
+        next.onerror = () => resolve(null);
+        next.src = objectUrl!;
+      });
+      source = image;
+      sourceWidth = image?.naturalWidth ?? 0;
+      sourceHeight = image?.naturalHeight ?? 0;
+    }
+    if (!source || sourceWidth <= 0 || sourceHeight <= 0) return originalFallback("image_decode_failed");
+    const targetRatio = aspectRatio === "original" ? sourceWidth / sourceHeight : ({ "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "16:9": 16 / 9 } as const)[aspectRatio];
+    const sourceRatio = sourceWidth / sourceHeight;
+    const cropWidth = sourceRatio > targetRatio ? Math.round(sourceHeight * targetRatio) : sourceWidth;
+    const cropHeight = sourceRatio > targetRatio ? sourceHeight : Math.round(sourceWidth / targetRatio);
+    const scale = Math.min(1, maxDimension / Math.max(cropWidth, cropHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(cropWidth * scale));
+    canvas.height = Math.max(1, Math.round(cropHeight * scale));
+    const context = canvas.getContext("2d");
+    if (!context) return originalFallback("image_resize_failed");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(source, Math.round((sourceWidth - cropWidth) / 2), Math.round((sourceHeight - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
+    cleanup();
+    if (!blob) return originalFallback("image_resize_failed");
+    return { blob, mimeType: "image/jpeg" };
+  } catch {
+    return originalFallback("image_resize_failed");
   }
-  const targetRatio = aspectRatio === "original" ? sourceWidth / sourceHeight : ({ "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "16:9": 16 / 9 } as const)[aspectRatio];
-  const sourceRatio = sourceWidth / sourceHeight;
-  const cropWidth = sourceRatio > targetRatio ? Math.round(sourceHeight * targetRatio) : sourceWidth;
-  const cropHeight = sourceRatio > targetRatio ? sourceHeight : Math.round(sourceWidth / targetRatio);
-  const scale = Math.min(1, maxDimension / Math.max(cropWidth, cropHeight));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(cropWidth * scale));
-  canvas.height = Math.max(1, Math.round(cropHeight * scale));
-  const context = canvas.getContext("2d");
-  if (!context) {
-    if (objectUrl) URL.revokeObjectURL(objectUrl);
-    return { blob: file, mimeType: fallbackMimeType };
-  }
-  context.drawImage(source, Math.round((sourceWidth - cropWidth) / 2), Math.round((sourceHeight - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
-  bitmap?.close();
-  if (objectUrl) URL.revokeObjectURL(objectUrl);
-  const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
-  if (!blob) return { blob: file, mimeType: fallbackMimeType };
-  return { blob, mimeType: "image/jpeg" };
 }
 
 type ImagePreparationOptions = { forAnalysis?: boolean; aspectRatio?: ImageAspect; quality?: number };
@@ -123,9 +140,11 @@ export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
     unsupported_image_type: "Bitte wähle ein JPG-, PNG- oder WebP-Bild.",
     image_size_invalid: "Das Bild konnte nicht gelesen werden.",
     image_too_large_after_resize: "Das Bild ist auch nach der Verkleinerung zu groß. Bitte wähle ein kleineres Foto.",
+    image_decode_failed: "Das Bildformat konnte auf diesem Gerät nicht gelesen werden. Bitte speichere es erneut als JPG und versuche es noch einmal.",
+    image_resize_failed: "Das Foto konnte auf diesem Gerät nicht verkleinert werden. Es wird bis 32 MB im Original unterstützt – bitte wähle bei größeren Fotos eine niedrigere Qualität.",
     image_read_failed: "Das Bild konnte nicht gelesen werden. Bitte versuche es erneut.",
     invalid_image_encoding: "Die Bildübertragung war unvollständig. Bitte versuche den Upload erneut.",
-    invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 24 MB.",
+    invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 32 MB.",
     image_signature_mismatch: "Die Bilddatei passt nicht zu ihrem Dateiformat. Bitte speichere sie erneut als JPG, PNG oder WebP.",
     media_processing_consent_required: "Für den Bildupload ist deine ausdrückliche Bildverarbeitungsfreigabe erforderlich.",
     unsupported_video_type: "Bitte wähle ein MP4- oder WebM-Video.",
@@ -138,9 +157,11 @@ export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
     unsupported_image_type: "Choose a JPG, PNG, or WebP image.",
     image_size_invalid: "The image could not be read.",
     image_too_large_after_resize: "The image is still too large after resizing. Choose a smaller photo.",
+    image_decode_failed: "This device could not read the image format. Save it as JPG and try again.",
+    image_resize_failed: "This device could not resize the photo. Original files up to 32 MB are supported; use a lower quality for larger photos.",
     image_read_failed: "The image could not be read. Please try again.",
     invalid_image_encoding: "The image upload was incomplete. Please try again.",
-    invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 24 MB are supported.",
+    invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 32 MB are supported.",
     image_signature_mismatch: "The image data does not match its file type. Save it again as JPG, PNG, or WebP.",
     media_processing_consent_required: "Explicit image-processing consent is required for uploads.",
     unsupported_video_type: "Choose an MP4 or WebM video.",

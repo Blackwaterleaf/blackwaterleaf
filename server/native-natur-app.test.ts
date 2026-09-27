@@ -76,13 +76,20 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("provides a consent-gated native community photo flow", () => {
-    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024"]) expect(app).toContain(token);
+    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024", "maxDimension = 4096", "ImageManipulator.SaveFormat.JPEG", "UPLOAD ABGESCHLOSSEN"]) expect(app).toContain(token);
   });
 
-  it("offers an explicit all-areas recipient and readable upload failures", () => {
-    expect(app).toContain('"ALLE BEREICHE"');
-    expect(app).toContain("setRealm(post.realm ?? null)");
+  it("offers explicit realm routing and an admin-only all-feeds recipient", () => {
+    for (const token of ['"ALLE FEEDS · ADMIN"', "realm: adminAllFeeds ? null : realm", '(["botany", "aquarium", "terrarium", "all"] as const)', "setRealm(post.realm ?? null)"]) expect(app).toContain(token);
     expect(api).toContain("invalid_image_size");
     expect(api).toContain("Der Upload ist zu groß");
+  });
+
+  it("keeps native follow state and profile lists wired to the live social contract", () => {
+    for (const token of ["socialRelationship", "followProfile", "unfollowProfile", "socialFollowers", "socialFollowing", "setRelationship(await socialRelationship(token, profileId))", "NICHT MEHR FOLGEN", "FOLGEN"]) expect(`${api}\n${app}`).toContain(token);
+  });
+
+  it("uses symmetrical header and profile-menu icon layout", () => {
+    for (const token of ["headerAction: {", "width: 40", "height: 40", "nativeProfileMenuItem: {", 'flexDirection: "row"', "size={21}"]) expect(app).toContain(token);
   });
 });

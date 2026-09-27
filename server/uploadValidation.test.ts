@@ -19,8 +19,8 @@ describe("partner product image validation", () => {
     expect(() => validateImageUpload(MINIMAL_JPEG, "image/png")).toThrow("image_signature_mismatch");
   });
 
-  it("rejects files beyond the server-side twenty-four megabyte limit", () => {
-    const tooLarge = Buffer.alloc(24 * 1024 * 1024 + 1, 0);
+  it("rejects files beyond the server-side thirty-two megabyte limit", () => {
+    const tooLarge = Buffer.alloc(32 * 1024 * 1024 + 1, 0);
     tooLarge.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     expect(() => validateImageUpload(tooLarge.toString("base64"), "image/png")).toThrow("invalid_image_size");
   });

@@ -7,10 +7,12 @@ const root = resolve(import.meta.dirname, "..");
 const source = (relativePath: string) => readFileSync(resolve(root, relativePath), "utf8");
 
 describe("AP-01 P0 safety gates", () => {
-  it("keeps publication and destructive P0 paths fail-closed while media validation is enabled", () => {
+  it("keeps uploads and public community publishing enabled while destructive P0 paths remain fail-closed", () => {
     expect(P0_SAFETY_GATES.mediaUpload.active).toBe(false);
     expect(() => assertSafetyGateAllows("mediaUpload")).not.toThrow();
-    for (const gate of ["publicPublication", "marketplaceActivation", "accountErasure", "databaseMigration"] as const) {
+    expect(P0_SAFETY_GATES.publicPublication.active).toBe(false);
+    expect(() => assertSafetyGateAllows("publicPublication")).not.toThrow();
+    for (const gate of ["marketplaceActivation", "accountErasure", "databaseMigration"] as const) {
       expect(() => assertSafetyGateAllows(gate)).toThrow(P0_SAFETY_GATES[gate].messageKey);
     }
   });
@@ -18,6 +20,7 @@ describe("AP-01 P0 safety gates", () => {
   it("returns safe maintenance information", () => {
     expect(getPublicSafetyGateStatus()).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "mediaUpload", active: false, packageId: "AP-03/AP-04" }),
+      expect.objectContaining({ id: "publicPublication", active: false, packageId: "AP-07/AP-08" }),
       expect.objectContaining({ id: "databaseMigration", active: true, packageId: "AP-06" }),
     ]));
   });

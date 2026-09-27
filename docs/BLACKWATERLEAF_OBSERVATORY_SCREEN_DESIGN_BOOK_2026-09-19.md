@@ -112,3 +112,11 @@ Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browse
 ## 15.42 Profil · Abo-Status und Upgrade
 
 Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der Bereich benennt den aktuellen Status (`FREE · AKTUELL` oder `PRO AKTIV`), zeigt die Free-/Pro-Leistungsgrenzen kompakt und führt über eine klare Upgrade-Aktion zur vollständigen Pro-Übersicht. Die Zahlung bleibt bis zum Anschluss eines geprüften Zahlungsanbieters deaktiviert; der Hinweis `ZAHLUNG VORBEREITET` muss sichtbar bleiben. Auf kleinen Android-Geräten stapeln sich die Free-/Pro-Karten einspaltig.
+
+## 15.43 Native Community Release · Upload, Folgen und Icon-Raster
+
+- Der Community-Upload verkleinert Bilder vor dem Base64-Transport auf höchstens 3200 Pixel Kantenlänge, normalisiert sie als JPEG und überträgt sie erst nach einer expliziten Medienfreigabe. Die API akzeptiert ausschließlich validierte JPG-, PNG- oder WebP-Bilder bis 32 MB und prüft Eigentümerschaft, MIME-Signatur, Größe und Metadaten serverseitig.
+- Der mobile Web-Upload akzeptiert nun geprüfte Originalbilder bis **32 MB**. Für die Community werden große Bilder regulär mit maximal 3200 Pixel Kantenlänge auf JPEG verkleinert. Wenn ein Samsung-Browser die Canvas-Verarbeitung eines großen Fotos nicht bereitstellt, darf er das unveränderte Original innerhalb der 32-MB-Grenze hochladen; darüber zeigt die Oberfläche einen konkreten Qualitäts-/Größenhinweis statt einer ungenauen Verarbeitungsmeldung.
+- Die Bereichsauswahl ist verbindlich getrennt: reguläre Konten wählen **Botanik**, **Aquaristik** oder **Terraristik**; nur serverseitig als Admin erkannte Konten erhalten **Alle Feeds · Admin**. Öffentliche Community-Veröffentlichung ist wieder aktiv, bleibt aber an Einwilligung, Content-Policy und Moderation gebunden.
+- Folgen, Entfolgen, Follower- und Folge-ich-Listen verwenden Web und Native über denselben `social.*`-Vertrag. Nach einer Aktion lädt Native den aktuellen Beziehungsstatus erneut vom Server, damit der Zustand nicht nur lokal angezeigt wird.
+- Kopfaktionen haben ein einheitliches 40×40-Raster. Profilmenü-Karten richten Icon und Text horizontal aus; alle fünf Icons haben 21 px und dieselbe linke Achse. Diese Regel verhindert Überlappung und ungleich große Aktionen auf kleinen Android-Geräten.

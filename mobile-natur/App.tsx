@@ -1327,11 +1327,11 @@ function Header({
       </View>
       {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: "#07170d" }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMessages(); }}><Ionicons name="mail-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Postfach</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={17} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={17} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMessages(); }}><Ionicons name="mail-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Postfach</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={21} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -3554,6 +3554,21 @@ function ProfileScreen({
   };
   const consentGranted = (purpose: ProfileConsent["purpose"]) => Boolean(consents.find(item => item.purpose === purpose)?.granted);
   const toggleConsent = (purpose: ProfileConsent["purpose"]) => { void onSetConsent(purpose, !consentGranted(purpose)); };
+  const setProfileVisibility = async (profileVisibility: "private" | "unlisted" | "public") => {
+    setProfileSaving(true);
+    setProfileMessage(null);
+    try {
+      if (profileVisibility === "public" && !consentGranted("profile_publication")) {
+        await onSetConsent("profile_publication", true);
+      }
+      await onUpdateProfile({ profileVisibility });
+      setProfileMessage(profileVisibility === "public" ? "Profil ist öffentlich sichtbar." : profileVisibility === "unlisted" ? "Profil ist nur über direkte Links sichtbar." : "Profil ist privat.");
+    } catch (cause) {
+      setProfileMessage(cause instanceof Error ? cause.message : "Profil-Sichtbarkeit konnte nicht gespeichert werden.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
   const chooseNativeAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setProfileMessage("Zugriff auf die Galerie wurde nicht freigegeben."); return; }
@@ -3583,7 +3598,7 @@ function ProfileScreen({
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
-        {menuTarget === "privacy" ? <View style={styles.profileVisibilityNative}><Text style={[styles.eyebrow, { color: tone.accent }]}>PROFIL-SICHTBARKEIT</Text><Text style={styles.miniCopy}>{account?.profileVisibility === "public" ? "Öffentlich: Profil und freigegebene Beiträge sind sichtbar." : account?.profileVisibility === "unlisted" ? "Unlisted: nur direkte Links zeigen das Profil." : "Privat: andere sehen dein Profil nicht."}</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="PRIVAT" icon="lock-closed-outline" onPress={() => void onUpdateProfile({ profileVisibility: "private" })} /><SecondaryButton tone={tone} label="UNLISTED" icon="link-outline" onPress={() => void onUpdateProfile({ profileVisibility: "unlisted" })} /><PrimaryButton tone={tone} label="ÖFFENTLICH" icon="globe-outline" onPress={() => void onUpdateProfile({ profileVisibility: "public" })} /></View></View> : null}
+        {menuTarget === "privacy" ? <View style={styles.profileVisibilityNative}><Text style={[styles.eyebrow, { color: tone.accent }]}>PROFIL-SICHTBARKEIT</Text><Text style={styles.miniCopy}>{account?.profileVisibility === "public" ? "Öffentlich: Profil und freigegebene Beiträge sind sichtbar." : account?.profileVisibility === "unlisted" ? "Unlisted: nur direkte Links zeigen das Profil." : "Privat: andere sehen dein Profil nicht."}</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="PRIVAT" icon="lock-closed-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("private")} /><SecondaryButton tone={tone} label="UNLISTED" icon="link-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("unlisted")} /><PrimaryButton tone={tone} label="ÖFFENTLICH" icon="globe-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("public")} /></View></View> : null}
         {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten'], ['location_processing', 'Grobe Region für aktuelles Wetter verwenden']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
         {menuTarget === "privacy" ? <SecondaryButton tone={tone} label="DATENEXPORT TEILEN" icon="download-outline" onPress={() => void onExportData().then(() => setProfileMessage("Datenexport erstellt.")).catch(cause => setProfileMessage(cause instanceof Error ? cause.message : "Export fehlgeschlagen."))} /> : null}
         {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /><SecondaryButton tone={tone} label="简体中文" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "zh-CN" })} /><SecondaryButton tone={tone} label="ESPAÑOL" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "es" })} /><SecondaryButton tone={tone} label="FRANÇAIS" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "fr" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
@@ -4562,7 +4577,7 @@ const styles = StyleSheet.create({
   },
   headerActions: { flexDirection: "row", gap: 2 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
-  nativeProfileMenuItem: { minHeight: 56, paddingHorizontal: 13, justifyContent: "center", borderRadius: 11, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
+  nativeProfileMenuItem: { minHeight: 56, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", gap: 11, borderRadius: 11, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
   nativeProfileMenuText: { color: c.text, fontSize: 14, lineHeight: 18, fontWeight: "800" },
   headerAction: {
     width: 40,

@@ -69,10 +69,10 @@ async function startServer() {
   // Stripe requires the untouched request bytes for signature verification.
   app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
   registerStripeWebhook(app);
-  // Base64 adds roughly one third overhead to native media uploads. The
-  // upload validators still enforce the binary media limits per file.
-  app.use(express.json({ limit: "36mb" }));
-  app.use(express.urlencoded({ limit: "36mb", extended: true }));
+  // Base64 adds roughly one third overhead to native and mobile-browser media
+  // uploads. The upload validators still enforce a 32 MB binary image limit.
+  app.use(express.json({ limit: "48mb" }));
+  app.use(express.urlencoded({ limit: "48mb", extended: true }));
   registerStorageProxy(app);
   // Called only by the separately deployed IONOS media stack. Both routes require
   // the server-side media-control secret and never expose ingest credentials.
