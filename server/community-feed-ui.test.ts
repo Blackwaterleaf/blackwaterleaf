@@ -17,6 +17,13 @@ describe("Observatory community feed interface", () => {
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
+  it("explains the protected community clearly before login", () => {
+    const page = read("client/src/pages/Community.tsx");
+    const css = read("client/src/index.css");
+    for (const token of ["COMMUNITY · TRANSPARENT & MODERIERT", "Du sollst wissen, worauf du dich einlässt.", "Geschützter Zugang", "Klare Privatsphäre", "Moderierter Raum", "DATENSCHUTZ & IMPRESSUM", "SO FUNKTIONIERT ES"]) expect(page).toContain(token);
+    for (const token of ["community-public-preview", "community-trust-hero", "community-trust-grid"]) expect(css).toContain(token);
+  });
+
   it("separates admin media targets from the explicit all-feeds option", () => {
     const page = read("client/src/pages/Community.tsx");
     for (const token of ["const adminPublicPost = isAdmin && (adminAllFeeds || realm !== \"none\")", "realm: adminAllFeeds ? null", "Bitte zuerst einen Fachfeed oder ALLE FEEDS · ADMIN auswählen.", "ALLE FEEDS · ADMIN", "AN GEWÄHLTEN FEED SENDEN"]) expect(page).toContain(token);

@@ -5,7 +5,7 @@ import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
 import { estimateImageBytes, imageErrorMessage, readImageAsBase64, readVideoAsBase64, type ImageRotation } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, Camera, Flag, Heart, Loader2, MessageCircle, Pencil, RefreshCw, Save as SaveIcon, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UsersRound, Video, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowRight, Camera, Eye, Flag, Heart, Loader2, LockKeyhole, MessageCircle, Pencil, RefreshCw, Save as SaveIcon, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UsersRound, Video, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -162,7 +162,15 @@ export default function Community() {
     return () => window.cancelAnimationFrame(frame);
   }, [composeOpen]);
 
-  if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany observatory-community-page"><StatePanel code="COMMUNITY/AUTH_REQUIRED" state="locked" title="COMMUNITY IST GESCHÜTZT" body="Der Feed, einzelne Beiträge, Kommentare und Live-Diskussionen sind nur für angemeldete, aktive Konten sichtbar." action={<button type="button" className="primary-action" onClick={startLogin}>SICHER ANMELDEN</button>} /></div>;
+  if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany observatory-community-page community-public-preview">
+    <ObservatoryContextHeader tone="botany" eyebrow="COMMUNITY · TRANSPARENT & MODERIERT" title="ECHTE NATURMOMENTE." subtitle="Eine sichere Community für Pflanzen, Fische und Lebensräume." icon={UsersRound} badge="VORSCHAU" children={<button type="button" className="primary-action" onClick={startLogin}>KOSTENLOS ANSEHEN <ArrowRight size={15} /></button>} />
+    <section className="community-trust-hero observatory-data-panel" aria-labelledby="community-trust-title">
+      <div className="community-trust-hero__intro"><span className="community-trust-hero__icon"><ShieldCheck size={25} /></span><div><span className="eyebrow">BEVOR DU STARTES</span><h2 id="community-trust-title">Du sollst wissen, worauf du dich einlässt.</h2><p>BlackWaterLeaf ist ein Naturportal. Du kannst erst die Bereiche und Regeln kennenlernen und dich dann sicher anmelden – ohne Druck und ohne versteckte Schritte.</p></div></div>
+      <div className="community-trust-grid"><article><LockKeyhole size={18} /><div><strong>Geschützter Zugang</strong><p>Beiträge und Diskussionen werden erst nach deiner Anmeldung geladen.</p></div></article><article><Eye size={18} /><div><strong>Klare Privatsphäre</strong><p>Private Inhalte bleiben privat. Sichtbarkeit wird verständlich angezeigt.</p></div></article><article><ShieldCheck size={18} /><div><strong>Moderierter Raum</strong><p>Community-Inhalte werden geprüft und Quellen bleiben nachvollziehbar.</p></div></article></div>
+      <div className="community-trust-hero__actions"><button type="button" className="primary-action" onClick={startLogin}>SICHER ANMELDEN <ArrowRight size={15} /></button><Link className="secondary-action" href="/legal">DATENSCHUTZ & IMPRESSUM</Link></div>
+    </section>
+    <section className="community-public-preview__steps" aria-label="So funktioniert die Anmeldung"><span className="eyebrow">SO FUNKTIONIERT ES</span><div><span><b>01</b>Bereich kennenlernen</span><span><b>02</b>Sicher anmelden</span><span><b>03</b>Teilen, folgen und lernen</span></div></section>
+  </div>;
 
   const openComposer = () => {
     if (!auth.isAuthenticated) { startLogin(); return; }

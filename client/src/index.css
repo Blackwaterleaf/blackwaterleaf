@@ -2494,3 +2494,31 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .community-skeleton-block { animation:none; }
   .community-feed-skeletons__label::before { animation:none; }
 }
+
+
+/* Public community preview: explain the protected area before asking for trust. */
+.community-public-preview { display:grid; gap:16px; }
+.community-trust-hero { display:grid; gap:22px; padding:clamp(20px,4vw,38px); border-color:rgba(185,251,127,.28); background:linear-gradient(145deg,rgba(9,45,23,.96),rgba(3,22,12,.98)); }
+.community-trust-hero__intro { display:flex; align-items:flex-start; gap:15px; max-width:780px; }
+.community-trust-hero__icon { display:grid; flex:0 0 48px; width:48px; height:48px; place-items:center; color:var(--obs-lime); border:1px solid rgba(185,251,127,.42); border-radius:14px; background:rgba(185,251,127,.1); }
+.community-trust-hero h2 { margin:6px 0 9px; color:var(--obs-text); font:800 clamp(1.3rem,3vw,2rem)/1.08 "Inter",system-ui,sans-serif; letter-spacing:-.035em; }
+.community-trust-hero p { margin:0; color:#c9ddca; font-size:.88rem; line-height:1.65; }
+.community-trust-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.community-trust-grid article { display:flex; align-items:flex-start; gap:10px; min-height:112px; padding:15px; border:1px solid rgba(185,251,127,.18); border-radius:12px; background:rgba(2,17,8,.48); }
+.community-trust-grid article > svg { flex:0 0 auto; margin-top:2px; color:var(--obs-lime); }
+.community-trust-grid strong { display:block; margin-bottom:6px; color:#effff0; font-size:.8rem; }
+.community-trust-grid p { color:var(--obs-muted); font-size:.72rem; line-height:1.5; }
+.community-trust-hero__actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.community-public-preview__steps { display:grid; gap:12px; padding:17px 19px; border:1px solid rgba(185,251,127,.15); border-radius:14px; background:rgba(3,20,10,.76); }
+.community-public-preview__steps > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.community-public-preview__steps > div > span { display:flex; align-items:center; gap:8px; color:#d8ead8; font-size:.74rem; }
+.community-public-preview__steps b { display:grid; flex:0 0 28px; width:28px; height:28px; place-items:center; color:#14250d; border-radius:8px; background:var(--obs-lime); font:800 .55rem/1 "JetBrains Mono",monospace; }
+@media (max-width:700px) {
+  .community-trust-hero__intro { gap:11px; }
+  .community-trust-hero__icon { flex-basis:40px; width:40px; height:40px; }
+  .community-trust-hero p { font-size:.8rem; }
+  .community-trust-grid { grid-template-columns:1fr; }
+  .community-trust-grid article { min-height:0; }
+  .community-trust-hero__actions > * { width:100%; justify-content:center; }
+  .community-public-preview__steps > div { grid-template-columns:1fr; gap:9px; }
+}
