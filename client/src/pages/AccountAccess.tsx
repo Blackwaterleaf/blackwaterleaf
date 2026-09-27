@@ -112,7 +112,7 @@ export default function AccountAccess() {
         <div className="account-access-mark"><Leaf size={24} /></div>
         <p className="account-access-intro">Dein Zugang bleibt sicher, widerrufbar und unabhängig von öffentlichen Portalansichten.</p>
 
-        {showManusFallback ? <div className="account-manus-fallback" role="status"><p>Die eigene E-Mail-Anmeldung wird gerade eingerichtet. Bis dahin kannst du BlackWaterLeaf sicher über dein Manus-Konto nutzen.</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
+        {(showManusFallback || mode === "register") ? <div className="account-manus-fallback" role="status"><p>BlackWaterLeaf kann weltweit genutzt werden. Für eine schnelle globale Registrierung kannst du dich sicher mit deinem Manus-Konto anmelden; eine Länderbeschränkung gibt es nicht.</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
         {notice ? <p className="account-success" role="status"><CheckCircle2 size={17} />{notice}</p> : null}
         {error ? <p className="account-error" role="alert">{error}</p> : null}
 

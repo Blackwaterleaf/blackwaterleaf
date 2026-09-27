@@ -81,7 +81,7 @@ describe("Free / Pro monetization contract", () => {
     expect(support).toContain("VEREIN ODER ORGANISATION BEWERBEN");
     expect(support).toContain('id="custom-donation"');
     expect(support).toContain("customAmountValid");
-    expect(support).toContain("13 Sprachen vorbereitet");
+    expect(support).toContain("19 Sprachen vorbereitet");
   });
 
   it("fulfills a paid public donation with XP, a public donor row and membership from five euros", () => {

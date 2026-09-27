@@ -50,8 +50,8 @@ export default function Support() {
   const [, setLocation] = useLocation();
   const [customAmount, setCustomAmount] = useState("");
   const [anonymousMode, setAnonymousMode] = useState(!auth.isAuthenticated);
-  const t = copy[locale];
-  const custom = customLabels[locale];
+  const t = copy[locale as keyof typeof copy] ?? copy.en;
+  const custom = customLabels[locale as keyof typeof customLabels] ?? customLabels.en;
   const checkout = trpc.billing.createCheckout.useMutation({ onSuccess: result => window.open(result.url, "_blank", "noopener,noreferrer") });
   const anonymousCheckout = trpc.billing.anonymousDonationCheckout.useMutation({ onSuccess: result => window.open(result.url, "_blank", "noopener,noreferrer") });
   const publicDonors = trpc.billing.publicDonors.useQuery();
@@ -71,7 +71,7 @@ export default function Support() {
     <section className="support-hero observatory-context-header">
       <div className="support-hero__icon"><Heart size={32} /></div>
       <p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p>{t.body}</p>
-      <div className="support-hero__proof"><span><Leaf size={16} /> Naturwissen</span><span><Globe2 size={16} /> 13 Sprachen vorbereitet</span></div>
+      <div className="support-hero__proof"><span><Leaf size={16} /> Naturwissen</span><span><Globe2 size={16} /> 19 Sprachen vorbereitet</span></div>
     </section>
     <section className="support-purpose"><div className="support-purpose__heading"><p className="eyebrow">BLACKWATERLEAF · TRANSPARENTER EINSATZ</p><h2>WOFÜR DEINE UNTERSTÜTZUNG EINGESETZT WIRD</h2><p>Jede Spende hilft, aus einer Idee eine verlässliche Naturplattform zu machen – unabhängig, offen und mit viel Liebe zum Detail.</p></div><div className="support-purpose__grid">{fundUses.map(item => <article key={item.icon}><span>{item.icon}</span><h3>{locale === "de" ? item.de : item.en}</h3><p>{locale === "de" ? item.bodyDe : item.bodyEn}</p></article>)}</div></section>
     <section className="support-community"><div><p className="eyebrow">BLACKWATERLEAF · GEMEINSAM HANDELN</p><h2>MITGLIED WERDEN. VEREINE STÄRKEN. NATUR ZURÜCKGEBEN.</h2><p>Als Mitglied bringst du Naturwissen in die Gemeinschaft. Vereine und Organisationen können mit uns zusammenarbeiten, Projekte sichtbar machen und Menschen für lebendige Lebensräume begeistern.</p></div><div className="support-community__actions"><Link className="primary-action" href="/register">MITGLIED WERDEN <ArrowRight size={15} /></Link><Link className="secondary-action" href="/partner-werden">VEREIN ODER ORGANISATION BEWERBEN <ArrowRight size={15} /></Link></div></section>

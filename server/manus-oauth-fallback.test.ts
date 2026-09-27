@@ -25,8 +25,8 @@ describe("temporary Manus authentication fallback", () => {
     expect(accountAccess).toContain("MIT MANUS ANMELDEN");
     expect(accountAccess).toContain("onClick={startLogin}");
     expect(accountAccess).toContain("const showManusFallback = !isEmailReady");
-    expect(accountAccess).toContain("{showManusFallback ? <div className=\"account-manus-fallback\"");
-    expect(accountAccess).toContain("eigene E-Mail-Anmeldung wird gerade eingerichtet");
+    expect(accountAccess).toContain("(showManusFallback || mode === \"register\") ? <div className=\"account-manus-fallback\"");
+    expect(accountAccess).toContain("BlackWaterLeaf kann weltweit genutzt werden");
     expect(styles).toContain(".account-manus-fallback");
   });
 });

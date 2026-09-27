@@ -1,15 +1,15 @@
 import type { AppLocale } from "@/i18n";
 
-export const SEO_LOCALES: readonly AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"];
+export const SEO_LOCALES: readonly AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"];
 
-export const HOME_SEO_TITLES: Record<AppLocale, string> = {
-  de: "BlackWaterLeaf – Botanik, Aquaristik & Terraristik", en: "BlackWaterLeaf – Botany, Aquatics & Nature", "zh-CN": "BlackWaterLeaf – 植物、水族与生态缸自然观察平台", es: "BlackWaterLeaf – Botánica, Acuarios y Terrarios", fr: "BlackWaterLeaf – Botanique, Aquariums et Terrariums", it: "BlackWaterLeaf – Botanica, Acquari & Natura", "pt-BR": "BlackWaterLeaf – Botânica, Aquários e Terrários", ja: "BlackWaterLeaf – 植物・アクアリウム・自然観察", ko: "BlackWaterLeaf – 식물·수족관·자연관찰 플랫폼", nl: "BlackWaterLeaf – Plantkunde, Aquaria en Terrariums", tr: "BlackWaterLeaf – Botanik, Akvaryumlar ve Terraryumlar", pl: "BlackWaterLeaf – Botanika, Akwaria i Terraria", ar: "BlackWaterLeaf – علم النبات والأحواض ومراقبة الطبيعة",
+export const HOME_SEO_TITLES: Partial<Record<AppLocale, string>> = {
+  de: "BlackWaterLeaf – Botanik, Aquaristik & Terraristik", en: "BlackWaterLeaf – Botany, Aquatics & Nature", "zh-CN": "BlackWaterLeaf – 植物、水族与生态缸自然观察平台", es: "BlackWaterLeaf – Botánica, Acuarios y Terrarios", fr: "BlackWaterLeaf – Botanique, Aquariums et Terrariums", it: "BlackWaterLeaf – Botanica, Acquari & Natura", "pt-BR": "BlackWaterLeaf – Botânica, Aquários e Terrários", ja: "BlackWaterLeaf – 植物・アクアリウム・自然観察", ko: "BlackWaterLeaf – 식물·수족관·자연관찰 플랫폼", nl: "BlackWaterLeaf – Plantkunde, Aquaria en Terrariums", tr: "BlackWaterLeaf – Botanik, Akvaryumlar ve Terraryumlar", pl: "BlackWaterLeaf – Botanika, Akwaria i Terraria", ar: "BlackWaterLeaf – علم النبات والأحواض ومراقبة الطبيعة", sv: "BlackWaterLeaf – Botanik, akvarier och terrarier", da: "BlackWaterLeaf – Botanik, akvarier og terrarier", hi: "BlackWaterLeaf – वनस्पति, एक्वेरियम और प्रकृति", id: "BlackWaterLeaf – Botani, Akuarium & Alam", vi: "BlackWaterLeaf – Thực vật, thủy sinh và thiên nhiên", uk: "BlackWaterLeaf – Ботаніка, акваріуми та природа",
 };
 
 export const HOME_SEO_KEYWORDS = ["Botanik", "Aquaristik", "Terraristik", "Pflanzenpflege", "Naturbeobachtung"] as const;
 
 type SeoCopy = { description: string; keywords: string };
-const SEO_COPY: Record<AppLocale, SeoCopy> = {
+const SEO_COPY: Partial<Record<AppLocale, SeoCopy>> = {
   de: { description: "BlackWaterLeaf verbindet Botanik, Aquaristik, Terraristik, Naturbeobachtung und quellengebundenes Wissen.", keywords: "Botanik, Aquaristik, Terraristik, Pflanzenpflege, Naturbeobachtung" },
   en: { description: "BlackWaterLeaf connects botany, aquatics, terrariums, nature observations and source-backed knowledge.", keywords: "botany, aquatics, terrariums, plant care, nature observations" },
   "zh-CN": { description: "BlackWaterLeaf 连接植物学、水族、生态缸、自然观察与有来源依据的知识。", keywords: "植物学, 水族, 生态缸, 植物养护, 自然观察" },
@@ -23,9 +23,15 @@ const SEO_COPY: Record<AppLocale, SeoCopy> = {
   tr: { description: "BlackWaterLeaf botanik, akvaryumlar, teraryumlar ve kaynaklı doğa bilgisini birleştirir.", keywords: "botanik, akvaryum, teraryum, doğa" },
   pl: { description: "BlackWaterLeaf łączy botanikę, akwarystykę, terraria, obserwacje przyrody i wiedzę ze źródłami.", keywords: "botanika, akwaria, terraria, przyroda" },
   ar: { description: "يربط BlackWaterLeaf بين علم النبات والأحواض والتيراريوم ومراقبة الطبيعة والمعرفة الموثقة.", keywords: "النباتات, الأحواض, التيراريوم, الطبيعة" },
+  sv: { description: "BlackWaterLeaf förenar botanik, akvaristik, terrarier och källbaserad naturkunskap.", keywords: "botanik, akvarium, terrarium, natur" },
+  da: { description: "BlackWaterLeaf samler botanik, akvarier, terrarier og kildebaseret naturviden.", keywords: "botanik, akvarium, terrarium, natur" },
+  hi: { description: "BlackWaterLeaf वनस्पति, एक्वेरियम, टेरारियम और स्रोत आधारित प्रकृति ज्ञान को जोड़ता है।", keywords: "वनस्पति, एक्वेरियम, टेरारियम, प्रकृति" },
+  id: { description: "BlackWaterLeaf menghubungkan botani, akuarium, terarium, dan pengetahuan alam berbasis sumber.", keywords: "botani, akuarium, terarium, alam" },
+  vi: { description: "BlackWaterLeaf kết nối thực vật, thủy sinh, terrarium và kiến thức thiên nhiên có nguồn.", keywords: "thực vật, thủy sinh, terrarium, thiên nhiên" },
+  uk: { description: "BlackWaterLeaf поєднує ботаніку, акваріуми, тераріуми та природничі знання з джерелами.", keywords: "ботаніка, акваріум, тераріум, природа" },
 };
 
-const labels: Record<AppLocale, string> = { de: "Naturplattform", en: "Nature platform", "zh-CN": "自然平台", es: "Plataforma natural", fr: "Plateforme nature", it: "Piattaforma naturalistica", "pt-BR": "Plataforma natural", ja: "自然プラットフォーム", ko: "자연 플랫폼", nl: "Natuurplatform", tr: "Doğa platformu", pl: "Platforma przyrodnicza", ar: "منصة الطبيعة" };
+const labels: Partial<Record<AppLocale, string>> = { de: "Naturplattform", en: "Nature platform", "zh-CN": "自然平台", es: "Plataforma natural", fr: "Plateforme nature", it: "Piattaforma naturalistica", "pt-BR": "Plataforma natural", ja: "自然プラットフォーム", ko: "자연 플랫폼", nl: "Natuurplatform", tr: "Doğa platformu", pl: "Platforma przyrodnicza", ar: "منصة الطبيعة" };
 const pageLabels: Record<string, Partial<Record<AppLocale, string>>> = {
   "/explore": { de: "Natur entdecken", en: "Explore nature", "zh-CN": "探索自然", es: "Explorar la naturaleza", fr: "Explorer la nature" },
   "/knowledge": { de: "Naturwissen", en: "Nature knowledge", "zh-CN": "自然知识", es: "Conocimiento natural", fr: "Connaissances naturalistes" },
@@ -38,12 +44,12 @@ const pageLabels: Record<string, Partial<Record<AppLocale, string>>> = {
 
 export function getSeoMeta(pathname: string, locale: AppLocale) {
   const path = pathname === "/wissen" ? "/knowledge" : pathname;
-  const copy = SEO_COPY[locale];
-  if (path === "/") return { title: HOME_SEO_TITLES[locale], description: copy.description, keywords: copy.keywords };
-  return { title: `BlackWaterLeaf – ${pageLabels[path]?.[locale] ?? labels[locale]}`, description: copy.description, keywords: copy.keywords };
+  const copy = SEO_COPY[locale] ?? SEO_COPY.en!;
+  if (path === "/") return { title: HOME_SEO_TITLES[locale] ?? HOME_SEO_TITLES.en!, description: copy.description, keywords: copy.keywords };
+  return { title: `BlackWaterLeaf – ${pageLabels[path]?.[locale] ?? labels[locale] ?? labels.en!}`, description: copy.description, keywords: copy.keywords };
 }
 
-export const HOME_WORLD_IMAGE_ALTS: Record<AppLocale, { botany: string; aquarium: string; terrarium: string; assistant: string }> = {
+export const HOME_WORLD_IMAGE_ALTS: Partial<Record<AppLocale, { botany: string; aquarium: string; terrarium: string; assistant: string }>> = {
   de: { botany: "Regenwaldpflanzen und Wasserfall für die Botanik-Welt", aquarium: "Bepflanztes Süßwasseraquarium für die Aquaristik-Welt", terrarium: "Moosbedecktes Terrarium für die Terraristik-Welt", assistant: "Regenwaldmotiv für den BlackWaterLeaf KI-Assistenten" },
   en: { botany: "Rainforest plants and waterfall for the botany world", aquarium: "Planted freshwater aquarium for the aquatics world", terrarium: "Moss-covered terrarium for the terrarium world", assistant: "Rainforest image for the BlackWaterLeaf AI assistant" },
   "zh-CN": { botany: "植物世界中的热带雨林与瀑布", aquarium: "水族世界中的淡水水草缸", terrarium: "生态缸世界中的苔藓景观", assistant: "BlackWaterLeaf AI 助手的雨林图像" },

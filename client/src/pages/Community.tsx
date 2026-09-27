@@ -162,7 +162,7 @@ export default function Community() {
     return () => window.cancelAnimationFrame(frame);
   }, [composeOpen]);
 
-  if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany observatory-community-page community-public-preview">
+  if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany observatory-community-page community-public-preview" data-auth-code="COMMUNITY/AUTH_REQUIRED">
     <ObservatoryContextHeader tone="botany" eyebrow="COMMUNITY · TRANSPARENT & MODERIERT" title="ECHTE NATURMOMENTE." subtitle="Eine sichere Community für Pflanzen, Fische und Lebensräume." icon={UsersRound} badge="VORSCHAU" children={<button type="button" className="primary-action" onClick={startLogin}>KOSTENLOS ANSEHEN <ArrowRight size={15} /></button>} />
     <section className="community-trust-hero observatory-data-panel" aria-labelledby="community-trust-title">
       <div className="community-trust-hero__intro"><span className="community-trust-hero__icon"><ShieldCheck size={25} /></span><div><span className="eyebrow">BEVOR DU STARTES</span><h2 id="community-trust-title">Du sollst wissen, worauf du dich einlässt.</h2><p>BlackWaterLeaf ist ein Naturportal. Du kannst erst die Bereiche und Regeln kennenlernen und dich dann sicher anmelden – ohne Druck und ohne versteckte Schritte.</p></div></div>

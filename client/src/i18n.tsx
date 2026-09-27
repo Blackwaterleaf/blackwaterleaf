@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
-export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar";
+export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk";
 export type UnitSystem = "metric" | "imperial";
 
 export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativeLabel: string }> = [
@@ -17,6 +17,12 @@ export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativ
   { value: "tr", label: "Türkçe", nativeLabel: "TR" },
   { value: "pl", label: "Polski", nativeLabel: "PL" },
   { value: "ar", label: "العربية", nativeLabel: "العربية" },
+  { value: "sv", label: "Svenska", nativeLabel: "SV" },
+  { value: "da", label: "Dansk", nativeLabel: "DA" },
+  { value: "hi", label: "हिन्दी", nativeLabel: "हिन्दी" },
+  { value: "id", label: "Bahasa Indonesia", nativeLabel: "ID" },
+  { value: "vi", label: "Tiếng Việt", nativeLabel: "VI" },
+  { value: "uk", label: "Українська", nativeLabel: "UK" },
 ];
 
 const de = {
@@ -198,11 +204,26 @@ const en: Record<TranslationKey, string> = {
 };
 
 export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
-  const supported: AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"];
+  const supported: AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"];
   if (supported.includes(stored as AppLocale)) return stored as AppLocale;
   const language = browserLanguage.toLowerCase();
   if (language.startsWith("zh")) return "zh-CN";
   if (language.startsWith("pt")) return "pt-BR";
+  if (language.startsWith("sv")) return "sv";
+  if (language.startsWith("da")) return "da";
+  if (language.startsWith("hi")) return "hi";
+  if (language.startsWith("id")) return "id";
+  if (language.startsWith("vi")) return "vi";
+  if (language.startsWith("uk")) return "uk";
+  if (language.startsWith("es")) return "es";
+  if (language.startsWith("fr")) return "fr";
+  if (language.startsWith("it")) return "it";
+  if (language.startsWith("ja")) return "ja";
+  if (language.startsWith("ko")) return "ko";
+  if (language.startsWith("nl")) return "nl";
+  if (language.startsWith("tr")) return "tr";
+  if (language.startsWith("pl")) return "pl";
+  if (language.startsWith("ar")) return "ar";
   void browserLanguage;
   return "de";
 }
@@ -355,7 +376,7 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 function detectLocale(): AppLocale {
   if (typeof window === "undefined") return "de";
   const queryLocale = new URLSearchParams(window.location.search).get("lang");
-  if (queryLocale && ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"].includes(queryLocale)) return queryLocale as AppLocale;
+  if (queryLocale && ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"].includes(queryLocale)) return queryLocale as AppLocale;
   return resolveLocale(window.localStorage.getItem("blackwaterleaf.locale.v1"), window.navigator.language);
 }
 

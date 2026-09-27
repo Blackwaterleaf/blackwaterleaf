@@ -7,10 +7,12 @@ describe("BlackWaterLeaf i18n", () => {
     expect(resolveLocale("en", "de-DE")).toBe("en");
   });
 
-  it("uses German as the primary default independent of the browser locale", () => {
+  it("detects supported browser languages while keeping German for unknown locales", () => {
     expect(resolveLocale(null, "de-AT")).toBe("de");
-    expect(resolveLocale(null, "fr-FR")).toBe("de");
+    expect(resolveLocale(null, "fr-FR")).toBe("fr");
     expect(resolveLocale(null, "en-US")).toBe("de");
+    expect(resolveLocale(null, "vi-VN")).toBe("vi");
+    expect(resolveLocale(null, "xx-XX")).toBe("de");
   });
 
   it("gives the verified server-side account locale priority after sign-in", () => {

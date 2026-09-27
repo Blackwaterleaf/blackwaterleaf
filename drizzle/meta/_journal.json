@@ -414,6 +414,13 @@
       "when": 1790518257881,
       "tag": "0058_plain_santa_claus",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "5",
+      "when": 1790539814989,
+      "tag": "0059_medical_juggernaut",
+      "breakpoints": true
     }
   ]
 }

@@ -252,7 +252,7 @@ export type Account = {
   socialAccounts?: ProfileSocialAccount[];
   role: "user" | "moderator" | "admin";
   status: string;
-  locale?: "de" | "en" | "zh-CN" | "es" | "fr";
+  locale?: "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk";
   unitSystem?: "metric" | "imperial";
   profileVisibility?: "private" | "unlisted" | "public";
 };
@@ -537,7 +537,7 @@ export const markDirectConversationRead = (token: string, conversationId: number
   trpcPost<{ success: true }>("messages.markRead", { conversationId }, token);
 export const myCommunityPosts = (token: string) =>
   trpcGet<OwnCommunityPost[]>("community.myPosts", undefined, token);
-export const knowledge = (locale: "de" | "en" | "zh-CN" | "es" | "fr" = "de") =>
+export const knowledge = (locale: "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk" = "de") =>
   trpcGet<KnowledgeArticle[]>("knowledge.listPublished", {
     locale,
     limit: 40,
@@ -546,7 +546,7 @@ export const currentAccount = (token: string) =>
   trpcGet<Account | null>("auth.me", undefined, token);
 export const updateProfile = (
   token: string,
-  input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }
+  input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }
 ) => trpcPost<Account>("profile.update", input, token);
 export const replaceProfileSocialAccounts = (
   token: string,
