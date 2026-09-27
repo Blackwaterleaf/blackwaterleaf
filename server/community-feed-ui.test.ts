@@ -76,4 +76,11 @@ describe("Observatory community feed interface", () => {
     for (const token of ["staleTime: 20_000", "refetchOnWindowFocus: false", "refetchOnReconnect: false"]) expect(page).toContain(token);
     for (const token of [".community-post .post-author-profile > img", "width: 38px", "width: 32px"]) expect(css).toContain(token);
   });
+
+  it("shows accessible skeleton posts only while an existing feed refreshes", () => {
+    const page = read("client/src/pages/Community.tsx");
+    const css = read("client/src/index.css");
+    for (const token of ["CommunityPostSkeleton", "feed.isFetching", "Weitere Beiträge werden geladen", "aria-live=\"polite\""]) expect(page).toContain(token);
+    for (const token of ["community-feed-skeletons", "community-post-skeleton", "community-skeleton-shimmer", "prefers-reduced-motion:reduce"]) expect(css).toContain(token);
+  });
 });
