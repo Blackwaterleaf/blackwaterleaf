@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
-export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr";
+export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar";
 export type UnitSystem = "metric" | "imperial";
 
 export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativeLabel: string }> = [
@@ -9,6 +9,14 @@ export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativ
   { value: "zh-CN", label: "Chinesisch", nativeLabel: "中文" },
   { value: "es", label: "Spanisch", nativeLabel: "ES" },
   { value: "fr", label: "Französisch", nativeLabel: "FR" },
+  { value: "it", label: "Italiano", nativeLabel: "IT" },
+  { value: "pt-BR", label: "Português (Brasil)", nativeLabel: "PT" },
+  { value: "ja", label: "日本語", nativeLabel: "日本語" },
+  { value: "ko", label: "한국어", nativeLabel: "한국어" },
+  { value: "nl", label: "Nederlands", nativeLabel: "NL" },
+  { value: "tr", label: "Türkçe", nativeLabel: "TR" },
+  { value: "pl", label: "Polski", nativeLabel: "PL" },
+  { value: "ar", label: "العربية", nativeLabel: "العربية" },
 ];
 
 const de = {
@@ -190,7 +198,11 @@ const en: Record<TranslationKey, string> = {
 };
 
 export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
-  if (stored === "de" || stored === "en" || stored === "zh-CN" || stored === "es" || stored === "fr") return stored;
+  const supported: AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"];
+  if (supported.includes(stored as AppLocale)) return stored as AppLocale;
+  const language = browserLanguage.toLowerCase();
+  if (language.startsWith("zh")) return "zh-CN";
+  if (language.startsWith("pt")) return "pt-BR";
   void browserLanguage;
   return "de";
 }
@@ -343,7 +355,7 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 function detectLocale(): AppLocale {
   if (typeof window === "undefined") return "de";
   const queryLocale = new URLSearchParams(window.location.search).get("lang");
-  if (queryLocale === "de" || queryLocale === "en" || queryLocale === "zh-CN" || queryLocale === "es" || queryLocale === "fr") return queryLocale;
+  if (queryLocale && ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"].includes(queryLocale)) return queryLocale as AppLocale;
   return resolveLocale(window.localStorage.getItem("blackwaterleaf.locale.v1"), window.navigator.language);
 }
 
@@ -363,6 +375,7 @@ export function I18nProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     window.localStorage.setItem("blackwaterleaf.locale.v1", locale);
     document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
   }, [locale]);
 
   useEffect(() => {

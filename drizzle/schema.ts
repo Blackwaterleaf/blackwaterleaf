@@ -25,7 +25,7 @@ export const users = mysqlTable(
     loginMethod: varchar("loginMethod", { length: 64 }),
     role: mysqlEnum("role", ["user", "moderator", "admin"]).default("user").notNull(),
     status: mysqlEnum("status", ["active", "suspended", "banned"]).default("active").notNull(),
-    locale: mysqlEnum("locale", ["de", "en", "zh-CN", "es", "fr"]).default("de").notNull(),
+    locale: mysqlEnum("locale", ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"]).default("de").notNull(),
     unitSystem: mysqlEnum("unitSystem", ["metric", "imperial"]).default("metric").notNull(),
     profileVisibility: mysqlEnum("profileVisibility", ["private", "unlisted", "public"])
       .default("private")
@@ -714,7 +714,7 @@ export const knowledgeArticles = mysqlTable(
   {
     id: int("id").autoincrement().primaryKey(),
     slug: varchar("slug", { length: 160 }).notNull(),
-    locale: mysqlEnum("locale", ["de", "en", "zh-CN", "es", "fr"]).notNull(),
+    locale: mysqlEnum("locale", ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar"]).notNull(),
     title: varchar("title", { length: 200 }).notNull(),
     excerpt: varchar("excerpt", { length: 500 }).notNull(),
     content: text("content").notNull(),

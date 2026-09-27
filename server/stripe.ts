@@ -5,7 +5,7 @@ import { AI_CREDIT_PACKS, type AiCreditPackKey } from "@shared/monetization";
 import { aiCreditPurchases, aiCreditWallets, billingAccounts } from "../drizzle/schema";
 import { getDb } from "./db";
 
-type CheckoutKind = "credits" | "pro_monthly" | "pro_yearly";
+type CheckoutKind = "credits" | "pro_monthly" | "pro_yearly" | "donation";
 
 type StripeObject = Record<string, unknown>;
 
@@ -42,12 +42,13 @@ async function retrieveCheckoutSession(sessionId: string) {
   return body;
 }
 
-export async function createCheckoutSession(input: { userId: number; email: string | null; name: string | null; kind: CheckoutKind; packKey?: AiCreditPackKey; req: Request }) {
+export async function createCheckoutSession(input: { userId: number; email: string | null; name: string | null; kind: CheckoutKind; packKey?: AiCreditPackKey; donationAmountEur?: number; req: Request }) {
   const origin = appOrigin(input.req);
   const params = new URLSearchParams();
-  params.set("mode", input.kind === "credits" ? "payment" : "subscription");
-  params.set("success_url", `${origin}/pro?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
-  params.set("cancel_url", `${origin}/pro?checkout=cancelled`);
+  params.set("mode", input.kind === "credits" || input.kind === "donation" ? "payment" : "subscription");
+  const returnPath = input.kind === "donation" ? "/support" : "/pro";
+  params.set("success_url", `${origin}${returnPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("cancel_url", `${origin}${returnPath}?checkout=cancelled`);
   params.set("allow_promotion_codes", "true");
   params.set("managed_payments[enabled]", "false");
   params.set("client_reference_id", String(input.userId));
@@ -64,6 +65,16 @@ export async function createCheckoutSession(input: { userId: number; email: stri
     params.set("line_items[0][price_data][unit_amount]", String(Math.round(pack.priceEur * 100)));
     params.set("line_items[0][price_data][product_data][name]", `BlackWaterLeaf · ${pack.label}`);
     params.set("line_items[0][price_data][product_data][description]", "KI-Pflanzenbestimmungen für BlackWaterLeaf");
+    params.set("line_items[0][quantity]", "1");
+  } else if (input.kind === "donation") {
+    const amount = input.donationAmountEur;
+    if (!amount || ![5, 10, 25, 50].includes(amount)) throw new Error("donation_amount_invalid");
+    params.set("metadata[purpose]", "nature_project_support");
+    params.set("metadata[donation_amount_eur]", String(amount));
+    params.set("line_items[0][price_data][currency]", "eur");
+    params.set("line_items[0][price_data][unit_amount]", String(Math.round(amount * 100)));
+    params.set("line_items[0][price_data][product_data][name]", "BlackWaterLeaf · Naturprojekt unterstützen");
+    params.set("line_items[0][price_data][product_data][description]", "Freiwillige Unterstützung für Naturwissen, Community und unabhängige Entwicklung");
     params.set("line_items[0][quantity]", "1");
   } else {
     const yearly = input.kind === "pro_yearly";
@@ -141,6 +152,19 @@ export async function getCheckoutConfirmation(input: { userId: number; sessionId
   };
 }
 
+export async function getDonationConfirmation(input: { userId: number; sessionId: string }) {
+  if (!/^cs_[A-Za-z0-9_]+$/.test(input.sessionId)) throw new Error("checkout_session_invalid");
+  const session = await retrieveCheckoutSession(input.sessionId);
+  const metadata = (session.metadata as StripeObject | undefined) ?? {};
+  const sessionUserId = Number(metadata.user_id ?? session.client_reference_id);
+  if (!Number.isInteger(sessionUserId) || sessionUserId !== input.userId) throw new Error("checkout_session_forbidden");
+  return {
+    sessionId: input.sessionId,
+    paid: session.mode === "payment" && session.status === "complete" && session.payment_status === "paid" && metadata.purpose === "nature_project_support",
+    amountEur: Number(metadata.donation_amount_eur ?? 0),
+  };
+}
+
 async function syncSubscription(session: StripeObject) {
   const db = await getDb();
   if (!db) throw new Error("database_unavailable");
@@ -156,7 +180,7 @@ async function handleStripeEvent(event: StripeObject) {
   const type = String(event.type ?? "");
   const object = ((event.data as StripeObject | undefined)?.object ?? {}) as StripeObject;
   if (type === "checkout.session.completed") {
-    if (object.mode === "payment") await completeCreditPurchase(object);
+    if (object.mode === "payment" && (object.metadata as StripeObject | undefined)?.purpose !== "nature_project_support") await completeCreditPurchase(object);
     if (object.mode === "subscription") await syncSubscription(object);
   } else if (type === "customer.subscription.deleted" || type === "customer.subscription.paused") {
     const db = await getDb();

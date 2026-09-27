@@ -83,7 +83,7 @@ export async function readVideoAsBase64(file: File): Promise<{ base64: string; m
   return { base64, mimeType };
 }
 
-export function imageErrorMessage(error: unknown, locale: "de" | "en" | "zh-CN" | "es" | "fr" = "de") {
+export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
   const code = error instanceof Error ? error.message : "";
   const german: Record<string, string> = {
     unsupported_image_type: "Bitte wähle ein JPG-, PNG- oder WebP-Bild.",
@@ -115,3 +115,4 @@ export function imageErrorMessage(error: unknown, locale: "de" | "en" | "zh-CN" 
   };
   return (locale === "de" ? german : english)[code] ?? (locale === "de" ? "Das Bild konnte nicht verarbeitet werden." : "The image could not be processed.");
 }
+import type { AppLocale } from "@/i18n";

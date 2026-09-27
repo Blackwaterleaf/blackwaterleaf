@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart } from "lucide-react";
+import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart, Heart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { APP_LOCALES, resolveAccountLocale, useI18n, type AppLocale } from "@/i18n";
 import { SEO_LOCALES, getSeoMeta } from "@/lib/seo";
@@ -166,6 +166,7 @@ export function AppShell({ children }: PropsWithChildren) {
             {auth.isAuthenticated && unreadMessages.data?.count ? <span className="notification-badge" aria-label={`${unreadMessages.data.count} ungelesene Nachrichten`}>{unreadMessages.data.count > 9 ? "9+" : unreadMessages.data.count}</span> : null}
           </Link>
           <Link href="/feedback" className="icon-button feedback-header-button" aria-label="Feedback, Probleme und Wünsche" title="Feedback, Probleme und Wünsche"><MessageSquareHeart size={18} /></Link>
+          <Link href="/support" className="icon-button support-header-button" aria-label="BlackWaterLeaf unterstützen" title="Naturprojekt unterstützen"><Heart size={18} /></Link>
           <label className="language-header-control" title="Sprache auswählen">
             <span className="sr-only">Sprache auswählen</span>
             <select value={locale} onChange={event => setLocale(event.target.value as AppLocale)} aria-label="Sprache auswählen">
@@ -184,6 +185,7 @@ export function AppShell({ children }: PropsWithChildren) {
               <Link href="/messages">Postfach</Link>
               <Link href="/notifications">Benachrichtigungen</Link>
               <Link className="profile-header-menu__feedback-link" href="/feedback">Feedback · Probleme · Wünsche</Link>
+              <Link className="profile-header-menu__support-link" href="/support">Naturprojekt unterstützen</Link>
               <span className="profile-header-menu__group-label">FORTSCHRITT & MERKLISTE</span>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>
               <Link href="/saved">Gespeichert</Link>

@@ -4,11 +4,11 @@ import { aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, a
 import { AI_CREDIT_PACKS, DEFAULT_FREE_DAILY_IDENTIFICATIONS, DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS, DEFAULT_PRO_MONTHLY_IDENTIFICATIONS, FREE_FEATURES, PRO_FEATURES, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { getDb } from "../db";
 import { getProAccess } from "../entitlements";
-import { createCheckoutSession, getCheckoutConfirmation } from "../stripe";
+import { createCheckoutSession, getCheckoutConfirmation, getDonationConfirmation } from "../stripe";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
-const checkoutInput = z.object({ kind: z.enum(["credits", "pro_monthly", "pro_yearly"]), packKey: z.string().optional() });
+const checkoutInput = z.object({ kind: z.enum(["credits", "pro_monthly", "pro_yearly", "donation"]), packKey: z.string().optional(), donationAmountEur: z.number().int().min(5).max(50).optional() });
 
 function utcDayKey(date = new Date()) { return date.toISOString().slice(0, 10); }
 function utcMonthKey(date = new Date()) { return date.toISOString().slice(0, 7); }
@@ -82,15 +82,27 @@ export const billingRouter = router({
     }
   }),
 
+  donationConfirmation: protectedProcedure.input(z.object({ sessionId: z.string().min(1).max(200) })).query(async ({ ctx, input }) => {
+    try {
+      return await getDonationConfirmation({ userId: ctx.user.id, sessionId: input.sessionId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "donation_confirmation_failed";
+      if (message === "checkout_session_invalid" || message === "checkout_session_forbidden") throw new TRPCError({ code: "FORBIDDEN", message });
+      throw new TRPCError({ code: "BAD_GATEWAY", message: "donation_confirmation_failed" });
+    }
+  }),
+
   createCheckout: protectedProcedure.input(checkoutInput).mutation(async ({ ctx, input }) => {
     if (input.kind === "credits" && !input.packKey) throw new TRPCError({ code: "BAD_REQUEST", message: "credit_pack_required" });
+    if (input.kind === "donation" && !input.donationAmountEur) throw new TRPCError({ code: "BAD_REQUEST", message: "donation_amount_required" });
     try {
-      const session = await createCheckoutSession({ userId: ctx.user.id, email: ctx.user.email ?? null, name: ctx.user.name ?? null, kind: input.kind, packKey: input.packKey as AiCreditPackKey | undefined, req: ctx.req });
+      const session = await createCheckoutSession({ userId: ctx.user.id, email: ctx.user.email ?? null, name: ctx.user.name ?? null, kind: input.kind, packKey: input.packKey as AiCreditPackKey | undefined, donationAmountEur: input.donationAmountEur, req: ctx.req });
       return session;
     } catch (error) {
       const message = error instanceof Error ? error.message : "checkout_failed";
       if (message === "payments_not_configured") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "payments_not_configured" });
       if (message === "credit_pack_not_found") throw new TRPCError({ code: "BAD_REQUEST", message });
+      if (message === "donation_amount_invalid") throw new TRPCError({ code: "BAD_REQUEST", message });
       throw new TRPCError({ code: "BAD_GATEWAY", message: "checkout_failed" });
     }
   }),

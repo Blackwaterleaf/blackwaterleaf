@@ -416,7 +416,7 @@ export const trpcPost = <T>(procedure: string, input: unknown, token: string) =>
   trpc<T>(procedure, input, token, "POST");
 export const billingMe = (token: string) => trpcGet<NativeBillingStatus>("billing.me", undefined, token);
 export const billingPlans = (token?: string | null) => trpcGet<{ creditPacks: NativeCreditPack[] }>("billing.plans", undefined, token);
-export const billingCheckout = (token: string, input: { kind: "credits" | "pro_monthly" | "pro_yearly"; packKey?: string }) => trpcPost<{ id: string; url: string }>("billing.createCheckout", input, token);
+export const billingCheckout = (token: string, input: { kind: "credits" | "pro_monthly" | "pro_yearly" | "donation"; packKey?: string; donationAmountEur?: number }) => trpcPost<{ id: string; url: string }>("billing.createCheckout", input, token);
 export const readToken = () => SecureStore.getItemAsync(NATIVE_TOKEN_KEY);
 export const writeToken = (token: string) =>
   SecureStore.setItemAsync(NATIVE_TOKEN_KEY, token, {

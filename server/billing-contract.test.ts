@@ -62,4 +62,16 @@ describe("Free / Pro monetization contract", () => {
     expect(assistant).toContain('user.role === "admin"');
     expect(assistant).toContain("creditsConsumed: 0");
   });
+
+  it("offers a one-time nature-project donation without credit fulfillment", () => {
+    const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
+    const billing = readFileSync(resolve(process.cwd(), "server/routers/billing.ts"), "utf8");
+    const support = readFileSync(resolve(process.cwd(), "client/src/pages/Support.tsx"), "utf8");
+    expect(stripe).toContain('kind === "donation"');
+    expect(stripe).toContain('nature_project_support');
+    expect(stripe).toContain("getDonationConfirmation");
+    expect(billing).toContain('z.enum(["credits", "pro_monthly", "pro_yearly", "donation"])');
+    expect(support).toContain('kind: "donation"');
+    expect(support).toContain("13 Sprachen vorbereitet");
+  });
 });
