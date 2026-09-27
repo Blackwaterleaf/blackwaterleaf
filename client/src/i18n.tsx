@@ -346,6 +346,8 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 function detectLocale(): AppLocale {
   if (typeof window === "undefined") return "de";
+  const queryLocale = new URLSearchParams(window.location.search).get("lang");
+  if (queryLocale === "de" || queryLocale === "en" || queryLocale === "zh-CN" || queryLocale === "es" || queryLocale === "fr") return queryLocale;
   return resolveLocale(window.localStorage.getItem("blackwaterleaf.locale.v1"), window.navigator.language);
 }
 

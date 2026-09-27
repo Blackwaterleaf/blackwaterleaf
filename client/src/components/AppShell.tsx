@@ -1,6 +1,7 @@
 import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { APP_LOCALES, resolveAccountLocale, useI18n, type AppLocale } from "@/i18n";
+import { SEO_LOCALES, getSeoMeta } from "@/lib/seo";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } from "react";
@@ -97,16 +98,53 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [auth.isAuthenticated, dailyCheckIn, experience.data?.status]);
 
   useEffect(() => {
-    const noIndex = location === "/search" || location === "/saved" || location.startsWith("/member/") || location.startsWith("/community") || location.startsWith("/profile") || location.startsWith("/today") || location.startsWith("/notifications") || location.startsWith("/messages") || location.startsWith("/flow/") || location.startsWith("/admin");
+    const pathname = location.split("?")[0] || "/";
+    const noIndex = pathname === "/search" || pathname === "/saved" || pathname.startsWith("/member/") || pathname.startsWith("/community") || pathname.startsWith("/profile") || pathname.startsWith("/today") || pathname.startsWith("/notifications") || pathname.startsWith("/messages") || pathname.startsWith("/flow/") || pathname.startsWith("/admin");
+    const meta = getSeoMeta(pathname, locale);
+    const setMeta = (selector: string, attribute: "name" | "property", value: string) => {
+      let element = document.querySelector<HTMLMetaElement>(selector);
+      if (!element) { element = document.createElement("meta"); element.setAttribute(attribute, selector.match(/^[^=]+="([^"]+)"/)?.[1] ?? ""); document.head.appendChild(element); }
+      element.content = value;
+    };
     let robots = document.querySelector('meta[name="robots"]');
     if (!robots) { robots = document.createElement("meta"); robots.setAttribute("name", "robots"); document.head.appendChild(robots); }
     robots.setAttribute("content", noIndex ? "noindex, nofollow, noarchive" : "index, follow");
-    const canonicalPath = location.split("?")[0] || "/";
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
-    canonical.setAttribute("href", `${window.location.origin}${canonicalPath}`);
-    return () => { robots?.setAttribute("content", "index, follow"); };
-  }, [location]);
+    document.title = meta.title;
+    document.documentElement.lang = locale;
+    setMeta('meta[name="description"]', "name", meta.description);
+    setMeta('meta[name="keywords"]', "name", meta.keywords);
+    setMeta('meta[property="og:title"]', "property", meta.title);
+    setMeta('meta[property="og:description"]', "property", meta.description);
+    setMeta('meta[property="og:type"]', "property", "website");
+    setMeta('meta[name="twitter:title"]', "name", meta.title);
+    setMeta('meta[name="twitter:description"]', "name", meta.description);
+    const localizedUrl = (targetLocale: AppLocale) => {
+      const url = new URL(pathname, window.location.origin);
+      if (targetLocale !== "de" || window.location.search.includes("lang=")) url.searchParams.set("lang", targetLocale);
+      return url.href;
+    };
+    const canonicalUrl = localizedUrl(locale);
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
+    canonical.href = canonicalUrl;
+    document.querySelectorAll('link[data-seo-alternate="true"]').forEach(link => link.remove());
+    if (!noIndex) {
+      for (const targetLocale of SEO_LOCALES) {
+        const alternate = document.createElement("link");
+        alternate.rel = "alternate";
+        alternate.hreflang = targetLocale;
+        alternate.href = localizedUrl(targetLocale);
+        alternate.dataset.seoAlternate = "true";
+        document.head.appendChild(alternate);
+      }
+      const fallback = document.createElement("link");
+      fallback.rel = "alternate";
+      fallback.hreflang = "x-default";
+      fallback.href = new URL(pathname, window.location.origin).href;
+      fallback.dataset.seoAlternate = "true";
+      document.head.appendChild(fallback);
+    }
+  }, [locale, location]);
 
   return (
     <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
