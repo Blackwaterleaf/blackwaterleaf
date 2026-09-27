@@ -2166,3 +2166,18 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .partner-apply-privacy { display: flex; align-items: flex-start; gap: 7px; margin: 0; font-size: .7rem; line-height: 1.4; }
 .partner-apply-privacy svg { flex: none; color: #40d9ff; }
 @media (max-width: 760px) { .partner-apply-page { padding: 20px 14px 100px; } .partner-apply-hero { padding: 25px 20px; } .partner-apply-hero h1 { font-size: clamp(2rem, 10vw, 3rem); } .partner-apply-layout { grid-template-columns: 1fr; } .partner-apply-benefits, .partner-apply-form { padding: 21px 18px; } .partner-apply-form__row { grid-template-columns: 1fr; } }
+
+/* Public supporter wall */
+.support-donors { margin-top: 1.5rem; }
+.support-donors__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+.support-donors__heading h2 { margin:.25rem 0 .45rem; }
+.support-donors__heading p:not(.eyebrow) { max-width:44rem; margin:0; color:var(--muted-text,#b7c8bb); }
+.support-donors__heading > svg { color:#c7ff45; flex:0 0 auto; }
+.support-donors__list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin-top:1.25rem; }
+.support-donor-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:1px solid rgba(199,255,69,.22); border-radius:14px; background:rgba(3,22,11,.52); }
+.support-donor-row span { display:grid; gap:.2rem; min-width:0; }
+.support-donor-row strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.support-donor-row small,.support-donors__note { color:var(--muted-text,#9eb2a2); }
+.support-donor-row b { color:#c7ff45; white-space:nowrap; }
+.support-donors__note { display:block; margin-top:1rem; line-height:1.5; }
+@media (max-width:640px) { .support-donors__list { grid-template-columns:1fr; } .support-donors__heading h2 { font-size:1.35rem; } }

@@ -428,10 +428,10 @@ export const xpEvents = mysqlTable(
     userId: int("userId")
       .notNull()
       .references(() => users.id),
-    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use"]).notNull(),
+    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use", "donation_support"]).notNull(),
     points: int("points").notNull(),
     eventKey: varchar("eventKey", { length: 191 }).notNull(),
-    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request"]).notNull(),
+    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request", "stripe_donation"]).notNull(),
     sourceId: varchar("sourceId", { length: 191 }).notNull(),
     dayKey: varchar("dayKey", { length: 10 }).notNull(),
     policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
@@ -568,6 +568,27 @@ export const aiCreditPurchases = mysqlTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [uniqueIndex("ai_credit_purchases_session_unique").on(table.stripeCheckoutSessionId), index("ai_credit_purchases_user_created_idx").on(table.userId, table.createdAt)],
+);
+
+/** Idempotent record of a completed nature-project donation. Anonymous rows never expose a donor identity. */
+export const donations = mysqlTable(
+  "donations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").references(() => users.id),
+    stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 128 }).notNull(),
+    amountCents: int("amountCents").notNull(),
+    anonymous: boolean("anonymous").default(false).notNull(),
+    displayName: varchar("displayName", { length: 160 }),
+    status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+    completedAt: timestamp("completedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("donations_session_unique").on(table.stripeCheckoutSessionId),
+    index("donations_public_completed_idx").on(table.status, table.anonymous, table.completedAt),
+    index("donations_user_created_idx").on(table.userId, table.createdAt),
+  ],
 );
 
 /** User-submitted correction of an AI plant result; the original result remains immutable for review. */

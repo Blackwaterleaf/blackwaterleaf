@@ -10,8 +10,8 @@ export const XP_REWARDS = {
 
 export const XP_POLICY_VERSION = "xp-2026-09-16-v1";
 
-export type XpEventType = "daily_login" | "photo_upload" | "ai_use";
-export type XpSourceType = "session" | "media_asset" | "ai_request";
+export type XpEventType = "daily_login" | "photo_upload" | "ai_use" | "donation_support";
+export type XpSourceType = "session" | "media_asset" | "ai_request" | "stripe_donation";
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
@@ -96,7 +96,7 @@ export async function getExperienceSummary(db: Database, userId: number) {
     nextLevelXp: level * 100,
     recentEvents: recentEvents.map(event => ({
       id: String(event.id),
-      eventType: event.eventType === "daily_login" ? "daily_check_in" : event.eventType === "photo_upload" ? "observation_photo" : "assistant_response",
+      eventType: event.eventType === "daily_login" ? "daily_check_in" : event.eventType === "photo_upload" ? "observation_photo" : event.eventType === "donation_support" ? "donation_support" : "assistant_response",
       amount: event.points,
       createdAt: event.createdAt.toISOString(),
     })),

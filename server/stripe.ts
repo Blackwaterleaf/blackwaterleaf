@@ -2,8 +2,9 @@ import crypto from "node:crypto";
 import type { Express, Request, Response } from "express";
 import { and, eq, sql } from "drizzle-orm";
 import { AI_CREDIT_PACKS, type AiCreditPackKey } from "@shared/monetization";
-import { aiCreditPurchases, aiCreditWallets, billingAccounts } from "../drizzle/schema";
+import { accountEntitlements, aiCreditPurchases, aiCreditWallets, billingAccounts, donations } from "../drizzle/schema";
 import { getDb } from "./db";
+import { awardXpIfReady } from "./gamification";
 
 type CheckoutKind = "credits" | "pro_monthly" | "pro_yearly" | "donation";
 
@@ -57,6 +58,7 @@ export async function createCheckoutSession(input: { userId?: number; email?: st
     params.set("metadata[customer_email]", input.email ?? "");
     params.set("metadata[customer_name]", input.name ?? "");
   }
+  if (input.kind === "donation") params.set("metadata[anonymous]", input.anonymous ? "true" : "false");
 
   if (input.kind === "credits") {
     const pack = AI_CREDIT_PACKS.find(item => item.key === input.packKey);
@@ -125,6 +127,30 @@ async function completeCreditPurchase(session: StripeObject) {
   });
 }
 
+async function completeDonation(session: StripeObject) {
+  const db = await getDb();
+  if (!db) throw new Error("database_unavailable");
+  const metadata = (session.metadata as StripeObject | undefined) ?? {};
+  const sessionId = String(session.id ?? "");
+  const amountCents = Number(session.amount_total ?? 0) || Math.round(Number(metadata.donation_amount_eur ?? 0) * 100);
+  const rawUserId = Number(metadata.user_id);
+  const userId = Number.isInteger(rawUserId) ? rawUserId : null;
+  const anonymous = metadata.anonymous === "true" || !userId;
+  if (!sessionId || !Number.isInteger(amountCents) || amountCents < 100) throw new Error("stripe_donation_metadata_invalid");
+  const [existing] = await db.select({ status: donations.status }).from(donations).where(eq(donations.stripeCheckoutSessionId, sessionId)).limit(1);
+  if (existing?.status === "completed") return { awardedXp: 0, member: amountCents >= 500 && Boolean(userId) };
+
+  await db.transaction(async tx => {
+    if (!existing) await tx.insert(donations).values({ userId, stripeCheckoutSessionId: sessionId, amountCents, anonymous, displayName: anonymous ? null : String(metadata.customer_name ?? "").trim().slice(0, 160) || "Unterstützer", status: "pending" });
+    if (userId && amountCents >= 500) await tx.insert(accountEntitlements).values({ userId, featureKey: "organization_member", status: "active", grantedByUserId: userId }).onDuplicateKeyUpdate({ set: { status: "active", updatedAt: new Date() } });
+    await tx.update(donations).set({ status: "completed", completedAt: new Date() }).where(eq(donations.stripeCheckoutSessionId, sessionId));
+  });
+
+  const points = userId ? Math.min(500, Math.floor(amountCents / 100) * 10) : 0;
+  if (userId && points > 0) await awardXpIfReady(db, { userId, eventType: "donation_support", eventKey: `donation:${sessionId}`, points, sourceType: "stripe_donation", sourceId: sessionId });
+  return { awardedXp: points, member: amountCents >= 500 && Boolean(userId) };
+}
+
 export async function getCheckoutConfirmation(input: { userId: number; sessionId: string }) {
   if (!/^cs_[A-Za-z0-9_]+$/.test(input.sessionId)) throw new Error("checkout_session_invalid");
   const session = await retrieveCheckoutSession(input.sessionId);
@@ -161,10 +187,14 @@ export async function getDonationConfirmation(input: { userId: number; sessionId
   const metadata = (session.metadata as StripeObject | undefined) ?? {};
   const sessionUserId = Number(metadata.user_id ?? session.client_reference_id);
   if (!Number.isInteger(sessionUserId) || sessionUserId !== input.userId) throw new Error("checkout_session_forbidden");
+  const paid = session.mode === "payment" && session.status === "complete" && session.payment_status === "paid" && metadata.purpose === "nature_project_support";
+  const fulfillment = paid ? await completeDonation(session) : { awardedXp: 0, member: false };
   return {
     sessionId: input.sessionId,
-    paid: session.mode === "payment" && session.status === "complete" && session.payment_status === "paid" && metadata.purpose === "nature_project_support",
+    paid,
     amountEur: Number(metadata.donation_amount_eur ?? 0),
+    awardedXp: fulfillment.awardedXp,
+    member: fulfillment.member,
   };
 }
 
@@ -183,6 +213,7 @@ async function handleStripeEvent(event: StripeObject) {
   const type = String(event.type ?? "");
   const object = ((event.data as StripeObject | undefined)?.object ?? {}) as StripeObject;
   if (type === "checkout.session.completed") {
+    if (object.mode === "payment" && (object.metadata as StripeObject | undefined)?.purpose === "nature_project_support") await completeDonation(object);
     if (object.mode === "payment" && (object.metadata as StripeObject | undefined)?.purpose !== "nature_project_support") await completeCreditPurchase(object);
     if (object.mode === "subscription") await syncSubscription(object);
   } else if (type === "customer.subscription.deleted" || type === "customer.subscription.paused") {

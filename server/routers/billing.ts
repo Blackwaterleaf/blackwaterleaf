@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts } from "../../drizzle/schema";
+import { accountEntitlements, aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts, donations } from "../../drizzle/schema";
 import { AI_CREDIT_PACKS, DEFAULT_FREE_DAILY_IDENTIFICATIONS, DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS, DEFAULT_PRO_MONTHLY_IDENTIFICATIONS, FREE_FEATURES, PRO_FEATURES, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { getDb } from "../db";
 import { getProAccess } from "../entitlements";
@@ -38,6 +38,7 @@ export const billingRouter = router({
       db.select({ proIdentifications: aiUserUsageMonths.proIdentifications }).from(aiUserUsageMonths).where(and(eq(aiUserUsageMonths.userId, ctx.user.id), eq(aiUserUsageMonths.monthKey, monthKey))).limit(1),
     ]);
     const access = await getProAccess(db, ctx.user);
+    const [membership] = await db.select({ status: accountEntitlements.status }).from(accountEntitlements).where(and(eq(accountEntitlements.userId, ctx.user.id), eq(accountEntitlements.featureKey, "organization_member"))).limit(1);
     const freeLimit = policy?.freeDailyIdentifications ?? DEFAULT_FREE_DAILY_IDENTIFICATIONS;
     const monthlyLimit = policy?.proMonthlyIdentifications ?? DEFAULT_PRO_MONTHLY_IDENTIFICATIONS;
     const isPro = access.active;
@@ -54,6 +55,7 @@ export const billingRouter = router({
       dailyLimit: freeLimit,
       monthlyLimit,
       globalDailyLimit: policy?.globalDailyIdentifications ?? DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS,
+      organizationMember: membership?.status === "active",
     };
   }),
 
@@ -70,6 +72,16 @@ export const billingRouter = router({
       .where(eq(aiCreditPurchases.userId, ctx.user.id))
       .orderBy(desc(aiCreditPurchases.createdAt))
       .limit(50);
+  }),
+
+  publicDonors: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return db.select({ displayName: donations.displayName, amountEur: sql<number>`${donations.amountCents} / 100`, completedAt: donations.completedAt })
+      .from(donations)
+      .where(and(eq(donations.status, "completed"), eq(donations.anonymous, false)))
+      .orderBy(desc(donations.completedAt))
+      .limit(24);
   }),
 
   checkoutConfirmation: protectedProcedure.input(z.object({ sessionId: z.string().min(1).max(200) })).query(async ({ ctx, input }) => {

@@ -83,4 +83,22 @@ describe("Free / Pro monetization contract", () => {
     expect(support).toContain("customAmountValid");
     expect(support).toContain("13 Sprachen vorbereitet");
   });
+
+  it("fulfills a paid public donation with XP, a public donor row and membership from five euros", () => {
+    const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
+    const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
+    const billing = readFileSync(resolve(process.cwd(), "server/routers/billing.ts"), "utf8");
+    const support = readFileSync(resolve(process.cwd(), "client/src/pages/Support.tsx"), "utf8");
+    expect(schema).toContain('"donations"');
+    expect(schema).toContain('"donation_support"');
+    expect(schema).toContain('"stripe_donation"');
+    expect(stripe).toContain("completeDonation");
+    expect(stripe).toContain("organization_member");
+    expect(stripe).toContain('eventType: "donation_support"');
+    expect(stripe).toContain("Math.min(500");
+    expect(billing).toContain("publicDonors: publicProcedure");
+    expect(billing).toContain("organizationMember");
+    expect(support).toContain("ÖFFENTLICHE UNTERSTÜTZER");
+    expect(support).toContain("awardedXp");
+  });
 });
