@@ -2378,3 +2378,14 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .app-frame.day-phase-evening { --day-wash: rgba(101, 60, 130, .09); --day-edge: rgba(182, 143, 227, .16); }
 .portal-sidebar__time { color: color-mix(in srgb, var(--portal-lime) 72%, var(--portal-muted)); letter-spacing: .08em; }
 @media (prefers-reduced-motion: reduce) { .app-frame::after { transition: none; } }
+
+/* Instagram-like feed rhythm and explicit media-orientation controls. */
+.community-feed { gap: 1.5rem; }
+.media-aspect-editor { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; }
+.media-rotate-option { margin-left: auto; }
+@media (max-width: 640px) {
+  .community-feed { gap: 1.15rem; }
+  .media-aspect-editor { gap: .4rem; }
+  .media-rotate-option { margin-left: 0; flex-basis: 100%; }
+}
+.community-post-card img, .community-detail-record img, .file-field img { image-orientation: none; }

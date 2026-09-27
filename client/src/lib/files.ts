@@ -26,7 +26,8 @@ function fileToDataUrl(file: Blob): Promise<string> {
 }
 
 export type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
-async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original"): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
+export type ImageRotation = 0 | 90 | 180 | 270;
+async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original", rotation: ImageRotation = 0): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   let bitmap: ImageBitmap | null = null;
   let source: CanvasImageSource | null = null;
   let sourceWidth = 0;
@@ -45,7 +46,9 @@ async function resizeImage(file: File, maxDimension: number, quality: number, fa
   };
   try {
     if (typeof createImageBitmap === "function") {
-      bitmap = await createImageBitmap(file).catch(() => null);
+      // Do not let browser EXIF heuristics silently rotate user media. Rotation
+      // is an explicit editor choice below.
+      bitmap = await createImageBitmap(file, { imageOrientation: "none" } as ImageBitmapOptions).catch(() => null);
       source = bitmap;
       sourceWidth = bitmap?.width ?? 0;
       sourceHeight = bitmap?.height ?? 0;
@@ -56,6 +59,7 @@ async function resizeImage(file: File, maxDimension: number, quality: number, fa
         const next = new Image();
         next.onload = () => resolve(next);
         next.onerror = () => resolve(null);
+        next.style.imageOrientation = "none";
         next.src = objectUrl!;
       });
       source = image;
@@ -76,6 +80,22 @@ async function resizeImage(file: File, maxDimension: number, quality: number, fa
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(source, Math.round((sourceWidth - cropWidth) / 2), Math.round((sourceHeight - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+    if (rotation !== 0) {
+      const rotated = document.createElement("canvas");
+      const quarterTurn = rotation === 90 || rotation === 270;
+      rotated.width = quarterTurn ? canvas.height : canvas.width;
+      rotated.height = quarterTurn ? canvas.width : canvas.height;
+      const rotatedContext = rotated.getContext("2d");
+      if (!rotatedContext) return originalFallback("image_resize_failed");
+      rotatedContext.translate(rotated.width / 2, rotated.height / 2);
+      rotatedContext.rotate((rotation * Math.PI) / 180);
+      rotatedContext.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+      canvas.width = rotated.width;
+      canvas.height = rotated.height;
+      const finalContext = canvas.getContext("2d");
+      if (!finalContext) return originalFallback("image_resize_failed");
+      finalContext.drawImage(rotated, 0, 0);
+    }
     const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
     cleanup();
     if (!blob) return originalFallback("image_resize_failed");
@@ -85,7 +105,7 @@ async function resizeImage(file: File, maxDimension: number, quality: number, fa
   }
 }
 
-type ImagePreparationOptions = { forAnalysis?: boolean; aspectRatio?: ImageAspect; quality?: number };
+type ImagePreparationOptions = { forAnalysis?: boolean; aspectRatio?: ImageAspect; quality?: number; rotation?: ImageRotation };
 async function prepareImage(file: File, options: ImagePreparationOptions = {}): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   const mimeType = imageMimeType(file);
   if (!mimeType) throw new Error("unsupported_image_type");
@@ -97,7 +117,7 @@ async function prepareImage(file: File, options: ImagePreparationOptions = {}): 
   // their multipart/base64 path still produces a payload the server cannot
   // reliably validate.
   return forAnalysis || mimeType === "image/webp" || file.size > CLIENT_IMAGE_LIMIT_BYTES || quality < 0.99 || options.aspectRatio && options.aspectRatio !== "original"
-    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, quality, mimeType, options.aspectRatio)
+    ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, quality, mimeType, options.aspectRatio, options.rotation)
     : { blob: file, mimeType };
 }
 
