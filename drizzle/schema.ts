@@ -1134,13 +1134,17 @@ export const partnerProfiles = mysqlTable(
   table => [index("partner_profiles_status_idx").on(table.status, table.updatedAt)],
 );
 
-/** Authenticated requests to join the BlackWaterLeaf partner network. */
+/** Authenticated or public requests to join the BlackWaterLeaf partner network. */
 export const partnerInquiries = mysqlTable(
   "partner_inquiries",
   {
     id: int("id").autoincrement().primaryKey(),
-    userId: int("userId").notNull().references(() => users.id),
+    userId: int("userId").references(() => users.id),
+    organizationName: varchar("organizationName", { length: 220 }),
+    contactName: varchar("contactName", { length: 160 }),
+    organizationType: varchar("organizationType", { length: 80 }),
     contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+    website: varchar("website", { length: 500 }),
     message: text("message").notNull(),
     status: mysqlEnum("status", ["received", "reviewing", "accepted", "declined"]).default("received").notNull(),
     adminNote: text("adminNote"),

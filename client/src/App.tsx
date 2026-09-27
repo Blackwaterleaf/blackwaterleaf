@@ -39,6 +39,7 @@ const Feedback = lazy(() => import("./pages/Feedback"));
 const Legal = lazy(() => import("./pages/Legal"));
 const Pro = lazy(() => import("./pages/Pro"));
 const Support = lazy(() => import("./pages/Support"));
+const PartnerApply = lazy(() => import("./pages/PartnerApply"));
 
 function PageLoader() {
   return <div className="observatory-route observatory-route--botany page-loader" role="status" aria-live="polite">BEREICH WIRD GELADEN …</div>;
@@ -70,6 +71,7 @@ function Router() {
         <Route path={"/feedback"} component={Feedback} />
         <Route path={"/pro"} component={Pro} />
         <Route path={"/support"} component={Support} />
+        <Route path={"/partner-werden"} component={PartnerApply} />
         <Route path={"/datenschutz"} component={Legal} />
         <Route path={"/privacy"} component={Legal} />
         <Route path={"/impressum"} component={Legal} />

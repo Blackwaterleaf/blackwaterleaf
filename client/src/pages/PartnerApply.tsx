@@ -1,0 +1,26 @@
+import { Building2, CheckCircle2, Globe2, Handshake, Mail, Send } from "lucide-react";
+import { useState } from "react";
+import { Link } from "wouter";
+import { trpc } from "@/lib/trpc";
+
+const initialForm = { organizationName: "", contactName: "", organizationType: "Verein", contactEmail: "", website: "", message: "" };
+
+export default function PartnerApply() {
+  const [form, setForm] = useState(initialForm);
+  const submit = trpc.partners.submitApplication.useMutation({ onSuccess: () => setForm(initialForm) });
+  const update = (key: keyof typeof initialForm, value: string) => setForm(current => ({ ...current, [key]: value }));
+  const canSubmit = form.organizationName.trim().length >= 2 && form.contactName.trim().length >= 2 && form.contactEmail.includes("@") && form.message.trim().length >= 20;
+  return <main className="partner-apply-page">
+    <header className="partner-apply-hero observatory-data-panel">
+      <div className="partner-apply-hero__icon"><Handshake size={30} /></div>
+      <span className="eyebrow">BLACKWATERLEAF · PARTNERPROGRAMM</span>
+      <h1>GEMEINSAM MEHR FÜR DIE NATUR ERREICHEN.</h1>
+      <p>Vereine, Organisationen und engagierte Projekte können Teil des BlackWaterLeaf-Netzwerks werden. Wir verbinden Naturwissen, Menschen und sichtbare Wirkung.</p>
+      <div className="partner-apply-hero__proof"><span><Building2 size={15} /> Für Vereine & Organisationen</span><span><Globe2 size={15} /> Offen für gemeinsame Projekte</span></div>
+    </header>
+    <section className="partner-apply-layout">
+      <div className="partner-apply-benefits observatory-data-panel"><span className="eyebrow">WAS WIR GEMEINSAM AUFBAUEN</span><h2>DEIN PROJEKT. UNSERE PLATTFORM. EIN GEMEINSAMES ZIEL.</h2><div className="partner-apply-benefit"><strong>01 · SICHTBARKEIT</strong><p>Wir helfen passenden Naturprojekten, Wissen, Veranstaltungen und Angebote verantwortungsvoll sichtbar zu machen.</p></div><div className="partner-apply-benefit"><strong>02 · ZUSAMMENARBEIT</strong><p>Gemeinsame Inhalte, Bildungsangebote und Aktionen bringen Menschen näher an lebendige Gewässer und Lebensräume.</p></div><div className="partner-apply-benefit"><strong>03 · VERTRAUEN</strong><p>Jede Bewerbung wird persönlich geprüft. Öffentliche Partnerprofile erscheinen erst nach Freigabe durch BlackWaterLeaf.</p></div><Link className="secondary-action" href="/support">Naturprojekt unterstützen</Link></div>
+      <form className="partner-apply-form observatory-data-panel" onSubmit={event => { event.preventDefault(); if (canSubmit) submit.mutate({ ...form, website: form.website.trim() }); }}><span className="eyebrow">DIREKT BEWERBEN</span><h2>ERZÄHL UNS VON EURER ORGANISATION</h2><p className="partner-apply-form__intro">Die Bewerbung ist kostenlos und unverbindlich. Wir melden uns per E-Mail mit den nächsten Schritten.</p><label className="partner-apply-field"><span>NAME DER ORGANISATION *</span><input required maxLength={220} value={form.organizationName} onChange={event => update("organizationName", event.target.value)} placeholder="z. B. Naturschutzverein am See" /></label><div className="partner-apply-form__row"><label className="partner-apply-field"><span>ANSPRECHPERSON *</span><input required maxLength={160} value={form.contactName} onChange={event => update("contactName", event.target.value)} placeholder="Vor- und Nachname" /></label><label className="partner-apply-field"><span>ART DER ORGANISATION *</span><select value={form.organizationType} onChange={event => update("organizationType", event.target.value)}><option>Verein</option><option>Stiftung</option><option>NGO</option><option>Bildungseinrichtung</option><option>Unternehmen</option><option>Anderes Naturprojekt</option></select></label></div><label className="partner-apply-field"><span>E-MAIL *</span><input required type="email" maxLength={320} value={form.contactEmail} onChange={event => update("contactEmail", event.target.value)} placeholder="kontakt@eure-organisation.de" /></label><label className="partner-apply-field"><span>WEBSEITE (OPTIONAL)</span><input type="url" maxLength={500} value={form.website} onChange={event => update("website", event.target.value)} placeholder="https://www.eure-organisation.de" /></label><label className="partner-apply-field"><span>WAS MÖCHTET IHR EINBRINGEN? *</span><textarea required minLength={20} maxLength={4000} rows={6} value={form.message} onChange={event => update("message", event.target.value)} placeholder="Beschreibt euer Projekt, eure Ziele und wie ihr mit BlackWaterLeaf zusammenarbeiten möchtet …" /><small>{form.message.length}/4000</small></label><button className="primary-action" type="submit" disabled={!canSubmit || submit.isPending}><Send size={16} />{submit.isPending ? "WIRD GESENDET …" : "BEWERBUNG SENDEN"}</button>{submit.isSuccess ? <div className="partner-apply-success" role="status"><CheckCircle2 size={20} /><span><strong>Bewerbung angekommen.</strong><small>Danke! BlackWaterLeaf meldet sich per E-Mail.</small></span></div> : null}{submit.isError ? <p className="form-error" role="alert">Die Bewerbung konnte nicht gespeichert werden. Bitte prüfe deine Angaben und versuche es erneut.</p> : null}<p className="partner-apply-privacy"><Mail size={14} /> Deine Angaben werden nur zur Prüfung dieser Partnerbewerbung verwendet.</p></form>
+    </section>
+  </main>;
+}

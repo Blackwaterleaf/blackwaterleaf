@@ -78,7 +78,7 @@ describe("Free / Pro monetization contract", () => {
     expect(support).toContain('kind: "donation"');
     expect(support).toContain("ANONYM SPENDEN");
     expect(support).toContain("MITGLIED WERDEN");
-    expect(support).toContain("VEREIN ODER ORGANISATION ANFRAGEN");
+    expect(support).toContain("VEREIN ODER ORGANISATION BEWERBEN");
     expect(support).toContain('id="custom-donation"');
     expect(support).toContain("customAmountValid");
     expect(support).toContain("13 Sprachen vorbereitet");
