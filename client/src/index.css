@@ -2257,3 +2257,25 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .admin-account-actions .secondary-action, .admin-account-actions > select { min-height:37px; font-size:.53rem; }
   .pro-access-picker .system-chip { font-size:.5rem; }
 }
+
+/* Public profile follow actions: compact, balanced controls on narrow screens. */
+.public-profile-page .observatory-context-header__actions { min-width:0; }
+.public-profile-page .public-profile-actions { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:0; }
+.public-profile-page .public-profile-actions > .primary-action,
+.public-profile-page .public-profile-actions > .secondary-action { min-height:34px; padding:0 10px; border-radius:8px; font-size:.55rem; letter-spacing:.045em; white-space:nowrap; }
+.public-profile-page .public-profile-actions > a { text-decoration:none; }
+.public-profile-page .public-profile-actions svg { width:14px; height:14px; flex:0 0 auto; }
+
+@media (max-width:560px) {
+  .public-profile-page .observatory-context-header { grid-template-columns:minmax(0,1fr); min-height:0; }
+  .public-profile-page .observatory-context-header__copy { padding:15px 13px 11px; }
+  .public-profile-page .observatory-context-header h1 { margin:5px 0 6px; font-size:clamp(1.35rem,7vw,1.85rem); }
+  .public-profile-page .observatory-context-header p { font-size:.72rem; line-height:1.4; }
+  .public-profile-page .observatory-context-header__badge { position:absolute; top:10px; right:10px; margin:0; max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .public-profile-page .observatory-context-header__actions { grid-column:1 / -1; display:block; padding:4px 13px 12px; }
+  .public-profile-page .public-profile-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:6px; width:100%; }
+  .public-profile-page .public-profile-actions > .primary-action,
+  .public-profile-page .public-profile-actions > .secondary-action { width:100%; min-width:0; min-height:32px; padding:0 6px; overflow:hidden; font-size:.47rem; text-overflow:ellipsis; }
+  .public-profile-page .public-profile-actions > .primary-action:active,
+  .public-profile-page .public-profile-actions > .secondary-action:active { transform:scale(.98); }
+}
