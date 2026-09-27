@@ -906,7 +906,7 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
-        {screen === "explore" && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} />}
+        {screen === "explore" && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} />}
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
@@ -1592,6 +1592,7 @@ function Explore({
   loading,
   error,
   refresh,
+  onOpenTaxon,
 }: {
   token: string | null;
   navigate: (screen: Screen) => void;
@@ -1599,18 +1600,19 @@ function Explore({
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  onOpenTaxon: (id: number) => void;
 }) {
   const tone = TONES.explore;
   const [realm, setRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
   const [view, setView] = useState<"map" | "list">("map");
   const realmLabels = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" } as const;
   const plantInspiration = [
-    ["Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend"],
-    ["Bucephalandra", "Kleine Blätter, große Wirkung", "Auf Holz und Stein · Strömung"],
-    ["Cryptocoryne wendtii", "Wandelbare Unterwasserrosette", "Mittelgrund · ruhige Eingewöhnung"],
-    ["Echinodorus bleheri", "Der grüne Solitär", "Hintergrund · nährstoffreicher Boden"],
-    ["Microsorum pteropus", "Javafarn für natürliche Räume", "Aufsitzer · wenig Licht"],
-    ["Hygrophila polysperma", "Schneller grüner Akzent", "Hintergrund · regelmäßiger Rückschnitt"],
+    [10, "Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend"],
+    [30062, "Bucephalandra motleyana", "Kleine Blätter, große Wirkung", "Auf Holz und Stein · Strömung"],
+    [13, "Cryptocoryne wendtii", "Wandelbare Unterwasserrosette", "Mittelgrund · ruhige Eingewöhnung"],
+    [30073, "Echinodorus palaefolius", "Der grüne Solitär", "Hintergrund · nährstoffreicher Boden"],
+    [17, "Microsorum pteropus", "Javafarn für natürliche Räume", "Aufsitzer · wenig Licht"],
+    [30076, "Hygrophila polysperma", "Schneller grüner Akzent", "Hintergrund · regelmäßiger Rückschnitt"],
   ] as const;
   const filtered = realm === "all" ? observations : observations.filter(item => item.realm === realm);
   const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
@@ -1627,7 +1629,7 @@ function Explore({
       <View style={styles.exploreInspirationSection}>
         <View style={styles.exploreInspirationHeading}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>NEUE IDEEN · BOTANIK</Text><Text style={styles.sectionTitle}>PFLANZEN ZUM ENTDECKEN</Text></View><Pressable onPress={() => navigate("search")}><Text style={[styles.miniCopy, { color: tone.accent }]}>KATALOG</Text></Pressable></View>
         <Text style={styles.copy}>Echte Arten als Inspiration – mit Namen, Pflegehinweisen und Quellen im Katalog.</Text>
-        <View style={styles.exploreInspirationGrid}>{plantInspiration.map(([name, hook, note], index) => <Pressable key={name} onPress={() => navigate("search")} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>0{index + 1}</Text></View><Ionicons name="leaf-outline" size={19} color={index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent} /><View style={styles.flex}><Text style={styles.exploreInspirationName}>{name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{hook}</Text><Text style={styles.exploreInspirationNote}>{note}</Text></View></Pressable>)}</View>
+        <View style={styles.exploreInspirationGrid}>{plantInspiration.map(([id, name, hook, note], index) => <Pressable key={id} accessibilityLabel={`${name} – ausführliche Pflegehinweise öffnen`} onPress={() => onOpenTaxon(id)} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>0{index + 1}</Text></View><Ionicons name="leaf-outline" size={19} color={index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent} /><View style={styles.flex}><Text style={styles.exploreInspirationName}>{name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{hook}</Text><Text style={styles.exploreInspirationNote}>{note}</Text></View></Pressable>)}</View>
       </View>
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>

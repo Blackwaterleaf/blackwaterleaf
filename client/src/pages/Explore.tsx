@@ -20,12 +20,12 @@ const portalCards = [
 const realmLabels: Record<RealmFilter, string> = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" };
 
 const plantInspiration = [
-  ["Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend"],
-  ["Bucephalandra", "Kleine Blätter, große Wirkung", "Auf Holz und Stein · Strömung"],
-  ["Cryptocoryne wendtii", "Wandelbare Unterwasserrosette", "Mittelgrund · ruhige Eingewöhnung"],
-  ["Echinodorus bleheri", "Der grüne Solitär", "Hintergrund · nährstoffreicher Boden"],
-  ["Microsorum pteropus", "Javafarn für natürliche Räume", "Aufsitzer · wenig Licht"],
-  ["Hygrophila polysperma", "Schneller grüner Akzent", "Hintergrund · regelmäßiger Rückschnitt"],
+  [10, "Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend"],
+  [30062, "Bucephalandra motleyana", "Kleine Blätter, große Wirkung", "Auf Holz und Stein · Strömung"],
+  [13, "Cryptocoryne wendtii", "Wandelbare Unterwasserrosette", "Mittelgrund · ruhige Eingewöhnung"],
+  [30073, "Echinodorus palaefolius", "Der grüne Solitär", "Hintergrund · nährstoffreicher Boden"],
+  [17, "Microsorum pteropus", "Javafarn für natürliche Räume", "Aufsitzer · wenig Licht"],
+  [30076, "Hygrophila polysperma", "Schneller grüner Akzent", "Hintergrund · regelmäßiger Rückschnitt"],
 ] as const;
 
 export default function Explore() {
@@ -65,7 +65,7 @@ export default function Explore() {
       <section className="explore-inspiration" aria-labelledby="inspiration-heading">
         <div className="observatory-section__heading"><div><span className="eyebrow">NEUE IDEEN · BOTANIK</span><h2 id="inspiration-heading">PFLANZEN ZUM ENTDECKEN</h2></div><Link className="secondary-action" href="/search">KATALOG ÖFFNEN <ArrowRight size={14} /></Link></div>
         <p className="explore-inspiration__intro">Lass dich von echten Arten inspirieren und öffne den Katalog für Quellen, Standort und Pflegewissen.</p>
-        <div className="explore-inspiration__grid">{plantInspiration.map(([name, hook, note], index) => <Link key={name} href={`/search?query=${encodeURIComponent(name)}`} className={`explore-inspiration-card explore-inspiration-card--${(index % 3) + 1}`}><span className="explore-inspiration-card__number">0{index + 1}</span><Leaf size={22} /><span><strong>{name}</strong><b>{hook}</b><small>{note}</small></span><ArrowRight size={16} /></Link>)}</div>
+        <div className="explore-inspiration__grid">{plantInspiration.map(([id, name, hook, note], index) => <Link key={id} href={`/plant/${id}`} className={`explore-inspiration-card explore-inspiration-card--${(index % 3) + 1}`} aria-label={`${name} – ausführliche Pflegehinweise öffnen`}><span className="explore-inspiration-card__number">0{index + 1}</span><Leaf size={22} /><span><strong>{name}</strong><b>{hook}</b><small>{note}</small></span><ArrowRight size={16} /></Link>)}</div>
       </section>
 
       <section className="observatory-observation-panel" id="map" aria-labelledby="observation-heading">
