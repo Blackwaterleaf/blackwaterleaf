@@ -1,42 +1,47 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
+import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Assistant from "./pages/Assistant";
-import Community from "./pages/Community";
-import CommunityPostDetail from "./pages/CommunityPostDetail";
-import LiveHub from "./pages/LiveHub";
-import LiveSession from "./pages/LiveSession";
-import Explore from "./pages/Explore";
-import Home from "./pages/Home";
-import Knowledge from "./pages/Knowledge";
-import Profile from "./pages/Profile";
-import ProfileHome from "./pages/ProfileHome";
-import ManagementHub from "./pages/ManagementHub";
-import Ranking from "./pages/Ranking";
-import Realm from "./pages/Realm";
-import FlowDestination from "./pages/FlowDestination";
-import AdminDashboard from "./pages/AdminDashboard";
-import AccountAccess from "./pages/AccountAccess";
-import Marketplace from "./pages/Marketplace";
-import MarketplaceShop from "./pages/MarketplaceShop";
-import MarketplaceProduct from "./pages/MarketplaceProduct";
-import MerchantMarketplace from "./pages/MerchantMarketplace";
-import Notifications from "./pages/Notifications";
-import Messages from "./pages/Messages";
-import CareToday from "./pages/CareToday";
-import Search from "./pages/Search";
-import PlantTaxon from "./pages/PlantTaxon";
-import AquariumTaxon from "./pages/AquariumTaxon";
-import TerrariumTaxon from "./pages/TerrariumTaxon";
-import PublicProfile from "./pages/PublicProfile";
-import SavedItems from "./pages/SavedItems";
-import NotFound from "./pages/NotFound";
-import Feedback from "./pages/Feedback";
-import Legal from "./pages/Legal";
-import Pro from "./pages/Pro";
+const Assistant = lazy(() => import("./pages/Assistant"));
+const Community = lazy(() => import("./pages/Community"));
+const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
+const LiveHub = lazy(() => import("./pages/LiveHub"));
+const LiveSession = lazy(() => import("./pages/LiveSession"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Home = lazy(() => import("./pages/Home"));
+const Knowledge = lazy(() => import("./pages/Knowledge"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ProfileHome = lazy(() => import("./pages/ProfileHome"));
+const ManagementHub = lazy(() => import("./pages/ManagementHub"));
+const Ranking = lazy(() => import("./pages/Ranking"));
+const Realm = lazy(() => import("./pages/Realm"));
+const FlowDestination = lazy(() => import("./pages/FlowDestination"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AccountAccess = lazy(() => import("./pages/AccountAccess"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const MarketplaceShop = lazy(() => import("./pages/MarketplaceShop"));
+const MarketplaceProduct = lazy(() => import("./pages/MarketplaceProduct"));
+const MerchantMarketplace = lazy(() => import("./pages/MerchantMarketplace"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CareToday = lazy(() => import("./pages/CareToday"));
+const Search = lazy(() => import("./pages/Search"));
+const PlantTaxon = lazy(() => import("./pages/PlantTaxon"));
+const AquariumTaxon = lazy(() => import("./pages/AquariumTaxon"));
+const TerrariumTaxon = lazy(() => import("./pages/TerrariumTaxon"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const SavedItems = lazy(() => import("./pages/SavedItems"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Feedback = lazy(() => import("./pages/Feedback"));
+const Legal = lazy(() => import("./pages/Legal"));
+const Pro = lazy(() => import("./pages/Pro"));
+
+function PageLoader() {
+  return <div className="observatory-route observatory-route--botany page-loader" role="status" aria-live="polite">BEREICH WIRD GELADEN …</div>;
+}
 
 function Router() {
   return (
@@ -120,7 +125,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Suspense fallback={<PageLoader />}><Router /></Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
