@@ -71,9 +71,14 @@ describe("Free / Pro monetization contract", () => {
     expect(stripe).toContain('nature_project_support');
     expect(stripe).toContain("amountCents < 100");
     expect(stripe).toContain("amountCents > 50000");
+    expect(stripe).toContain("input.anonymous");
     expect(stripe).toContain("getDonationConfirmation");
     expect(billing).toContain('donationAmountEur: z.number().min(1).max(500)');
+    expect(billing).toContain("anonymousDonationCheckout");
     expect(support).toContain('kind: "donation"');
+    expect(support).toContain("ANONYM SPENDEN");
+    expect(support).toContain("MITGLIED WERDEN");
+    expect(support).toContain("VEREIN ODER ORGANISATION ANFRAGEN");
     expect(support).toContain('id="custom-donation"');
     expect(support).toContain("customAmountValid");
     expect(support).toContain("13 Sprachen vorbereitet");

@@ -106,4 +106,15 @@ export const billingRouter = router({
       throw new TRPCError({ code: "BAD_GATEWAY", message: "checkout_failed" });
     }
   }),
+
+  anonymousDonationCheckout: publicProcedure.input(z.object({ donationAmountEur: z.number().min(1).max(500) })).mutation(async ({ ctx, input }) => {
+    try {
+      return await createCheckoutSession({ anonymous: true, kind: "donation", donationAmountEur: input.donationAmountEur, req: ctx.req });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "checkout_failed";
+      if (message === "payments_not_configured") throw new TRPCError({ code: "PRECONDITION_FAILED", message });
+      if (message === "donation_amount_invalid") throw new TRPCError({ code: "BAD_REQUEST", message });
+      throw new TRPCError({ code: "BAD_GATEWAY", message: "checkout_failed" });
+    }
+  }),
 });

@@ -42,19 +42,21 @@ async function retrieveCheckoutSession(sessionId: string) {
   return body;
 }
 
-export async function createCheckoutSession(input: { userId: number; email: string | null; name: string | null; kind: CheckoutKind; packKey?: AiCreditPackKey; donationAmountEur?: number; req: Request }) {
+export async function createCheckoutSession(input: { userId?: number; email?: string | null; name?: string | null; anonymous?: boolean; kind: CheckoutKind; packKey?: AiCreditPackKey; donationAmountEur?: number; req: Request }) {
   const origin = appOrigin(input.req);
   const params = new URLSearchParams();
   params.set("mode", input.kind === "credits" || input.kind === "donation" ? "payment" : "subscription");
   const returnPath = input.kind === "donation" ? "/support" : "/pro";
-  params.set("success_url", `${origin}${returnPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("success_url", `${origin}${returnPath}?checkout=success&session_id={CHECKOUT_SESSION_ID}${input.anonymous ? "&anonymous=1" : ""}`);
   params.set("cancel_url", `${origin}${returnPath}?checkout=cancelled`);
   params.set("allow_promotion_codes", "true");
   params.set("managed_payments[enabled]", "false");
-  params.set("client_reference_id", String(input.userId));
-  params.set("metadata[user_id]", String(input.userId));
-  params.set("metadata[customer_email]", input.email ?? "");
-  params.set("metadata[customer_name]", input.name ?? "");
+  if (!input.anonymous && input.userId !== undefined) {
+    params.set("client_reference_id", String(input.userId));
+    params.set("metadata[user_id]", String(input.userId));
+    params.set("metadata[customer_email]", input.email ?? "");
+    params.set("metadata[customer_name]", input.name ?? "");
+  }
 
   if (input.kind === "credits") {
     const pack = AI_CREDIT_PACKS.find(item => item.key === input.packKey);

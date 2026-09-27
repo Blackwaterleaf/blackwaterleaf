@@ -6,6 +6,12 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 
 const amounts = [5, 10, 25, 50] as const;
+const fundUses = [
+  { icon: "01", de: "App-Entwicklung", en: "App development", bodyDe: "Neue Funktionen, stabile Uploads, bessere mobile Nutzung und sichere KI-Werkzeuge.", bodyEn: "New features, reliable uploads, a better mobile experience and safe AI tools." },
+  { icon: "02", de: "Aufbau der Organisation", en: "Building the organisation", bodyDe: "Rechtsform, Gründung und die verlässlichen Strukturen hinter der BlackWaterLeaf Organisation of Loyalty.", bodyEn: "Company formation, legal setup and the reliable structure behind the BlackWaterLeaf Organisation of Loyalty." },
+  { icon: "03", de: "Betrieb & Infrastruktur", en: "Operations & infrastructure", bodyDe: "Server, Speicher, Sicherheit, Zahlungsgebühren und laufende Pflege des Projekts.", bodyEn: "Servers, storage, security, payment fees and the ongoing care of the project." },
+  { icon: "04", de: "Naturwissen & Community", en: "Nature knowledge & community", bodyDe: "Quellenprüfung, Inhalte, Moderation und ein offener Ort für Menschen mit Naturbegeisterung.", bodyEn: "Source review, content, moderation and an open place for people who care about nature." },
+];
 const customLabels = {
   de: { title: "EIGENEN BETRAG FESTLEGEN", placeholder: "z. B. 12,50", action: "EIGENEN BETRAG SPENDEN", hint: "Mindestens 1 € · maximal 500 €" },
   en: { title: "CHOOSE YOUR OWN AMOUNT", placeholder: "e.g. 12.50", action: "DONATE CUSTOM AMOUNT", hint: "Minimum €1 · maximum €500" },
@@ -43,17 +49,21 @@ export default function Support() {
   const auth = useAuth();
   const [, setLocation] = useLocation();
   const [customAmount, setCustomAmount] = useState("");
+  const [anonymousMode, setAnonymousMode] = useState(!auth.isAuthenticated);
   const t = copy[locale];
   const custom = customLabels[locale];
   const checkout = trpc.billing.createCheckout.useMutation({ onSuccess: result => window.open(result.url, "_blank", "noopener,noreferrer") });
+  const anonymousCheckout = trpc.billing.anonymousDonationCheckout.useMutation({ onSuccess: result => window.open(result.url, "_blank", "noopener,noreferrer") });
   const params = new URLSearchParams(window.location.search);
   const confirmation = trpc.billing.donationConfirmation.useQuery({ sessionId: params.get("session_id") ?? "" }, { enabled: auth.isAuthenticated && params.get("checkout") === "success" && Boolean(params.get("session_id")), retry: false });
-  const success = params.get("checkout") === "success" && confirmation.data?.paid;
+  const success = params.get("checkout") === "success" && (confirmation.data?.paid || params.get("anonymous") === "1");
   const cancelled = params.get("checkout") === "cancelled";
   const begin = (amount: number) => {
+    if (anonymousMode) { anonymousCheckout.mutate({ donationAmountEur: amount }); return; }
     if (!auth.isAuthenticated) { setLocation("/login?returnTo=/support"); return; }
     checkout.mutate({ kind: "donation", donationAmountEur: amount });
   };
+  const checkoutPending = checkout.isPending || anonymousCheckout.isPending;
   const customAmountValue = Number(customAmount.replace(",", "."));
   const customAmountValid = Number.isFinite(customAmountValue) && customAmountValue >= 1 && customAmountValue <= 500;
   return <div className="observatory-route observatory-route--botany support-page">
@@ -62,8 +72,10 @@ export default function Support() {
       <p className="eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p>{t.body}</p>
       <div className="support-hero__proof"><span><Leaf size={16} /> Naturwissen</span><span><Globe2 size={16} /> 13 Sprachen vorbereitet</span></div>
     </section>
+    <section className="support-purpose"><div className="support-purpose__heading"><p className="eyebrow">BLACKWATERLEAF · TRANSPARENTER EINSATZ</p><h2>WOFÜR DEINE UNTERSTÜTZUNG EINGESETZT WIRD</h2><p>Jede Spende hilft, aus einer Idee eine verlässliche Naturplattform zu machen – unabhängig, offen und mit viel Liebe zum Detail.</p></div><div className="support-purpose__grid">{fundUses.map(item => <article key={item.icon}><span>{item.icon}</span><h3>{locale === "de" ? item.de : item.en}</h3><p>{locale === "de" ? item.bodyDe : item.bodyEn}</p></article>)}</div></section>
+    <section className="support-community"><div><p className="eyebrow">BLACKWATERLEAF · GEMEINSAM HANDELN</p><h2>MITGLIED WERDEN. VEREINE STÄRKEN. NATUR ZURÜCKGEBEN.</h2><p>Als Mitglied bringst du Naturwissen in die Gemeinschaft. Vereine und Organisationen können mit uns zusammenarbeiten, Projekte sichtbar machen und Menschen für lebendige Lebensräume begeistern.</p></div><div className="support-community__actions"><Link className="primary-action" href="/register">MITGLIED WERDEN <ArrowRight size={15} /></Link><Link className="secondary-action" href="/feedback">VEREIN ODER ORGANISATION ANFRAGEN <ArrowRight size={15} /></Link></div></section>
     {success ? <div className="support-notice support-notice--success"><CheckCircle2 size={20} />{t.success}</div> : cancelled ? <div className="support-notice">{t.cancelled}</div> : null}
-    <section className="support-card observatory-data-panel"><p className="eyebrow">{auth.isAuthenticated ? "BLACKWATERLEAF · STRIPE" : "BLACKWATERLEAF · MEMBER ACCESS"}</p><h2>{auth.isAuthenticated ? "WÄHLE DEINE UNTERSTÜTZUNG" : t.login}</h2><div className="support-amounts">{amounts.map(amount => <button key={amount} className="support-amount" disabled={checkout.isPending} onClick={() => begin(amount)}><strong>€{amount}</strong><span>{auth.isAuthenticated ? t.button : t.login}<ArrowRight size={15} /></span></button>)}</div><div className="support-custom"><label htmlFor="custom-donation">{custom.title}</label><div className="support-custom__row"><span className="support-custom__currency">€</span><input id="custom-donation" inputMode="decimal" type="text" value={customAmount} onChange={event => setCustomAmount(event.target.value.replace(/[^0-9,.]/g, ""))} placeholder={custom.placeholder} aria-describedby="custom-donation-hint" /><button className="primary-action" type="button" disabled={checkout.isPending || !customAmountValid} onClick={() => begin(Math.round(customAmountValue * 100) / 100)}>{auth.isAuthenticated ? custom.action : t.login}<ArrowRight size={15} /></button></div><small id="custom-donation-hint">{custom.hint} · Stripe verarbeitet die Zahlung einmalig und sicher.</small></div><small className="support-card__note">Einmalige Zahlung · sicher verarbeitet durch Stripe · keine automatische Verlängerung</small></section>
+    <section className="support-card observatory-data-panel"><div className="support-card__intro"><p className="eyebrow">{anonymousMode ? "BLACKWATERLEAF · ANONYM" : "BLACKWATERLEAF · STRIPE"}</p><h2>WÄHLE DEINE UNTERSTÜTZUNG</h2><p>{anonymousMode ? "Du kannst ohne Konto und ohne persönliche Zuordnung spenden." : "Deine Unterstützung wird sicher deinem Konto zugeordnet."}</p></div><label className="support-anonymous"><input type="checkbox" checked={anonymousMode} onChange={event => setAnonymousMode(event.target.checked)} /><span><strong>ANONYM SPENDEN</strong><small>Keine Anmeldung, keine Zuordnung zu deinem BlackWaterLeaf-Profil.</small></span></label><div className="support-amounts">{amounts.map(amount => <button key={amount} className="support-amount" disabled={checkoutPending} onClick={() => begin(amount)}><strong>€{amount}</strong><span>{anonymousMode ? "ANONYM SPENDEN" : t.button}<ArrowRight size={15} /></span></button>)}</div><div className="support-custom"><label htmlFor="custom-donation">{custom.title}</label><div className="support-custom__row"><span className="support-custom__currency">€</span><input id="custom-donation" inputMode="decimal" type="text" value={customAmount} onChange={event => setCustomAmount(event.target.value.replace(/[^0-9,.]/g, ""))} placeholder={custom.placeholder} aria-describedby="custom-donation-hint" /><button className="primary-action" type="button" disabled={checkoutPending || !customAmountValid} onClick={() => begin(Math.round(customAmountValue * 100) / 100)}>{anonymousMode ? "ANONYM SPENDEN" : custom.action}<ArrowRight size={15} /></button></div><small id="custom-donation-hint">{custom.hint} · Stripe verarbeitet die Zahlung einmalig und sicher.</small></div><small className="support-card__note">Einmalige Zahlung · sicher verarbeitet durch Stripe · keine automatische Verlängerung</small></section>
     <Link href="/pro" className="section-link">{locale === "de" ? "KI-Credits und Pro ansehen" : "View AI credits and Pro"}<ArrowRight size={14} /></Link>
   </div>;
 }
