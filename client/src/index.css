@@ -2228,3 +2228,32 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .community-detail-record__actions { top:9px; right:9px; }
   .community-detail-record__actions .primary-action, .community-detail-record__actions .secondary-action { max-width:84px; min-height:28px; padding:0 7px; overflow:hidden; font-size:.46rem; text-overflow:ellipsis; white-space:nowrap; }
 }
+
+/* Admin account controls: compact, predictable cards instead of a wide control rail. */
+.admin-account-row { grid-template-columns:minmax(0,1fr) minmax(360px,1.25fr); align-items:start; }
+.admin-account-row > div:first-child { min-width:0; }
+.admin-account-row > div:first-child p { margin:5px 0 7px; font-size:.82rem; overflow-wrap:anywhere; }
+.admin-account-actions { grid-template-columns:minmax(130px,1fr) minmax(150px,1.15fr) minmax(112px,.72fr); align-items:start; }
+.admin-account-actions > * { min-width:0; }
+.role-picker, .pro-access-picker { display:grid; min-width:0; gap:7px; }
+.role-picker__options { display:flex; flex-wrap:wrap; align-items:center; gap:6px 9px; min-height:32px; }
+.role-picker__options label { display:inline-flex; align-items:center; gap:5px; min-width:0; color:#cde4ce; font:700 .57rem/1 "JetBrains Mono",monospace; }
+.role-picker__options input { accent-color:#bafa85; }
+.pro-access-picker .system-chip { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.admin-account-actions .secondary-action, .admin-account-actions > select { width:100%; min-width:0; }
+
+@media (max-width:700px) {
+  .admin-console { gap:12px; }
+  .admin-accounts-panel { padding:11px; }
+  .admin-accounts-panel h2 { font-size:1.9rem; }
+  .admin-account-row { grid-template-columns:minmax(0,1fr); gap:10px; padding:12px; border-radius:14px; }
+  .admin-account-row > div:first-child strong { display:block; font-size:.78rem; }
+  .admin-account-row > div:first-child p { margin:6px 0 8px; color:#a9c3aa; font-size:.82rem; line-height:1.25; }
+  .admin-account-row > div:first-child small { display:block; font-size:.51rem; line-height:1.45; }
+  .admin-account-actions { grid-template-columns:minmax(0,1fr); gap:8px; }
+  .role-picker, .pro-access-picker { padding:9px; border:1px solid rgba(176,241,157,.13); border-radius:10px; background:rgba(5,25,11,.3); }
+  .role-picker__options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; min-height:0; }
+  .role-picker__options label { font-size:.52rem; }
+  .admin-account-actions .secondary-action, .admin-account-actions > select { min-height:37px; font-size:.53rem; }
+  .pro-access-picker .system-chip { font-size:.5rem; }
+}
