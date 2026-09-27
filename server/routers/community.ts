@@ -60,8 +60,12 @@ async function publicMediaForPost(postId: number, userId: number) {
         eq(mediaAssets.visibility, "public"),
       ),
     );
+  const uniqueRows = rows.filter((item, index, all) => {
+    const identity = `${item.kind}:${item.storageKey ?? item.id}`;
+    return all.findIndex(candidate => `${candidate.kind}:${candidate.storageKey ?? candidate.id}` === identity) === index;
+  });
   return Promise.all(
-    rows
+    uniqueRows
       .filter(item => canReadMedia({
         viewerId: null,
         ownerId: item.userId,
@@ -125,6 +129,7 @@ export const communityRouter = router({
             id: String(author.id),
             name: author.name,
             username: author.username,
+            displayName: author.name?.trim() || author.username?.trim() || "BlackWaterLeaf-Nutzer",
             avatarUrl: author.avatarStorageKey
               ? await storageGetSignedUrl(author.avatarStorageKey).catch(() => null)
               : null,
@@ -153,7 +158,7 @@ export const communityRouter = router({
     return {
       contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
       id: String(row.post.id),
-      author: { id: String(row.author.id), name: row.author.name, username: row.author.username, avatarUrl: row.author.avatarStorageKey ? await storageGetSignedUrl(row.author.avatarStorageKey).catch(() => null) : null, role: row.author.role, status: row.author.status, roleOrigin: "server_verified" as const },
+      author: { id: String(row.author.id), name: row.author.name, username: row.author.username, displayName: row.author.name?.trim() || row.author.username?.trim() || "BlackWaterLeaf-Nutzer", avatarUrl: row.author.avatarStorageKey ? await storageGetSignedUrl(row.author.avatarStorageKey).catch(() => null) : null, role: row.author.role, status: row.author.status, roleOrigin: "server_verified" as const },
       content: row.post.content,
       realm: row.post.realm,
       media: await publicMediaForPost(row.post.id, row.post.userId),

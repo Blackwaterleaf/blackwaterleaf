@@ -3344,7 +3344,8 @@ function CommunityScreen({
       Alert.alert("Abo nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen.");
     } finally { setSubscriptionBusy(false); }
   };
-  const visiblePosts = posts.filter(post => realmFilter === "all" || post.realm === realmFilter);
+  const uniquePosts = useMemo(() => Array.from(new Map(posts.map(post => [String(post.id), post])).values()), [posts]);
+  const visiblePosts = uniquePosts.filter(post => realmFilter === "all" || post.realm === realmFilter);
   if (!token) return <Page>
     <ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · GESCHÜTZT" title="MITGLIEDERBEREICH." subtitle="Beiträge, Diskussionen und Live-Austausch werden erst nach einer sicheren Anmeldung geladen." icon="people-outline" />
     <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Der Community-Feed, einzelne Beiträge und Kommentare sind nur für angemeldete, aktive Konten sichtbar." onSignIn={onSignIn} />
@@ -4287,12 +4288,14 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
   const [editingCommentText, setEditingCommentText] = useState("");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [postMediaRatio, setPostMediaRatio] = useState<number | null>(null);
+  const displayName = post.author.displayName ?? post.author.name ?? post.author.username ?? "Verifiziertes Konto";
+  const uniqueMedia = useMemo(() => post.media.filter((media, index, all) => all.findIndex(candidate => `${candidate.kind}:${candidate.accessUrl}` === `${media.kind}:${media.accessUrl}`) === index), [post.media]);
   const loadComments = async () => { if (token) setComments(await communityComments(token, Number(post.id))); };
   useEffect(() => {
-    const media = post.media[0];
+    const media = uniqueMedia[0];
     if (!media || media.mimeType.startsWith("video/")) { setPostMediaRatio(null); return; }
     Image.getSize(media.accessUrl, (width, height) => setPostMediaRatio(width && height ? width / height : null), () => setPostMediaRatio(null));
-  }, [post.media]);
+  }, [uniqueMedia]);
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
     setCommentPending(true);
@@ -4327,7 +4330,7 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
       <View style={styles.postHead}>
         <View style={styles.postHeadCopy}>
           <Pressable onPress={onOpenProfile} accessibilityRole="link"><Text style={styles.cardTitle}>
-            {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
+            {displayName}
           </Text></Pressable>
           <Text style={styles.date}>
             {new Date(post.createdAt).toLocaleDateString("de-DE")}
@@ -4339,8 +4342,8 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
         </View> : null}
       </View>
       <Text style={styles.copy}>{post.content}</Text>
-      {post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Pressable accessibilityRole="button" accessibilityLabel="Bild vergrößern" onPress={() => setZoomedImage(post.media[0].accessUrl)}><Image source={{ uri: post.media[0].accessUrl }} style={[styles.postImage, postMediaRatio ? { aspectRatio: postMediaRatio, height: undefined } : null]} resizeMode="contain" /></Pressable> : null}
-      {post.media.length > 1 ? <View style={styles.mediaScrollHintNative}><View style={styles.mediaScrollLineNative} /><Text style={styles.miniCopy}>WEITERE MEDIEN · WISCHEN / SCROLLEN</Text><View style={styles.mediaScrollLineNative} /></View> : null}
+      {uniqueMedia[0] ? uniqueMedia[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={uniqueMedia[0].accessUrl} title="Community-Video" /> : <Pressable accessibilityRole="button" accessibilityLabel="Bild vergrößern" onPress={() => setZoomedImage(uniqueMedia[0].accessUrl)}><Image source={{ uri: uniqueMedia[0].accessUrl }} style={[styles.postImage, postMediaRatio ? { aspectRatio: postMediaRatio, height: undefined } : null]} resizeMode="contain" /></Pressable> : null}
+      {uniqueMedia.length > 1 ? <View style={styles.mediaScrollHintNative}><View style={styles.mediaScrollLineNative} /><Text style={styles.miniCopy}>WEITERE MEDIEN · WISCHEN / SCROLLEN</Text><View style={styles.mediaScrollLineNative} /></View> : null}
       <Modal visible={Boolean(zoomedImage)} transparent animationType="fade" onRequestClose={() => setZoomedImage(null)}><Pressable style={styles.mediaLightboxNative} onPress={() => setZoomedImage(null)}><Pressable onPress={() => undefined}><Image source={zoomedImage ? { uri: zoomedImage } : undefined} style={styles.mediaLightboxImageNative} resizeMode="contain" /></Pressable><Pressable accessibilityLabel="Zoom schließen" style={styles.mediaLightboxCloseNative} onPress={() => setZoomedImage(null)}><Ionicons name="close" size={20} color={c.text} /></Pressable></Pressable></Modal>
       <View style={styles.postInteractionRow}><Pressable onPress={() => void onLike()} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport() }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable></View>
       <Text style={styles.date}>

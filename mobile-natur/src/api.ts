@@ -179,7 +179,7 @@ export type MarketplaceProduct = {
 };
 export type CommunityPost = {
   id: string;
-  author: { id: string; name: string | null; username: string | null };
+  author: { id: string; name: string | null; username: string | null; displayName?: string | null };
   content: string;
   realm: string | null;
   media: Array<{ id: string; accessUrl: string; mimeType: string; kind: string }>;
