@@ -191,11 +191,7 @@ const en: Record<TranslationKey, string> = {
 
 export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
   if (stored === "de" || stored === "en" || stored === "zh-CN" || stored === "es" || stored === "fr") return stored;
-  const language = browserLanguage.toLowerCase();
-  if (language.startsWith("zh")) return "zh-CN";
-  if (language.startsWith("es")) return "es";
-  if (language.startsWith("fr")) return "fr";
-  if (language.startsWith("en")) return "en";
+  void browserLanguage;
   return "de";
 }
 

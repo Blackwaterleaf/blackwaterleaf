@@ -99,7 +99,7 @@ export function AppShell({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const pathname = location.split("?")[0] || "/";
-    const noIndex = pathname === "/search" || pathname === "/saved" || pathname.startsWith("/member/") || pathname.startsWith("/community") || pathname.startsWith("/profile") || pathname.startsWith("/today") || pathname.startsWith("/notifications") || pathname.startsWith("/messages") || pathname.startsWith("/flow/") || pathname.startsWith("/admin");
+    const noIndex = (location === "/search" || pathname === "/search") || pathname === "/saved" || (location.startsWith("/member/") || pathname.startsWith("/member/")) || pathname.startsWith("/community") || (location.startsWith("/profile") || pathname.startsWith("/profile")) || pathname.startsWith("/today") || pathname.startsWith("/notifications") || pathname.startsWith("/messages") || pathname.startsWith("/flow/") || pathname.startsWith("/admin");
     const meta = getSeoMeta(pathname, locale);
     const setMeta = (selector: string, attribute: "name" | "property", value: string) => {
       let element = document.querySelector<HTMLMetaElement>(selector);
