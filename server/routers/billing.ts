@@ -1,6 +1,6 @@
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts } from "../../drizzle/schema";
+import { aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts } from "../../drizzle/schema";
 import { AI_CREDIT_PACKS, DEFAULT_FREE_DAILY_IDENTIFICATIONS, DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS, DEFAULT_PRO_MONTHLY_IDENTIFICATIONS, FREE_FEATURES, PRO_FEATURES, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { getDb } from "../db";
 import { createCheckoutSession } from "../stripe";
@@ -51,6 +51,21 @@ export const billingRouter = router({
       monthlyLimit,
       globalDailyLimit: policy?.globalDailyIdentifications ?? DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS,
     };
+  }),
+
+  history: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db.select({
+      id: aiCreditPurchases.id,
+      packKey: aiCreditPurchases.packKey,
+      credits: aiCreditPurchases.credits,
+      status: aiCreditPurchases.status,
+      createdAt: aiCreditPurchases.createdAt,
+      completedAt: aiCreditPurchases.completedAt,
+    }).from(aiCreditPurchases)
+      .where(eq(aiCreditPurchases.userId, ctx.user.id))
+      .orderBy(desc(aiCreditPurchases.createdAt))
+      .limit(50);
   }),
 
   createCheckout: protectedProcedure.input(checkoutInput).mutation(async ({ ctx, input }) => {

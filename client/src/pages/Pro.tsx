@@ -8,6 +8,7 @@ export default function Pro() {
   const auth = useAuth();
   const plans = trpc.billing.plans.useQuery();
   const membership = trpc.billing.me.useQuery(undefined, { enabled: auth.isAuthenticated });
+  const history = trpc.billing.history.useQuery(undefined, { enabled: auth.isAuthenticated });
   const checkout = trpc.billing.createCheckout.useMutation();
   const [notice, setNotice] = useState<string | null>(null);
   const pro = plans.data?.pro;
@@ -36,6 +37,10 @@ export default function Pro() {
     <section className="pro-page__credit-panel observatory-data-panel">
       <div><span className="eyebrow">KI-BESTIMMUNGEN</span><h2>Credits nach Bedarf</h2><p>Das kostenlose Tageskontingent bleibt erhalten. Gekaufte Credits verfallen nicht und werden erst nach erfolgreicher Stripe-Zahlung gutgeschrieben.</p></div>
       <div className="pro-credit-grid">{credits.map(pack => <article className="pro-credit-card" key={pack.key}><Coins size={18} /><strong>{pack.credits}</strong><span>Bestimmungen</span><b>€{pack.priceEur.toFixed(2).replace(".", ",")}</b><button className="primary-action" type="button" disabled={checkout.isPending || membership.data?.paymentReady === false} onClick={() => void startCheckout("credits", pack.key)}>CREDITS KAUFEN</button></article>)}</div>
+    </section>
+    <section className="pro-page__history observatory-data-panel">
+      <div><span className="eyebrow">PRIVATE · KAUFHISTORIE</span><h2>DEINE CREDIT-KÄUFE</h2><p>Nur abgeschlossene Stripe-Zahlungen werden hier als Credits verbucht. Beträge werden aus dem jeweiligen Paket angezeigt; Kartendaten bleiben bei Stripe.</p></div>
+      {!auth.isAuthenticated ? <p className="pro-page__history-empty">Melde dich an, um deine Kaufhistorie zu sehen.</p> : history.isLoading ? <p className="pro-page__history-empty">KAUFHISTORIE WIRD GELADEN …</p> : history.isError ? <p className="pro-page__history-empty">Die Kaufhistorie konnte gerade nicht geladen werden.</p> : history.data?.length ? <ul className="pro-purchase-history">{history.data.map(entry => { const pack = credits.find(item => item.key === entry.packKey); const completed = entry.status === "completed"; return <li className="pro-purchase-history__row" key={entry.id}><div><strong>{pack?.label ?? `${entry.credits} KI-Credits`}</strong><span>{entry.credits} KI-Bestimmungen · {pack ? `€${pack.priceEur.toFixed(2).replace(".", ",")}` : "Paketpreis"}</span></div><div className="pro-purchase-history__meta"><span className={`system-chip ${completed ? "" : "system-chip--pending"}`}>{completed ? "ABGESCHLOSSEN" : "AUSSTEHEND"}</span><time dateTime={new Date(entry.createdAt).toISOString()}>{new Intl.DateTimeFormat("de-DE", { dateStyle: "medium" }).format(new Date(entry.createdAt))}</time></div></li>; })}</ul> : <p className="pro-page__history-empty">Noch keine Credit-Käufe. Dein kostenloses Tageskontingent bleibt aktiv.</p>}
     </section>
     <div className="pro-page__plans">
       <article className="pro-plan-card pro-plan-card--free"><span className="eyebrow">FÜR ALLE</span><h2>Free</h2><p>Entdecken, lernen und Teil der Community sein.</p><span className="system-chip">COMMUNITY BLEIBT KOSTENLOS</span><ul>{plans.data.free.features.map(feature => <li key={feature}><Check size={15} />{feature}</li>)}</ul></article>

@@ -38,6 +38,7 @@ export async function createCheckoutSession(input: { userId: number; email: stri
   params.set("success_url", `${origin}/pro?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${origin}/pro?checkout=cancelled`);
   params.set("allow_promotion_codes", "true");
+  params.set("managed_payments[enabled]", "false");
   params.set("client_reference_id", String(input.userId));
   params.set("metadata[user_id]", String(input.userId));
   params.set("metadata[customer_email]", input.email ?? "");

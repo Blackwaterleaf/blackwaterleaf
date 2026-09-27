@@ -2027,6 +2027,17 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .pro-page__credit-panel { display:grid; gap:14px; }
 .pro-page__credit-panel h2 { margin:5px 0 0; font-size:1.15rem; }
 .pro-page__credit-panel p { margin:0; color:var(--obs-muted); line-height:1.45; }
+.pro-page__history { display:grid; gap:14px; }
+.pro-page__history h2 { margin:5px 0 0; font-size:1.15rem; }
+.pro-page__history > div > p { margin:0; color:var(--obs-muted); line-height:1.45; }
+.pro-page__history-empty { margin:0; padding:16px; border:1px dashed rgba(198,247,86,.28); border-radius:12px; color:var(--obs-muted); font-size:.82rem; }
+.pro-purchase-history { display:grid; gap:0; padding:0; margin:0; list-style:none; border-top:1px solid var(--obs-border); }
+.pro-purchase-history__row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 0; border-bottom:1px solid var(--obs-border); }
+.pro-purchase-history__row > div:first-child { display:grid; gap:3px; min-width:0; }
+.pro-purchase-history__row strong { color:var(--obs-text); }
+.pro-purchase-history__row span, .pro-purchase-history__row time { color:var(--obs-muted); font-size:.78rem; }
+.pro-purchase-history__meta { display:flex; align-items:center; justify-content:flex-end; gap:12px; flex-wrap:wrap; }
+.system-chip--pending { border-color:rgba(255,194,102,.5); color:#ffc266; }
 .pro-credit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
 .pro-credit-card { display:grid; gap:5px; padding:14px; border:1px solid rgba(198,247,86,.3); border-radius:14px; background:rgba(5,23,12,.76); }
 .pro-credit-card svg { color:var(--obs-lime); }
@@ -2050,7 +2061,7 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .pro-plan-card__price { display:flex; align-items:baseline; gap:8px; color:var(--obs-muted); }
 .pro-plan-card__price strong { color:var(--obs-text); font-size:2rem; }
 .pro-page__note { margin:0; color:var(--obs-muted); font-size:.8rem; text-align:center; }
-@media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } .pro-credit-grid,.ai-policy-grid { grid-template-columns:1fr; } }
+@media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } .pro-credit-grid,.ai-policy-grid { grid-template-columns:1fr; } .pro-purchase-history__row { align-items:flex-start; flex-direction:column; } .pro-purchase-history__meta { justify-content:flex-start; } }
 
 .profile-subscription-card { display:grid; gap:14px; border-color:rgba(198,247,86,.42); background:linear-gradient(145deg,rgba(12,38,20,.94),rgba(3,15,9,.92)); }
 .profile-subscription-card__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }

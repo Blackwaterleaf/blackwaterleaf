@@ -21,4 +21,18 @@ describe("Free / Pro monetization contract", () => {
     expect(proPage).toContain("CREDITS KAUFEN");
     expect(proPage).toContain("billing.createCheckout");
   });
+
+  it("disables Managed Payments for inline credit-product data", () => {
+    const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
+    expect(stripe).toContain('params.set("managed_payments[enabled]", "false")');
+  });
+
+  it("exposes a private purchase history for completed credit purchases", () => {
+    const billing = readFileSync(resolve(process.cwd(), "server/routers/billing.ts"), "utf8");
+    const proPage = readFileSync(resolve(process.cwd(), "client/src/pages/Pro.tsx"), "utf8");
+    expect(billing).toContain("history: protectedProcedure");
+    expect(billing).toContain("aiCreditPurchases");
+    expect(proPage).toContain("trpc.billing.history.useQuery");
+    expect(proPage).toContain("DEINE CREDIT-KÄUFE");
+  });
 });
