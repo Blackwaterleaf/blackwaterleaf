@@ -5,7 +5,9 @@ const ROOT = process.cwd();
 const OUT = resolve(ROOT, "data/imports/catalog-expansion-gbif-2026-09.json");
 const GBIF = "https://api.gbif.org/v1";
 const BACKBONE = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
-const TARGETS = { plants: 500, freshwaterFish: 1311, terrarium: 500 };
+// Existing database baseline: 89 published + 500 draft freshwater fish.
+// Discover only the remaining gap so the total catalog target is 1,400 fish.
+const TARGETS = { plants: 500, freshwaterFish: 500, terrarium: 500 };
 const HARD_STOP = 909;
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 300;
