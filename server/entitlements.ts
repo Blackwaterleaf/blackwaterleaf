@@ -19,7 +19,7 @@ export type ProAccess = {
 export async function getProAccess(db: any, user: EntitlementUser): Promise<ProAccess> {
   if (user.role === "admin") return { active: true, source: "admin", expiresAt: null };
 
-  const [[account], [grant]] = await Promise.all([
+  const [[account], [grant], [override]] = await Promise.all([
     db.select({ plan: billingAccounts.plan, status: billingAccounts.status, currentPeriodEnd: billingAccounts.currentPeriodEnd })
       .from(billingAccounts)
       .where(eq(billingAccounts.userId, user.id))
@@ -28,9 +28,17 @@ export async function getProAccess(db: any, user: EntitlementUser): Promise<ProA
       .from(accountEntitlements)
       .where(and(eq(accountEntitlements.userId, user.id), eq(accountEntitlements.featureKey, "pro"), eq(accountEntitlements.status, "active")))
       .limit(1),
+    db.select({ status: accountEntitlements.status, expiresAt: accountEntitlements.expiresAt })
+      .from(accountEntitlements)
+      .where(and(eq(accountEntitlements.userId, user.id), eq(accountEntitlements.featureKey, "pro_override")))
+      .limit(1),
   ]);
 
   const now = Date.now();
+  if (override?.status === "revoked") return { active: false, source: "none", expiresAt: null };
+  if (override?.status === "active" && (!override.expiresAt || override.expiresAt.getTime() > now)) {
+    return { active: true, source: "admin_grant", expiresAt: override.expiresAt ?? null };
+  }
   if (grant && (!grant.expiresAt || grant.expiresAt.getTime() > now)) {
     return { active: true, source: "admin_grant", expiresAt: grant.expiresAt ?? null };
   }

@@ -32,7 +32,7 @@ async function assertPublicTarget(db: Awaited<ReturnType<typeof requireDatabase>
     const row = await db.select({ id: partnerProducts.id }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(eq(partnerProducts.id, targetId), eq(partnerProducts.status, "active"), eq(partnerProfiles.status, "approved"))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "product_not_found" });
   } else {
-    const row = await db.select({ id: users.id }).from(users).where(and(eq(users.id, targetId), eq(users.status, "active"), eq(users.profileVisibility, "public"))).limit(1);
+    const row = await db.select({ id: users.id }).from(users).where(and(eq(users.id, targetId), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "public_profile_not_found" });
   }
 }
@@ -82,6 +82,13 @@ export const socialRouter = router({
     const db = await requireDatabase();
     await db.update(userFollows).set({ status: "removed", updatedAt: new Date() }).where(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, input.id)));
     return { following: false } as const;
+  }),
+
+  /** Instagram-style: a profile owner can remove someone from their followers. */
+  removeFollower: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    await db.update(userFollows).set({ status: "removed", updatedAt: new Date() }).where(and(eq(userFollows.followerId, input.id), eq(userFollows.followingId, ctx.user.id)));
+    return { removed: true } as const;
   }),
 
   block: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {

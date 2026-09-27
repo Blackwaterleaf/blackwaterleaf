@@ -117,6 +117,7 @@ import {
   publicProfilePosts,
   profileExportData,
   socialRelationship,
+  socialAdminProfile,
   followProfile,
   unfollowProfile,
   savedItems,
@@ -2671,7 +2672,7 @@ function PostScreen({
 }) {
   const [content, setContent] = useState("");
   const [realm, setRealm] = useState<Realm | null>("botany");
-  const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
+  const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null; width: number; height: number } | null>(null);
   const [postAspect, setPostAspect] = useState<"original" | "9:16" | "4:5" | "1:1" | "16:9">("original");
   const [postQuality, setPostQuality] = useState(92);
   const [estimatedPostBytes, setEstimatedPostBytes] = useState<number | null>(null);
@@ -2688,7 +2689,10 @@ function PostScreen({
   useEffect(() => {
     if (!postImage) { setEstimatedPostBytes(null); return; }
     let active = true;
-    void ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
+    const maxDimension = 4096;
+    const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
+    const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
+    void ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.86), format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
     return () => { active = false; };
   }, [postImage, postQuality]);
   useEffect(() => {
@@ -2715,7 +2719,7 @@ function PostScreen({
     }
     setPostAspect(requestedAspect);
     setPostQuality(requestedAspect === postAspect ? postQuality : 92);
-    setPostImage({ uri: asset.uri, mimeType, fileSize });
+    setPostImage({ uri: asset.uri, mimeType, fileSize, width: asset.width, height: asset.height });
     setMediaConsent(false);
   };
 
@@ -2763,7 +2767,10 @@ function PostScreen({
       });
       if (postImage) {
         setUploadProgress({ percent: 32, etaSeconds: 4, label: "BILD WIRD VERARBEITET" });
-        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true });
+        const maxDimension = 4096;
+        const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
+        const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
+        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.86), format: ImageManipulator.SaveFormat.JPEG, base64: true });
         if (!prepared.base64) throw new Error("image_read_failed");
         setUploadProgress({ percent: 65, etaSeconds: 2, label: "BILD WIRD HOCHGELADEN" });
         const uploadedImage = await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
@@ -3198,6 +3205,24 @@ function CommunityScreen({
   onOpenDetail: (id: string) => void;
 }) {
   const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
+  const [adminProfile, setAdminProfile] = useState<Awaited<ReturnType<typeof socialAdminProfile>> | null>(null);
+  const [subscriptionBusy, setSubscriptionBusy] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void socialAdminProfile(token).then(profile => { if (active) setAdminProfile(profile); }).catch(() => { if (active) setAdminProfile(null); });
+    return () => { active = false; };
+  }, [token]);
+  const toggleAdminSubscription = async () => {
+    if (!token || !adminProfile || subscriptionBusy) { if (!token) await onSignIn(); return; }
+    setSubscriptionBusy(true);
+    try {
+      if (adminProfile.isFollowing) await unfollowProfile(token, Number(adminProfile.id));
+      else await followProfile(token, Number(adminProfile.id));
+      setAdminProfile(await socialAdminProfile(token));
+    } catch (cause) {
+      Alert.alert("Abo nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen.");
+    } finally { setSubscriptionBusy(false); }
+  };
   const visiblePosts = posts.filter(post => realmFilter === "all" || post.realm === realmFilter);
   if (!token) return <Page>
     <ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · GESCHÜTZT" title="MITGLIEDERBEREICH." subtitle="Beiträge, Diskussionen und Live-Austausch werden erst nach einer sicheren Anmeldung geladen." icon="people-outline" />
@@ -3212,6 +3237,7 @@ function CommunityScreen({
         subtitle="Echte Naturmomente von echten, aktiven Konten."
         icon="people-outline"
       />
+      {adminProfile ? <View style={[styles.communitySubscribeNative, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>OFFIZIELLES PROFIL</Text><Text style={styles.cardTitle}>BLACKWATERLEAF ABONNIEREN</Text><Text style={styles.miniCopy}>{adminProfile.followers} Follower · neue Naturbeiträge zuerst sehen</Text></View><PrimaryButton tone={tone} label={adminProfile.isFollowing ? "ABONNIERT" : "ABONNIEREN"} icon={adminProfile.isFollowing ? "checkmark-circle-outline" : "person-add-outline"} onPress={() => void toggleAdminSubscription()} disabled={subscriptionBusy} /></View> : null}
       <ObservatoryActionCluster
         tone={tone}
         visual
@@ -5231,6 +5257,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  communitySubscribeNative: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 17, borderWidth: 1, marginBottom: 12 },
   communityFeedSelector: { gap: 10, padding: 14, borderRadius: 17, borderWidth: 1 },
   communityFeedSelectorHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
   communityFeedVerified: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },

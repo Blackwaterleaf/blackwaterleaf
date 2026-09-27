@@ -33,13 +33,13 @@ function RolePicker({ account, currentUserId, pending, onSave, disabled }: { acc
   </div>;
 }
 
-function ProAccessPicker({ account, pending, onSave }: { account: { id: number; proAccess: { active: boolean; manuallyGranted: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: Date | null } }; pending: boolean; onSave: (active: boolean) => void }) {
+function ProAccessPicker({ account, pending, onSave }: { account: { id: number; proAccess: { active: boolean; manuallyGranted: boolean; forcedFree: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: Date | null } }; pending: boolean; onSave: (active: boolean) => void }) {
   const [active, setActive] = useState(account.proAccess.manuallyGranted);
   useEffect(() => setActive(account.proAccess.manuallyGranted), [account.proAccess.manuallyGranted]);
-  const label = account.proAccess.source === "admin" ? "ADMIN · VOLLZUGRIFF" : account.proAccess.source === "admin_grant" ? "ADMIN-FREIGEGEBEN" : account.proAccess.source === "stripe" ? "STRIPE · PRO AKTIV" : "FREE / KAUF ERFORDERLICH";
+  const label = account.proAccess.source === "admin" ? "ADMIN · VOLLZUGRIFF" : account.proAccess.source === "admin_grant" ? "FULL ABO · ADMIN-FREIGEGEBEN" : account.proAccess.forcedFree ? "FREE · ADMIN ERZWUNGEN" : account.proAccess.source === "stripe" ? "STRIPE · PRO AKTIV" : "FREE / KAUF ERFORDERLICH";
   return <div className="pro-access-picker" aria-label={`Pro-Freigabe für Konto ${account.id}`}>
     <span className={`system-chip ${account.proAccess.active ? "" : "system-chip--pending"}`}>{label}</span>
-    <button type="button" className="secondary-action" disabled={pending || account.proAccess.source === "admin"} onClick={() => { const next = !active; if (window.confirm(next ? "Pro für dieses Konto ohne Stripe-Kauf freischalten?" : "Die manuelle Pro-Freigabe wirklich widerrufen?")) { setActive(next); onSave(next); } }}>{account.proAccess.source === "admin" ? "AUTOMATISCH AKTIV" : active ? "FREIGABE WIDERRUFEN" : "PRO FREISCHALTEN"}</button>
+    <button type="button" className="secondary-action" disabled={pending || account.proAccess.source === "admin"} onClick={() => { const next = !active; if (window.confirm(next ? "Full Abo für dieses Konto freischalten? Ein bestehendes Stripe-Pro wird damit ebenfalls übersteuert." : "Für dieses Konto Free erzwingen und Pro sperren?")) { setActive(next); onSave(next); } }}>{account.proAccess.source === "admin" ? "AUTOMATISCH AKTIV" : active ? "FREE SETZEN" : "FULL ABO FREIGEBEN · PRO FREISCHALTEN"}</button>
   </div>;
 }
 

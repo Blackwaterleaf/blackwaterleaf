@@ -716,6 +716,7 @@ export type UnifiedSearchResult = {
 };
 export type PublicProfile = Account & { location?: string | null; profileVisibility?: string; socialLinks?: Record<string, string | null> };
 export type SocialRelationship = { followers: number; following: number; isFollowing: boolean };
+export type SocialAdminProfile = { id: string; name: string | null; username: string | null; bio: string | null; avatarUrl: string | null; followers: number; isFollowing: boolean };
 export type PublicProfilePost = { id: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; updatedAt: string; media?: Array<{ id: string; kind: string; mimeType: string; url: string | null }> };
 export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "aquarium_taxon" | "product" | "profile"; targetId: number; createdAt: string };
 export type PublicPlantTaxon = { id: number; source: string; sourceVersion: string; sourceRecordId: string; scientificName: string; acceptedScientificName: string | null; rank: string | null; family: string | null; genus: string | null; commonNames: string[]; synonyms: string[]; summary: string | null; careProfile: Record<string, unknown> | null; imageUrl: string | null; imageSourceUrl: string | null; imageLicense: string | null; imageAttribution: string | null; evidenceState: string; status: string };
@@ -734,8 +735,10 @@ export const publicProfilePosts = (id: number) => trpcGet<PublicProfilePost[]>("
 export const observationMap = (realm?: "botany" | "aquarium" | "terrarium", limit = 200) =>
   trpcGet<ObservationMapPoint[]>("observations.map", { realm, limit });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);
+export const socialAdminProfile = (token?: string | null) => trpcGet<SocialAdminProfile>("social.adminProfile", undefined, token);
 export const followProfile = (token: string, id: number) => trpcPost<{ following: true }>("social.follow", { id }, token);
 export const unfollowProfile = (token: string, id: number) => trpcPost<{ following: false }>("social.unfollow", { id }, token);
+export const removeFollower = (token: string, followerId: number) => trpcPost<{ removed: true }>("social.removeFollower", { id: followerId }, token);
 export const savedItems = (token: string) => trpcGet<SavedItem[]>("social.saved", undefined, token);
 export const saveItem = (token: string, input: { targetType: SavedItem["targetType"]; targetId: number }) => trpcPost<{ saved: true }>("social.save", input, token);
 export const unsaveItem = (token: string, input: { targetType: SavedItem["targetType"]; targetId: number }) => trpcPost<{ saved: false }>("social.unsave", input, token);

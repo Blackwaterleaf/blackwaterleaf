@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, gte, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { accountEntitlements, aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, assistantUsage, billingAccounts, communityPosts, communityReports, mediaAssets, notifications, observations, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
@@ -237,10 +237,14 @@ export const adminRouter = router({
       .from(users)
       .orderBy(desc(users.lastSignedIn))
       .limit(100);
-    const proGrants = await db.select({ userId: accountEntitlements.userId, status: accountEntitlements.status, expiresAt: accountEntitlements.expiresAt })
+    const proGrants = await db.select({ userId: accountEntitlements.userId, featureKey: accountEntitlements.featureKey, status: accountEntitlements.status, expiresAt: accountEntitlements.expiresAt })
       .from(accountEntitlements)
-      .where(eq(accountEntitlements.featureKey, "pro"));
-    const proGrantByUser = new Map(proGrants.map(grant => [grant.userId, grant]));
+      .where(or(eq(accountEntitlements.featureKey, "pro"), eq(accountEntitlements.featureKey, "pro_override")));
+    const proGrantByUser = new Map<number, typeof proGrants[number]>();
+    for (const grant of proGrants) {
+      const current = proGrantByUser.get(grant.userId);
+      if (!current || grant.featureKey === "pro_override") proGrantByUser.set(grant.userId, grant);
+    }
     const stripeAccounts = await db.select({ userId: billingAccounts.userId, plan: billingAccounts.plan, status: billingAccounts.status })
       .from(billingAccounts);
     const stripeAccountByUser = new Map(stripeAccounts.map(account => [account.userId, account]));
@@ -256,9 +260,10 @@ export const adminRouter = router({
       proAccess: (() => {
         const grant = proGrantByUser.get(account.id);
         const manuallyGranted = grant?.status === "active" && (!grant.expiresAt || grant.expiresAt > new Date());
+        const forcedFree = grant?.featureKey === "pro_override" && grant.status === "revoked";
         const stripeActive = stripeAccountByUser.get(account.id)?.plan === "pro" && stripeAccountByUser.get(account.id)?.status === "active";
-        const source: "admin" | "admin_grant" | "stripe" | "none" = account.role === "admin" ? "admin" : manuallyGranted ? "admin_grant" : stripeActive ? "stripe" : "none";
-        return { active: source !== "none", manuallyGranted, source, expiresAt: grant?.expiresAt ?? null };
+        const source: "admin" | "admin_grant" | "stripe" | "none" = account.role === "admin" ? "admin" : forcedFree ? "none" : manuallyGranted ? "admin_grant" : stripeActive ? "stripe" : "none";
+        return { active: source !== "none", manuallyGranted, forcedFree, source, expiresAt: grant?.expiresAt ?? null };
       })(),
       roles: Array.from(new Set([
         ...(rolesByUser.get(account.id) ?? []),
@@ -273,9 +278,9 @@ export const adminRouter = router({
       const db = await requireDatabase();
       const [target] = await db.select({ id: users.id, role: users.role }).from(users).where(eq(users.id, input.id)).limit(1);
       if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "account_not_found" });
-      await db.insert(accountEntitlements).values({ userId: input.id, featureKey: "pro", status: input.active ? "active" : "revoked", grantedByUserId: ctx.user.id, expiresAt: null })
+      await db.insert(accountEntitlements).values({ userId: input.id, featureKey: "pro_override", status: input.active ? "active" : "revoked", grantedByUserId: ctx.user.id, expiresAt: null })
         .onDuplicateKeyUpdate({ set: { status: input.active ? "active" : "revoked", grantedByUserId: ctx.user.id, expiresAt: null } });
-      await appendAuditEntry({ actorId: ctx.user.id, action: input.active ? "account_pro_access_granted" : "account_pro_access_revoked", targetType: "user", targetId: input.id, payload: { featureKey: "pro", targetRole: target.role } });
+      await appendAuditEntry({ actorId: ctx.user.id, action: input.active ? "account_pro_access_granted" : "account_pro_access_revoked", targetType: "user", targetId: input.id, payload: { featureKey: "pro_override", targetRole: target.role } });
       return { id: input.id, active: input.active } as const;
     }),
 
