@@ -107,6 +107,13 @@ export async function readVideoAsBase64(file: File): Promise<{ base64: string; m
 
 export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
   const rawCode = error instanceof Error ? error.message : "";
+  const rawLower = rawCode.toLowerCase();
+  if (rawLower.includes("storage") || rawLower.includes("presign") || rawLower.includes("s3") || rawLower.includes("forge")) {
+    return locale === "de" ? "Der Bildspeicher ist momentan nicht erreichbar. Bitte prüfe deine Verbindung und versuche es erneut." : "Image storage is currently unavailable. Check your connection and try again.";
+  }
+  if (rawLower.includes("fetch failed") || rawLower.includes("network") || rawLower.includes("unreachable") || rawLower.includes("failed to fetch")) {
+    return locale === "de" ? "Der BlackWaterLeaf-Server ist momentan nicht erreichbar. Bitte versuche es in wenigen Sekunden erneut." : "The BlackWaterLeaf server is currently unreachable. Please try again in a few seconds.";
+  }
   const code = rawCode.split(":").pop()?.trim() ?? rawCode;
   const german: Record<string, string> = {
     unsupported_image_type: "Bitte wähle ein JPG-, PNG- oder WebP-Bild.",

@@ -13,6 +13,7 @@ const nativeApi = readFileSync(resolve(root, "mobile-natur/src/api.ts"), "utf8")
     expect(community).toContain("eventType: \"photo_upload\"");
     expect(community).toContain("community-photo:${post.id}");
     expect(community).toContain("xpAwarded: xp.amount");
+    expect(community).toContain("storageGetSignedUrl(stored.key).catch(() => stored.url)");
     expect(gamification).toContain("communityPhoto: 10");
     expect(nativeApi).toContain("xpAwarded: number");
   });

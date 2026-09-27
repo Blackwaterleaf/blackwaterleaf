@@ -238,7 +238,8 @@ export const communityRouter = router({
         sourceType: "media_asset",
         sourceId: String(inserted[0].insertId),
       });
-      return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key), xpAwarded: xp.amount };
+      const accessUrl = await storageGetSignedUrl(stored.key).catch(() => stored.url);
+      return { id: String(inserted[0].insertId), accessUrl, xpAwarded: xp.amount };
     }),
   uploadDraftVideo: protectedProcedure
     .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.enum(["video/mp4", "video/webm"]) }))
