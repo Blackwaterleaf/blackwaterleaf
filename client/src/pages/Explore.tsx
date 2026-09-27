@@ -31,6 +31,10 @@ const plantInspiration = [
   [20, "Hemianthus callitrichoides", "Feiner grüner Bodenteppich", "Starkes Licht · CO₂ hilfreich", "hemianthus.jpg"],
   [24, "Alternanthera reineckii", "Roter Farbakzent", "Licht und Nährstoffe · Rückschnitt", "alternanthera.jpg"],
 ] as const;
+type PlantFilter = "all" | "Aufsitzer" | "Bodendecker" | "Schnellwachsend";
+const plantTags: Record<number, PlantFilter[]> = { 10: ["Aufsitzer"], 30062: ["Aufsitzer"], 13: ["Schnellwachsend"], 30073: ["Schnellwachsend"], 17: ["Aufsitzer"], 30076: ["Schnellwachsend"], 18: ["Aufsitzer"], 19: ["Aufsitzer"], 20: ["Bodendecker"], 24: ["Schnellwachsend"] };
+const plantSource = "Recherchierte Referenzquelle";
+const plantLicense = "Lizenzhinweis am Original";
 
 export default function Explore() {
   const { locale } = useI18n();
@@ -38,12 +42,14 @@ export default function Explore() {
   const [view, setView] = useState<ViewMode>("map");
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapAttempt, setMapAttempt] = useState(0);
+  const [plantFilter, setPlantFilter] = useState<PlantFilter>("all");
   const observations = trpc.observations.publicFeed.useQuery({ realm: realm === "all" ? undefined : realm, limit: 20 }, { retry: false });
   const mapObservations = trpc.observations.map.useQuery({ realm: realm === "all" ? undefined : realm, limit: 200 }, { retry: false });
   const title = locale === "de" ? "WASSER VERBINDET." : "WATER CONNECTS.";
   const intro = locale === "de" ? "FORSCHEN · ENTDECKEN · SCHÜTZEN" : "RESEARCH · DISCOVER · PROTECT";
   const observationRows = observations.data ?? [];
   const observationBusy = observations.isLoading || observations.isFetching;
+  const visiblePlants = plantInspiration.filter(([id]) => plantFilter === "all" || plantTags[id].includes(plantFilter));
   const mapPoints: OpenStreetMapPoint[] = (mapObservations.data ?? []).map(point => ({
     lat: point.latitude,
     lng: point.longitude,
@@ -69,7 +75,8 @@ export default function Explore() {
       <section className="explore-inspiration" aria-labelledby="inspiration-heading">
         <div className="observatory-section__heading"><div><span className="eyebrow">NEUE IDEEN · BOTANIK</span><h2 id="inspiration-heading">PFLANZEN ZUM ENTDECKEN</h2></div><Link className="secondary-action" href="/search">KATALOG ÖFFNEN <ArrowRight size={14} /></Link></div>
         <p className="explore-inspiration__intro">Lass dich von echten Arten inspirieren und öffne den Katalog für Quellen, Standort und Pflegewissen.</p>
-        <div className="explore-inspiration__grid">{plantInspiration.map(([id, name, hook, note, image], index) => <Link key={id} href={`/plant/${id}`} className={`explore-inspiration-card explore-inspiration-card--${(index % 3) + 1}`} aria-label={`${name} – ausführliche Pflegehinweise öffnen`}><span className="explore-inspiration-card__number">0{index + 1}</span><img className="explore-inspiration-card__image" src={`/images/discover-plants/${image}`} alt={`${name} – Pflanzenbild`} loading="lazy" /><span><strong>{name}</strong><b>{hook}</b><small>{note}</small></span><ArrowRight size={16} /></Link>)}</div>
+        <div className="explore-inspiration__filters" role="group" aria-label="Pflanzenfilter">{(["all", "Aufsitzer", "Bodendecker", "Schnellwachsend"] as PlantFilter[]).map(filter => <button type="button" key={filter} className={plantFilter === filter ? "active" : ""} onClick={() => setPlantFilter(filter)}>{filter === "all" ? "Alle Arten" : filter}</button>)}</div>
+        <div className="explore-inspiration__grid">{visiblePlants.map(([id, name, hook, note, image], index) => { const second = visiblePlants[(index + 1) % visiblePlants.length]?.[4] ?? image; return <Link key={id} href={`/plant/${id}`} className={`explore-inspiration-card explore-inspiration-card--${(index % 3) + 1}`} aria-label={`${name} – ausführliche Pflegehinweise öffnen`}><span className="explore-inspiration-card__number">0{index + 1}</span><div className="explore-inspiration-card__gallery"><img src={`/images/discover-plants/${image}`} alt={`${name} – Pflanzenbild`} loading="lazy" /><img src={`/images/discover-plants/${second}`} alt={`${name} – weiteres Pflanzenbild`} loading="lazy" /></div><span><strong>{name}</strong><b>{hook}</b><small>{note}</small><small className="explore-inspiration-card__credit">Quelle: {plantSource} · Lizenz: {plantLicense}</small></span><ArrowRight size={16} /></Link>; })}</div>
       </section>
 
       <section className="observatory-observation-panel" id="map" aria-labelledby="observation-heading">

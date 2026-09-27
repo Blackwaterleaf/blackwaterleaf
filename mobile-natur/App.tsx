@@ -1605,6 +1605,7 @@ function Explore({
   const tone = TONES.explore;
   const [realm, setRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
   const [view, setView] = useState<"map" | "list">("map");
+  const [plantFilter, setPlantFilter] = useState<"all" | "Aufsitzer" | "Bodendecker" | "Schnellwachsend">("all");
   const realmLabels = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" } as const;
   const plantInspiration = [
     [10, "Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend", require("./assets/discover-plants/anubias.jpg")],
@@ -1618,6 +1619,8 @@ function Explore({
     [20, "Hemianthus callitrichoides", "Feiner grüner Bodenteppich", "Starkes Licht · CO₂ hilfreich", require("./assets/discover-plants/hemianthus.jpg")],
     [24, "Alternanthera reineckii", "Roter Farbakzent", "Licht und Nährstoffe · Rückschnitt", require("./assets/discover-plants/alternanthera.jpg")],
   ] as const;
+  const plantTags: Record<number, string[]> = { 10: ["Aufsitzer"], 30062: ["Aufsitzer"], 13: ["Schnellwachsend"], 30073: ["Schnellwachsend"], 17: ["Aufsitzer"], 30076: ["Schnellwachsend"], 18: ["Aufsitzer"], 19: ["Aufsitzer"], 20: ["Bodendecker"], 24: ["Schnellwachsend"] };
+  const visiblePlants = plantInspiration.filter(([id]) => plantFilter === "all" || plantTags[id].includes(plantFilter));
   const filtered = realm === "all" ? observations : observations.filter(item => item.realm === realm);
   const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
   return (
@@ -1633,7 +1636,8 @@ function Explore({
       <View style={styles.exploreInspirationSection}>
         <View style={styles.exploreInspirationHeading}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>NEUE IDEEN · BOTANIK</Text><Text style={styles.sectionTitle}>PFLANZEN ZUM ENTDECKEN</Text></View><Pressable onPress={() => navigate("search")}><Text style={[styles.miniCopy, { color: tone.accent }]}>KATALOG</Text></Pressable></View>
         <Text style={styles.copy}>Echte Arten als Inspiration – mit Namen, Pflegehinweisen und Quellen im Katalog.</Text>
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator contentContainerStyle={styles.exploreInspirationPager}>{Array.from({ length: Math.ceil(plantInspiration.length / 4) }, (_, page) => <View key={page} style={styles.exploreInspirationPage}>{plantInspiration.slice(page * 4, page * 4 + 4).map(([id, name, hook, note, image], index) => <Pressable key={id} accessibilityLabel={`${name} – ausführliche Pflegehinweise öffnen`} onPress={() => onOpenTaxon(id)} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>0{index + 1}</Text></View><Image source={image} style={styles.exploreInspirationImage} /><View style={styles.flex}><Text style={styles.exploreInspirationName}>{name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{hook}</Text><Text style={styles.exploreInspirationNote}>{note}</Text></View></Pressable>)}</View>)}</ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.explorePlantFilters}>{(["all", "Aufsitzer", "Bodendecker", "Schnellwachsend"] as const).map(filter => <Pressable key={filter} onPress={() => setPlantFilter(filter)} style={[styles.explorePlantFilter, { borderColor: plantFilter === filter ? tone.accent : `${tone.accent}44`, backgroundColor: plantFilter === filter ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: plantFilter === filter ? tone.accent : c.muted }]}>{filter === "all" ? "ALLE ARTEN" : filter.toUpperCase()}</Text></Pressable>)}</ScrollView>
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator contentContainerStyle={styles.exploreInspirationPager}>{Array.from({ length: Math.ceil(visiblePlants.length / 4) }, (_, page) => <View key={page} style={styles.exploreInspirationPage}>{visiblePlants.slice(page * 4, page * 4 + 4).map(([id, name, hook, note, image], index) => <Pressable key={id} accessibilityLabel={`${name} – ausführliche Pflegehinweise öffnen`} onPress={() => onOpenTaxon(id)} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>0{index + 1}</Text></View><View style={styles.exploreInspirationGallery}><Image source={image} style={styles.exploreInspirationImage} /><Image source={visiblePlants[(index + 1) % visiblePlants.length]?.[4] ?? image} style={styles.exploreInspirationImage} /></View><View style={styles.flex}><Text style={styles.exploreInspirationName}>{name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{hook}</Text><Text style={styles.exploreInspirationNote}>{note}</Text><Text style={styles.exploreInspirationCredit}>Quelle: Referenzquelle · Lizenz: Originalhinweis</Text></View></Pressable>)}</View>)}</ScrollView>
       </View>
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>
@@ -5673,11 +5677,15 @@ const styles = StyleSheet.create({
   explorePortalLabel: { color: c.text, fontSize: 10, fontWeight: "900" },
   exploreInspirationSection: { gap: 9, marginTop: 4 },
   exploreInspirationHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  explorePlantFilters: { gap: 6, paddingVertical: 2 },
+  explorePlantFilter: { borderWidth: 1, borderRadius: 99, paddingVertical: 7, paddingHorizontal: 10 },
   exploreInspirationPager: { gap: 8 },
   exploreInspirationPage: { width: 332, flexDirection: "row", flexWrap: "wrap", gap: 8 },
   exploreInspirationGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   exploreInspirationCard: { width: 162, minHeight: 190, padding: 9, borderRadius: 14, borderWidth: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: 6 },
-  exploreInspirationImage: { width: 142, height: 78, borderRadius: 9 },
+  exploreInspirationGallery: { width: 142, flexDirection: "row", gap: 4 },
+  exploreInspirationImage: { width: 69, height: 78, borderRadius: 9 },
+  exploreInspirationCredit: { marginTop: 4, color: c.muted, fontSize: 7, lineHeight: 9 },
   exploreInspirationImageStyle: { borderRadius: 9 },
   exploreInspirationNumber: { width: 17, paddingTop: 2 },
   exploreInspirationName: { color: c.text, fontSize: 12, lineHeight: 15, fontWeight: "900" },
