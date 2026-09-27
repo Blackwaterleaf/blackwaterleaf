@@ -254,7 +254,8 @@ type Screen =
   | "notifications"
   | "messages"
   | "care"
-  | "feedback";
+  | "feedback"
+  | "pro";
 type BottomTab =
   | "discover"
   | "map"
@@ -350,6 +351,14 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "KONTOZENTRUM · VERWALTEN",
+    active: "profile",
+  },
+  pro: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "BLACKWATERLEAF PRO",
     active: "profile",
   },
   dashboard: {
@@ -1137,6 +1146,7 @@ function NaturApp() {
           />
         )}
         {screen === "feedback" && <FeedbackScreen tone={TONES.feedback} token={token} onSignIn={signIn} />}
+        {screen === "pro" && <NativeProScreen tone={TONES.pro} onBack={() => navigate("management")} />}
         {screen === "management" && (
           <ManagementScreen
             tone={TONES.management}
@@ -3378,6 +3388,18 @@ function NativePartnerAdminRow({ tone, token, item, onRefresh }: { tone: Tone; t
   return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>PARTNERANFRAGE #{item.id}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? "Partnerinteressent"} · {item.contactEmail}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><Pressable accessibilityRole="button" accessibilityLabel="Partnerstatus ändern" onPress={() => setStatus(nextPartnerStatus(status))} style={styles.dashboardStatusPicker}><Text style={styles.dashboardStatusValue}>{statusLabel(status)}</Text><Ionicons name="chevron-down" size={15} color={tone.accent} /></Pressable></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
 }
 
+function NativeProScreen({ tone, onBack }: { tone: Tone; onBack: () => void }) {
+  const features = [
+    ["UNBEGRENZTE PRIVATE ANLAGEN", "Pflanzen, Aquarien und Terrarien ohne Kontingent verwalten."],
+    ["VOLLSTÄNDIGE PFLEGEHISTORIE", "Verläufe, Messwerte, Bilder und Pflegezustände vergleichen."],
+    ["ERWEITERTE AUSWERTUNGEN", "Trends und exportierbare Pflegeübersichten."],
+    ["MEHR KI-BESTIMMUNGEN", "Erhöhtes monatliches Kontingent für Bestimmung und Diagnose."],
+    ["EXPORT & BACKUP", "Eigene Daten strukturiert sichern und geräteübergreifend nutzen."],
+    ["WERBEFREIE NUTZUNG", "Das Observatory ohne Werbeunterbrechungen erleben."],
+  ] as const;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. Pro finanziert private Werkzeuge, KI-Auswertung und sichere Datenarbeit." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>BLACKWATERLEAF PRO</Text><Text style={styles.copy}>€4,99 / Monat · €39,99 / Jahr</Text><Text style={styles.miniCopy}>Zahlung wird nach dem Anbieteranschluss transparent aktiviert.</Text></View></View><View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
+}
+
 function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
   const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
   const groups = [
@@ -3392,6 +3414,7 @@ function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: 
       ["Fortschritt & Merkliste", "XP, Level und gespeicherte Inhalte", "trophy-outline", () => navigate("ranking")],
       ...(isOwner ? [["Host-Dashboard", "Echte Reichweite und Konten · nur Eigentümer", "analytics-outline", () => navigate("dashboard")] as const] : []),
       ["Hilfe, Daten & Werkzeuge", "Quellen und Smart-Werte", "link-outline", () => navigate("management")],
+      ["BlackWaterLeaf Pro", "Mehr Anlagen, Auswertungen und KI-Kontingent", "sparkles-outline", () => navigate("pro")],
     ] as const },
   ];
   if (!token) return <Page><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Das Kontozentrum ist nur für angemeldete Konten verfügbar." onSignIn={onSignIn} /></Page>;

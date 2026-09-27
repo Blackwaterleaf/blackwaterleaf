@@ -36,6 +36,7 @@ import SavedItems from "./pages/SavedItems";
 import NotFound from "./pages/NotFound";
 import Feedback from "./pages/Feedback";
 import Legal from "./pages/Legal";
+import Pro from "./pages/Pro";
 
 function Router() {
   return (
@@ -61,6 +62,7 @@ function Router() {
         <Route path={"/notifications"} component={Notifications} />
         <Route path={"/messages"} component={Messages} />
         <Route path={"/feedback"} component={Feedback} />
+        <Route path={"/pro"} component={Pro} />
         <Route path={"/datenschutz"} component={Legal} />
         <Route path={"/privacy"} component={Legal} />
         <Route path={"/impressum"} component={Legal} />

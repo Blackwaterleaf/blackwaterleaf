@@ -97,3 +97,13 @@ Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browse
 - Jede Anfrage wird mit Konto, verifizierter Kontaktadresse, Nachricht, Status und Zeit gespeichert. Der Absender erhält unmittelbar eine private `partner_inquiry`-Benachrichtigung mit Eingangsbestätigung; aktive Host-Administratoren erhalten die Prüfbenachrichtigung.
 - Web und Native verwenden denselben `partners.submitInquiry`-Vertrag. Ein Klick auf die Host-Benachrichtigung führt zur Admin-Prüfung, ein Klick auf die Absenderbestätigung zum Marketplace. Keine Mailzustellung wird behauptet, solange kein Maildienst konfiguriert ist.
 - Die Oberfläche nennt die bestehenden Kontaktadressen ausschließlich an den vorgesehenen Partner-/Legal-Flächen: `Partnerblackwaterleaf@gmail.com` für Partneranfragen, `blackwaterleaf@gmail.com` für allgemeine Geschäftsanfragen und `info.blackwaterleaf@gmail.com` für Impressum/Datenschutz.
+
+
+## 15.41 Monetarisierung · Free / Pro (2026-09-27)
+
+- **Free bleibt offen:** Katalog, Basis-Suche, Community, öffentliche Beobachtungen, Basis-Karte, eine private Anlage und begrenzte KI-Bestimmungen.
+- **Pro-Kennzeichnung:** Pro erscheint immer mit sichtbarem `PRO`-/Sparkles-Symbol, Preis und konkreter Leistungsbeschreibung. Keine versteckten oder irreführenden Sperren.
+- **BlackWaterLeaf Pro:** 4,99 € monatlich oder 39,99 € jährlich. Kernnutzen sind unbegrenzte private Anlagen, Pflegehistorie, Auswertungen, erweitertes KI-Kontingent, Export/Backup, Herkunftskarten und werbefreie Nutzung.
+- **Creator / Expert:** bleibt bis zur Aktivierung der LIVE-Funktionen als späteres Paket sichtbar, aber nicht buchbar. Geplante Leistungen: Fach-LIVEs, exklusive Videos, Creator-Statistiken und Community-Badges.
+- Web und Native verwenden dieselben Begriffe, Preise und Free-/Pro-Grenzen. Zahlung wird erst nach Anschluss und Prüfung eines Zahlungsanbieters aktiviert.
+- Kleine Android-Geräte erhalten eine einspaltige Pro-Kartenansicht; keine Blur-/Glow-Pflicht für Pro-Flächen.

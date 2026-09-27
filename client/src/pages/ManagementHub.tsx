@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { ObservatoryContextHeader, ObservatoryStateSurface } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { trpc } from "@/lib/trpc";
-import { Bell, BookMarked, ChartNoAxesCombined, ChevronRight, Database, Globe2, Inbox, Leaf, LockKeyhole, Settings2, ShieldCheck, Trophy, UserRound, Wrench } from "lucide-react";
+import { Bell, BookMarked, ChartNoAxesCombined, ChevronRight, Database, Globe2, Inbox, Leaf, LockKeyhole, Settings2, ShieldCheck, Sparkles, Trophy, UserRound, Wrench } from "lucide-react";
 import { Link } from "wouter";
 
 const groups = [
@@ -22,6 +22,7 @@ const groups = [
       { title: "Fortschritt & Merkliste", note: "XP, Level und gespeicherte Inhalte", href: "/profile/progress", icon: Trophy, tone: "gold" },
       { title: "Host-Dashboard", note: "Nur Eigentümerkonto blackwaterleaf.com", href: "/admin", icon: ChartNoAxesCombined, tone: "host", ownerOnly: true },
       { title: "Hilfe, Daten & Werkzeuge", note: "Datenexport, Smart-Geräte und Quellen", href: "/profile/tools", icon: Wrench, tone: "security" },
+      { title: "BlackWaterLeaf Pro", note: "Mehr Anlagen, Auswertungen und KI-Kontingent", href: "/pro", icon: Sparkles, tone: "host" },
     ],
   },
 ] as const;

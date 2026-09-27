@@ -2019,3 +2019,22 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .admin-inbox-actions { align-items: center; min-width: 145px; }
 .admin-inbox-actions select { max-width: 150px; }
 @media (max-width: 620px) { .admin-inbox-row { display: grid; grid-template-columns: 1fr; } .admin-inbox-actions { justify-content: flex-end; min-width: 0; } .admin-inbox-actions select { flex: 1; max-width: none; } }
+
+/* Monetization: Free stays open; Pro is a visible, non-deceptive upgrade path. */
+.pro-page { gap: 18px; }
+.pro-page__status { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.pro-page__status h2 { margin:5px 0 0; font-size:1.1rem; }
+.pro-page__plans { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.pro-plan-card { min-width:0; display:flex; flex-direction:column; gap:12px; padding:18px; border:1px solid var(--obs-border); border-radius:18px; background:linear-gradient(145deg,rgba(8,32,20,.92),rgba(3,15,9,.9)); }
+.pro-plan-card--pro { border-color:rgba(198,247,86,.72); box-shadow:0 0 24px rgba(198,247,86,.1); }
+.pro-plan-card--later { border-color:rgba(94,215,244,.38); }
+.pro-plan-card h2 { margin:0; font-size:1.35rem; }
+.pro-plan-card p { margin:0; color:var(--obs-muted); line-height:1.5; }
+.pro-plan-card ul { display:grid; gap:10px; padding:0; margin:0; list-style:none; color:var(--obs-text); }
+.pro-plan-card li { display:flex; gap:8px; align-items:flex-start; font-size:.86rem; }
+.pro-plan-card li svg { flex:0 0 auto; color:var(--obs-lime); margin-top:2px; }
+.pro-plan-card li small { display:block; color:var(--obs-muted); margin-top:2px; line-height:1.35; }
+.pro-plan-card__price { display:flex; align-items:baseline; gap:8px; color:var(--obs-muted); }
+.pro-plan-card__price strong { color:var(--obs-text); font-size:2rem; }
+.pro-page__note { margin:0; color:var(--obs-muted); font-size:.8rem; text-align:center; }
+@media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } }
