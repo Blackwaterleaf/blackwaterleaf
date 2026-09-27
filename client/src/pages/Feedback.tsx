@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bug, Lightbulb, MessageSquareHeart, Send } from "lucide-react";
+import { Bug, Check, Lightbulb, MessageSquareHeart, Send } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
@@ -31,7 +31,7 @@ export default function Feedback() {
       </div>
       <label className="feedback-field"><span>DEINE NACHRICHT</span><textarea required minLength={3} maxLength={4000} value={message} onChange={event => setMessage(event.target.value)} placeholder="Was funktioniert nicht, was wünschst du dir oder was gefällt dir?" /><small>{message.length}/4000</small></label>
       <button className="primary-action" type="submit" disabled={submit.isPending || message.trim().length < 3}><Send size={15} />{submit.isPending ? "WIRD GESENDET …" : "NACHRICHT SENDEN"}</button>
-      {submit.isSuccess ? <p className="form-status" role="status">Danke. Deine Nachricht wurde sicher gespeichert.</p> : null}
+      {submit.isSuccess ? <div className="feedback-success" role="status" aria-live="polite"><span className="feedback-success__icon" aria-hidden="true"><Check size={22} strokeWidth={3} /></span><span><strong>Nachricht angekommen.</strong><small>Danke — dein Feedback wurde sicher gespeichert.</small></span></div> : null}
       {submit.isError ? <p className="form-status" role="alert">Die Nachricht konnte nicht gespeichert werden. Bitte versuche es erneut.</p> : null}
     </form>
     <p className="feedback-page__privacy"><Link href="/profile/privacy">Datenschutz & Datenkontrolle</Link> · Deine Nachricht bleibt deinem Konto zugeordnet.</p>
