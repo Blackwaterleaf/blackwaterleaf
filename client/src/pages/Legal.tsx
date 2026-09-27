@@ -18,10 +18,10 @@ export default function Legal() {
         <section className="legal-page__grid">
           <article className="observatory-data-panel legal-card">
             <h2>Anbieter</h2>
-            <p><strong>BlackWaterLeaf</strong></p>
+            <p><strong>Tim Höfges</strong></p>
             <address>BlackWaterLeaf<br />Bönninghardtstraße 94<br />46519 Bönninghardt<br />Deutschland</address>
             <p>BlackWaterLeaf Organisation of Loyalty</p>
-            <p className="legal-card__hint">Bitte ergänze vor dem öffentlichen Regelbetrieb noch die rechtlich verbindliche Betreiberform, den vollständigen Namen der verantwortlichen Person und – falls vorhanden – Register- oder Umsatzsteuerangaben.</p>
+            <p className="legal-card__hint">Betreiber und verantwortlich für die Inhalte: Tim Höfges. Falls vorhanden, ergänze bitte noch Register- oder Umsatzsteuerangaben.</p>
           </article>
           <article className="observatory-data-panel legal-card">
             <h2>Kontakt</h2>
