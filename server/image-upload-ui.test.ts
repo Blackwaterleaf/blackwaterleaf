@@ -35,4 +35,10 @@ describe("mobile image upload contract", () => {
     expect(community).toContain("composeRef.current?.scrollIntoView");
     expect(community).toContain("Bild optional auswählen");
   });
+
+  it("has an HTMLImageElement fallback when createImageBitmap is unavailable", () => {
+    expect(files).toContain("URL.createObjectURL(file)");
+    expect(files).toContain("image.onerror = () => resolve(null)");
+    expect(files).toContain('context.drawImage(source');
+  });
 });

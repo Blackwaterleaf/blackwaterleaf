@@ -28,19 +28,41 @@ function fileToDataUrl(file: Blob): Promise<string> {
 export type ImageAspect = "original" | "9:16" | "4:5" | "1:1" | "16:9";
 async function resizeImage(file: File, maxDimension: number, quality: number, fallbackMimeType: AllowedImageType, aspectRatio: ImageAspect = "original"): Promise<{ blob: Blob; mimeType: AllowedImageType }> {
   const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) return { blob: file, mimeType: fallbackMimeType };
-  const targetRatio = aspectRatio === "original" ? bitmap.width / bitmap.height : ({ "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "16:9": 16 / 9 } as const)[aspectRatio];
-  const sourceRatio = bitmap.width / bitmap.height;
-  const cropWidth = sourceRatio > targetRatio ? Math.round(bitmap.height * targetRatio) : bitmap.width;
-  const cropHeight = sourceRatio > targetRatio ? bitmap.height : Math.round(bitmap.width / targetRatio);
+  let source: CanvasImageSource | null = bitmap;
+  let sourceWidth = bitmap?.width ?? 0;
+  let sourceHeight = bitmap?.height ?? 0;
+  let objectUrl: string | null = null;
+  if (!source) {
+    objectUrl = URL.createObjectURL(file);
+    source = await new Promise<HTMLImageElement | null>(resolve => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => resolve(null);
+      image.src = objectUrl!;
+    });
+    sourceWidth = source?.naturalWidth ?? 0;
+    sourceHeight = source?.naturalHeight ?? 0;
+  }
+  if (!source || sourceWidth <= 0 || sourceHeight <= 0) {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    return { blob: file, mimeType: fallbackMimeType };
+  }
+  const targetRatio = aspectRatio === "original" ? sourceWidth / sourceHeight : ({ "9:16": 9 / 16, "4:5": 4 / 5, "1:1": 1, "16:9": 16 / 9 } as const)[aspectRatio];
+  const sourceRatio = sourceWidth / sourceHeight;
+  const cropWidth = sourceRatio > targetRatio ? Math.round(sourceHeight * targetRatio) : sourceWidth;
+  const cropHeight = sourceRatio > targetRatio ? sourceHeight : Math.round(sourceWidth / targetRatio);
   const scale = Math.min(1, maxDimension / Math.max(cropWidth, cropHeight));
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(cropWidth * scale));
   canvas.height = Math.max(1, Math.round(cropHeight * scale));
   const context = canvas.getContext("2d");
-  if (!context) return { blob: file, mimeType: fallbackMimeType };
-  context.drawImage(bitmap, Math.round((bitmap.width - cropWidth) / 2), Math.round((bitmap.height - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
-  bitmap.close();
+  if (!context) {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    return { blob: file, mimeType: fallbackMimeType };
+  }
+  context.drawImage(source, Math.round((sourceWidth - cropWidth) / 2), Math.round((sourceHeight - cropHeight) / 2), cropWidth, cropHeight, 0, 0, canvas.width, canvas.height);
+  bitmap?.close();
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
   const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/jpeg", quality));
   if (!blob) return { blob: file, mimeType: fallbackMimeType };
   return { blob, mimeType: "image/jpeg" };
