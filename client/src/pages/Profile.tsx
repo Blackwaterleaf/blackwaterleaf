@@ -6,7 +6,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Ban, Camera, Download, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Ban, Camera, Check, Download, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Sparkles, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -37,6 +37,8 @@ export default function Profile() {
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const sessions = trpc.auth.sessions.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const experience = trpc.gamification.summary.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const billingPlans = trpc.billing.plans.useQuery();
+  const billingStatus = trpc.billing.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const update = trpc.profile.update.useMutation();
   const setConsent = trpc.profile.setConsent.useMutation();
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
@@ -232,6 +234,13 @@ export default function Profile() {
                 <div><small>{locale === "de" ? "Level" : "Level"}</small><strong>{experience.data.level}</strong></div>
               </div>
             ) : <p className="form-status">{locale === "de" ? "Punkte werden geladen." : "Points are loading."}</p>}
+          </section>
+
+          <section className="profile-subscription-card observatory-data-panel" id="subscription" aria-labelledby="subscription-title">
+            <div className="profile-subscription-card__heading"><div><span className="eyebrow">BLACKWATERLEAF · ABO</span><h2 id="subscription-title"><Sparkles size={17} />{billingStatus.data?.active ? "PRO AKTIV" : "FREE · AKTUELL"}</h2></div><span className="system-chip"><LockKeyhole size={13} /> Zahlung vorbereitet</span></div>
+            <p>Dein aktueller Status und die Upgrade-Möglichkeiten bleiben auf Web und Native transparent.</p>
+            <div className="profile-subscription-card__plans"><div><strong>Free</strong><small>Katalog, Community, Basis-Karte und eine private Anlage</small></div><div className="profile-subscription-card__pro"><strong>Pro · €{billingPlans.data?.pro.yearlyPriceEur.toFixed(2).replace(".", ",") ?? "39,99"} / Jahr</strong><small>Unbegrenzte Anlagen, Pflegehistorie, Auswertungen, mehr KI, Export und Backup</small></div></div>
+            <Link className="primary-action" href="/pro"><Check size={15} /> UPGRADE-OPTIONEN ANSEHEN</Link>
           </section>
 
           <details id="profile-privacy" className="profile-display-settings observatory-data-panel">

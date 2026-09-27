@@ -107,3 +107,8 @@ Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browse
 - **Creator / Expert:** bleibt bis zur Aktivierung der LIVE-Funktionen als späteres Paket sichtbar, aber nicht buchbar. Geplante Leistungen: Fach-LIVEs, exklusive Videos, Creator-Statistiken und Community-Badges.
 - Web und Native verwenden dieselben Begriffe, Preise und Free-/Pro-Grenzen. Zahlung wird erst nach Anschluss und Prüfung eines Zahlungsanbieters aktiviert.
 - Kleine Android-Geräte erhalten eine einspaltige Pro-Kartenansicht; keine Blur-/Glow-Pflicht für Pro-Flächen.
+
+
+## 15.42 Profil · Abo-Status und Upgrade
+
+Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der Bereich benennt den aktuellen Status (`FREE · AKTUELL` oder `PRO AKTIV`), zeigt die Free-/Pro-Leistungsgrenzen kompakt und führt über eine klare Upgrade-Aktion zur vollständigen Pro-Übersicht. Die Zahlung bleibt bis zum Anschluss eines geprüften Zahlungsanbieters deaktiviert; der Hinweis `ZAHLUNG VORBEREITET` muss sichtbar bleiben. Auf kleinen Android-Geräten stapeln sich die Free-/Pro-Karten einspaltig.

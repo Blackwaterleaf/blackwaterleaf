@@ -3536,6 +3536,12 @@ function ProfileScreen({
         <View style={styles.profileCreatorStats}><View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View></View>
         <SecondaryButton tone={tone} label="VERWALTEN · PROFIL & EINSTELLUNGEN" icon="settings-outline" onPress={() => navigate("management")} />
       </View>
+      <View style={[styles.profileSubscriptionCard, { borderColor: `${c.botany}88`, backgroundColor: tone.panel }]} accessibilityLabel="Abo-Status">
+        <View style={styles.profileSubscriptionHeading}><View><Text style={[styles.eyebrow, { color: c.botany }]}>BLACKWATERLEAF · ABO</Text><Text style={styles.sectionTitle}><Ionicons name="sparkles-outline" size={16} color={c.botany} /> FREE · AKTUELL</Text></View><Text style={[styles.chip, { color: c.botany }]}>ZAHLUNG VORBEREITET</Text></View>
+        <Text style={styles.miniCopy}>Dein aktueller Status und die Upgrade-Möglichkeiten bleiben auf Web und Native transparent.</Text>
+        <View style={styles.profileSubscriptionPlans}><View style={styles.profileSubscriptionPlan}><Text style={styles.cardTitle}>FREE</Text><Text style={styles.miniCopy}>Katalog, Community, Basis-Karte und eine private Anlage</Text></View><View style={[styles.profileSubscriptionPlan, { borderColor: `${c.botany}88` }]}><Text style={[styles.cardTitle, { color: c.botany }]}>PRO · €39,99 / JAHR</Text><Text style={styles.miniCopy}>Unbegrenzte Anlagen, Pflegehistorie, Auswertungen, mehr KI, Export und Backup</Text></View></View>
+        <PrimaryButton tone={tone} label="UPGRADE-OPTIONEN ANSEHEN" icon="sparkles-outline" onPress={() => navigate("pro")} />
+      </View>
       <SectionLabel tone={tone} overline="PRIVATE SAMMLUNG" title="MEINE ANLAGEN & WERTE" />
       <Text style={styles.profileReferenceSubline}>Privat · Wähle direkt deinen Bereich</Text>
       <View style={styles.profileHabitatChoiceGridNative}>
@@ -5262,6 +5268,10 @@ const styles = StyleSheet.create({
   rankingScoreCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
   challengeCard: { padding: 14, borderRadius: 15, borderWidth: 1, gap: 7 },
   leaderboardRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 12, borderWidth: 1 },
+  profileSubscriptionCard: { gap: 11, padding: 14, borderWidth: 1, borderRadius: 16, backgroundColor: c.surface },
+  profileSubscriptionHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
+  profileSubscriptionPlans: { flexDirection: "row", gap: 8 },
+  profileSubscriptionPlan: { flex: 1, gap: 5, padding: 10, borderWidth: 1, borderColor: c.raised, borderRadius: 11, backgroundColor: c.bg },
   profileCreatorCard: { padding: 15, borderRadius: 18, borderWidth: 1, gap: 13 },
   profileCreatorTop: { flexDirection: "row", alignItems: "center", gap: 13 },
   profileCreatorAvatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },

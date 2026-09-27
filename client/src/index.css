@@ -2038,3 +2038,14 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .pro-plan-card__price strong { color:var(--obs-text); font-size:2rem; }
 .pro-page__note { margin:0; color:var(--obs-muted); font-size:.8rem; text-align:center; }
 @media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } }
+
+.profile-subscription-card { display:grid; gap:14px; border-color:rgba(198,247,86,.42); background:linear-gradient(145deg,rgba(12,38,20,.94),rgba(3,15,9,.92)); }
+.profile-subscription-card__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.profile-subscription-card__heading h2 { display:flex; align-items:center; gap:8px; margin:5px 0 0; font-size:1.12rem; }
+.profile-subscription-card > p { margin:0; color:var(--obs-muted); }
+.profile-subscription-card__plans { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.profile-subscription-card__plans > div { display:grid; gap:5px; padding:12px; border:1px solid var(--obs-border); border-radius:12px; background:rgba(3,15,9,.55); }
+.profile-subscription-card__plans strong { color:var(--obs-text); }
+.profile-subscription-card__plans small { color:var(--obs-muted); line-height:1.4; }
+.profile-subscription-card__pro { border-color:rgba(198,247,86,.58) !important; }
+@media (max-width:600px) { .profile-subscription-card__heading { flex-direction:column; } .profile-subscription-card__plans { grid-template-columns:1fr; } }
