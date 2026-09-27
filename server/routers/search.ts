@@ -237,7 +237,7 @@ export const searchRouter = router({
           imageAttribution: terrariumTaxa.imageAttribution,
           imageVerifiedAt: terrariumTaxa.imageVerifiedAt,
           evidenceState: terrariumTaxa.evidenceState,
-        }).from(terrariumTaxa).where(eq(terrariumTaxa.status, "published")).orderBy(asc(terrariumTaxa.acceptedScientificName), asc(terrariumTaxa.scientificName)).limit(input.limit);
+        }).from(terrariumTaxa).where(eq(terrariumTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${terrariumTaxa.imageUrl} IS NOT NULL AND ${terrariumTaxa.imageSourceUrl} IS NOT NULL AND ${terrariumTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(terrariumTaxa.acceptedScientificName), asc(terrariumTaxa.scientificName)).limit(input.limit);
         return rows.map(row => ({ ...row, type: "terrarium" as const, id: String(row.id) }));
       }
       if (input.realm === "botany") {
@@ -253,7 +253,7 @@ export const searchRouter = router({
           imageAttribution: plantTaxa.imageAttribution,
           imageVerifiedAt: plantTaxa.imageVerifiedAt,
           evidenceState: plantTaxa.evidenceState,
-        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(asc(plantTaxa.acceptedScientificName), asc(plantTaxa.scientificName)).limit(input.limit);
+        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${plantTaxa.imageUrl} IS NOT NULL AND ${plantTaxa.imageSourceUrl} IS NOT NULL AND ${plantTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(plantTaxa.acceptedScientificName), asc(plantTaxa.scientificName)).limit(input.limit);
         return rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
       }
       const rows = await db.select({
@@ -268,7 +268,7 @@ export const searchRouter = router({
         imageAttribution: aquariumTaxa.imageAttribution,
         imageVerifiedAt: aquariumTaxa.imageVerifiedAt,
         evidenceState: aquariumTaxa.evidenceState,
-      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(asc(aquariumTaxa.acceptedScientificName), asc(aquariumTaxa.scientificName)).limit(input.limit);
+      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${aquariumTaxa.imageUrl} IS NOT NULL AND ${aquariumTaxa.imageSourceUrl} IS NOT NULL AND ${aquariumTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(aquariumTaxa.acceptedScientificName), asc(aquariumTaxa.scientificName)).limit(input.limit);
       return rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
     }),
 

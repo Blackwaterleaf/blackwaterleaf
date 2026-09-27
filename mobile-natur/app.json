@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlackWaterLeaf",
     "slug": "bwl",
-    "version": "1.0.19",
+    "version": "1.0.20",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
@@ -24,7 +24,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.blackwaterleaf",
-      "versionCode": 19,
+      "versionCode": 20,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
