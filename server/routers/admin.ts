@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, communityPosts, communityReports, mediaAssets, notifications, observations, userRoles, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, assistantUsage, communityPosts, communityReports, mediaAssets, notifications, observations, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
@@ -33,6 +33,38 @@ export const adminRouter = router({
       publicPosts: Number(publishedPosts?.total ?? 0),
       hiddenPosts: Number(hiddenPosts?.total ?? 0),
     };
+  }),
+
+  aiUsage: adminProcedure.query(async () => {
+    const db = await requireDatabase();
+    const dayKey = new Date().toISOString().slice(0, 10);
+    const [policy] = await db.select().from(aiUsagePolicies).where(eq(aiUsagePolicies.id, 1)).limit(1);
+    const [global] = await db.select({ plantIdentifications: aiGlobalUsageDays.plantIdentifications }).from(aiGlobalUsageDays).where(eq(aiGlobalUsageDays.dayKey, dayKey)).limit(1);
+    const todayRows = await db.select({ userId: assistantUsage.userId, identifications: count() }).from(assistantUsage).where(and(eq(assistantUsage.realm, "botany"), eq(assistantUsage.requestOutcome, "completed"), gte(assistantUsage.createdAt, new Date(`${dayKey}T00:00:00.000Z`)))).groupBy(assistantUsage.userId);
+    const todayByUser = new Map(todayRows.map(row => [row.userId, Number(row.identifications)]));
+    const accounts = await db.select({ id: users.id, name: users.name, email: users.email, credits: aiCreditWallets.credits }).from(users).leftJoin(aiCreditWallets, eq(aiCreditWallets.userId, users.id)).orderBy(desc(users.lastSignedIn)).limit(100);
+    return {
+      todayKey: dayKey,
+      policy: policy ?? { id: 1, freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100, updatedByUserId: null, updatedAt: new Date() },
+      globalUsed: global?.plantIdentifications ?? 0,
+      accounts: accounts.map(account => ({ ...account, credits: account.credits ?? 0, todayIdentifications: todayByUser.get(account.id) ?? 0 })),
+    };
+  }),
+
+  updateAiPolicy: adminProcedure.input(z.object({ freeDailyIdentifications: z.number().int().min(0).max(100), proMonthlyIdentifications: z.number().int().min(0).max(10_000), globalDailyIdentifications: z.number().int().min(1).max(1_000_000) })).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    await db.update(aiUsagePolicies).set({ ...input, updatedByUserId: ctx.user.id }).where(eq(aiUsagePolicies.id, 1));
+    await appendAuditEntry({ actorId: ctx.user.id, action: "admin_ai_usage_policy_updated", targetType: "ai_usage_policy", targetId: 1, payload: input });
+    return { updated: true };
+  }),
+
+  adjustAiCredits: adminProcedure.input(z.object({ userId: z.number().int().positive(), delta: z.number().int().min(-10_000).max(10_000) })).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const [wallet] = await db.select({ credits: aiCreditWallets.credits }).from(aiCreditWallets).where(eq(aiCreditWallets.userId, input.userId)).limit(1);
+    const nextCredits = Math.max(0, (wallet?.credits ?? 0) + input.delta);
+    await db.insert(aiCreditWallets).values({ userId: input.userId, credits: nextCredits }).onDuplicateKeyUpdate({ set: { credits: nextCredits } });
+    await appendAuditEntry({ actorId: ctx.user.id, action: "admin_ai_credits_adjusted", targetType: "user", targetId: input.userId, payload: { delta: input.delta, nextCredits } });
+    return { userId: input.userId, credits: nextCredits };
   }),
 
   broadcast: adminProcedure

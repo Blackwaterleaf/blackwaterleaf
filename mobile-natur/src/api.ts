@@ -330,6 +330,20 @@ export type PlantIdentificationReply = AssistantReply & {
   requestedAdditionalImages: number;
 };
 
+export type NativeBillingStatus = {
+  plan: "free" | "pro";
+  active: boolean;
+  paymentReady: boolean;
+  currentPeriodEnd: string | null;
+  aiCredits: number;
+  freeIdentificationsRemaining: number;
+  monthlyIdentificationsRemaining: number;
+  dailyLimit: number;
+  monthlyLimit: number;
+  globalDailyLimit: number;
+};
+export type NativeCreditPack = { key: string; label: string; credits: number; priceEur: number };
+
 function unwrap<T>(payload: TrpcEnvelope<T>): T {
   if (payload.result?.data?.json !== undefined) return payload.result.data.json;
   throw new Error(
@@ -384,6 +398,9 @@ export const trpcGet = <T>(
 ) => trpc<T>(procedure, input, token, "GET");
 export const trpcPost = <T>(procedure: string, input: unknown, token: string) =>
   trpc<T>(procedure, input, token, "POST");
+export const billingMe = (token: string) => trpcGet<NativeBillingStatus>("billing.me", undefined, token);
+export const billingPlans = (token?: string | null) => trpcGet<{ creditPacks: NativeCreditPack[] }>("billing.plans", undefined, token);
+export const billingCheckout = (token: string, input: { kind: "credits" | "pro_monthly" | "pro_yearly"; packKey?: string }) => trpcPost<{ id: string; url: string }>("billing.createCheckout", input, token);
 export const readToken = () => SecureStore.getItemAsync(NATIVE_TOKEN_KEY);
 export const writeToken = (token: string) =>
   SecureStore.setItemAsync(NATIVE_TOKEN_KEY, token, {

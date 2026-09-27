@@ -9,6 +9,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { getDb } from "../db";
 import { acceptMediaState, authorizeMediaTransport, redirectMemberToMediaPlayer } from "../selfHostedLiveMedia";
+import { registerStripeWebhook } from "../stripe";
 import { serveStatic, setupVite } from "./vite";
 import {
   aiRateLimiter,
@@ -65,6 +66,9 @@ async function startServer() {
     return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage } });
   });
   app.use(securityHeaders);
+  // Stripe requires the untouched request bytes for signature verification.
+  app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+  registerStripeWebhook(app);
   // 24 MB request limit allows a 16 MB video plus base64 overhead while
   // keeping the API payload surface bounded.
   app.use(express.json({ limit: "24mb" }));

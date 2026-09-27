@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, Check, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, UsersRound, Send, Save } from "lucide-react";
+import { Activity, BadgeCheck, Check, Coins, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, SlidersHorizontal, UsersRound, Send, Save } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
@@ -15,6 +15,7 @@ const menuItems: DashboardMenuItem[] = [
   { icon: UsersRound, label: "Konten", path: "/admin/accounts" },
   { icon: Megaphone, label: "Händlerfreigaben", path: "/admin/merchant-approvals" },
   { icon: Activity, label: "Analytics", path: "/admin/analytics" },
+  { icon: Coins, label: "KI-Kontingente", path: "/admin/ai-usage" },
 ];
 
 function roleLabel(role: "user" | "moderator" | "admin" | "merchant") {
@@ -55,7 +56,7 @@ export default function AdminDashboard() {
           <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : section === "ai-usage" ? <AiUsagePanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
       </div>
     </DashboardLayout>
   );
@@ -83,6 +84,24 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
     <PartnerInquiryInbox />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
+}
+
+function AiUsagePanel() {
+  const usage = trpc.admin.aiUsage.useQuery();
+  const utils = trpc.useUtils();
+  const updatePolicy = trpc.admin.updateAiPolicy.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
+  const adjustCredits = trpc.admin.adjustAiCredits.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
+  const [policy, setPolicy] = useState({ freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100 });
+  const [delta, setDelta] = useState<Record<number, string>>({});
+  useEffect(() => { if (usage.data) setPolicy({ freeDailyIdentifications: usage.data.policy.freeDailyIdentifications, proMonthlyIdentifications: usage.data.policy.proMonthlyIdentifications, globalDailyIdentifications: usage.data.policy.globalDailyIdentifications }); }, [usage.data]);
+  if (usage.isLoading) return <StatePanel code="AI_USAGE/LOAD" state="loading" title="KI-KONTINGENTE WERDEN GELADEN" body="Nutzung, Limits und Credit-Guthaben werden serverseitig geprüft." />;
+  if (usage.isError || !usage.data) return <StatePanel code="AI_USAGE/ERROR" state="error" title="KI-KONTINGENTE NICHT VERFÜGBAR" body="Die geschützten KI-Nutzungsdaten konnten nicht geladen werden." />;
+  const savePolicy = () => void updatePolicy.mutateAsync(policy);
+  return <div className="admin-grid admin-grid--single">
+    <section className="admin-panel"><p className="eyebrow">[KI_LIMITS / ADMIN_ONLY]</p><h2><SlidersHorizontal size={18} /> Strikte Nutzungssteuerung</h2><p>Diese Grenzen werden vor jedem kostenpflichtigen Bildmodell serverseitig reserviert. Änderungen gelten sofort und können keine bereits verbrauchten Credits zurückholen.</p><div className="form-grid ai-policy-grid"><label className="field"><span>Free pro Tag</span><input type="number" min={0} max={100} value={policy.freeDailyIdentifications} onChange={event => setPolicy(current => ({ ...current, freeDailyIdentifications: Number(event.target.value) }))} /></label><label className="field"><span>Pro pro Monat</span><input type="number" min={0} max={10000} value={policy.proMonthlyIdentifications} onChange={event => setPolicy(current => ({ ...current, proMonthlyIdentifications: Number(event.target.value) }))} /></label><label className="field"><span>Global pro Tag</span><input type="number" min={1} max={1000000} value={policy.globalDailyIdentifications} onChange={event => setPolicy(current => ({ ...current, globalDailyIdentifications: Number(event.target.value) }))} /></label></div><button className="primary-action" type="button" disabled={updatePolicy.isPending} onClick={savePolicy}>LIMITS SPEICHERN</button></section>
+    <section className="admin-metrics"><Metric icon={<Coins />} label="Global heute" value={usage.data.globalUsed} /><Metric icon={<UsersRound />} label="Globales Limit" value={usage.data.policy.globalDailyIdentifications} /><Metric icon={<Activity />} label="Free pro Tag" value={usage.data.policy.freeDailyIdentifications} /><Metric icon={<BadgeCheck />} label="Pro pro Monat" value={usage.data.policy.proMonthlyIdentifications} /></section>
+    <section className="admin-panel"><p className="eyebrow">[CREDIT_WALLETS / SERVER_VERIFIED]</p><h2>KI-Guthaben pro Konto</h2><p>Gekaufte Credits werden ausschließlich per Stripe-Webhook gutgeschrieben. Manuelle Korrekturen sind auditierbar.</p><div className="admin-list">{usage.data.accounts.map(account => <article className="admin-row" key={account.id}><div><strong>{account.name ?? account.email ?? `Konto #${account.id}`}</strong><small>{account.email ?? "Keine E-Mail"} · heute {account.todayIdentifications} Bestimmungen</small></div><div className="admin-row__actions"><span className="system-chip">{account.credits} Credits</span><input aria-label={`Creditänderung für Konto ${account.id}`} className="admin-credit-input" type="number" min={-10000} max={10000} placeholder="± Credits" value={delta[account.id] ?? ""} onChange={event => setDelta(current => ({ ...current, [account.id]: event.target.value }))} /><button type="button" className="admin-icon-action" title="Credits anpassen" aria-label={`Credits für Konto ${account.id} anpassen`} disabled={adjustCredits.isPending || !delta[account.id]} onClick={() => void adjustCredits.mutateAsync({ userId: account.id, delta: Number(delta[account.id]) }).then(() => setDelta(current => ({ ...current, [account.id]: "" })))}><Coins size={15} /></button></div></article>)}</div></section>
+  </div>;
 }
 
 function FeedbackInbox() {

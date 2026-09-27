@@ -460,6 +460,8 @@ export const assistantUsage = mysqlTable(
     promptTokens: int("promptTokens"),
     completionTokens: int("completionTokens"),
     totalTokens: int("totalTokens"),
+    creditSource: mysqlEnum("creditSource", ["free", "pro", "purchased"]).default("free").notNull(),
+    creditsConsumed: int("creditsConsumed").default(1).notNull(),
     requestOutcome: mysqlEnum("requestOutcome", ["reserved", "completed", "failed", "timeout", "quota_exceeded"]).default("reserved").notNull(),
     provider: varchar("provider", { length: 64 }),
     tariffVersion: varchar("tariffVersion", { length: 64 }),
@@ -472,6 +474,81 @@ export const assistantUsage = mysqlTable(
     uniqueIndex("assistant_usage_user_request_unique").on(table.userId, table.clientRequestId),
     index("assistant_usage_user_created_idx").on(table.userId, table.createdAt),
   ],
+);
+
+/** Host-controlled policy for free, Pro and global plant-identification budgets. */
+export const aiUsagePolicies = mysqlTable("ai_usage_policies", {
+  id: int("id").primaryKey(),
+  freeDailyIdentifications: int("freeDailyIdentifications").default(2).notNull(),
+  proMonthlyIdentifications: int("proMonthlyIdentifications").default(60).notNull(),
+  globalDailyIdentifications: int("globalDailyIdentifications").default(100).notNull(),
+  updatedByUserId: int("updatedByUserId").references(() => users.id),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Atomic per-user wallet for purchased or staff-granted identification credits. */
+export const aiCreditWallets = mysqlTable("ai_credit_wallets", {
+  userId: int("userId").primaryKey().references(() => users.id),
+  credits: int("credits").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** One row per UTC day makes the global kill-switch auditable and inexpensive to query. */
+export const aiGlobalUsageDays = mysqlTable("ai_global_usage_days", {
+  dayKey: varchar("dayKey", { length: 10 }).primaryKey(),
+  plantIdentifications: int("plantIdentifications").default(0).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Atomic free allowance counter per user and UTC day. */
+export const aiUserUsageDays = mysqlTable(
+  "ai_user_usage_days",
+  {
+    userId: int("userId").notNull().references(() => users.id),
+    dayKey: varchar("dayKey", { length: 10 }).notNull(),
+    freeIdentifications: int("freeIdentifications").default(0).notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [uniqueIndex("ai_user_usage_days_pk").on(table.userId, table.dayKey), index("ai_user_usage_days_user_idx").on(table.userId, table.dayKey)],
+);
+
+/** Atomic Pro allowance counter per user and UTC month. */
+export const aiUserUsageMonths = mysqlTable(
+  "ai_user_usage_months",
+  {
+    userId: int("userId").notNull().references(() => users.id),
+    monthKey: varchar("monthKey", { length: 7 }).notNull(),
+    proIdentifications: int("proIdentifications").default(0).notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [uniqueIndex("ai_user_usage_months_pk").on(table.userId, table.monthKey), index("ai_user_usage_months_user_idx").on(table.userId, table.monthKey)],
+);
+
+/** Cache of the business entitlement; Stripe remains the source of billing truth. */
+export const billingAccounts = mysqlTable("billing_accounts", {
+  userId: int("userId").primaryKey().references(() => users.id),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 128 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 128 }),
+  plan: mysqlEnum("plan", ["free", "pro"]).default("free").notNull(),
+  status: mysqlEnum("status", ["inactive", "active", "past_due", "canceled"]).default("inactive").notNull(),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Idempotent record linking a completed Stripe Checkout session to credits. */
+export const aiCreditPurchases = mysqlTable(
+  "ai_credit_purchases",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 128 }).notNull(),
+    packKey: varchar("packKey", { length: 48 }).notNull(),
+    credits: int("credits").notNull(),
+    status: mysqlEnum("status", ["pending", "completed", "failed"]).default("pending").notNull(),
+    completedAt: timestamp("completedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [uniqueIndex("ai_credit_purchases_session_unique").on(table.stripeCheckoutSessionId), index("ai_credit_purchases_user_created_idx").on(table.userId, table.createdAt)],
 );
 
 /** User-submitted correction of an AI plant result; the original result remains immutable for review. */

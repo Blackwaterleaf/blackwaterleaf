@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, like, or, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantUsage, billingAccounts, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
@@ -43,7 +43,8 @@ const plantCorrectionInput = z.object({
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned" };
 
-type RequestReservation = { db: Database; usageId: number };
+type CreditSource = "free" | "pro" | "purchased";
+type RequestReservation = { db: Database; usageId: number; creditSource: CreditSource };
 type CatalogReference = {
   scientificName: string;
   acceptedScientificName: string | null;
@@ -218,9 +219,80 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
 
   try {
     const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model, promptChars, completionChars: 0, provider: "manus-forge", tariffVersion: "server-reported", requestOutcome: "reserved" });
-    return { db, usageId: Number(inserted[0].insertId) };
+    return { db, usageId: Number(inserted[0].insertId), creditSource: "free" };
   } catch (error) {
     if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
+    throw error;
+  }
+}
+
+function utcDayKey(date = new Date()) { return date.toISOString().slice(0, 10); }
+function utcMonthKey(date = new Date()) { return date.toISOString().slice(0, 7); }
+
+async function ensureAiCounterRows(db: Database, userId: number, dayKey: string, monthKey: string) {
+  await db.insert(aiGlobalUsageDays).values({ dayKey }).onDuplicateKeyUpdate({ set: { dayKey: sql`${aiGlobalUsageDays.dayKey}` } });
+  await db.insert(aiUserUsageDays).values({ userId, dayKey }).onDuplicateKeyUpdate({ set: { dayKey: sql`${aiUserUsageDays.dayKey}` } });
+  await db.insert(aiUserUsageMonths).values({ userId, monthKey }).onDuplicateKeyUpdate({ set: { monthKey: sql`${aiUserUsageMonths.monthKey}` } });
+  await db.insert(aiCreditWallets).values({ userId }).onDuplicateKeyUpdate({ set: { userId: sql`${aiCreditWallets.userId}` } });
+}
+
+async function adjustAiSource(db: Database, userId: number, source: CreditSource, dayKey: string, monthKey: string, direction: 1 | -1) {
+  if (source === "free") {
+    await db.update(aiUserUsageDays).set({ freeIdentifications: sql`${aiUserUsageDays.freeIdentifications} + ${direction}` }).where(and(eq(aiUserUsageDays.userId, userId), eq(aiUserUsageDays.dayKey, dayKey), ...(direction < 0 ? [gt(aiUserUsageDays.freeIdentifications, 0)] : [])));
+  } else if (source === "pro") {
+    await db.update(aiUserUsageMonths).set({ proIdentifications: sql`${aiUserUsageMonths.proIdentifications} + ${direction}` }).where(and(eq(aiUserUsageMonths.userId, userId), eq(aiUserUsageMonths.monthKey, monthKey), ...(direction < 0 ? [gt(aiUserUsageMonths.proIdentifications, 0)] : [])));
+  } else {
+    await db.update(aiCreditWallets).set({ credits: sql`${aiCreditWallets.credits} - ${direction}` }).where(and(eq(aiCreditWallets.userId, userId), ...(direction > 0 ? [gt(aiCreditWallets.credits, 0)] : [])));
+  }
+}
+
+async function reservePlantRequest(user: AssistantUser, clientRequestId: string, promptChars: number, model: string): Promise<RequestReservation> {
+  if (user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
+  const readiness = await getAssistantReadiness();
+  if (readiness.state !== "available") throw new TRPCError({ code: "PRECONDITION_FAILED", message: `assistant_${readiness.reason}` });
+  if (!(await hasAiProcessingConsent(user.id))) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "ai_processing_consent_required" });
+  const db = await requireDatabase();
+  let inserted: any;
+  try {
+    inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: "botany", model, promptChars, completionChars: 0, creditsConsumed: 0, creditSource: "free", provider: "manus-forge", tariffVersion: "server-reported", requestOutcome: "reserved" });
+  } catch (error) {
+    if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
+    throw error;
+  }
+  const reservation: RequestReservation = { db, usageId: Number(inserted[0].insertId), creditSource: "free" };
+  const dayKey = utcDayKey();
+  const monthKey = utcMonthKey();
+  let source: CreditSource | null = null;
+  let globalReserved = false;
+  try {
+    const [policy] = await db.select().from(aiUsagePolicies).where(eq(aiUsagePolicies.id, 1)).limit(1);
+    if (!policy) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "ai_usage_policy_missing" });
+    await ensureAiCounterRows(db, user.id, dayKey, monthKey);
+    const [membership] = await db.select({ plan: billingAccounts.plan, status: billingAccounts.status }).from(billingAccounts).where(eq(billingAccounts.userId, user.id)).limit(1);
+    const isPro = membership?.plan === "pro" && membership.status === "active";
+    if (isPro) {
+      const proUpdate = await db.update(aiUserUsageMonths).set({ proIdentifications: sql`${aiUserUsageMonths.proIdentifications} + 1` }).where(and(eq(aiUserUsageMonths.userId, user.id), eq(aiUserUsageMonths.monthKey, monthKey), lt(aiUserUsageMonths.proIdentifications, policy.proMonthlyIdentifications)));
+      if (Number(proUpdate[0].affectedRows) > 0) source = "pro";
+    }
+    if (!source) {
+      const freeUpdate = await db.update(aiUserUsageDays).set({ freeIdentifications: sql`${aiUserUsageDays.freeIdentifications} + 1` }).where(and(eq(aiUserUsageDays.userId, user.id), eq(aiUserUsageDays.dayKey, dayKey), lt(aiUserUsageDays.freeIdentifications, policy.freeDailyIdentifications)));
+      if (Number(freeUpdate[0].affectedRows) > 0) source = "free";
+    }
+    if (!source) {
+      const walletUpdate = await db.update(aiCreditWallets).set({ credits: sql`${aiCreditWallets.credits} - 1` }).where(and(eq(aiCreditWallets.userId, user.id), gt(aiCreditWallets.credits, 0)));
+      if (Number(walletUpdate[0].affectedRows) > 0) source = "purchased";
+    }
+    if (!source) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "plant_identification_quota_reached" });
+    const globalUpdate = await db.update(aiGlobalUsageDays).set({ plantIdentifications: sql`${aiGlobalUsageDays.plantIdentifications} + 1` }).where(and(eq(aiGlobalUsageDays.dayKey, dayKey), lt(aiGlobalUsageDays.plantIdentifications, policy.globalDailyIdentifications)));
+    if (Number(globalUpdate[0].affectedRows) === 0) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "ai_global_daily_limit_reached" });
+    globalReserved = true;
+    reservation.creditSource = source;
+    await db.update(assistantUsage).set({ creditSource: source, creditsConsumed: 1 }).where(eq(assistantUsage.id, reservation.usageId));
+    return reservation;
+  } catch (error) {
+    if (source) await adjustAiSource(db, user.id, source, dayKey, monthKey, -1);
+    if (globalReserved) await db.update(aiGlobalUsageDays).set({ plantIdentifications: sql`${aiGlobalUsageDays.plantIdentifications} - 1` }).where(and(eq(aiGlobalUsageDays.dayKey, dayKey), gt(aiGlobalUsageDays.plantIdentifications, 0)));
+    await db.update(assistantUsage).set({ requestOutcome: error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS" ? "quota_exceeded" : "failed" }).where(eq(assistantUsage.id, reservation.usageId));
     throw error;
   }
 }
@@ -329,7 +401,8 @@ export const assistantRouter = router({
 
   plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
-    const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
+    const reservation = await reservePlantRequest(ctx.user, input.clientRequestId, (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
+    try {
     let model = PLANT_TRIAGE_MODEL;
     let response = await invokePlantModel(PLANT_TRIAGE_MODEL, images, input.note);
     const triageUsage = response.usage;
@@ -373,6 +446,10 @@ export const assistantRouter = router({
     const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, usageTotals(triageUsage, response.usage));
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
     return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    } catch (error) {
+      await reservation.db.update(assistantUsage).set({ requestOutcome: "failed" }).where(eq(assistantUsage.id, reservation.usageId));
+      throw error;
+    }
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {

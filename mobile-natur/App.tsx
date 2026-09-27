@@ -66,6 +66,9 @@ import {
   reportCommunityComment,
   blockCommunityUser,
   API_ORIGIN,
+  billingCheckout,
+  billingMe,
+  billingPlans,
   careAddJournal,
   careCreatePlan,
   careCreateTask,
@@ -176,6 +179,8 @@ import {
   type LiveTrack,
   type DirectConversation,
   type DirectMessage,
+  type NativeBillingStatus,
+  type NativeCreditPack,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -1146,7 +1151,7 @@ function NaturApp() {
           />
         )}
         {screen === "feedback" && <FeedbackScreen tone={TONES.feedback} token={token} onSignIn={signIn} />}
-        {screen === "pro" && <NativeProScreen tone={TONES.pro} onBack={() => navigate("management")} />}
+        {screen === "pro" && <NativeProScreen tone={TONES.pro} token={token} onBack={() => navigate("management")} />}
         {screen === "management" && (
           <ManagementScreen
             tone={TONES.management}
@@ -3388,7 +3393,10 @@ function NativePartnerAdminRow({ tone, token, item, onRefresh }: { tone: Tone; t
   return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>PARTNERANFRAGE #{item.id}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? "Partnerinteressent"} · {item.contactEmail}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><Pressable accessibilityRole="button" accessibilityLabel="Partnerstatus ändern" onPress={() => setStatus(nextPartnerStatus(status))} style={styles.dashboardStatusPicker}><Text style={styles.dashboardStatusValue}>{statusLabel(status)}</Text><Ionicons name="chevron-down" size={15} color={tone.accent} /></Pressable></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
 }
 
-function NativeProScreen({ tone, onBack }: { tone: Tone; onBack: () => void }) {
+function NativeProScreen({ tone, token, onBack }: { tone: Tone; token: string | null; onBack: () => void }) {
+  const [status, setStatus] = useState<NativeBillingStatus | null>(null);
+  const [packs, setPacks] = useState<NativeCreditPack[]>([]);
+  const [busy, setBusy] = useState(false);
   const features = [
     ["UNBEGRENZTE PRIVATE ANLAGEN", "Pflanzen, Aquarien und Terrarien ohne Kontingent verwalten."],
     ["VOLLSTÄNDIGE PFLEGEHISTORIE", "Verläufe, Messwerte, Bilder und Pflegezustände vergleichen."],
@@ -3397,7 +3405,17 @@ function NativeProScreen({ tone, onBack }: { tone: Tone; onBack: () => void }) {
     ["EXPORT & BACKUP", "Eigene Daten strukturiert sichern und geräteübergreifend nutzen."],
     ["WERBEFREIE NUTZUNG", "Das Observatory ohne Werbeunterbrechungen erleben."],
   ] as const;
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. Pro finanziert private Werkzeuge, KI-Auswertung und sichere Datenarbeit." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>BLACKWATERLEAF PRO</Text><Text style={styles.copy}>€4,99 / Monat · €39,99 / Jahr</Text><Text style={styles.miniCopy}>Zahlung wird nach dem Anbieteranschluss transparent aktiviert.</Text></View></View><View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
+  useEffect(() => {
+    if (!token) return;
+    void Promise.all([billingMe(token), billingPlans(token)]).then(([nextStatus, nextPlans]) => { setStatus(nextStatus); setPacks(nextPlans.creditPacks); }).catch(() => Alert.alert("Pro-Status nicht verfügbar", "Bitte prüfe deine Verbindung und versuche es erneut."));
+  }, [token]);
+  const buy = async (kind: "credits" | "pro_monthly" | "pro_yearly", packKey?: string) => {
+    if (!token) return;
+    setBusy(true);
+    try { const session = await billingCheckout(token, { kind, packKey }); await Linking.openURL(session.url); } catch (error) { Alert.alert("Checkout nicht gestartet", error instanceof Error && error.message.includes("payments_not_configured") ? "Der Zahlungsanbieter wird noch eingerichtet." : "Bitte später erneut versuchen."); } finally { setBusy(false); }
+  };
+  if (!token) return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Abo-Status und Credits sind nur für angemeldete Konten verfügbar." onSignIn={async () => {}} /></Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. KI-Bestimmungen sind transparent begrenzt und können bei Bedarf ergänzt werden." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>{status?.active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</Text><Text style={styles.copy}>{status ? `${status.freeIdentificationsRemaining} kostenlose Bestimmungen heute · ${status.aiCredits} Credits verfügbar` : "Kontingent wird geladen …"}</Text><Text style={styles.miniCopy}>{status?.paymentReady ? "Sichere Zahlung verfügbar." : "Zahlung wird nach dem Anbieteranschluss aktiviert."}</Text></View></View><View style={[styles.stack, { marginBottom: 14 }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>KI-CREDITS NACH BEDARF</Text>{packs.map(pack => <View key={pack.key} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{pack.credits} BESTIMMUNGEN · €{pack.priceEur.toFixed(2).replace(".", ",")}</Text><Text style={styles.miniCopy}>Credits verfallen nicht.</Text></View><Pressable accessibilityRole="button" disabled={busy || status?.paymentReady === false} onPress={() => void buy("credits", pack.key)} style={[styles.secondaryButton, (busy || status?.paymentReady === false) && { opacity: 0.45 }]}><Text style={styles.secondaryButtonText}>KAUFEN</Text></Pressable></View>)}</View><View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label="PRO MONATLICH" icon="sparkles-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_monthly")} /><SecondaryButton tone={tone} label="PRO JÄHRLICH" icon="calendar-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_yearly")} /></View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
 }
 
 function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
