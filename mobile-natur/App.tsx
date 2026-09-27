@@ -2792,7 +2792,7 @@ function PostScreen({
       setStatus(
         publishNow
           ? `Beitrag öffentlich veröffentlicht${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
-          : `Privater Entwurf gespeichert${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
+          : `Privater Entwurf sicher hochgeladen${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
       );
     } catch (cause) {
       setUploadProgress(null);
@@ -2928,7 +2928,7 @@ function PostScreen({
           </View>
           <PrimaryButton
             tone={tone}
-            label={saving ? "WIRD GESPEICHERT …" : editingPostId !== null ? "ÄNDERUNG SPEICHERN" : publishNow ? "BEITRAG VERÖFFENTLICHEN" : "PRIVATEN ENTWURF SPEICHERN"}
+            label={saving ? "WIRD HOCHGELADEN …" : editingPostId !== null ? "ÄNDERUNG SPEICHERN" : publishNow ? "BEITRAG VERÖFFENTLICHEN" : "SICHER HOCHLADEN"}
             icon="send-outline"
             disabled={saving || !content.trim()}
             onPress={() => void (editingPostId !== null ? savePostEdit() : save())}

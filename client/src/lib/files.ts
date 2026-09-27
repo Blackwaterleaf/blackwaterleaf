@@ -75,7 +75,11 @@ async function prepareImage(file: File, options: ImagePreparationOptions = {}): 
   if (file.size <= 0) throw new Error("image_size_invalid");
   const forAnalysis = options.forAnalysis === true;
   const quality = Math.min(1, Math.max(0.5, options.quality ?? (forAnalysis ? 0.82 : 0.92)));
-  return forAnalysis || file.size > CLIENT_IMAGE_LIMIT_BYTES || quality < 0.99 || options.aspectRatio && options.aspectRatio !== "original"
+  // Keep JPEG/PNG originals lossless, but normalize WEBP before sending it to
+  // the server. Some Android/Samsung WebViews report WEBP correctly while
+  // their multipart/base64 path still produces a payload the server cannot
+  // reliably validate.
+  return forAnalysis || mimeType === "image/webp" || file.size > CLIENT_IMAGE_LIMIT_BYTES || quality < 0.99 || options.aspectRatio && options.aspectRatio !== "original"
     ? await resizeImage(file, forAnalysis ? ANALYSIS_IMAGE_DIMENSION : MAX_IMAGE_DIMENSION, quality, mimeType, options.aspectRatio)
     : { blob: file, mimeType };
 }
@@ -120,6 +124,7 @@ export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
     image_size_invalid: "Das Bild konnte nicht gelesen werden.",
     image_too_large_after_resize: "Das Bild ist auch nach der Verkleinerung zu groß. Bitte wähle ein kleineres Foto.",
     image_read_failed: "Das Bild konnte nicht gelesen werden. Bitte versuche es erneut.",
+    invalid_image_encoding: "Die Bildübertragung war unvollständig. Bitte versuche den Upload erneut.",
     invalid_image_size: "Das Bild ist zu groß oder leer. Erlaubt sind JPG, PNG oder WebP bis 24 MB.",
     image_signature_mismatch: "Die Bilddatei passt nicht zu ihrem Dateiformat. Bitte speichere sie erneut als JPG, PNG oder WebP.",
     media_processing_consent_required: "Für den Bildupload ist deine ausdrückliche Bildverarbeitungsfreigabe erforderlich.",
@@ -134,6 +139,7 @@ export function imageErrorMessage(error: unknown, locale: AppLocale = "de") {
     image_size_invalid: "The image could not be read.",
     image_too_large_after_resize: "The image is still too large after resizing. Choose a smaller photo.",
     image_read_failed: "The image could not be read. Please try again.",
+    invalid_image_encoding: "The image upload was incomplete. Please try again.",
     invalid_image_size: "The image is too large or empty. JPG, PNG, and WebP up to 24 MB are supported.",
     image_signature_mismatch: "The image data does not match its file type. Save it again as JPG, PNG, or WebP.",
     media_processing_consent_required: "Explicit image-processing consent is required for uploads.",

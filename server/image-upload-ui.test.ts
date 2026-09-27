@@ -41,4 +41,9 @@ describe("mobile image upload contract", () => {
     expect(files).toContain("image.onerror = () => resolve(null)");
     expect(files).toContain('context.drawImage(source');
   });
+
+  it("normalizes original WebP uploads before sending them to the server", () => {
+    expect(files).toContain('mimeType === "image/webp"');
+    expect(community).toContain("SICHER HOCHLADEN");
+  });
 });
