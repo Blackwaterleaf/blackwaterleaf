@@ -208,7 +208,7 @@ export default function Community() {
     } catch (error) { stopTransferPulse?.(); setUploadProgress(null); setStatus(imageErrorMessage(error, locale)); }
   };
   const like = async (postId: string) => { if (!auth.isAuthenticated) { startLogin(); return; } try { await likePost.mutateAsync({ postId: Number(postId) }); await utils.community.feed.invalidate(); } catch (error) { setStatus(imageErrorMessage(error, locale)); } };
-  const beginEdit = (post: { id: number; content: string; visibility: string; realm: string | null }) => { setEditingPostId(post.id); setEditContent(post.content); setEditVisibility(post.visibility === "public" ? "public" : "private"); setEditRealm(post.realm === "botany" || post.realm === "aquarium" || post.realm === "terrarium" ? post.realm : "none"); };
+  const beginEdit = (post: { id: number; content: string; visibility: string; realm: string | null }) => { setEditingPostId(post.id); setEditContent(post.content); setEditVisibility(post.visibility === "public" ? "public" : "private"); setEditRealm(post.realm === "botany" || post.realm === "aquarium" || post.realm === "terrarium" ? post.realm : "none"); window.setTimeout(() => document.querySelector(".community-edit")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); };
   const saveEdit = async (event: FormEvent) => {
     event.preventDefault();
     if (!editingPostId) return;

@@ -41,7 +41,9 @@ type Payload = {
 
 const payload = JSON.parse(await readFile(inputPath, "utf8")) as Payload;
 const all = [...payload.plants, ...payload.freshwaterFish, ...payload.terrarium];
-if (all.length !== 1_500) throw new Error(`unexpected_record_count:${all.length}`);
+if (payload.plants.length !== 500 || payload.freshwaterFish.length !== 1311 || payload.terrarium.length !== 500) {
+  throw new Error(`unexpected_record_counts:${JSON.stringify({ plants: payload.plants.length, freshwaterFish: payload.freshwaterFish.length, terrarium: payload.terrarium.length })}`);
+}
 const seen = new Set<string>();
 for (const record of all) {
   if (record.source !== "GBIF" || record.sourceLicense !== "CC BY 4.0" || record.rank !== "species" || record.taxonomicStatus !== "accepted" || record.matchConfidence < 95 || record.status !== "draft") {

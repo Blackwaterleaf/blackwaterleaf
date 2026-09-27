@@ -10,6 +10,7 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import {
+  Component,
   useCallback,
   useEffect,
   useMemo,
@@ -581,6 +582,7 @@ function NaturApp() {
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [editingCommunityPost, setEditingCommunityPost] = useState<OwnCommunityPost | null>(null);
   const [notifications, setNotifications] = useState<NativeNotification[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -701,7 +703,16 @@ function NaturApp() {
           adminAccounts(token),
           adminPublicPosts(token),
         ]);
-        if (dashboardAnalytics.status === "fulfilled") setAnalytics(dashboardAnalytics.value);
+        if (dashboardAnalytics.status === "fulfilled") {
+          const raw = dashboardAnalytics.value as NativeAnalyticsOverview & { loginCount?: number; averageDurationSeconds?: number };
+          setAnalytics({
+            ...raw,
+            logins: Number(raw.logins ?? raw.loginCount ?? 0),
+            averageDurationSec: Number(raw.averageDurationSec ?? raw.averageDurationSeconds ?? 0),
+            popularPages: Array.isArray(raw.popularPages) ? raw.popularPages : [],
+            countries: Array.isArray(raw.countries) ? raw.countries : [],
+          });
+        }
         if (feedbackQueue.status === "fulfilled") setAdminFeedback(feedbackQueue.value);
         if (partnerQueue.status === "fulfilled") setAdminPartnerInquiries(partnerQueue.value);
         if (accountsQueue.status === "fulfilled") setAdminAccountsRows(accountsQueue.value);
@@ -1075,9 +1086,10 @@ function NaturApp() {
           <PostScreen
             token={token}
             isAdmin={account?.role === "admin"}
+            initialEditPost={editingCommunityPost}
             tone={TONES.post}
             onSignIn={signIn}
-            navigate={navigate}
+            navigate={screenName => { if (screenName !== "post") setEditingCommunityPost(null); navigate(screenName); }}
           />
         )}
         {screen === "knowledge" && (
@@ -1113,6 +1125,7 @@ function NaturApp() {
             navigate={navigate}
             onOpenDetail={id => { setSelectedCommunityPostId(id); navigate("communityDetail"); }}
             onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
+            onEdit={post => { const postRealm = post.realm === "botany" || post.realm === "aquarium" || post.realm === "terrarium" ? post.realm : null; setEditingCommunityPost({ id: Number(post.id), content: post.content, realm: postRealm, visibility: "public", status: "published", updatedAt: post.createdAt }); navigate("post"); }}
           />
         )}
         {screen === "communityDetail" && selectedCommunityPostId ? (
@@ -1205,6 +1218,7 @@ function NaturApp() {
           />
         )}
         {screen === "dashboard" && (
+          <DashboardErrorBoundary onBack={() => navigate("management")}>
           <NativeDashboardScreen
             tone={TONES.dashboard}
             token={token}
@@ -1220,6 +1234,7 @@ function NaturApp() {
             onBack={() => navigate("management")}
             onSignIn={signIn}
           />
+          </DashboardErrorBoundary>
         )}
         {screen === "profile" && (
           <ProfileScreen
@@ -2724,12 +2739,14 @@ function NativeUploadProgressCard({ tone, progress }: { tone: Tone; progress: Na
 function PostScreen({
   token,
   isAdmin,
+  initialEditPost,
   tone,
   onSignIn,
   navigate,
 }: {
   token: string | null;
   isAdmin: boolean;
+  initialEditPost: OwnCommunityPost | null;
   tone: Tone;
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
@@ -2751,6 +2768,14 @@ function PostScreen({
   const [showOwnPosts, setShowOwnPosts] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
+  useEffect(() => {
+    if (!initialEditPost) return;
+    setEditingPostId(initialEditPost.id);
+    setContent(initialEditPost.content);
+    setRealm(initialEditPost.realm);
+    setEditVisibility(initialEditPost.visibility);
+    setShowOwnPosts(true);
+  }, [initialEditPost]);
   useEffect(() => {
     if (!postImage) { setEstimatedPostBytes(null); return; }
     let active = true;
@@ -3285,6 +3310,7 @@ function CommunityScreen({
   navigate,
   onOpenDetail,
   onOpenProfile,
+  onEdit,
 }: {
   tone: Tone;
   account: Account | null;
@@ -3297,6 +3323,7 @@ function CommunityScreen({
   navigate: (screen: Screen) => void;
   onOpenDetail: (id: string) => void;
   onOpenProfile: (id: number) => void;
+  onEdit: (post: CommunityPost) => void;
 }) {
   const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
   const [adminProfile, setAdminProfile] = useState<Awaited<ReturnType<typeof socialAdminProfile>> | null>(null);
@@ -3380,7 +3407,7 @@ function CommunityScreen({
               post={post}
               isOwner={Boolean(account?.id && String(account.id) === String(post.author.id))}
               accountId={account?.id ? Number(account.id) : null}
-              onEdit={() => navigate("post")}
+              onEdit={() => onEdit(post)}
               onDelete={async () => {
                 if (!token) return;
                 await deleteCommunityPost(token, Number(post.id));
@@ -3469,6 +3496,20 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   </Page>;
 }
 
+type DashboardErrorBoundaryProps = { children: ReactNode; onBack: () => void };
+type DashboardErrorBoundaryState = { failed: boolean };
+
+class DashboardErrorBoundary extends Component<DashboardErrorBoundaryProps, DashboardErrorBoundaryState> {
+  state: DashboardErrorBoundaryState = { failed: false };
+  static getDerivedStateFromError(): DashboardErrorBoundaryState { return { failed: true }; }
+  render() {
+    if (this.state.failed) {
+      return <Page><StatusPanel tone={TONES.dashboard} icon="warning-outline" code="DASHBOARD / UI_FEHLER" title="KONTROLLZENTRUM Konnte NICHT GEÖFFNET WERDEN" text="Ein einzelner Dashboard-Bereich hat ungültige Daten geliefert. Die App bleibt geöffnet; bitte zurückgehen und erneut laden." /><SecondaryButton tone={TONES.dashboard} label="ZURÜCK" icon="arrow-back-outline" onPress={this.props.onBack} /></Page>;
+    }
+    return this.props.children;
+  }
+}
+
 function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback, adminPartnerInquiries, adminAccounts, adminPublicPosts, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; adminFeedback: NativeAdminFeedback[]; adminPartnerInquiries: NativeAdminPartnerInquiry[]; adminAccounts: NativeAdminAccount[]; adminPublicPosts: NativeAdminPublicPost[]; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
   const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
   if (!token) return <Page><PrivateFeature tone={tone} title="DASHBOARD GESCHÜTZT" text="Melde dich mit dem Eigentümerkonto an, um aggregierte Reichweitenzahlen zu sehen." onSignIn={onSignIn} /></Page>;
@@ -3500,7 +3541,10 @@ function NativeHostControls({ tone, token, accounts, posts, onRefresh }: { tone:
   const hidePost = async (item: NativeAdminPublicPost) => { try { await adminSetPublicPostStatus(token, { id: item.id, status: "hidden" }); await onRefresh(); } catch (e) { Alert.alert("Beitrag nicht moderiert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
   return <View style={{ gap: 12, marginTop: 12 }}>
     <SectionLabel tone={tone} overline="HOST · KONTEN" title="ABO & FREIE RECHTE VERWALTEN" />
-    {accounts.slice(0, 100).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.cardTitle}>{item.name ?? item.username ?? `Konto #${item.id}`}</Text><Text style={styles.miniCopy}>{item.email ?? "Keine E-Mail"} · {item.role.toUpperCase()} · {item.status.toUpperCase()}</Text><Text style={[styles.miniCopy, { color: item.proAccess.active ? tone.accent : c.muted }]}>{item.proAccess.active ? `FULL ABO · ${item.proAccess.source === "admin" ? "ADMIN" : "FREIGEGEBEN"}` : item.proAccess.forcedFree ? "FREE · ERZWUNGEN" : "FREE"}</Text><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label={item.proAccess.active ? "FREE SETZEN" : "FULL ABO"} icon={item.proAccess.active ? "remove-circle-outline" : "sparkles-outline"} onPress={() => void changePro(item)} />{item.id !== Number(item.id) ? null : <SecondaryButton tone={tone} label={item.status === "active" ? "PAUSIEREN" : "AKTIVIEREN"} icon={item.status === "active" ? "pause-outline" : "play-outline"} onPress={() => void changeStatus(item)} />}</View></View>)}
+    {accounts.slice(0, 100).map(item => {
+      const proAccess = item.proAccess ?? { active: false, manuallyGranted: false, forcedFree: false, source: "none" as const, expiresAt: null };
+      return <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.cardTitle}>{item.name ?? item.username ?? `Konto #${item.id}`}</Text><Text style={styles.miniCopy}>{item.email ?? "Keine E-Mail"} · {String(item.role ?? "user").toUpperCase()} · {String(item.status ?? "active").toUpperCase()}</Text><Text style={[styles.miniCopy, { color: proAccess.active ? tone.accent : c.muted }]}>{proAccess.active ? `FULL ABO · ${proAccess.source === "admin" ? "ADMIN" : "FREIGEGEBEN"}` : proAccess.forcedFree ? "FREE · ERZWUNGEN" : "FREE"}</Text><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label={proAccess.active ? "FREE SETZEN" : "FULL ABO"} icon={proAccess.active ? "remove-circle-outline" : "sparkles-outline"} onPress={() => void changePro({ ...item, proAccess })} />{item.id !== Number(item.id) ? null : <SecondaryButton tone={tone} label={item.status === "active" ? "PAUSIEREN" : "AKTIVIEREN"} icon={item.status === "active" ? "pause-outline" : "play-outline"} onPress={() => void changeStatus(item)} />}</View></View>;
+    })}
     <SectionLabel tone={tone} overline="HOST · MODERATION" title="ÖFFENTLICHE BEITRÄGE" />
     {posts.slice(0, 50).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.miniCopy}>#{item.id} · {item.realm?.toUpperCase() ?? "ALLE FEEDS"} · {item.status.toUpperCase()}</Text><Text style={styles.cardTitle} numberOfLines={3}>{item.content}</Text>{item.status === "published" ? <SecondaryButton tone={tone} label="AUSBLENDEN" icon="eye-off-outline" onPress={() => void hidePost(item)} /> : null}</View>)}
   </View>;

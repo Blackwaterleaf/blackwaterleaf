@@ -5,7 +5,7 @@ const ROOT = process.cwd();
 const OUT = resolve(ROOT, "data/imports/catalog-expansion-gbif-2026-09.json");
 const GBIF = "https://api.gbif.org/v1";
 const BACKBONE = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
-const TARGET = 500;
+const TARGETS = { plants: 500, freshwaterFish: 1311, terrarium: 500 };
 const HARD_STOP = 909;
 const CONCURRENCY = 2;
 const REQUEST_DELAY_MS = 300;
@@ -76,6 +76,16 @@ async function readExistingNames() {
       // Optional historical manifests may not exist in every environment.
     }
   }
+  try {
+    const current = JSON.parse(await readFile(OUT, "utf8"));
+    for (const group of [current.plants, current.freshwaterFish, current.terrarium]) {
+      for (const record of group ?? []) {
+        if (record?.scientificName) names.add(cleanName(record.scientificName).toLowerCase());
+      }
+    }
+  } catch {
+    // The expansion manifest is optional on the first run.
+  }
   return names;
 }
 
@@ -92,7 +102,7 @@ async function seedKeys(names) {
   return Array.from(new Set(matches.filter(Boolean).map(item => item.familyKey)));
 }
 
-async function descendants(rootKeys, allowedClasses, allowedKingdoms, maxRecords = TARGET) {
+async function descendants(rootKeys, allowedClasses, allowedKingdoms, excludedNames, maxRecords) {
   const queue = [...new Set(rootKeys)];
   const visited = new Set();
   const found = new Map();
@@ -108,7 +118,8 @@ async function descendants(rootKeys, allowedClasses, allowedKingdoms, maxRecords
       // The traversal root already establishes the catalog area. GBIF children responses often omit higher taxonomy fields.
       if (rank === "SPECIES" && (item.taxonomicStatus ?? item.status) === "ACCEPTED") {
         const canonicalName = cleanName(item.canonicalName || item.scientificName);
-        if (canonicalName && !found.has(canonicalName.toLowerCase())) found.set(canonicalName.toLowerCase(), item);
+        const normalized = canonicalName.toLowerCase();
+        if (canonicalName && !excludedNames.has(normalized) && !found.has(normalized)) found.set(normalized, item);
       } else if (item.key && ["PHYLUM", "SUBPHYLUM", "CLASS", "SUBCLASS", "ORDER", "SUBORDER", "FAMILY", "SUBFAMILY", "GENUS"].includes(rank)) {
         queue.push(item.key);
       }
@@ -164,9 +175,9 @@ const [plantFamilyKeys, fishFamilyKeys] = await Promise.all([seedKeys(plantSeedN
 console.log(`Plant families: ${plantFamilyKeys.length}; fish families: ${fishFamilyKeys.length}`);
 
 const [plants, fish, terrarium] = await Promise.all([
-  descendants(plantFamilyKeys, [], ["Plantae"], TARGET),
-  descendants(fishFamilyKeys, ["Actinopterygii", "Actinopteri"], ["Animalia"], TARGET),
-  descendants([11592253, 11418114, 11493978, 952, 953, 775], ["Squamata", "Testudines", "Crocodylia", "Amphibia"], ["Animalia"], TARGET),
+  descendants(plantFamilyKeys, [], ["Plantae"], existing, TARGETS.plants),
+  descendants([315668052, 115063228, ...fishFamilyKeys], ["Actinopterygii", "Actinopteri"], ["Animalia"], existing, TARGETS.freshwaterFish),
+  descendants([11592253, 11418114, 11493978, 952, 953, 775], ["Squamata", "Testudines", "Crocodylia", "Amphibia"], ["Animalia"], existing, TARGETS.terrarium),
 ]);
 
 const result = {
@@ -177,7 +188,8 @@ const result = {
   sourceLicense: "CC BY 4.0",
   sourceCitation: "GBIF Backbone Taxonomy, DOI: 10.15468/39omei",
   policy: {
-    requestedPerKind: TARGET,
+    requestedPerKind: 500,
+    requestedFreshwaterFishTotal: 1400,
     hardStopPerKind: HARD_STOP,
     publishOnlyAfterCareEvidence: true,
     noAiGeneratedCareClaims: true,
