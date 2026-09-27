@@ -1,0 +1,1 @@
+ALTER TABLE `notifications` MODIFY COLUMN `type` enum('comment','like','report','moderation','feedback','system','message') NOT NULL;

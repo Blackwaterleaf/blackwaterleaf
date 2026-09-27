@@ -199,7 +199,7 @@ export type CommunityComment = {
 };
 export type NativeNotification = {
   id: number;
-  type: "comment" | "like" | "report" | "moderation" | "system" | "message";
+  type: "comment" | "like" | "report" | "moderation" | "feedback" | "system" | "message";
   postId: number | null;
   commentId: number | null;
   message: string;

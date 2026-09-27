@@ -10,16 +10,16 @@ async function requireDatabase() {
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
 }
-async function enabledTypes(db: Awaited<ReturnType<typeof requireDatabase>>, userId: number) {
+async function enabledTypes(db: Awaited<ReturnType<typeof requireDatabase>>, userId: number, role: string) {
   const [prefs] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId)).limit(1);
   if (!prefs) return null;
-  return [prefs.community ? "comment" : null, prefs.community ? "like" : null, prefs.community ? "report" : null, prefs.moderation ? "moderation" : null, prefs.system ? "system" : null, prefs.messages ? "message" : null].filter(Boolean) as Array<"comment" | "like" | "report" | "moderation" | "system" | "message">;
+  return [prefs.community ? "comment" : null, prefs.community ? "like" : null, prefs.community ? "report" : null, prefs.moderation ? "moderation" : null, role === "admin" || role === "moderator" ? "feedback" : null, prefs.system ? "system" : null, prefs.messages ? "message" : null].filter(Boolean) as Array<"comment" | "like" | "report" | "moderation" | "feedback" | "system" | "message">;
 }
 
 export const notificationsRouter = router({
   feed: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    const types = await enabledTypes(db, ctx.user.id);
+    const types = await enabledTypes(db, ctx.user.id, ctx.user.role);
     const rows = await db
       .select({
         id: notifications.id,
@@ -46,7 +46,7 @@ export const notificationsRouter = router({
 
   unreadCount: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    const types = await enabledTypes(db, ctx.user.id);
+    const types = await enabledTypes(db, ctx.user.id, ctx.user.role);
     const [row] = await db
       .select({ total: count() })
       .from(notifications)
@@ -58,7 +58,7 @@ export const notificationsRouter = router({
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20), beforeId: z.number().int().positive().optional() }))
     .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const types = await enabledTypes(db, ctx.user.id);
+      const types = await enabledTypes(db, ctx.user.id, ctx.user.role);
       const rows = await db
         .select({
           id: notifications.id,

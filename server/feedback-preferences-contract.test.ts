@@ -32,4 +32,11 @@ describe("feedback and preference contracts", () => {
     expect(read("server/routers/notifications.ts")).toContain("notificationPreferences");
     expect(read("drizzle/schema.ts")).toContain('"notification_preferences"');
   });
+
+  it("delivers feedback as a visible staff notification", () => {
+    expect(read("server/routers/feedback.ts")).toContain('type: "feedback" as const');
+    expect(read("server/routers/notifications.ts")).toContain('role === "admin" || role === "moderator" ? "feedback"');
+    expect(read("client/src/pages/Notifications.tsx")).toContain('type === "feedback"');
+    expect(read("mobile-natur/src/api.ts")).toContain('"feedback" | "system"');
+  });
 });

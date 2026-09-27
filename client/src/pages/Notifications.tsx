@@ -1,4 +1,4 @@
-import { Bell, CheckCheck, ChevronRight, MessageCircle, ShieldAlert, Sparkles } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Lightbulb, MessageCircle, ShieldAlert, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
@@ -8,6 +8,7 @@ import { ObservatoryContextHeader, ObservatoryStateSurface } from "@/components/
 
 function notificationIcon(type: string) {
   if (type.includes("comment")) return MessageCircle;
+  if (type === "feedback") return Lightbulb;
   if (type.includes("moderation") || type.includes("report")) return ShieldAlert;
   if (type.includes("ai") || type.includes("identification")) return Sparkles;
   return Bell;
@@ -15,6 +16,7 @@ function notificationIcon(type: string) {
 
 function notificationTarget(postId: number | null, commentId: number | null, type = "") {
   if (type === "message") return "/messages";
+  if (type === "feedback") return "/admin";
   if (postId) return `/community?post=${postId}${commentId ? `&comment=${commentId}` : ""}`;
   return "/community";
 }

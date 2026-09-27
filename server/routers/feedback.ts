@@ -36,7 +36,7 @@ export const feedbackRouter = router({
           await tx.insert(notifications).values(recipients.map(recipient => ({
             recipientId: recipient.id,
             actorId: ctx.user.id,
-            type: "moderation" as const,
+            type: "feedback" as const,
             message: `Neue ${input.kind === "problem" ? "Problemmeldung" : input.kind === "wish" ? "Verbesserungsidee" : "Feedback"} #${id} wartet auf deine Antwort.`,
           })));
         }

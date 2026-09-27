@@ -334,7 +334,7 @@ export const notifications = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     recipientId: int("recipientId").notNull().references(() => users.id),
     actorId: int("actorId").notNull().references(() => users.id),
-    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "system", "message"]).notNull(),
+    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "feedback", "system", "message"]).notNull(),
     postId: int("postId").references(() => communityPosts.id),
     commentId: int("commentId"),
     observationId: int("observationId").references(() => observations.id, { onDelete: "cascade" }),
