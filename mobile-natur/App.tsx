@@ -1072,6 +1072,7 @@ function NaturApp() {
             onSignIn={signIn}
             navigate={navigate}
             onOpenDetail={id => { setSelectedCommunityPostId(id); navigate("communityDetail"); }}
+            onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
           />
         )}
         {screen === "communityDetail" && selectedCommunityPostId ? (
@@ -1082,6 +1083,7 @@ function NaturApp() {
             onBack={() => navigate("community")}
             onSignIn={signIn}
             onRefresh={loadScreen}
+            onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
             onLike={async post => { if (!token) return void signIn(); await likeCommunityPost(token, Number(post.id)); await loadScreen(); }}
             onReport={async post => { if (!token) return void signIn(); await reportCommunityPost(token, { postId: Number(post.id), reason: "other" }); Alert.alert("Meldung gespeichert", "Die Meldung wurde zur Prüfung weitergeleitet."); }}
             onBlock={async post => { if (!token) return void signIn(); await blockCommunityUser(token, Number(post.author.id)); await loadScreen(); navigate("community"); }}
@@ -3192,6 +3194,7 @@ function CommunityScreen({
   onSignIn,
   navigate,
   onOpenDetail,
+  onOpenProfile,
 }: {
   tone: Tone;
   account: Account | null;
@@ -3203,6 +3206,7 @@ function CommunityScreen({
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
   onOpenDetail: (id: string) => void;
+  onOpenProfile: (id: number) => void;
 }) {
   const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
   const [adminProfile, setAdminProfile] = useState<Awaited<ReturnType<typeof socialAdminProfile>> | null>(null);
@@ -3308,6 +3312,7 @@ function CommunityScreen({
                 await refresh();
               }}
               onOpenDetail={() => onOpenDetail(post.id)}
+              onOpenProfile={() => onOpenProfile(Number(post.author.id))}
               token={token}
             />
           ))}
@@ -3317,7 +3322,7 @@ function CommunityScreen({
   );
 }
 
-function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefresh, onLike, onReport, onBlock }: { tone: Tone; token: string | null; post: CommunityPost | null; onBack: () => void; onSignIn: () => Promise<void>; onRefresh: () => Promise<void>; onLike: (post: CommunityPost) => Promise<void>; onReport: (post: CommunityPost) => Promise<void>; onBlock: (post: CommunityPost) => Promise<void> }) {
+function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefresh, onOpenProfile, onLike, onReport, onBlock }: { tone: Tone; token: string | null; post: CommunityPost | null; onBack: () => void; onSignIn: () => Promise<void>; onRefresh: () => Promise<void>; onOpenProfile: (id: number) => void; onLike: (post: CommunityPost) => Promise<void>; onReport: (post: CommunityPost) => Promise<void>; onBlock: (post: CommunityPost) => Promise<void> }) {
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
@@ -3332,7 +3337,7 @@ function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefr
     finally { setBusy(false); }
   };
   if (!post) return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><StatusPanel tone={tone} icon="people-outline" code="BEITRAG / NICHT_GEFUNDEN" title="BEITRAG NICHT VERFÜGBAR" text="Der Beitrag wurde entfernt oder ist für dieses Konto nicht sichtbar." /></Page>;
-  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Text style={styles.cardTitle}>{post.author.name ?? post.author.username ?? "Verifiziertes Konto"}</Text><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{token && post.author.id !== "" ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock(post) }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
+  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Pressable onPress={() => onOpenProfile(Number(post.author.id))} accessibilityRole="link"><Text style={styles.cardTitle}>{post.author.name ?? post.author.username ?? "Verifiziertes Konto"}</Text></Pressable><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{token && post.author.id !== "" ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock(post) }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
 }
 
 function CareScreen({ tone, token, tasks, plans, journal, habitats, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; habitats: Habitat[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
@@ -4040,7 +4045,7 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; accountId: number | null; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; token: string | null }) {
+function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, onOpenProfile, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; accountId: number | null; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; onOpenProfile: () => void; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
@@ -4090,9 +4095,9 @@ function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, on
     >
       <View style={styles.postHead}>
         <View style={styles.postHeadCopy}>
-          <Text style={styles.cardTitle}>
+          <Pressable onPress={onOpenProfile} accessibilityRole="link"><Text style={styles.cardTitle}>
             {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
-          </Text>
+          </Text></Pressable>
           <Text style={styles.date}>
             {new Date(post.createdAt).toLocaleDateString("de-DE")}
           </Text>

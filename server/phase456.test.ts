@@ -8,7 +8,7 @@ const root = resolve(import.meta.dirname, "..");
 describe("Phase 4–6 retention, quality and SEO contracts", () => {
   it("projects only explicitly public profile posts", () => {
     const source = read("./routers/profile.ts");
-    for (const token of ["publicPosts: protectedProcedure", 'eq(communityPosts.status, "published")', 'eq(communityPosts.visibility, "public")']) expect(source).toContain(token);
+    for (const token of ["publicPosts: publicProcedure", 'eq(users.profileVisibility, "public")', 'eq(communityPosts.status, "published")', 'eq(communityPosts.visibility, "public")']) expect(source).toContain(token);
   });
 
   it("keeps social blocking and public-target validation server-side", () => {

@@ -171,7 +171,7 @@ export const profileRouter = router({
       : null;
   }),
 
-  publicPosts: protectedProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
+  publicPosts: publicProcedure.input(z.object({ userId: z.number().int().positive(), limit: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
     const db = await requireDatabase();
     const posts = await db
       .select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, createdAt: communityPosts.createdAt, updatedAt: communityPosts.updatedAt })
@@ -180,6 +180,7 @@ export const profileRouter = router({
       .where(and(
         eq(communityPosts.userId, input.userId),
         eq(users.status, "active"),
+        eq(users.profileVisibility, "public"),
         eq(communityPosts.status, "published"),
         eq(communityPosts.visibility, "public"),
       ))

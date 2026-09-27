@@ -17,8 +17,9 @@ describe("protected Community detail and Live Hub", () => {
     expect(community).not.toContain("comments: publicProcedure");
     const profileRouter = read("server/routers/profile.ts");
     const publicProfile = read("client/src/pages/PublicProfile.tsx");
-    expect(profileRouter).toContain("publicPosts: protectedProcedure");
-    expect(publicProfile).toContain("POSTS_AUTH_REQUIRED");
+    expect(profileRouter).toContain("publicPosts: publicProcedure");
+    expect(profileRouter).toContain('eq(users.profileVisibility, "public")');
+    expect(publicProfile).not.toContain("POSTS_AUTH_REQUIRED");
   });
 
   it("adds a dedicated discussion route and keeps comments account-bound", () => {
