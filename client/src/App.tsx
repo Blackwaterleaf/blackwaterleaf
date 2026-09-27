@@ -35,6 +35,7 @@ import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
 import NotFound from "./pages/NotFound";
 import Feedback from "./pages/Feedback";
+import Legal from "./pages/Legal";
 
 function Router() {
   return (
@@ -60,6 +61,9 @@ function Router() {
         <Route path={"/notifications"} component={Notifications} />
         <Route path={"/messages"} component={Messages} />
         <Route path={"/feedback"} component={Feedback} />
+        <Route path={"/datenschutz"} component={Legal} />
+        <Route path={"/privacy"} component={Legal} />
+        <Route path={"/impressum"} component={Legal} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />

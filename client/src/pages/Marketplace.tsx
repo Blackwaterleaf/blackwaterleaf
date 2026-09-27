@@ -5,6 +5,7 @@ import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { marketplaceCategoryLabel, type MarketplaceProduct } from "@/lib/marketplacePresentation";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
+import PartnerInquiryCard from "@/components/PartnerInquiryCard";
 import { ArrowRight, ExternalLink, Leaf, ShieldCheck, Store } from "lucide-react";
 import { Link } from "wouter";
 
@@ -36,6 +37,7 @@ export default function Marketplace() {
         <div className="marketplace-hub__intro-icon"><Store size={22} /></div>
         <div><span className="eyebrow">[SHOPAUSWAHL]</span><h2>Welcher Händler passt zu dir?</h2><p>Keine vermischte Produktwand: Jeder Händler hat seinen eigenen Shopbereich. BlackWaterLeaf vermittelt nur und verkauft nicht selbst.</p></div>
       </section>
+      <PartnerInquiryCard />
 
       <section className="marketplace-hub__shops" aria-label="Händler auswählen">
         <div className="section-heading"><div><span className="eyebrow">[FREIGEGEBENE HÄNDLER]</span><h2>Shops entdecken</h2></div><span className="marketplace-count">{catalogue.isLoading ? "…" : `${shops.length} SHOPS`}</span></div>

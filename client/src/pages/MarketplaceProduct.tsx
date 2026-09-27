@@ -3,6 +3,7 @@ import { StatePanel } from "@/components/StatePanel";
 import { addMarketplaceProduct, readMarketplaceCart, writeMarketplaceCart } from "@/lib/marketplaceCart";
 import { marketplaceCategoryLabel, marketplaceDisclosure, type MarketplaceCartLine } from "@/lib/marketplacePresentation";
 import { trpc } from "@/lib/trpc";
+import PartnerInquiryCard from "@/components/PartnerInquiryCard";
 import { ArrowLeft, ExternalLink, PackageOpen, Plus, ShieldCheck, ShoppingBag, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
@@ -128,6 +129,7 @@ export default function MarketplaceProduct() {
               {item.partnerUrl ? <a href={item.partnerUrl} target="_blank" rel="sponsored nofollow noopener">{item.partnerName} besuchen <ExternalLink size={14} /></a> : null}
             </div>
           </section>
+          <PartnerInquiryCard />
         </>
       ) : null}
     </div>
