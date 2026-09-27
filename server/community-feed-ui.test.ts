@@ -17,9 +17,9 @@ describe("Observatory community feed interface", () => {
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
-  it("publishes admin media posts to every feed instead of leaving private drafts", () => {
+  it("separates admin media targets from the explicit all-feeds option", () => {
     const page = read("client/src/pages/Community.tsx");
-    for (const token of ["const adminPublicPost = isAdmin", "realm: adminPublicPost ? null", "publishNow || adminPublicPost", "AN ALLE FEEDS SENDEN", "automatisch öffentlich in alle Feeds veröffentlicht"]) expect(page).toContain(token);
+    for (const token of ["const adminPublicPost = isAdmin && (adminAllFeeds || realm !== \"none\")", "realm: adminAllFeeds ? null", "Bitte zuerst einen Fachfeed oder ALLE FEEDS · ADMIN auswählen.", "ALLE FEEDS · ADMIN", "AN GEWÄHLTEN FEED SENDEN"]) expect(page).toContain(token);
   });
 
   it("keeps every hook before the unauthenticated early return", () => {

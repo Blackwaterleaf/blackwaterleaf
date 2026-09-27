@@ -2279,3 +2279,13 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .public-profile-page .public-profile-actions > .primary-action:active,
   .public-profile-page .public-profile-actions > .secondary-action:active { transform:scale(.98); }
 }
+
+/* Upload target selector: make the publishing destination unmistakable. */
+.community-upload-target { position:relative; }
+.community-upload-target select { border-color:rgba(185,251,127,.5); background:rgba(7,34,16,.9); font-weight:800; }
+.community-upload-target__hint { display:block; margin-top:5px; color:#b9d7b9; font-size:.58rem; line-height:1.35; }
+@media (max-width:560px) {
+  .community-upload-target { grid-column:1 / -1; padding:10px; border:1px solid rgba(185,251,127,.24); border-radius:10px; background:rgba(5,28,13,.34); }
+  .community-upload-target select { min-height:40px; }
+  .community-upload-target__hint { font-size:.55rem; }
+}

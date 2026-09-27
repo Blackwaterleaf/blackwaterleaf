@@ -1035,6 +1035,7 @@ function NaturApp() {
         {screen === "post" && (
           <PostScreen
             token={token}
+            isAdmin={account?.role === "admin"}
             tone={TONES.post}
             onSignIn={signIn}
             navigate={navigate}
@@ -2663,17 +2664,20 @@ function PhotoScreen({
 
 function PostScreen({
   token,
+  isAdmin,
   tone,
   onSignIn,
   navigate,
 }: {
   token: string | null;
+  isAdmin: boolean;
   tone: Tone;
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
 }) {
   const [content, setContent] = useState("");
   const [realm, setRealm] = useState<Realm | null>("botany");
+  const [adminAllFeeds, setAdminAllFeeds] = useState(false);
   const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null; width: number; height: number } | null>(null);
   const [postAspect, setPostAspect] = useState<"original" | "9:16" | "4:5" | "1:1" | "16:9">("original");
   const [postQuality, setPostQuality] = useState(92);
@@ -2765,7 +2769,7 @@ function PostScreen({
         });
       const draft = await createCommunityDraft(token, {
         content: content.trim(),
-        realm,
+        realm: adminAllFeeds ? null : realm,
       });
       if (postImage) {
         setUploadProgress({ percent: 32, etaSeconds: 4, label: "BILD WIRD VERARBEITET" });
@@ -2789,6 +2793,8 @@ function PostScreen({
       }
       setUploadProgress({ percent: 100, etaSeconds: 0, label: "UPLOAD ABGESCHLOSSEN" });
       setContent("");
+      setRealm("botany");
+      setAdminAllFeeds(false);
       setPostImage(null);
       setUploadProgress(null);
       setPostAspect("original");
@@ -2882,17 +2888,17 @@ function PostScreen({
             multiline
           />
           <View style={styles.realmPicker}>
-            {([null, "botany", "aquarium", "terrarium"] as const).map(item => (
+            {(isAdmin ? (["botany", "aquarium", "terrarium", "all"] as const) : (["botany", "aquarium", "terrarium"] as const)).map(item => (
               <Pressable
                 key={item ?? "all"}
-                onPress={() => setRealm(item)}
+                onPress={() => { if (item === "all") { setAdminAllFeeds(true); setRealm(null); } else { setAdminAllFeeds(false); setRealm(item); } }}
                 style={({ pressed }) => [
                   styles.realmButton,
                   {
                     borderColor:
-                      realm === item ? tone.accent : `${tone.accent}44`,
+                      ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? tone.accent : `${tone.accent}44`,
                     backgroundColor:
-                      realm === item ? `${tone.accent}24` : "rgba(0,0,0,.18)",
+                      ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? `${tone.accent}24` : "rgba(0,0,0,.18)",
                   },
                   pressed && styles.pressed,
                 ]}
@@ -2900,11 +2906,11 @@ function PostScreen({
                 <Text
                   style={[
                     styles.realmText,
-                    { color: realm === item ? c.text : c.muted },
+                    { color: ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? c.text : c.muted },
                   ]}
                 >
-                  {item === null
-                    ? "ALLE BEREICHE"
+                  {item === "all"
+                    ? "ALLE FEEDS · ADMIN"
                     : item === "botany"
                     ? "BOTANIK"
                     : item === "aquarium"
