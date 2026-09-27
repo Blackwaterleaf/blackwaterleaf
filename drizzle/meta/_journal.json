@@ -288,6 +288,20 @@
       "when": 1790465916563,
       "tag": "0040_rich_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1790467588289,
+      "tag": "0041_wide_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1790467878460,
+      "tag": "0042_misty_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

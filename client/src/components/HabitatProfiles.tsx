@@ -1,6 +1,6 @@
 import type { PrivateHabitatInput } from "@shared/blackwaterleaf-contract-v1";
 import { Box, ChevronLeft, ChevronRight, Fish, Loader2, Pencil, Plus, Save, Sprout, Trash2, X } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 import { habitatText, useI18n, type HabitatCopy } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
@@ -173,7 +173,7 @@ export function summarizeHabitat(record: Pick<HabitatRecord, "kind" | "details">
   return [numericSummary(details.volumeLiters, "L"), numericSummary(details.humidityPercent, copy.relativeHumidity), numericSummary(details.dayTemperatureC, "°C")].filter(Boolean).join(" · ");
 }
 
-export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visibleKinds?: HabitatKind[]; defaultOpen?: boolean } = {}) {
+export function HabitatProfiles({ visibleKinds, defaultOpen = false, prefill }: { visibleKinds?: HabitatKind[]; defaultOpen?: boolean; prefill?: { kind: HabitatKind; name: string; scientificName?: string } } = {}) {
   const { locale } = useI18n();
   const copy = habitatText(locale);
   const utils = trpc.useUtils();
@@ -190,6 +190,15 @@ export function HabitatProfiles({ visibleKinds, defaultOpen = false }: { visible
   const [previewImage, setPreviewImage] = useState<NonNullable<HabitatRecord["images"]>[number] | null>(null);
   const [previewGallery, setPreviewGallery] = useState<NonNullable<HabitatRecord["images"]>>([]);
   const [previewIndex, setPreviewIndex] = useState(0);
+  useEffect(() => {
+    if (!prefill || form) return;
+    const next = blankForm(prefill.kind);
+    next.name = prefill.name;
+    if (prefill.kind === "plant" && prefill.scientificName) next.scientificName = prefill.scientificName;
+    setForm(next);
+    setEditingId(null);
+    setStatus("Katalogdaten übernommen. Ergänze jetzt deine privaten Haltungswerte.");
+  }, [form, prefill]);
   const openGallery = (images: NonNullable<HabitatRecord["images"]>, index: number) => { setPreviewGallery(images); setPreviewIndex(index); setPreviewImage(images[index] ?? null); };
   const records = (habitats.data ?? []) as unknown as HabitatRecord[];
   const shownKinds = visibleKinds?.length ? visibleKinds : (Object.keys(META) as HabitatKind[]);

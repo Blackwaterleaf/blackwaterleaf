@@ -43,6 +43,32 @@ type TrpcEnvelope<T> = {
   error?: { json?: { message?: string } };
 };
 export type HabitatKind = "aquarium" | "terrarium" | "plant";
+export type ObservationGeoPrivacy = "private" | "obscured" | "public" | "embargoed";
+export type ObservationWildStatus = "wild" | "cultivated" | "captive" | "unknown";
+export type ObservationMapPoint = {
+  id: string;
+  realm: "botany" | "aquarium" | "terrarium";
+  label: string;
+  evidenceState: "confirmed" | "contextual" | "unverified" | "conflicting" | "insufficient";
+  observedAt: string | null;
+  latitude: number;
+  longitude: number;
+  coordinateUncertaintyM: number | null;
+  geoprivacy: ObservationGeoPrivacy;
+};
+export type StructuredObservationFields = {
+  taxonRank: string | null;
+  observedAt: string | null;
+  basisOfRecord: "human_observation" | "machine_observation" | "material_sample";
+  wildStatus: ObservationWildStatus;
+  latitude: number | null;
+  longitude: number | null;
+  coordinateUncertaintyM: number | null;
+  publicLatitude: number | null;
+  publicLongitude: number | null;
+  geoprivacy: ObservationGeoPrivacy;
+  embargoUntil: string | null;
+};
 export type HabitatPayload =
   | {
       kind: "plant";
@@ -250,6 +276,7 @@ export type CareTask = {
   title: string;
   dueAt: string;
   status: "open" | "done" | "snoozed" | "skipped";
+  repeatEveryDays: number | null;
   skipReason: string | null;
   completedAt: string | null;
   createdAt: string;
@@ -265,6 +292,19 @@ export type CarePlan = {
   active: boolean;
 };
 export type CareJournalEntry = { id: number; note: string; observedAt: string; habitatId: number | null; taskId: number | null };
+export type AquariumMetric = "temperatureC" | "ph" | "gh" | "kh" | "nitriteMgL" | "nitrateMgL" | "conductivityUs";
+export type AquariumMeasurement = {
+  id: string;
+  habitatId: string;
+  deviceConnectionId: string | null;
+  metric: AquariumMetric;
+  value: number;
+  unit: string;
+  source: "manual" | "smart_device";
+  quality: "reported" | "estimated" | "rejected";
+  observedAt: string;
+  receivedAt: string;
+};
 export type AssistantReply = {
   answer: string;
   model: string;
@@ -477,6 +517,8 @@ export const setConsent = (
 ) => trpcPost<{ success: true }>("profile.setConsent", input, token);
 export const profileConsents = (token: string) =>
   trpcGet<ProfileConsent[]>("profile.consents", undefined, token);
+export const profileExportData = (token: string) =>
+  trpcGet<Record<string, unknown>>("profile.exportData", undefined, token);
 export const setProfileConsent = (
   token: string,
   input: {
@@ -579,12 +621,16 @@ export const careMine = (token: string) =>
   trpcGet<{ plans: CarePlan[]; tasks: CareTask[]; journal: CareJournalEntry[] }>("care.mine", undefined, token);
 export const careCreatePlan = (token: string, input: { realm: CarePlan["realm"]; title: string; habitatId?: number | null }) =>
   trpcPost<CarePlan>("care.createPlan", input, token);
-export const careCreateTask = (token: string, input: { planId: number; title: string; dueAt: string; habitatId?: number | null }) =>
+export const careCreateTask = (token: string, input: { planId: number; title: string; dueAt: string; repeatEveryDays?: number | null; habitatId?: number | null }) =>
   trpcPost<CareTask>("care.createTask", input, token);
 export const careUpdateTask = (token: string, input: { taskId: number; status: CareTask["status"]; reason?: string | null }) =>
   trpcPost<CareTask>("care.updateTask", input, token);
 export const careAddJournal = (token: string, input: { note: string; habitatId?: number | null; taskId?: number | null }) =>
   trpcPost<CareJournalEntry>("care.addJournal", input, token);
+export const aquariumMeasurements = (token: string, habitatId: number, metric?: AquariumMetric, limit = 30) =>
+  trpcGet<AquariumMeasurement[]>("smartDevices.measurements", { habitatId, metric, limit }, token);
+export const recordAquariumMeasurement = (token: string, input: { habitatId: number; metric: AquariumMetric; value: number; observedAt?: string }) =>
+  trpcPost<AquariumMeasurement>("smartDevices.recordManualMeasurement", input, token);
 
 
 export type UnifiedSearchResult = {
@@ -613,6 +659,8 @@ export const publicTerrariumTaxon = (id: number) => trpcGet<PublicTerrariumTaxon
 export const catalogByRealm = (realm: "botany" | "aquarium" | "terrarium", limit = 200) => trpcGet<PublicCatalogTaxon[]>("search.catalogByRealm", { realm, limit });
 export const publicProfile = (id: number) => trpcGet<PublicProfile | null>("profile.publicById", { id });
 export const publicProfilePosts = (id: number) => trpcGet<PublicProfilePost[]>("profile.publicPosts", { userId: id, limit: 12 });
+export const observationMap = (realm?: "botany" | "aquarium" | "terrarium", limit = 200) =>
+  trpcGet<ObservationMapPoint[]>("observations.map", { realm, limit });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);
 export const followProfile = (token: string, id: number) => trpcPost<{ following: true }>("social.follow", { id }, token);
 export const unfollowProfile = (token: string, id: number) => trpcPost<{ following: false }>("social.unfollow", { id }, token);

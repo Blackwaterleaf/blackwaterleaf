@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -72,6 +72,7 @@ type Props = {
   habitats: Habitat[];
   onSaved: () => Promise<void>;
   initialKind?: HabitatKind;
+  prefill?: { kind: HabitatKind; name: string; scientificName?: string };
 };
 
 export function HabitatManager({
@@ -79,6 +80,7 @@ export function HabitatManager({
   habitats,
   onSaved,
   initialKind = "plant",
+  prefill,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<HabitatKind>(initialKind);
@@ -98,6 +100,14 @@ export function HabitatManager({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [gallery, setGallery] = useState<{ images: NonNullable<Habitat["images"]>; index: number } | null>(null);
   const [imagePending, setImagePending] = useState(false);
+  useEffect(() => {
+    if (!prefill) return;
+    setKind(prefill.kind);
+    setName(prefill.name);
+    setScientificName(prefill.scientificName ?? "");
+    setEditingId(null);
+    setOpen(true);
+  }, [prefill]);
   const items = useMemo(
     () => habitats.filter(item => item.kind === kind),
     [habitats, kind]

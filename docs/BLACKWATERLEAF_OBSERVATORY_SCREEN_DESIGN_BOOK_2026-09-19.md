@@ -49,3 +49,11 @@ Der geschützte Account-Löschprozess bleibt eine nicht-destruktive Vorschau üb
 Marketplace und Partnerbereich verwenden getrennte Händler-Shops. Web und Native führen über `/marketplace/shop/:id` beziehungsweise `/marketplace/shop/` in die ausgewählte Händlerfläche. Die UI darf keine bestätigten Verkäufe behaupten; es werden nur Kaufinteressen, Weiterleitungen und **bestätigte Verkäufe** aus den jeweiligen autorisierten Daten angezeigt. `Partner`-Attribution und die Information „BlackWaterLeaf verarbeitet keine Zahlung“ bleiben sichtbar.
 
 Die Marketplace-Übersicht beginnt mit einer kompakten **Shopauswahl**; Produkte werden erst innerhalb des ausgewählten Händler-Shops angezeigt.
+
+## 15.32 Datenkontrolle · Export und Kontoschließung
+Web und Native bieten im Datenschutzbereich einen geschützten maschinenlesbaren Kontoexport (`blackwaterleaf-account-export-v1`) mit Profil, privaten Anlagen, Beobachtungen, Pflege, Messwerten, Einwilligungsereignissen und Medienmetadaten. Storage-URLs und geheime Storage-Schlüssel werden im Export nicht ausgegeben. Solange die vollständige DB-, Session- und Storage-Löschkette nicht nachweisbar abgeschlossen ist, verwendet die Oberfläche ausschließlich die Formulierung **Deaktivierung/Anonymisierung** und nicht „vollständig gelöscht“.
+
+Die geschützte Kontofunktion bleibt über `profile.erasurePreview` nachvollziehbar. Der vollständige **DB-, Session- und Storage-Löschlauf** ist vor einer späteren Freigabe separat zu prüfen; bis dahin bleibt die Storage-Löschung `not_yet_executed`.
+
+## 15.33 Katalog → private Anlage
+Jeder valide Pflanzen-, Aquaristik- und Terraristik-Steckbrief bietet eine kompakte Aktion **IN ANLAGE ÜBERNEHMEN**. Nur angemeldete Konten öffnen den privaten Erfassungsflow. Artname und wissenschaftlicher Name werden vorbefüllt; private Felder wie Messwerte, Pflegezustand, Notizen, Einrichtung und Bilder bleiben leer und werden nie aus Katalogdaten erfunden. Web und Native verwenden denselben Übergabevertrag und zeigen nach der Übernahme weiterhin den jeweiligen Fachbereichsakzent.

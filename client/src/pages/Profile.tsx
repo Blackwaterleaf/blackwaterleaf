@@ -6,7 +6,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Ban, Camera, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Ban, Camera, Download, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -23,6 +23,7 @@ type ProfileForm = {
   facebook: string;
   profileVisibility: "private" | "unlisted" | "public";
 };
+type HabitatKind = "plant" | "aquarium" | "terrarium";
 const EMPTY_PROFILE: ProfileForm = {
   name: "", username: "", bio: "", location: "", website: "", instagram: "", tiktok: "", youtube: "", facebook: "", profileVisibility: "private",
 };
@@ -40,6 +41,7 @@ export default function Profile() {
   const setConsent = trpc.profile.setConsent.useMutation();
   const uploadAvatar = trpc.profile.uploadAvatar.useMutation();
   const closeAccount = trpc.profile.closeAccount.useMutation();
+  const exportData = trpc.profile.exportData.useQuery(undefined, { enabled: false, retry: false });
   const revokeAllSessions = trpc.auth.revokeAllSessions.useMutation();
   const blockedAccounts = trpc.social.blocked.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const unblockAccount = trpc.social.unblock.useMutation({ onSuccess: () => void blockedAccounts.refetch() });
@@ -168,6 +170,24 @@ export default function Profile() {
     }
   };
 
+  const downloadAccountExport = async () => {
+    setStatus(null);
+    try {
+      const result = await exportData.refetch();
+      if (!result.data) throw new Error("account_export_empty");
+      const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `blackwaterleaf-account-export-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setStatus(locale === "de" ? "Datenexport erstellt und heruntergeladen." : "Data export created and downloaded.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "account_export_failed");
+    }
+  };
+
   const signOutEverywhere = async () => {
     setStatus(null);
     try {
@@ -179,6 +199,14 @@ export default function Profile() {
   };
 
   const section = location.startsWith("/profile/") ? location.split("/")[2] : "settings";
+  const habitatPrefill = useMemo(() => {
+    if (!location.startsWith("/profile/habitats")) return undefined;
+    const params = new URLSearchParams(location.split("?")[1] ?? "");
+    const kind = params.get("kind");
+    const name = params.get("prefillName");
+    if (!name || (kind !== "plant" && kind !== "aquarium" && kind !== "terrarium")) return undefined;
+    return { kind, name, scientificName: params.get("scientificName") ?? undefined } as { kind: HabitatKind; name: string; scientificName?: string };
+  }, [location]);
   return (
     <div className={`observatory-route observatory-route--botany profile-page-only profile-settings-page profile-section-${section}`}>
       {!auth.isAuthenticated ? <ProfileAuthOverlay locale={locale} /> : profile.isLoading ? (
@@ -239,13 +267,14 @@ export default function Profile() {
             </form>
           </details>
 
-          <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} defaultOpen={section === "settings" || section === "habitats"} /></section>
+          <section id="habitats" className="profile-habitats-section"><HabitatProfiles visibleKinds={visibleKinds} prefill={habitatPrefill} defaultOpen={section === "settings" || section === "habitats"} /></section>
 
           <details id="profile-tools" className="profile-secondary-tools account-section observatory-data-panel">
             <summary><span>WEITERE WERKZEUGE</span><small>Nur bei Bedarf öffnen</small></summary>
             <div className="profile-secondary-tools__body">
               <div className="profile-secondary-tools__smart"><span className="eyebrow">SMART-WERTE</span><span className="sr-only">Smart-Werte verbinden</span><SmartDeviceDialog /></div>
               <section className="profile-blocked-accounts observatory-data-panel" aria-labelledby="blocked-accounts-title"><div><span className="eyebrow">COMMUNITY-SCHUTZ</span><h2 id="blocked-accounts-title">BLOCKIERTE KONTEN</h2><p>Blockierte Konten erscheinen nicht in deinem Community-Feed, in Diskussionen oder im Live-Chat. Eine Entblockung stellt keine frühere Folgebeziehung wieder her.</p></div>{blockedAccounts.isLoading ? <p className="form-status">Blockliste wird geladen …</p> : blockedAccounts.isError ? <p className="form-status" role="alert">Blockliste konnte nicht geladen werden.</p> : blockedAccounts.data?.length ? <div className="profile-blocked-accounts__list">{blockedAccounts.data.map(account => <div key={account.id}><span><strong>{account.name ?? account.username ?? "Konto"}</strong><small>blockiert am {new Date(account.blockedAt).toLocaleDateString(locale === "de" ? "de-DE" : "en-US")}</small></span><button type="button" className="secondary-action" disabled={unblockAccount.isPending} onClick={() => unblockAccount.mutate({ id: Number(account.id) })}><Ban size={15} />ENTBLOCKEN</button></div>)}</div> : <p className="form-status">Du hast keine Konten blockiert.</p>}</section>
+              <section className="profile-data-export observatory-data-panel" aria-labelledby="account-export-title"><div><span className="eyebrow">DATENKONTROLLE</span><h2 id="account-export-title">EIGENE DATEN EXPORTIEREN</h2><p>Ein maschinenlesbarer JSON-Export enthält dein Profil, private Anlagen, Beobachtungen, Pflege, Messwerte, Einwilligungen und Medienmetadaten. Geheime Storage-Schlüssel werden nicht ausgegeben.</p></div><button type="button" className={`secondary-action ${exportData.isFetching ? "action-loading" : ""}`} disabled={exportData.isFetching} onClick={() => void downloadAccountExport()}>{exportData.isFetching ? <Loader2 size={16} className="spin" /> : <Download size={16} />}{exportData.isFetching ? "EXPORT WIRD ERSTELLT …" : "DATENEXPORT HERUNTERLADEN"}</button></section>
               <section className="account-danger-zone observatory-data-panel" aria-labelledby="account-close-title">
                 <div><span className="eyebrow">KONTO</span><h2 id="account-close-title">Konto schließen</h2><p>Deine persönlichen Profildaten werden anonymisiert und der Zugang wird deaktiviert. Dieser Schritt kann nicht rückgängig gemacht werden.</p></div>
                 <label className="field"><span>Zur Bestätigung LÖSCHEN eingeben</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" /></label>

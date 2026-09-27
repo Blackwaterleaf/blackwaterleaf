@@ -225,6 +225,17 @@ export const observations = mysqlTable(
     realm: mysqlEnum("realm", ["botany", "aquarium", "terrarium"]).notNull(),
     subject: varchar("subject", { length: 128 }),
     scientificName: varchar("scientificName", { length: 160 }),
+    taxonRank: varchar("taxonRank", { length: 32 }),
+    observedAt: timestamp("observedAt"),
+    basisOfRecord: mysqlEnum("basisOfRecord", ["human_observation", "machine_observation", "material_sample"]).default("human_observation").notNull(),
+    wildStatus: mysqlEnum("wildStatus", ["wild", "cultivated", "captive", "unknown"]).default("unknown").notNull(),
+    latitude: decimal("latitude", { precision: 10, scale: 7 }),
+    longitude: decimal("longitude", { precision: 10, scale: 7 }),
+    coordinateUncertaintyM: decimal("coordinateUncertaintyM", { precision: 12, scale: 2 }),
+    publicLatitude: decimal("publicLatitude", { precision: 10, scale: 7 }),
+    publicLongitude: decimal("publicLongitude", { precision: 10, scale: 7 }),
+    geoprivacy: mysqlEnum("geoprivacy", ["private", "obscured", "public", "embargoed"]).default("private").notNull(),
+    embargoUntil: timestamp("embargoUntil"),
     note: text("note"),
     metrics: json("metrics").notNull(),
     evidenceState: mysqlEnum("evidenceState", [
@@ -257,6 +268,7 @@ export const observations = mysqlTable(
     index("observations_owner_realm_updated_idx").on(table.userId, table.realm, table.updatedAt),
     index("observations_user_updated_idx").on(table.userId, table.updatedAt),
     index("observations_visibility_updated_idx").on(table.visibility, table.updatedAt),
+    index("observations_public_geo_idx").on(table.visibility, table.geoprivacy, table.observedAt),
   ],
 );
 
@@ -1158,6 +1170,7 @@ export const careTasks = mysqlTable(
     habitatId: int("habitatId").references(() => privateHabitats.id, { onDelete: "set null" }),
     title: varchar("title", { length: 160 }).notNull(),
     dueAt: timestamp("dueAt").notNull(),
+    repeatEveryDays: int("repeatEveryDays"),
     status: mysqlEnum("status", ["open", "done", "snoozed", "skipped"]).default("open").notNull(),
     skipReason: varchar("skipReason", { length: 160 }),
     completedAt: timestamp("completedAt"),

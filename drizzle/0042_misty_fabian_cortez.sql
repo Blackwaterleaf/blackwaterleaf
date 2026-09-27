@@ -1,0 +1,1 @@
+ALTER TABLE `care_tasks` ADD `repeatEveryDays` int;

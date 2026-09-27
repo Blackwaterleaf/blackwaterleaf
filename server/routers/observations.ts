@@ -1,13 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 import { mediaAssets, observations, users } from "../../drizzle/schema";
 import {
   BLACKWATERLEAF_CONTRACT_VERSION,
   createObservationInputSchema,
+  observationBasisOfRecordSchema,
   evidenceStateSchema,
+  observationGeoprivacySchema,
   observationMetricSchema,
   observationRealmSchema,
+  observationWildStatusSchema,
   visibilitySchema,
 } from "../../shared/blackwaterleaf-contract-v1";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
@@ -29,6 +32,24 @@ async function requireDatabase() {
 async function hasConsent(userId: number, purpose: "observation_publishing" | "media_processing") {
   const db = await requireDatabase();
   return hasCurrentConsent(db, userId, purpose);
+}
+
+const toDecimal = (value: number | null | undefined) => (value === null || value === undefined ? null : String(value));
+
+function assertGeoPolicy(input: {
+  visibility: "private" | "unlisted" | "public";
+  geoprivacy: "private" | "obscured" | "public" | "embargoed";
+  publicLatitude: number | null | undefined;
+  publicLongitude: number | null | undefined;
+  embargoUntil: string | Date | null | undefined;
+}) {
+  if (input.visibility !== "public") return;
+  if (["obscured", "public", "embargoed"].includes(input.geoprivacy) && (input.publicLatitude == null || input.publicLongitude == null)) {
+    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "public_generalized_coordinates_required" });
+  }
+  if (input.geoprivacy === "embargoed" && !input.embargoUntil) {
+    throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_embargo_date_required" });
+  }
 }
 
 async function serializeObservation(record: typeof observations.$inferSelect, canReadPrivate: boolean) {
@@ -70,6 +91,17 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
     realm: record.realm,
     subject: record.subject,
     scientificName: record.scientificName,
+    taxonRank: record.taxonRank,
+    observedAt: record.observedAt?.toISOString() ?? null,
+    basisOfRecord: record.basisOfRecord,
+    wildStatus: record.wildStatus,
+    latitude: canReadPrivate ? (record.latitude === null ? null : Number(record.latitude)) : null,
+    longitude: canReadPrivate ? (record.longitude === null ? null : Number(record.longitude)) : null,
+    coordinateUncertaintyM: canReadPrivate ? (record.coordinateUncertaintyM === null ? null : Number(record.coordinateUncertaintyM)) : null,
+    publicLatitude: record.geoprivacy === "public" && record.visibility === "public" && (!record.embargoUntil || record.embargoUntil <= new Date()) ? (record.publicLatitude === null ? null : Number(record.publicLatitude)) : null,
+    publicLongitude: record.geoprivacy === "public" && record.visibility === "public" && (!record.embargoUntil || record.embargoUntil <= new Date()) ? (record.publicLongitude === null ? null : Number(record.publicLongitude)) : null,
+    geoprivacy: record.geoprivacy,
+    embargoUntil: canReadPrivate ? (record.embargoUntil?.toISOString() ?? null) : null,
     note: record.note,
     metrics: observationMetricSchema.array().parse(record.metrics),
     media,
@@ -124,8 +156,52 @@ export const observationsRouter = router({
       );
     }),
 
+  map: publicProcedure
+    .input(z.object({ realm: observationRealmSchema.optional(), limit: z.number().int().min(1).max(500).default(200) }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const rows = await db
+        .select({ observation: observations })
+        .from(observations)
+        .innerJoin(users, eq(observations.userId, users.id))
+        .where(
+          input.realm
+            ? and(
+                eq(observations.visibility, "public"),
+                eq(users.status, "active"),
+                eq(observations.realm, input.realm),
+                isNotNull(observations.publicLatitude),
+                isNotNull(observations.publicLongitude),
+              )
+            : and(
+                eq(observations.visibility, "public"),
+                eq(users.status, "active"),
+                isNotNull(observations.publicLatitude),
+                isNotNull(observations.publicLongitude),
+              ),
+        )
+        .orderBy(desc(observations.observedAt), desc(observations.updatedAt))
+        .limit(input.limit);
+      const now = new Date();
+      return rows
+        .map(({ observation }) => observation)
+        .filter(record => record.geoprivacy !== "private" && (!record.embargoUntil || record.embargoUntil <= now))
+        .map(record => ({
+          id: String(record.id),
+          realm: record.realm,
+          label: record.scientificName ?? record.subject ?? "Unbestimmte Beobachtung",
+          evidenceState: record.evidenceState,
+          observedAt: record.observedAt?.toISOString() ?? null,
+          latitude: Number(record.publicLatitude),
+          longitude: Number(record.publicLongitude),
+          coordinateUncertaintyM: record.coordinateUncertaintyM === null ? null : Number(record.coordinateUncertaintyM),
+          geoprivacy: record.geoprivacy,
+        }));
+    }),
+
   create: protectedProcedure.input(createObservationInputSchema).mutation(async ({ ctx, input }) => {
     if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
+    assertGeoPolicy(input);
     const db = await requireDatabase();
     const existing = await db
       .select()
@@ -144,6 +220,17 @@ export const observationsRouter = router({
       realm: input.realm,
       subject: input.subject,
       scientificName: input.scientificName,
+      taxonRank: input.taxonRank,
+      observedAt: input.observedAt ? new Date(input.observedAt) : null,
+      basisOfRecord: input.basisOfRecord,
+      wildStatus: input.wildStatus,
+      latitude: toDecimal(input.latitude),
+      longitude: toDecimal(input.longitude),
+      coordinateUncertaintyM: toDecimal(input.coordinateUncertaintyM),
+      publicLatitude: toDecimal(input.publicLatitude),
+      publicLongitude: toDecimal(input.publicLongitude),
+      geoprivacy: input.geoprivacy,
+      embargoUntil: input.embargoUntil ? new Date(input.embargoUntil) : null,
       note: input.note,
       metrics: input.metrics,
       evidenceState: input.evidenceState,
@@ -163,6 +250,17 @@ export const observationsRouter = router({
         expectedRevision: z.number().int().positive(),
         subject: z.string().max(128).nullable().optional(),
         scientificName: z.string().max(160).nullable().optional(),
+        taxonRank: z.string().max(32).nullable().optional(),
+        observedAt: z.string().datetime().nullable().optional(),
+        basisOfRecord: observationBasisOfRecordSchema.optional(),
+        wildStatus: observationWildStatusSchema.optional(),
+        latitude: z.number().finite().min(-90).max(90).nullable().optional(),
+        longitude: z.number().finite().min(-180).max(180).nullable().optional(),
+        coordinateUncertaintyM: z.number().finite().min(0).max(20_000_000).nullable().optional(),
+        publicLatitude: z.number().finite().min(-90).max(90).nullable().optional(),
+        publicLongitude: z.number().finite().min(-180).max(180).nullable().optional(),
+        geoprivacy: observationGeoprivacySchema.optional(),
+        embargoUntil: z.string().datetime().nullable().optional(),
         note: z.string().max(2_000).nullable().optional(),
         metrics: z.array(observationMetricSchema).max(64).optional(),
         evidenceState: evidenceStateSchema.optional(),
@@ -187,11 +285,39 @@ export const observationsRouter = router({
       if (input.visibility === "public" && !(await hasConsent(ctx.user.id, "observation_publishing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_publishing_consent_required" });
       }
-      const { id, expectedRevision, ...changes } = input;
+      assertGeoPolicy({
+        visibility: input.visibility ?? current.visibility,
+        geoprivacy: input.geoprivacy ?? current.geoprivacy,
+        publicLatitude: input.publicLatitude ?? (current.publicLatitude === null ? null : Number(current.publicLatitude)),
+        publicLongitude: input.publicLongitude ?? (current.publicLongitude === null ? null : Number(current.publicLongitude)),
+        embargoUntil: input.embargoUntil ?? current.embargoUntil,
+      });
+      const {
+        id,
+        expectedRevision,
+        observedAt,
+        embargoUntil,
+        latitude,
+        longitude,
+        coordinateUncertaintyM,
+        publicLatitude,
+        publicLongitude,
+        ...changes
+      } = input;
+      const normalizedChanges = {
+        ...changes,
+        ...(observedAt !== undefined ? { observedAt: observedAt ? new Date(observedAt) : null } : {}),
+        ...(embargoUntil !== undefined ? { embargoUntil: embargoUntil ? new Date(embargoUntil) : null } : {}),
+        ...(latitude !== undefined ? { latitude: toDecimal(latitude) } : {}),
+        ...(longitude !== undefined ? { longitude: toDecimal(longitude) } : {}),
+        ...(coordinateUncertaintyM !== undefined ? { coordinateUncertaintyM: toDecimal(coordinateUncertaintyM) } : {}),
+        ...(publicLatitude !== undefined ? { publicLatitude: toDecimal(publicLatitude) } : {}),
+        ...(publicLongitude !== undefined ? { publicLongitude: toDecimal(publicLongitude) } : {}),
+      } as Partial<typeof observations.$inferInsert>;
       await db.transaction(async tx => {
         await tx
           .update(observations)
-          .set({ ...changes, syncState: "synced", revision: current.revision + 1 })
+          .set({ ...normalizedChanges, syncState: "synced", revision: current.revision + 1 })
           .where(and(eq(observations.id, id), eq(observations.userId, ctx.user.id), eq(observations.revision, expectedRevision)));
         if (input.visibility) {
           await tx

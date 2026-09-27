@@ -94,6 +94,10 @@ export const observationMetricSchema = z.object({
   unit: z.string().trim().min(1).max(32).optional(),
 });
 
+export const observationBasisOfRecordSchema = z.enum(["human_observation", "machine_observation", "material_sample"]);
+export const observationWildStatusSchema = z.enum(["wild", "cultivated", "captive", "unknown"]);
+export const observationGeoprivacySchema = z.enum(["private", "obscured", "public", "embargoed"]);
+
 export const mediaAssetSchema = z.object({
   id: z.string().min(1),
   ownerId: z.string().min(1),
@@ -115,6 +119,17 @@ export const observationSchema = z.object({
   realm: observationRealmSchema,
   subject: z.string().max(128).nullable(),
   scientificName: z.string().max(160).nullable(),
+  taxonRank: z.string().max(32).nullable(),
+  observedAt: z.string().datetime().nullable(),
+  basisOfRecord: observationBasisOfRecordSchema,
+  wildStatus: observationWildStatusSchema,
+  latitude: z.number().finite().min(-90).max(90).nullable(),
+  longitude: z.number().finite().min(-180).max(180).nullable(),
+  coordinateUncertaintyM: z.number().finite().min(0).max(20_000_000).nullable(),
+  publicLatitude: z.number().finite().min(-90).max(90).nullable(),
+  publicLongitude: z.number().finite().min(-180).max(180).nullable(),
+  geoprivacy: observationGeoprivacySchema,
+  embargoUntil: z.string().datetime().nullable(),
   note: z.string().max(2_000).nullable(),
   metrics: z.array(observationMetricSchema).max(64),
   media: z.array(mediaAssetSchema).max(20),
@@ -141,6 +156,17 @@ export const createObservationInputSchema = observationSchema
     clientId: z.string().min(1).max(128),
     visibility: visibilitySchema.default("private"),
     evidenceState: evidenceStateSchema.default("unverified"),
+    basisOfRecord: observationBasisOfRecordSchema.default("human_observation"),
+    wildStatus: observationWildStatusSchema.default("unknown"),
+    geoprivacy: observationGeoprivacySchema.default("private"),
+    observedAt: z.string().datetime().nullable().default(null),
+    taxonRank: z.string().max(32).nullable().default(null),
+    latitude: z.number().finite().min(-90).max(90).nullable().default(null),
+    longitude: z.number().finite().min(-180).max(180).nullable().default(null),
+    coordinateUncertaintyM: z.number().finite().min(0).max(20_000_000).nullable().default(null),
+    publicLatitude: z.number().finite().min(-90).max(90).nullable().default(null),
+    publicLongitude: z.number().finite().min(-180).max(180).nullable().default(null),
+    embargoUntil: z.string().datetime().nullable().default(null),
   });
 
 export const knowledgeSourceSchema = z.object({

@@ -4,6 +4,10 @@ import { z } from "zod";
 import {
   aiIdentificationCorrections,
   assistantUsage,
+  careEvents,
+  careJournal,
+  carePlans,
+  careTasks,
   communityPosts,
   localAuthTokens,
   localCredentials,
@@ -110,6 +114,28 @@ export const profileRouter = router({
       storageDeletion: "not_yet_executed" as const,
       auditRetention: "minimal_pseudonymous_record_required" as const,
     };
+  }),
+
+  exportData: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    const owned = async (table: any) => db.select().from(table).where(eq(table.userId, ctx.user.id));
+    const [habitats, observationsRows, community, media, plans, tasks, events, journal, consents, smartConnections, smartMeasurements, assistant, corrections] = await Promise.all([
+      owned(privateHabitats), owned(observations), owned(communityPosts), owned(mediaAssets), owned(carePlans), owned(careTasks), owned(careEvents), owned(careJournal),
+      owned(userConsentEvents), owned(smartDeviceConnections), owned(smartDeviceMeasurements), owned(assistantUsage), owned(aiIdentificationCorrections),
+    ]);
+    return {
+      exportVersion: "blackwaterleaf-account-export-v1",
+      generatedAt: new Date().toISOString(),
+      profile: await serializeProfile(ctx.user, true),
+      datasets: {
+        habitats, observations: observationsRows, communityPosts: community,
+        mediaAssets: media.map(item => ({ ...item, storageKey: undefined, accessUrl: undefined })),
+        carePlans: plans, careTasks: tasks, careEvents: events, careJournal: journal,
+        consentEvents: consents, smartDeviceConnections: smartConnections, smartDeviceMeasurements: smartMeasurements,
+        assistantUsage: assistant, aiCorrections: corrections,
+      },
+      deletion: { accountStatus: "active", storageObjects: "not_included", note: "Eigene Daten und Medienmetadaten; geheime Storage-Schlüssel sind ausgeschlossen." },
+    } as const;
   }),
 
   publicById: publicProcedure.input(z.object({ id: z.number().int().positive() })).query(async ({ input }) => {

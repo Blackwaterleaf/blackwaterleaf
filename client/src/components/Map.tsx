@@ -127,6 +127,7 @@ interface MapViewProps {
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
   onMapError?: (error: Error) => void;
+  points?: OpenStreetMapPoint[];
   fallbackPoints?: OpenStreetMapPoint[];
   locale?: "de" | "en";
 }
@@ -137,12 +138,15 @@ export function MapView({
   initialZoom = 12,
   onMapReady,
   onMapError,
+  points = [],
   fallbackPoints = [],
   locale = "de",
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
+  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [useOpenStreetMap, setUseOpenStreetMap] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   const init = usePersistFn(async () => {
     try {
@@ -159,6 +163,7 @@ export function MapView({
         streetViewControl: false,
         mapId: "DEMO_MAP_ID",
       });
+      setMapReady(true);
       onMapReady?.(map.current);
     } catch (error) {
       const normalized = error instanceof Error ? error : new Error("Kartenbasis konnte nicht initialisiert werden.");
@@ -173,8 +178,22 @@ export function MapView({
     init();
   }, [init]);
 
+  useEffect(() => {
+    if (!mapReady || !map.current || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
+    markers.current.forEach(marker => { marker.map = null; });
+    markers.current = points.map(point => new window.google.maps.marker.AdvancedMarkerElement({
+      map: map.current,
+      position: { lat: point.lat, lng: point.lng },
+      title: point.detail ? `${point.label} · ${point.detail}` : point.label,
+    }));
+    return () => {
+      markers.current.forEach(marker => { marker.map = null; });
+      markers.current = [];
+    };
+  }, [mapReady, points]);
+
   if (useOpenStreetMap) {
-    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints} locale={locale} />;
+    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints.length ? fallbackPoints : points} locale={locale} />;
   }
   return <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />;
 }
