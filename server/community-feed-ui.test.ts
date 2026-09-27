@@ -68,4 +68,12 @@ describe("Observatory community feed interface", () => {
     for (const token of ["community-post--social", "hasSocialMedia", "post-metrics", "community-post-content-link"]) expect(web + css).toContain(token);
     for (const token of ["postSocialStage", "postSocialRail", "postSocialCaption", "share-social-outline", "Share.share"]) expect(native).toContain(token);
   });
+
+  it("avoids a heavy first feed load and focus-triggered request loop", () => {
+    const page = read("client/src/pages/Community.tsx");
+    const css = read("client/src/index.css");
+    expect(page).toContain('trpc.community.feed.useQuery({ limit: 12 }');
+    for (const token of ["staleTime: 20_000", "refetchOnWindowFocus: false", "refetchOnReconnect: false"]) expect(page).toContain(token);
+    for (const token of [".community-post .post-author-profile > img", "width: 38px", "width: 32px"]) expect(css).toContain(token);
+  });
 });
