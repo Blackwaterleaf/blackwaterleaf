@@ -5,7 +5,7 @@ import { startLogin } from "@/const";
 import { useI18n } from "@/i18n";
 import { estimateImageBytes, imageErrorMessage, readImageAsBase64, readVideoAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, Ban, Camera, Flag, Heart, MessageCircle, Pencil, RefreshCw, Save as SaveIcon, Send, ShieldCheck, Trash2, UsersRound, Video, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowRight, Ban, Camera, Flag, Heart, Loader2, MessageCircle, Pencil, RefreshCw, Save as SaveIcon, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UsersRound, Video, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link } from "wouter";
 
@@ -70,6 +70,7 @@ export default function Community() {
   const { locale, t } = useI18n();
   const utils = trpc.useUtils();
   const feed = trpc.community.feed.useQuery({ limit: 20 }, { enabled: auth.isAuthenticated, retry: false });
+  const adminProfile = trpc.social.adminProfile.useQuery(undefined, { retry: false });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const createDraft = trpc.community.createDraft.useMutation();
   const uploadDraftImage = trpc.community.uploadDraftImage.useMutation();
@@ -81,6 +82,8 @@ export default function Community() {
   const likePost = trpc.community.like.useMutation();
   const reportPost = trpc.community.report.useMutation();
   const blockUser = trpc.community.blockUser.useMutation();
+  const followAdmin = trpc.social.follow.useMutation({ onSuccess: () => void adminProfile.refetch() });
+  const unfollowAdmin = trpc.social.unfollow.useMutation({ onSuccess: () => void adminProfile.refetch() });
   const setConsent = trpc.profile.setConsent.useMutation();
   const [content, setContent] = useState("");
   const [realm, setRealm] = useState<"botany" | "aquarium" | "terrarium" | "none">("none");
@@ -180,7 +183,7 @@ export default function Community() {
         subtitle={locale === "de" ? "Feed · Pflege · Fachfragen" : "Feed · Care · Expert questions"}
         icon={UsersRound}
         badge="MODERIERT"
-        children={<><Link href="/live" className="secondary-action"><UsersRound size={15} />LIVE-HUB</Link><button type="button" className="secondary-action community-refresh" disabled={feed.isFetching} onClick={() => void feed.refetch()}><RefreshCw size={15} />{feed.isFetching ? "AKTUALISIERT …" : "AKTUALISIEREN"}</button><button type="button" className="primary-action" onClick={openComposer}><Send size={15} />BEITRAG ERSTELLEN</button></>}
+        children={<><Link href="/live" className="secondary-action"><UsersRound size={15} />LIVE-HUB</Link>{adminProfile.data ? <button type="button" className={adminProfile.data.isFollowing ? "secondary-action community-subscribe-button is-following" : "primary-action community-subscribe-button"} disabled={followAdmin.isPending || unfollowAdmin.isPending} onClick={() => { if (!auth.isAuthenticated) { startLogin(); return; } (adminProfile.data?.isFollowing ? unfollowAdmin : followAdmin).mutate({ id: Number(adminProfile.data?.id) }); }}>{followAdmin.isPending || unfollowAdmin.isPending ? <Loader2 size={15} className="action-spinner" /> : adminProfile.data.isFollowing ? <UserRoundCheck size={15} /> : <UserPlus size={15} />}{adminProfile.data.isFollowing ? "ABONNIERT" : "BLACKWATERLEAF ABONNIEREN"}<small>{adminProfile.data.followers} Follower</small></button> : null}<button type="button" className="secondary-action community-refresh" disabled={feed.isFetching} onClick={() => void feed.refetch()}><RefreshCw size={15} />{feed.isFetching ? "AKTUALISIERT …" : "AKTUALISIEREN"}</button><button type="button" className="primary-action" onClick={openComposer}><Send size={15} />BEITRAG ERSTELLEN</button></>}
       />
       <section className="community-feed-command observatory-data-panel" aria-label="Community Feed steuern">
         <div className="community-feed-command__heading"><div><span className="eyebrow">ÖFFENTLICHER FEED</span><h2>{activeFilterLabel.toUpperCase()}</h2><p>{locale === "de" ? "Aktive · veröffentlichte Beiträge" : "Active · published posts"}</p></div><span className={`community-feed-command__state ${feed.isFetching ? "is-refreshing" : feed.isError ? "is-error" : ""}`}><ShieldCheck size={15} />{feed.isFetching ? "WIRD AKTUALISIERT" : feed.isError ? "NICHT VERFÜGBAR" : "QUELLENBASIERT"}</span></div>

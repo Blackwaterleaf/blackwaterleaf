@@ -2181,3 +2181,12 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .support-donor-row b { color:#c7ff45; white-space:nowrap; }
 .support-donors__note { display:block; margin-top:1rem; line-height:1.5; }
 @media (max-width:640px) { .support-donors__list { grid-template-columns:1fr; } .support-donors__heading h2 { font-size:1.35rem; } }
+
+/* Instagram-style official profile subscription */
+.community-subscribe-button { position: relative; gap: .45rem; white-space: nowrap; }
+.community-subscribe-button small { display: block; margin-left: .2rem; font-size: .62rem; letter-spacing: .08em; opacity: .78; }
+.community-subscribe-button.is-following { border-color: rgba(190,255,70,.58); color: var(--foreground); }
+@media (max-width:720px) {
+  .community-subscribe-button { width: 100%; justify-content: center; white-space: normal; min-height: 3.15rem; }
+  .community-subscribe-button small { display: inline; }
+}

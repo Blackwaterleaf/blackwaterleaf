@@ -46,6 +46,18 @@ async function assertNotBlocked(db: Awaited<ReturnType<typeof requireDatabase>>,
 }
 
 export const socialRouter = router({
+  adminProfile: publicProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    const admin = await db.select({ id: users.id, name: users.name, username: users.username, bio: users.bio, avatarUrl: users.avatarUrl }).from(users).where(and(eq(users.role, "admin"), eq(users.status, "active"))).orderBy(users.id).limit(1);
+    const target = admin[0];
+    if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "admin_profile_not_found" });
+    const [followers, relationship] = await Promise.all([
+      db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followingId, target.id), eq(userFollows.status, "active"))),
+      ctx.user ? db.select({ status: userFollows.status }).from(userFollows).where(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, target.id))).limit(1) : Promise.resolve([]),
+    ]);
+    return { ...target, id: String(target.id), followers: Number(followers[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active" } as const;
+  }),
+
   relationship: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const [followers, following, relationship, block] = await Promise.all([
