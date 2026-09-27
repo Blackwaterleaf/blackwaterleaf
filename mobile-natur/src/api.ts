@@ -653,7 +653,7 @@ export const uploadCommunityDraftImage = (
   token: string,
   input: { postId: number; base64: string; mimeType: "image/jpeg" | "image/png" | "image/webp" }
 ) =>
-  trpcPost<{ id: string; accessUrl: string }>(
+  trpcPost<{ id: string; accessUrl: string; xpAwarded: number }>(
     "community.uploadDraftImage",
     input,
     token

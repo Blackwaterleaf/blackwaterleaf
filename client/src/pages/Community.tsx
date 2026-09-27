@@ -146,13 +146,14 @@ export default function Community() {
       setUploadProgress({ percent: 8, etaSeconds: eta, label: "ENTWURF WIRD VORBEREITET" });
       const draft = await createDraft.mutateAsync({ content: content.trim(), realm: realm === "none" ? null : realm });
       const postId = Number(draft.id);
-      if (image) { setUploadProgress({ percent: 28, etaSeconds: Math.max(2, Math.ceil(eta * .7)), label: "BILD WIRD VERARBEITET" }); const preparedImage = await readImageAsBase64(image, { aspectRatio: imageAspect, quality: imageQuality / 100 }); setUploadProgress({ percent: 62, etaSeconds: Math.max(1, Math.ceil(eta * .35)), label: "BILD WIRD HOCHGELADEN" }); await uploadDraftImage.mutateAsync({ postId, ...preparedImage }); }
+      let imageXpAwarded = 0;
+      if (image) { setUploadProgress({ percent: 28, etaSeconds: Math.max(2, Math.ceil(eta * .7)), label: "BILD WIRD VERARBEITET" }); const preparedImage = await readImageAsBase64(image, { aspectRatio: imageAspect, quality: imageQuality / 100 }); setUploadProgress({ percent: 62, etaSeconds: Math.max(1, Math.ceil(eta * .35)), label: "BILD WIRD HOCHGELADEN" }); const uploadedImage = await uploadDraftImage.mutateAsync({ postId, ...preparedImage }); imageXpAwarded = uploadedImage.xpAwarded; }
       if (video) { setUploadProgress({ percent: 62, etaSeconds: Math.max(1, Math.ceil(eta * .35)), label: "VIDEO WIRD HOCHGELADEN" }); await uploadDraftVideo.mutateAsync({ postId, ...await readVideoAsBase64(video) }); }
       if (publishNow) { setUploadProgress({ percent: 88, etaSeconds: 1, label: "BEITRAG WIRD VERÖFFENTLICHT" }); await publishPost.mutateAsync({ postId }); }
       setUploadProgress({ percent: 100, etaSeconds: 0, label: "UPLOAD ABGESCHLOSSEN" });
       setContent(""); setRealm("none"); setUploadProgress(null); setImage(null); setImageAspect("original"); setImageQuality(92); setEstimatedImageBytes(null); setVideo(null); setAllowMedia(false); setPublishNow(false); setComposeOpen(false);
       await Promise.all([utils.community.feed.invalidate(), utils.profile.consents.invalidate()]);
-      setStatus(publishNow ? locale === "de" ? "Beitrag öffentlich veröffentlicht." : "Post published publicly." : locale === "de" ? "Privater Entwurf gespeichert." : "Private draft saved.");
+      setStatus(publishNow ? locale === "de" ? `Beitrag öffentlich veröffentlicht${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.` : `Post published publicly${imageXpAwarded ? ` · +${imageXpAwarded} XP for your nature image` : ""}.` : locale === "de" ? `Privater Entwurf gespeichert${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.` : `Private draft saved${imageXpAwarded ? ` · +${imageXpAwarded} XP for your nature image` : ""}.`);
     } catch (error) { setUploadProgress(null); setStatus(imageErrorMessage(error, locale)); }
   };
   const like = async (postId: string) => { if (!auth.isAuthenticated) { startLogin(); return; } try { await likePost.mutateAsync({ postId: Number(postId) }); await utils.community.feed.invalidate(); } catch (error) { setStatus(imageErrorMessage(error, locale)); } };

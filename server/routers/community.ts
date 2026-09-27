@@ -13,6 +13,7 @@ import { hasCurrentConsent } from "../consents";
 import { appendAuditEntry } from "../auditLedger";
 import { assertValidMediaContext } from "../mediaIntegrity";
 import { assertSafetyGateAllows } from "../safetyGates";
+import { awardXpIfReady, XP_REWARDS } from "../gamification";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -229,7 +230,15 @@ export const communityRouter = router({
         storageKey: stored.key,
         visibility: "private",
       });
-      return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key) };
+      const xp = await awardXpIfReady(db, {
+        userId: ctx.user.id,
+        eventType: "photo_upload",
+        eventKey: `xp:${ctx.user.id}:community-photo:${post.id}`,
+        points: XP_REWARDS.communityPhoto,
+        sourceType: "media_asset",
+        sourceId: String(inserted[0].insertId),
+      });
+      return { id: String(inserted[0].insertId), accessUrl: await storageGetSignedUrl(stored.key), xpAwarded: xp.amount };
     }),
   uploadDraftVideo: protectedProcedure
     .input(z.object({ postId: z.number().int().positive(), base64: z.string().min(1), mimeType: z.enum(["video/mp4", "video/webm"]) }))

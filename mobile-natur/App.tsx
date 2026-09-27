@@ -2744,6 +2744,7 @@ function PostScreen({
     setUploadProgress({ percent: 8, etaSeconds: 5, label: "ENTWURF WIRD VORBEREITET" });
     setStatus(null);
     try {
+      let imageXpAwarded = 0;
       if (publishNow)
         await setProfileConsent(token, {
           purpose: "community_publishing",
@@ -2765,7 +2766,8 @@ function PostScreen({
         const prepared = await ImageManipulator.manipulateAsync(postImage.uri, [], { compress: postQuality / 100, format: ImageManipulator.SaveFormat.JPEG, base64: true });
         if (!prepared.base64) throw new Error("image_read_failed");
         setUploadProgress({ percent: 65, etaSeconds: 2, label: "BILD WIRD HOCHGELADEN" });
-        await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
+        const uploadedImage = await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
+        imageXpAwarded = uploadedImage.xpAwarded;
       }
       if (postVideo) {
         setUploadProgress({ percent: 65, etaSeconds: 2, label: "VIDEO WIRD HOCHGELADEN" });
@@ -2789,8 +2791,8 @@ function PostScreen({
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
       setStatus(
         publishNow
-          ? "Beitrag öffentlich veröffentlicht."
-          : "Privater Entwurf gespeichert."
+          ? `Beitrag öffentlich veröffentlicht${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
+          : `Privater Entwurf gespeichert${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
       );
     } catch (cause) {
       setUploadProgress(null);

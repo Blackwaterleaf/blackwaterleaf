@@ -5,6 +5,7 @@ import { getDb } from "./db";
 export const XP_REWARDS = {
   dailyCheckIn: 5,
   observationPhoto: 10,
+  communityPhoto: 10,
   assistantResponse: 3,
 } as const;
 
