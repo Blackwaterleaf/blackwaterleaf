@@ -17,6 +17,11 @@ describe("Observatory community feed interface", () => {
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
+  it("publishes admin media posts to every feed instead of leaving private drafts", () => {
+    const page = read("client/src/pages/Community.tsx");
+    for (const token of ["const adminPublicPost = isAdmin", "realm: adminPublicPost ? null", "publishNow || adminPublicPost", "AN ALLE FEEDS SENDEN", "automatisch öffentlich in alle Feeds veröffentlicht"]) expect(page).toContain(token);
+  });
+
   it("keeps every hook before the unauthenticated early return", () => {
     const page = read("client/src/pages/Community.tsx");
     const community = page.slice(page.indexOf("export default function Community()"));
