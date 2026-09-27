@@ -29,4 +29,14 @@ describe("privacy-first analytics helpers", () => {
     const analytics = await import("./analytics");
     expect(analytics.getAnalyticsOverview.toString()).toContain("registeredAccounts");
   });
+
+  it("keeps the recovery migration and operator reach metrics wired", async () => {
+    const migration = await import("node:fs/promises").then(fs => fs.readFile("./drizzle/0053_analytics_events_recovery.sql", "utf8"));
+    const dashboard = await import("node:fs/promises").then(fs => fs.readFile("./client/src/pages/AdminDashboard.tsx", "utf8"));
+    expect(migration).toContain("CREATE TABLE IF NOT EXISTS `analytics_events`");
+    expect(migration).toContain("page_view_end");
+    expect(dashboard).toContain('trpc.analytics.overview.useQuery({ days: 7 }');
+    expect(dashboard).toContain('Seitenaufrufe · 7 Tage');
+    expect(dashboard).toContain('Besuche · 7 Tage');
+  });
 });

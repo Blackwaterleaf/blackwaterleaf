@@ -65,6 +65,7 @@ export default function AdminDashboard() {
 function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { onOpenModeration: () => void; onOpenAccounts: () => void; onOpenPartners: () => void }) {
   const overview = trpc.admin.overview.useQuery();
   const audit = trpc.admin.auditTrail.useQuery();
+  const analytics = trpc.analytics.overview.useQuery({ days: 7 }, { retry: false });
   if (overview.isLoading || audit.isLoading) return <StatePanel code="ADMIN/SYNC" state="loading" title="ECHTE STATUSDATEN WERDEN GELADEN" body="Es werden keine Kennzahlen simuliert." />;
   if (overview.isError || audit.isError || !overview.data || !audit.data) return <StatePanel code="ADMIN/ERROR" state="error" title="KONTROLLZENTRUM NICHT VERFÜGBAR" body="Die serverseitigen Statusdaten konnten nicht verifiziert werden." />;
   return <>
@@ -73,7 +74,10 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
       <Metric icon={<BadgeCheck />} label="Aktiv" value={overview.data.activeAccounts} />
       <Metric icon={<Activity />} label="Öffentliche Beiträge" value={overview.data.publicPosts} />
       <Metric icon={<EyeOff />} label="Ausgeblendet" value={overview.data.hiddenPosts} />
+      {analytics.data ? <Metric icon={<EyeOff />} label="Seitenaufrufe · 7 Tage" value={analytics.data.pageViews} /> : null}
+      {analytics.data ? <Metric icon={<UsersRound />} label="Besuche · 7 Tage" value={analytics.data.visitors} /> : null}
     </section>
+    {!analytics.isLoading && analytics.isError ? <p className="admin-inline-note">Reichweitenwerte sind nur für das Betreiber-Konto freigeschaltet.</p> : null}
     <section className="admin-grid">
       <section className="admin-panel"><p className="eyebrow">[MODERATION]</p><h2>Öffentliche Inhalte</h2><button className="primary-action" type="button" onClick={onOpenModeration}>MODERATION ÖFFNEN</button></section>
       <section className="admin-panel"><p className="eyebrow">[KONTEN]</p><h2>Rollen & Status</h2><button className="primary-action" type="button" onClick={onOpenAccounts}>KONTEN ÖFFNEN</button></section>

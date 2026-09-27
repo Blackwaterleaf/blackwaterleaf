@@ -351,6 +351,20 @@ function unwrap<T>(payload: TrpcEnvelope<T>): T {
       "Die BlackWaterLeaf-Daten konnten nicht geladen werden."
   );
 }
+
+function readableApiError(message: string, status?: number) {
+  const known: Record<string, string> = {
+    invalid_image_encoding: "Das Bild konnte nicht gelesen werden. Bitte wähle es erneut aus.",
+    invalid_image_size: "Das Bild ist nach der Verarbeitung zu groß. Wähle eine niedrigere Bildqualität oder ein kleineres Bild.",
+    image_signature_mismatch: "Der Bildtyp passt nicht zum Inhalt. Bitte speichere das Bild als JPG, PNG oder WebP und wähle es erneut aus.",
+    media_processing_consent_required: "Bitte bestätige zuerst die sichere Medienverarbeitung.",
+    community_publishing_consent_required: "Bitte bestätige zuerst die Veröffentlichung für die Community.",
+  };
+  if (known[message]) return known[message];
+  if (status === 413) return "Der Upload ist zu groß. Wähle ein kleineres Medium oder reduziere die Bildqualität.";
+  return message;
+}
+
 async function trpc<T>(
   procedure: string,
   input: unknown,
@@ -384,11 +398,13 @@ async function trpc<T>(
     throw new Error(
       response.status === 403
         ? "Die API verweigert die Anfrage. Bitte starte die App nach dem nächsten Update neu."
-        : `API antwortete nicht im erwarteten JSON-Format (HTTP ${response.status}).`
+        : readableApiError(`API antwortete nicht im erwarteten JSON-Format (HTTP ${response.status}).`, response.status)
     );
   }
-  if (!response.ok)
-    throw new Error(payload.error?.json?.message ?? `HTTP ${response.status}`);
+  if (!response.ok) {
+    const message = payload.error?.json?.message ?? `HTTP ${response.status}`;
+    throw new Error(readableApiError(message, response.status));
+  }
   return unwrap(payload);
 }
 export const trpcGet = <T>(

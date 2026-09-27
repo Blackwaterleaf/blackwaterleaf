@@ -78,4 +78,11 @@ describe("BlackWaterLeaf native application contract", () => {
   it("provides a consent-gated native community photo flow", () => {
     for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024"]) expect(app).toContain(token);
   });
+
+  it("offers an explicit all-areas recipient and readable upload failures", () => {
+    expect(app).toContain('"ALLE BEREICHE"');
+    expect(app).toContain("setRealm(post.realm ?? null)");
+    expect(api).toContain("invalid_image_size");
+    expect(api).toContain("Der Upload ist zu groß");
+  });
 });

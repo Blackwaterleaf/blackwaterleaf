@@ -2670,7 +2670,7 @@ function PostScreen({
   navigate: (screen: Screen) => void;
 }) {
   const [content, setContent] = useState("");
-  const [realm, setRealm] = useState<Realm>("botany");
+  const [realm, setRealm] = useState<Realm | null>("botany");
   const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
   const [postAspect, setPostAspect] = useState<"original" | "9:16" | "4:5" | "1:1" | "16:9">("original");
   const [postQuality, setPostQuality] = useState(92);
@@ -2806,7 +2806,7 @@ function PostScreen({
   const startPostEdit = (post: OwnCommunityPost) => {
     setEditingPostId(post.id);
     setContent(post.content);
-    setRealm(post.realm ?? "botany");
+    setRealm(post.realm ?? null);
     setPostImage(null);
     setMediaConsent(false);
     setEditVisibility(post.visibility);
@@ -2860,7 +2860,7 @@ function PostScreen({
             privat, bis du die Veröffentlichung ausdrücklich aktivierst.
           </Text>
           {token ? <SecondaryButton tone={tone} label={showOwnPosts ? "EIGENE BEITRÄGE AUSBLENDEN" : "EIGENE BEITRÄGE VERWALTEN"} icon={showOwnPosts ? "chevron-up-outline" : "create-outline"} onPress={() => setShowOwnPosts(value => !value)} /> : null}
-          {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
+          {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "alle Bereiche"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
           {editingPostId !== null ? <Text style={[styles.chip, { color: tone.accent }]}>BEITRAG BEARBEITEN · {editVisibility === "public" ? "ÖFFENTLICH" : "PRIVAT"}</Text> : null}
           <LabeledInput
             tone={tone}
@@ -2871,9 +2871,9 @@ function PostScreen({
             multiline
           />
           <View style={styles.realmPicker}>
-            {(["botany", "aquarium", "terrarium"] as Realm[]).map(item => (
+            {([null, "botany", "aquarium", "terrarium"] as const).map(item => (
               <Pressable
-                key={item}
+                key={item ?? "all"}
                 onPress={() => setRealm(item)}
                 style={({ pressed }) => [
                   styles.realmButton,
@@ -2892,7 +2892,9 @@ function PostScreen({
                     { color: realm === item ? c.text : c.muted },
                   ]}
                 >
-                  {item === "botany"
+                  {item === null
+                    ? "ALLE BEREICHE"
+                    : item === "botany"
                     ? "BOTANIK"
                     : item === "aquarium"
                       ? "AQUARISTIK"
