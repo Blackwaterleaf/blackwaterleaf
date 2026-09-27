@@ -334,7 +334,7 @@ export const notifications = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     recipientId: int("recipientId").notNull().references(() => users.id),
     actorId: int("actorId").notNull().references(() => users.id),
-    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "feedback", "system", "message"]).notNull(),
+    type: mysqlEnum("type", ["comment", "like", "report", "moderation", "feedback", "partner_inquiry", "system", "message"]).notNull(),
     postId: int("postId").references(() => communityPosts.id),
     commentId: int("commentId"),
     observationId: int("observationId").references(() => observations.id, { onDelete: "cascade" }),
@@ -1034,6 +1034,21 @@ export const partnerProfiles = mysqlTable(
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   table => [index("partner_profiles_status_idx").on(table.status, table.updatedAt)],
+);
+
+/** Authenticated requests to join the BlackWaterLeaf partner network. */
+export const partnerInquiries = mysqlTable(
+  "partner_inquiries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+    message: text("message").notNull(),
+    status: mysqlEnum("status", ["received", "reviewing", "accepted", "declined"]).default("received").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("partner_inquiries_user_created_idx").on(table.userId, table.createdAt), index("partner_inquiries_status_created_idx").on(table.status, table.createdAt)],
 );
 
 /** A merchant-managed product draft. It becomes public only through a currently authorized active partner placement. */

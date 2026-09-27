@@ -78,6 +78,7 @@ import {
   knowledge,
   marketplace,
   marketplaceEvent,
+  submitPartnerInquiry,
   likeCommunityPost,
   markNotificationsRead,
   myCommunityPosts,
@@ -1027,6 +1028,8 @@ function NaturApp() {
             state={state}
             error={error}
             refresh={loadScreen}
+            token={token}
+            onSignIn={signIn}
           />
         )}
         {screen === "community" && (
@@ -3005,16 +3008,23 @@ function MarketplaceScreen({
   state,
   error,
   refresh,
+  token,
+  onSignIn,
 }: {
   tone: Tone;
   products: MarketplaceProduct[];
   state: State;
   error: string | null;
   refresh: () => Promise<void>;
+  token: string | null;
+  onSignIn: () => Promise<void>;
 }) {
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
   const [category, setCategory] = useState("Alle");
   const [sort, setSort] = useState<"updated" | "name" | "price-low" | "price-high">("updated");
+  const [partnerMessage, setPartnerMessage] = useState("");
+  const [partnerNotice, setPartnerNotice] = useState<string | null>(null);
+  const [partnerSending, setPartnerSending] = useState(false);
   const shops = Array.from(new Map(products.map(product => [product.partnerId, { partnerId: product.partnerId, partnerName: product.partnerName, products: products.filter(item => item.partnerId === product.partnerId) }])).values());
   const recordProductEvent = async (product: MarketplaceProduct, eventType: "outbound_click" | "purchase_intent") => {
     try {
@@ -3024,6 +3034,17 @@ function MarketplaceScreen({
     }
   };
   const selectedShop = shops.find(shop => shop.partnerId === selectedPartnerId) ?? null;
+  const sendPartnerInquiry = async () => {
+    if (!token) return void onSignIn();
+    if (partnerMessage.trim().length < 3) { setPartnerNotice("Bitte beschreibe kurz dein Vorhaben."); return; }
+    setPartnerSending(true); setPartnerNotice(null);
+    try {
+      const result = await submitPartnerInquiry(token, partnerMessage.trim());
+      setPartnerMessage(""); setPartnerNotice(result.message);
+    } catch {
+      setPartnerNotice("Die Partneranfrage konnte nicht gespeichert werden. Bitte versuche es erneut.");
+    } finally { setPartnerSending(false); }
+  };
   const categories = selectedShop ? ["Alle", ...Array.from(new Set(selectedShop.products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value))))] : [];
   const visibleProducts = selectedShop ? selectedShop.products.filter(product => category === "Alle" || product.marketplaceCategory === category).slice().sort((a, b) => {
     if (sort === "name") return a.title.localeCompare(b.title, "de");
@@ -3056,6 +3077,17 @@ function MarketplaceScreen({
         <Text style={styles.copy}>
           {selectedShop ? "Dieser Bereich gehört ausschließlich zu diesem Händler. Preise, Verfügbarkeit und Versand stammen aus dessen veröffentlichtem Angebot." : "Keine vermischte Produktwand: Jeder Händler erhält seinen eigenen Shopbereich."}
         </Text>
+      </View>
+      <View style={[styles.infoCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+        <Text style={[styles.chip, { color: tone.accent }]}>PARTNER WERDEN</Text>
+        <Text style={styles.cardTitle}>MIT BLACKWATERLEAF ZUSAMMENARBEITEN</Text>
+        <Text style={styles.copy}>Sende deine Anfrage direkt aus deinem Konto. Die Eingangsbestätigung erscheint anschließend in deinem Benachrichtigungscenter.</Text>
+        {token ? <TextInput value={partnerMessage} onChangeText={setPartnerMessage} placeholder="Womit möchtest du BlackWaterLeaf unterstützen?" placeholderTextColor={c.muted} multiline style={[styles.searchInput, { borderColor: `${tone.accent}66`, minHeight: 84, textAlignVertical: "top" }]} /> : null}
+        <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => void sendPartnerInquiry()} disabled={partnerSending}>
+          <Ionicons name={token ? "send-outline" : "log-in-outline"} size={16} color={tone.accent} />
+          <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>{partnerSending ? "WIRD GESENDET …" : token ? "PARTNERANFRAGE SENDEN" : "ANMELDEN UND ANFRAGEN"}</Text>
+        </Pressable>
+        {partnerNotice ? <Text style={[styles.miniCopy, { color: tone.accent }]} accessibilityRole="text">{partnerNotice}</Text> : null}
       </View>
       {state === "loading" ? (
         <Loading tone={tone} />
@@ -3278,7 +3310,7 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   return <Page refresh={refresh} refreshing={state === "loading"}>
     <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
-    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.type === "feedback") navigate("dashboard"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : item.type === "feedback" ? "bulb-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.type === "feedback") navigate("dashboard"); else if (item.type === "partner_inquiry") navigate("marketplace"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : item.type === "feedback" || item.type === "partner_inquiry" ? "bulb-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
 }
 

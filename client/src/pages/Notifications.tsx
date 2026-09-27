@@ -8,7 +8,7 @@ import { ObservatoryContextHeader, ObservatoryStateSurface } from "@/components/
 
 function notificationIcon(type: string) {
   if (type.includes("comment")) return MessageCircle;
-  if (type === "feedback") return Lightbulb;
+  if (type === "feedback" || type === "partner_inquiry") return Lightbulb;
   if (type.includes("moderation") || type.includes("report")) return ShieldAlert;
   if (type.includes("ai") || type.includes("identification")) return Sparkles;
   return Bell;
@@ -17,6 +17,7 @@ function notificationIcon(type: string) {
 function notificationTarget(postId: number | null, commentId: number | null, type = "") {
   if (type === "message") return "/messages";
   if (type === "feedback") return "/admin";
+  if (type === "partner_inquiry") return "/marketplace";
   if (postId) return `/community?post=${postId}${commentId ? `&comment=${commentId}` : ""}`;
   return "/community";
 }

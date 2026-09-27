@@ -2,14 +2,14 @@ import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { partnerAuthorizations, partnerOfferEvents, partnerPlacements, partnerProductImages, partnerProducts, partnerProfiles } from "../../drizzle/schema";
+import { notifications, partnerAuthorizations, partnerInquiries, partnerOfferEvents, partnerPlacements, partnerProductImages, partnerProducts, partnerProfiles, users } from "../../drizzle/schema";
 import { partnerProductInputSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
 import { assertSafetyGateAllows } from "../safetyGates";
-import { adminProcedure, merchantProcedure, publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, merchantProcedure, protectedProcedure, publicProcedure, router } from "../_core/trpc";
 
 const partnerStatus = z.enum(["draft", "approved", "paused", "removed"]);
 const placementStatus = z.enum(["draft", "active", "paused", "expired", "removed"]);
@@ -344,7 +344,35 @@ export const partnersRouter = router({
       if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "marketplace_product_not_found" });
       await db.insert(partnerOfferEvents).values({ eventId: input.eventId, partnerId: product.partnerId, productId: product.id, eventType: input.eventType });
       return { recorded: true, eventId: input.eventId } as const;
+  }),
+
+  /** Store a partner request and immediately confirm receipt in the notification center. */
+  submitInquiry: protectedProcedure
+    .input(z.object({ message: z.string().trim().min(3).max(4_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const contactEmail = ctx.user.email?.trim();
+      if (!contactEmail) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "verified_email_required" });
+      return db.transaction(async tx => {
+        const inserted = await tx.insert(partnerInquiries).values({ userId: ctx.user.id, contactEmail, message: input.message });
+        const inquiryId = Number(inserted[0].insertId);
+        const admins = await tx.select({ id: users.id }).from(users).where(and(eq(users.status, "active"), eq(users.role, "admin")));
+        const confirmation = `Deine Partneranfrage #${inquiryId} wurde erfolgreich empfangen. BlackWaterLeaf meldet sich bei dir.`;
+        const staffMessage = `Neue Partneranfrage #${inquiryId} wartet auf Prüfung.`;
+        const rows = [
+          { recipientId: ctx.user.id, actorId: ctx.user.id, type: "partner_inquiry" as const, message: confirmation },
+          ...admins.filter(admin => admin.id !== ctx.user.id).map(admin => ({ recipientId: admin.id, actorId: ctx.user.id, type: "partner_inquiry" as const, message: staffMessage })),
+        ];
+        await tx.insert(notifications).values(rows);
+        return { id: inquiryId, status: "received" as const, message: confirmation };
+      });
     }),
+
+  myInquiries: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    return db.select({ id: partnerInquiries.id, message: partnerInquiries.message, status: partnerInquiries.status, createdAt: partnerInquiries.createdAt })
+      .from(partnerInquiries).where(eq(partnerInquiries.userId, ctx.user.id)).orderBy(desc(partnerInquiries.createdAt)).limit(20);
+  }),
 
   marketplaceProduct: publicProcedure
     .input(z.object({ id: z.number().int().positive() }))

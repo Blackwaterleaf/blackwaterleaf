@@ -90,3 +90,10 @@ Benachrichtigungen werden im privaten Profil nach Community, Nachrichten, Modera
 Web und Native verwenden denselben Locale-Vertrag: **Deutsch (`de`), Englisch (`en`), vereinfachtes Chinesisch (`zh-CN`), Spanisch (`es`) und Französisch (`fr`)**. Im Web wird beim ersten Besuch die Browser-Sprache ausgewertet; eine vom Nutzer gewählte Sprache wird lokal und – bei Anmeldung – im Konto gespeichert und hat Vorrang vor Browser-/IP-Hinweisen. Nicht unterstützte Browser-Sprachen fallen transparent auf Englisch zurück.
 
 Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browser-kompatible Auswahl. Auf sehr kleinen Breiten werden kompakte Sprachkürzel verwendet, ohne die Hauptnavigation zu überdecken. Native zeigt dieselben fünf Optionen im Profil. Fach- und Wissensdaten werden nur aus der jeweils angeforderten Locale geladen; fehlende Übersetzungen werden nicht durch erfundene Inhalte ersetzt.
+
+
+## 15.40 Partneranfrage · Web-/Native-Parität und Eingangsbestätigung
+- Marketplace, Shop-Detail und Produktdetail zeigen denselben kompakten **PARTNER WERDEN**-Einstieg. Nicht angemeldete Personen werden zum Login geführt; angemeldete Konten senden die Anfrage serverseitig.
+- Jede Anfrage wird mit Konto, verifizierter Kontaktadresse, Nachricht, Status und Zeit gespeichert. Der Absender erhält unmittelbar eine private `partner_inquiry`-Benachrichtigung mit Eingangsbestätigung; aktive Host-Administratoren erhalten die Prüfbenachrichtigung.
+- Web und Native verwenden denselben `partners.submitInquiry`-Vertrag. Ein Klick auf die Host-Benachrichtigung führt zur Admin-Prüfung, ein Klick auf die Absenderbestätigung zum Marketplace. Keine Mailzustellung wird behauptet, solange kein Maildienst konfiguriert ist.
+- Die Oberfläche nennt die bestehenden Kontaktadressen ausschließlich an den vorgesehenen Partner-/Legal-Flächen: `Partnerblackwaterleaf@gmail.com` für Partneranfragen, `blackwaterleaf@gmail.com` für allgemeine Geschäftsanfragen und `info.blackwaterleaf@gmail.com` für Impressum/Datenschutz.

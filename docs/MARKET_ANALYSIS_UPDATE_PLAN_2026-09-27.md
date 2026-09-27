@@ -38,3 +38,15 @@ Jeder Kontoexport wird als `account_export_created` im unveränderlichen Audit-L
 - Der Sprachwähler befindet sich sichtbar im Web-Header und bleibt durch native Select-Technik Samsung-Browser-kompatibel; Native bietet dieselben Optionen im Profil.
 - Die Locale-Enums in Shared Contract, Datenbank (`users`, `knowledge_articles`) und API sind synchronisiert. Migration `drizzle/0049_lazy_mach_iv.sql` wurde additiv angewendet.
 - Validierung: 20 gezielte Verträge, Web-TypeScript, Produktionsbuild, Native-TypeScript und `git diff --check` erfolgreich.
+
+
+## 10.7 Partner-Onboarding · umgesetzt am 27.09.2026
+- Web und Native bieten im Marketplace denselben geschützten Partneranfrage-Workflow; Shop- und Produktflächen verlinken auf denselben Einstieg.
+- `partners.submitInquiry` speichert Konto, verifizierte E-Mail, Nachricht und Status additiv in `partner_inquiries`.
+- Nach dem Absenden erzeugt der Server eine `partner_inquiry`-Bestätigung für den Absender und eine Prüfbenachrichtigung für aktive Host-Administratoren. Beide erscheinen im privaten Benachrichtigungscenter; E-Mail wird nicht vorgetäuscht.
+- Migration `drizzle/0050_easy_texas_twister.sql` wurde additiv angewendet. Web-Build, Native-TypeScript und 18 gezielte Partner-/Marketplace-/Notification-Vertragstests sind erfolgreich.
+
+### Verbleibende nächste Marktblock-Punkte
+1. **P1 Natur-/Anlagenjournal:** append-only Ereignis-Timeline und Messwertverlauf mit Ereignismarkern.
+2. **P1 sichere Snapshot-Freigabe:** feldweise Vorschau vor Community-Post; keine exakten Anlagenorte oder ungeprüften privaten Medien.
+3. **P2 Rückkehr ohne Druck:** Ruhezeiten, optionale Expeditionen und Fortschrittsansicht ohne Pflichtserie.

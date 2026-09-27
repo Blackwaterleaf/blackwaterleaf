@@ -199,7 +199,7 @@ export type CommunityComment = {
 };
 export type NativeNotification = {
   id: number;
-  type: "comment" | "like" | "report" | "moderation" | "feedback" | "system" | "message";
+  type: "comment" | "like" | "report" | "moderation" | "feedback" | "partner_inquiry" | "system" | "message";
   postId: number | null;
   commentId: number | null;
   message: string;
@@ -420,6 +420,8 @@ export const marketplace = () =>
   trpcGet<MarketplaceProduct[]>("partners.marketplace", undefined);
 export const marketplaceEvent = (input: { eventId: string; productId: number; eventType: "outbound_click" | "purchase_intent" }) =>
   trpcPost<{ recorded: boolean; eventId: string }>("partners.marketplaceEvent", input, "");
+export const submitPartnerInquiry = (token: string, message: string) =>
+  trpcPost<{ id: number; status: "received"; message: string }>("partners.submitInquiry", { message }, token);
 export const communityFeed = (token: string) =>
   trpcGet<CommunityPost[]>("community.feed", { limit: 40 }, token);
 export const communityComments = (token: string, postId: number) =>
