@@ -45,6 +45,8 @@ export default function Profile() {
   const revokeAllSessions = trpc.auth.revokeAllSessions.useMutation();
   const blockedAccounts = trpc.social.blocked.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const unblockAccount = trpc.social.unblock.useMutation({ onSuccess: () => void blockedAccounts.refetch() });
+  const notificationPreferences = trpc.feedback.preferences.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const updateNotificationPreferences = trpc.feedback.updatePreferences.useMutation({ onSuccess: () => void notificationPreferences.refetch() });
   const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
   const [status, setStatus] = useState<string | null>(null);
   const [exportHistory, setExportHistory] = useState<Array<{ id: number; createdAt: string }>>([]);
@@ -291,6 +293,13 @@ export default function Profile() {
               <div><span className="eyebrow">SPRACHE</span><button type="button" className={locale === "de" ? "is-selected" : ""} onClick={() => void changeLocale("de")}>Deutsch</button><button type="button" className={locale === "en" ? "is-selected" : ""} onClick={() => void changeLocale("en")}>English</button></div>
               <div><span className="eyebrow">EINHEITEN</span><button type="button" className={unitSystem === "metric" ? "is-selected" : ""} onClick={() => void changeUnits("metric")}>Metrisch</button><button type="button" className={unitSystem === "imperial" ? "is-selected" : ""} onClick={() => void changeUnits("imperial")}>Imperial</button></div>
             </div>
+          </details>
+
+          <details id="profile-notifications" className="profile-secondary-tools account-section observatory-data-panel">
+            <summary><span>BENACHRICHTIGUNGEN</span><small>Du bestimmst, was dich erreicht</small></summary>
+            <section className="profile-consent-list">
+              {([['community', 'Community & Antworten'], ['messages', 'Private Nachrichten'], ['moderation', 'Moderation & Review'], ['system', 'System & Sicherheit']] as const).map(([key, label]) => <ConsentToggle key={key} label={label} checked={notificationPreferences.data?.[key] ?? true} disabled={notificationPreferences.isLoading || updateNotificationPreferences.isPending} onChange={checked => { const current = notificationPreferences.data ?? { community: true, messages: true, moderation: true, system: true }; updateNotificationPreferences.mutate({ ...current, [key]: checked }); }} />)}
+            </section>
           </details>
 
           {status ? <p className="form-status" role="status">{status}</p> : null}

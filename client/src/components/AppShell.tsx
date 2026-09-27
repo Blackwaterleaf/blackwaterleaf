@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound } from "lucide-react";
+import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { resolveAccountLocale, useI18n } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -126,6 +126,7 @@ export function AppShell({ children }: PropsWithChildren) {
             <Mail size={18} />
             {auth.isAuthenticated && unreadMessages.data?.count ? <span className="notification-badge" aria-label={`${unreadMessages.data.count} ungelesene Nachrichten`}>{unreadMessages.data.count > 9 ? "9+" : unreadMessages.data.count}</span> : null}
           </Link>
+          <Link href="/feedback" className="icon-button feedback-header-button" aria-label="Feedback, Probleme und Wünsche" title="Feedback, Probleme und Wünsche"><MessageSquareHeart size={18} /></Link>
           <details className="profile-header-menu">
             <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
             <div className="profile-header-menu__panel">
@@ -137,6 +138,7 @@ export function AppShell({ children }: PropsWithChildren) {
               <span className="profile-header-menu__group-label">KOMMUNIKATION</span>
               <Link href="/messages">Postfach</Link>
               <Link href="/notifications">Benachrichtigungen</Link>
+              <Link className="profile-header-menu__feedback-link" href="/feedback">Feedback · Probleme · Wünsche</Link>
               <span className="profile-header-menu__group-label">FORTSCHRITT & MERKLISTE</span>
               <Link href="/profile/progress">Punkte & Fortschritt</Link>
               <Link href="/saved">Gespeichert</Link>

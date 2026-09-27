@@ -43,6 +43,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { FeedbackScreen } from "./src/FeedbackScreen";
 
 const USE_BACKGROUND_BLUR = Platform.OS !== "android";
 const NATIVE_GLOW = Platform.OS === "android"
@@ -245,7 +246,8 @@ type Screen =
   | "ranking"
   | "notifications"
   | "messages"
-  | "care";
+  | "care"
+  | "feedback";
 type BottomTab =
   | "discover"
   | "map"
@@ -509,6 +511,14 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "HEUTE · PFLEGE",
+    active: "profile",
+  },
+  feedback: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "DIREKTER DRAHT",
     active: "profile",
   },
 };
@@ -791,6 +801,7 @@ function NaturApp() {
         unreadNotifications={unreadNotifications}
         unreadMessages={unreadMessages}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
+        onFeedback={() => { if (token) navigate("feedback"); else void signIn(); }}
         onProfileTarget={target => {
           if (target === "progress") {
             navigate("ranking");
@@ -1109,6 +1120,7 @@ function NaturApp() {
             onSignIn={signIn}
           />
         )}
+        {screen === "feedback" && <FeedbackScreen tone={TONES.feedback} token={token} onSignIn={signIn} />}
         {screen === "management" && (
           <ManagementScreen
             tone={TONES.management}
@@ -1217,6 +1229,7 @@ function Header({
   unreadNotifications,
   unreadMessages,
   onCare,
+  onFeedback,
   onProfileTarget,
 }: {
   tone: Tone;
@@ -1228,6 +1241,7 @@ function Header({
   unreadNotifications: number;
   unreadMessages: number;
   onCare: () => void;
+  onFeedback: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1262,6 +1276,7 @@ function Header({
           badge={unreadNotifications}
           onPress={onNotifications}
         />
+        <HeaderAction icon="chatbubble-ellipses-outline" color={c.botany} label="Feedback, Probleme und Wünsche" onPress={onFeedback} />
         <HeaderAction
           icon={account ? "person" : "person-outline"}
           color={account ? tone.accent : c.muted}

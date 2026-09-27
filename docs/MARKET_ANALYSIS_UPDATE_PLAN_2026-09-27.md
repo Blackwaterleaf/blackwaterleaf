@@ -18,3 +18,15 @@ Jeder Kontoexport wird als `account_export_created` im unveränderlichen Audit-L
 1. **P1 Natur-/Anlagenjournal:** append-only Ereignis-Timeline, Messwertverlauf mit Ereignismarkern, private Organismenhistorie.
 2. **P1 sichere Snapshot-Freigabe:** Feldweise Vorschau vor Community-Post, keine exakten Anlagenorte oder ungeprüften privaten Medien.
 3. **P2 Rückkehr ohne Druck:** steuerbare Ereignispräferenzen, Ruhezeiten, optionale Expeditionen und Fortschrittsansicht ohne Pflichtserie.
+
+
+## 10.5 Direktes Nutzerfeedback und steuerbare Rückkehr · umgesetzt am 27.09.2026
+- Web und Native besitzen einen leuchtenden Header-Einstieg zu einem geschützten Feedback-Formular mit den Kategorien Feedback, Problem und Wunsch/Verbesserung.
+- Feedback wird serverseitig dem angemeldeten Konto, der Kategorie, der Nachricht, der Ursprungsseite und einem triagierbaren Status zugeordnet; es gibt keine anonyme Ablage im öffentlichen Feed.
+- Das Profil bietet vier getrennte Benachrichtigungsschalter für Community, Nachrichten, Moderation/Review und System/Sicherheit. Der Server filtert Feed und ungelesene Anzahl entsprechend; die Defaultwerte bleiben aktiv, bis der Nutzer sie ändert.
+- Native und Web-Typecheck, Produktionsbuild sowie 19 gezielte Vertrags-/Sicherheitsprüfungen sind erfolgreich.
+
+### Noch offen aus der Marktanalyse
+1. **P1 Natur-/Anlagenjournal:** append-only Ereignis-Timeline und Messwertverlauf mit Ereignismarkern.
+2. **P1 sichere Snapshot-Freigabe:** feldweise Vorschau vor Community-Post; keine exakten Anlagenorte oder ungeprüften privaten Medien.
+3. **P2 Rückkehr ohne Druck:** Ruhezeiten, optionale Expeditionen und Fortschrittsansicht ohne Pflichtserie.

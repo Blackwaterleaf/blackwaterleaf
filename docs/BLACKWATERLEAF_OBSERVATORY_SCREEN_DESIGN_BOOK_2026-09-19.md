@@ -78,3 +78,9 @@ Antworten sind nur für angemeldete Konten möglich. Jede Antwort speichert Auto
 
 ## 15.37 Composer-Schutzkarten
 Der Beobachtungs-Composer verwendet Privat als Standard. Standort, Medienverarbeitung, öffentliche Veröffentlichung und optionale KI-Prüfung werden separat und verständlich freigegeben. Vor öffentlicher Veröffentlichung werden generalisierte Koordinaten verwendet; private Koordinaten werden nie an Kartenfeeds oder Antworten ausgegeben. KI-Kandidaten bleiben mit Modell-/Katalogstand und Unsicherheitskennzeichnung getrennt von Community-Vorschlägen und `evidenceState`.
+
+
+## 15.38 Feedback-Header und Benachrichtigungspräferenzen
+Der Web- und Native-Header führt einen klaren, leuchtenden Einstieg **FEEDBACK · PROBLEME · WÜNSCHE**. Der Glow ist ein Wegweiser, kein Werbebanner; bei reduzierter Bewegung bleibt der Einstieg funktional und sichtbar. Der Inhalt ist nur nach Anmeldung sendbar, wird dem eigenen Konto zugeordnet und mit Kategorie, Nachricht und Ursprungsseite gespeichert.
+
+Benachrichtigungen werden im privaten Profil nach Community, Nachrichten, Moderation/Review und System/Sicherheit einzeln geschaltet. Ohne gespeicherte Präferenz gelten die sicheren Standardwerte; sobald eine Präferenz gespeichert ist, filtert der Server den Feed und die ungelesene Anzahl nach diesen Schaltern. Die Plattform sendet keine globale, nicht steuerbare Sammelbenachrichtigung.

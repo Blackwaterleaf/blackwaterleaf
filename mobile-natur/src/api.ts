@@ -703,3 +703,9 @@ export type ExperienceSummary = { status: "ready" | "pending_migration"; totalXp
 export type LeaderboardRow = { rank: number; userId: string; name: string; totalXp: number };
 export const gamificationSummary = (token: string) => trpcGet<ExperienceSummary>("gamification.summary", undefined, token);
 export const gamificationLeaderboard = (token: string) => trpcGet<LeaderboardRow[]>("gamification.leaderboard", undefined, token);
+
+export type FeedbackKind = "feedback" | "problem" | "wish";
+export const submitFeedback = (token: string, input: { kind: FeedbackKind; message: string; page?: string | null }) => trpcPost<{ id: number; status: "received" }>("feedback.submit", input, token);
+export type NotificationPreferences = { community: boolean; messages: boolean; moderation: boolean; system: boolean };
+export const notificationPreferences = (token: string) => trpcGet<NotificationPreferences>("feedback.preferences", undefined, token);
+export const updateNotificationPreferences = (token: string, input: NotificationPreferences) => trpcPost<NotificationPreferences & { success: true }>("feedback.updatePreferences", input, token);

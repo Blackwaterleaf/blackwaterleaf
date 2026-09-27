@@ -34,6 +34,7 @@ import TerrariumTaxon from "./pages/TerrariumTaxon";
 import PublicProfile from "./pages/PublicProfile";
 import SavedItems from "./pages/SavedItems";
 import NotFound from "./pages/NotFound";
+import Feedback from "./pages/Feedback";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
         <Route path={"/live/:id"} component={LiveSession} />
         <Route path={"/notifications"} component={Notifications} />
         <Route path={"/messages"} component={Messages} />
+        <Route path={"/feedback"} component={Feedback} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />

@@ -1243,6 +1243,38 @@ export const careJournal = mysqlTable(
   table => [index("care_journal_user_observed_idx").on(table.userId, table.observedAt)],
 );
 
+/** Private member feedback; staff can triage it without exposing other users' messages. */
+export const feedbackEntries = mysqlTable(
+  "feedback_entries",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    kind: mysqlEnum("kind", ["feedback", "problem", "wish"]).notNull(),
+    message: text("message").notNull(),
+    page: varchar("page", { length: 255 }),
+    status: mysqlEnum("status", ["received", "reviewing", "resolved"]).default("received").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [index("feedback_entries_user_created_idx").on(table.userId, table.createdAt), index("feedback_entries_status_created_idx").on(table.status, table.createdAt)],
+);
+
+/** Per-user notification switches, explicit and server-stored. */
+export const notificationPreferences = mysqlTable(
+  "notification_preferences",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    community: boolean("community").default(true).notNull(),
+    messages: boolean("messages").default(true).notNull(),
+    moderation: boolean("moderation").default(true).notNull(),
+    system: boolean("system").default(true).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [uniqueIndex("notification_preferences_user_unique").on(table.userId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type UserConsent = typeof userConsents.$inferSelect;
