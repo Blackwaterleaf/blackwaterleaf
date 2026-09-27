@@ -535,6 +535,25 @@ export const billingAccounts = mysqlTable("billing_accounts", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Host-controlled access grants for paid capabilities. Stripe remains the billing source; this table stores only the business entitlement. */
+export const accountEntitlements = mysqlTable(
+  "account_entitlements",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id),
+    featureKey: varchar("featureKey", { length: 64 }).notNull(),
+    status: mysqlEnum("status", ["active", "revoked"]).default("active").notNull(),
+    grantedByUserId: int("grantedByUserId").notNull().references(() => users.id),
+    expiresAt: timestamp("expiresAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("account_entitlements_user_feature_unique").on(table.userId, table.featureKey),
+    index("account_entitlements_user_status_idx").on(table.userId, table.status),
+  ],
+);
+
 /** Idempotent record linking a completed Stripe Checkout session to credits. */
 export const aiCreditPurchases = mysqlTable(
   "ai_credit_purchases",

@@ -618,6 +618,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .role-picker__options { display:flex; flex-wrap:wrap; gap:.45rem .7rem; }
 .role-picker__options label { display:inline-flex; align-items:center; gap:.35rem; color:var(--text-muted,#b8c7bb); font-size:.72rem; letter-spacing:.04em; }
 .role-picker__options input { accent-color:#c7ff4a; }
+.pro-access-picker { display:grid; gap:.45rem; min-width:15rem; }
+.pro-access-picker .system-chip { justify-self:start; }
+.pro-access-picker .secondary-action { white-space:normal; }
 .marketplace-merchant-entry { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px; border-color:rgba(239,202,119,.42); background:linear-gradient(135deg,rgba(86,58,16,.58),rgba(30,18,8,.8)); }
 .marketplace-merchant-entry h2, .merchant-workspace h2, .merchant-workspace h3 { margin:.35rem 0 .55rem; color:#fff3d4; }
 .marketplace-merchant-entry p, .merchant-workspace__header p { margin:0; color:#dfd1b0; line-height:1.5; }

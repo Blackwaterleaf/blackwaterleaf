@@ -33,15 +33,20 @@ function RolePicker({ account, currentUserId, pending, onSave, disabled }: { acc
   </div>;
 }
 
+function ProAccessPicker({ account, pending, onSave }: { account: { id: number; proAccess: { active: boolean; manuallyGranted: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: Date | null } }; pending: boolean; onSave: (active: boolean) => void }) {
+  const [active, setActive] = useState(account.proAccess.manuallyGranted);
+  useEffect(() => setActive(account.proAccess.manuallyGranted), [account.proAccess.manuallyGranted]);
+  const label = account.proAccess.source === "admin" ? "ADMIN · VOLLZUGRIFF" : account.proAccess.source === "admin_grant" ? "ADMIN-FREIGEGEBEN" : account.proAccess.source === "stripe" ? "STRIPE · PRO AKTIV" : "FREE / KAUF ERFORDERLICH";
+  return <div className="pro-access-picker" aria-label={`Pro-Freigabe für Konto ${account.id}`}>
+    <span className={`system-chip ${account.proAccess.active ? "" : "system-chip--pending"}`}>{label}</span>
+    <button type="button" className="secondary-action" disabled={pending || account.proAccess.source === "admin"} onClick={() => { const next = !active; if (window.confirm(next ? "Pro für dieses Konto ohne Stripe-Kauf freischalten?" : "Die manuelle Pro-Freigabe wirklich widerrufen?")) { setActive(next); onSave(next); } }}>{account.proAccess.source === "admin" ? "AUTOMATISCH AKTIV" : active ? "FREIGABE WIDERRUFEN" : "PRO FREISCHALTEN"}</button>
+  </div>;
+}
+
 export default function AdminDashboard() {
   const auth = useAuth();
   const [location, setLocation] = useLocation();
   const isStaff = auth.user?.status === "active" && (auth.user.role === "moderator" || auth.user.role === "admin");
-
-  if (auth.loading) return <StatePanel code="ADMIN/LOAD" state="loading" title="KONTROLLZENTRUM WIRD GEPRÜFT" body="Die serverseitige Berechtigung wird geladen." />;
-  if (!auth.isAuthenticated) return <StatePanel code="ADMIN/AUTH" title="ANMELDUNG ERFORDERLICH" body="Das Kontrollzentrum ist ausschließlich für verifizierte Teamkonten erreichbar." action={<button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>} />;
-  if (!isStaff) return <StatePanel code="ADMIN/FORBIDDEN" state="locked" title="KEINE TEAMBERECHTIGUNG" body="Diese Route ist serverseitig für aktive Moderations- und Adminrollen geschützt." />;
-
   const section = location.split("/")[2]?.split("?")[0] ?? "overview";
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -49,6 +54,11 @@ export default function AdminDashboard() {
     if (!focus) return;
     window.requestAnimationFrame(() => document.getElementById(focus === "partner" ? "partner-inquiry-inbox" : "feedback-inbox")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }, [location]);
+
+  if (auth.loading) return <StatePanel code="ADMIN/LOAD" state="loading" title="KONTROLLZENTRUM WIRD GEPRÜFT" body="Die serverseitige Berechtigung wird geladen." />;
+  if (!auth.isAuthenticated) return <StatePanel code="ADMIN/AUTH" title="ANMELDUNG ERFORDERLICH" body="Das Kontrollzentrum ist ausschließlich für verifizierte Teamkonten erreichbar." action={<button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>} />;
+  if (!isStaff) return <StatePanel code="ADMIN/FORBIDDEN" state="locked" title="KEINE TEAMBERECHTIGUNG" body="Diese Route ist serverseitig für aktive Moderations- und Adminrollen geschützt." />;
+
   return (
     <DashboardLayout menuItems={auth.user?.role === "admin" ? menuItems : menuItems.slice(0, 2)} title="BLACKWATERLEAF ADMIN">
       <div className="admin-console">
@@ -186,10 +196,11 @@ function AccountsPanel() {
   const setStatus = trpc.admin.setAccountStatus.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   const setRole = trpc.admin.setAccountRole.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   const setRoles = trpc.admin.setAccountRoles.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
+  const setProAccess = trpc.admin.setAccountProAccess.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   if (auth.user?.role !== "admin") return <StatePanel code="ACCOUNTS/ADMIN_ONLY" state="locked" title="ADMINROLLE ERFORDERLICH" body="Moderatoren erhalten keinen Zugriff auf Rollen, E-Mail-Adressen oder Kontostatus anderer Personen." />;
   if (accounts.isLoading) return <StatePanel code="ACCOUNTS/LOAD" state="loading" title="KONTEN WERDEN GELADEN" body="Die serverseitig freigegebene Kontoliste wird geladen." />;
   if (accounts.isError || !accounts.data) return <StatePanel code="ACCOUNTS/ERROR" state="error" title="KONTEN NICHT VERFÜGBAR" body="Die geschützte Kontenabfrage ist fehlgeschlagen." />;
-  return <section className="admin-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><RolePicker account={account} currentUserId={auth.user?.id} pending={setRoles.isPending} disabled={setRoles.isPending} onSave={roles => void setRoles.mutateAsync({ id: account.id, roles })} /><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
+  return <section className="admin-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><p>Admins haben automatisch Vollzugriff. Alle anderen Konten nutzen die Free-Funktionen, kaufen Pro über Stripe oder erhalten hier eine dokumentierte manuelle Freigabe.</p><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><RolePicker account={account} currentUserId={auth.user?.id} pending={setRoles.isPending} disabled={setRoles.isPending} onSave={roles => void setRoles.mutateAsync({ id: account.id, roles })} /><ProAccessPicker account={account} pending={setProAccess.isPending} onSave={active => void setProAccess.mutate({ id: account.id, active })} /><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
 }
 
 function PartnersPanel() {

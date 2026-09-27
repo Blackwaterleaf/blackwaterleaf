@@ -3,6 +3,7 @@ import { z } from "zod";
 import { aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts } from "../../drizzle/schema";
 import { AI_CREDIT_PACKS, DEFAULT_FREE_DAILY_IDENTIFICATIONS, DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS, DEFAULT_PRO_MONTHLY_IDENTIFICATIONS, FREE_FEATURES, PRO_FEATURES, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { getDb } from "../db";
+import { getProAccess } from "../entitlements";
 import { createCheckoutSession, getCheckoutConfirmation } from "../stripe";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
@@ -36,12 +37,15 @@ export const billingRouter = router({
       db.select({ freeIdentifications: aiUserUsageDays.freeIdentifications }).from(aiUserUsageDays).where(and(eq(aiUserUsageDays.userId, ctx.user.id), eq(aiUserUsageDays.dayKey, dayKey))).limit(1),
       db.select({ proIdentifications: aiUserUsageMonths.proIdentifications }).from(aiUserUsageMonths).where(and(eq(aiUserUsageMonths.userId, ctx.user.id), eq(aiUserUsageMonths.monthKey, monthKey))).limit(1),
     ]);
+    const access = await getProAccess(db, ctx.user);
     const freeLimit = policy?.freeDailyIdentifications ?? DEFAULT_FREE_DAILY_IDENTIFICATIONS;
     const monthlyLimit = policy?.proMonthlyIdentifications ?? DEFAULT_PRO_MONTHLY_IDENTIFICATIONS;
-    const isPro = account?.plan === "pro" && account.status === "active";
+    const isPro = access.active;
     return {
       plan: isPro ? "pro" as const : "free" as const,
       active: isPro,
+      accessSource: access.source,
+      accessExpiresAt: access.expiresAt,
       paymentReady: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
       currentPeriodEnd: account?.currentPeriodEnd ?? null,
       aiCredits: wallet?.credits ?? 0,

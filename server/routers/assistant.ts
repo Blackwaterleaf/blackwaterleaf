@@ -1,12 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantUsage, billingAccounts, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { awardXpIfReady, hasAssistantCallsToday, XP_REWARDS } from "../gamification";
+import { getProAccess } from "../entitlements";
 import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
@@ -260,6 +261,11 @@ async function reservePlantRequest(user: AssistantUser, clientRequestId: string,
     throw error;
   }
   const reservation: RequestReservation = { db, usageId: Number(inserted[0].insertId), creditSource: "free" };
+  if (user.role === "admin") {
+    reservation.creditSource = "pro";
+    await db.update(assistantUsage).set({ creditSource: "pro", creditsConsumed: 0 }).where(eq(assistantUsage.id, reservation.usageId));
+    return reservation;
+  }
   const dayKey = utcDayKey();
   const monthKey = utcMonthKey();
   let source: CreditSource | null = null;
@@ -268,8 +274,7 @@ async function reservePlantRequest(user: AssistantUser, clientRequestId: string,
     const [policy] = await db.select().from(aiUsagePolicies).where(eq(aiUsagePolicies.id, 1)).limit(1);
     if (!policy) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "ai_usage_policy_missing" });
     await ensureAiCounterRows(db, user.id, dayKey, monthKey);
-    const [membership] = await db.select({ plan: billingAccounts.plan, status: billingAccounts.status }).from(billingAccounts).where(eq(billingAccounts.userId, user.id)).limit(1);
-    const isPro = membership?.plan === "pro" && membership.status === "active";
+    const isPro = (await getProAccess(db, user)).active;
     if (isPro) {
       const proUpdate = await db.update(aiUserUsageMonths).set({ proIdentifications: sql`${aiUserUsageMonths.proIdentifications} + 1` }).where(and(eq(aiUserUsageMonths.userId, user.id), eq(aiUserUsageMonths.monthKey, monthKey), lt(aiUserUsageMonths.proIdentifications, policy.proMonthlyIdentifications)));
       if (Number(proUpdate[0].affectedRows) > 0) source = "pro";

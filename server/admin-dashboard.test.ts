@@ -58,4 +58,13 @@ describe("admin dashboard authorization", () => {
     expect(adminPage).toContain("BESTÄTIGEN");
     expect(adminPage).toContain("ABLEHNEN");
   });
+
+  it("keeps dashboard hooks stable while auth transitions from loading", () => {
+    const loadingGuard = adminPage.indexOf('if (auth.loading) return <StatePanel');
+    const focusEffect = adminPage.indexOf('window.requestAnimationFrame');
+    expect(focusEffect).toBeGreaterThan(-1);
+    expect(focusEffect).toBeLessThan(loadingGuard);
+    expect(adminPage).toContain("setAccountProAccess");
+    expect(adminPage).toContain("PRO FREISCHALTEN");
+  });
 });

@@ -46,4 +46,20 @@ describe("Free / Pro monetization contract", () => {
     expect(proPage).toContain("Credits gutgeschrieben");
     expect(proPage).toContain("STRIPE · ZAHLUNG BESTÄTIGT");
   });
+
+  it("keeps Pro access server-controlled through Stripe or an explicit admin grant", () => {
+    const schema = readFileSync(resolve(process.cwd(), "drizzle/schema.ts"), "utf8");
+    const entitlements = readFileSync(resolve(process.cwd(), "server/entitlements.ts"), "utf8");
+    const admin = readFileSync(resolve(process.cwd(), "server/routers/admin.ts"), "utf8");
+    const assistant = readFileSync(resolve(process.cwd(), "server/routers/assistant.ts"), "utf8");
+    const dashboard = readFileSync(resolve(process.cwd(), "client/src/pages/AdminDashboard.tsx"), "utf8");
+    expect(schema).toContain('"account_entitlements"');
+    expect(entitlements).toContain('user.role === "admin"');
+    expect(entitlements).toContain('accountEntitlements.featureKey, "pro"');
+    expect(entitlements).toContain('account.status === "active"');
+    expect(admin).toContain("setAccountProAccess");
+    expect(dashboard).toContain("PRO FREISCHALTEN");
+    expect(assistant).toContain('user.role === "admin"');
+    expect(assistant).toContain("creditsConsumed: 0");
+  });
 });

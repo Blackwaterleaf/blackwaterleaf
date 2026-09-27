@@ -38,10 +38,11 @@ export default function Pro() {
 
   if (!plans.data || !pro) return <div className="observatory-route observatory-route--botany"><p className="observatory-inline-state">PRO-ANGEBOT WIRD GELADEN …</p></div>;
   const active = membership.data?.active;
+  const accessLabel = membership.data?.accessSource === "admin" ? "ADMIN · VOLLZUGRIFF" : membership.data?.accessSource === "admin_grant" ? "ADMIN-FREIGABE · PRO AKTIV" : active ? "STRIPE · PRO AKTIV" : "FREE · KAUF ODER FREIGABE ERFORDERLICH";
   return <div className="observatory-route observatory-route--botany pro-page">
     <ObservatoryContextHeader tone="botany" eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. KI-Bestimmungen sind transparent begrenzt und können bei Bedarf als Credits ergänzt werden." icon={Sparkles} badge="AB €4,99 / MONAT" />
     <section className="pro-page__status observatory-data-panel">
-      <div><span className="eyebrow">DEIN STATUS</span><h2>{active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</h2><p>{membership.data ? `${membership.data.freeIdentificationsRemaining} kostenlose Pflanzenbestimmungen heute · ${membership.data.aiCredits} KI-Credits verfügbar` : "Kontingent wird geladen …"}</p></div>
+      <div><span className="eyebrow">DEIN STATUS</span><h2>{active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</h2><p>{accessLabel} · {membership.data ? `${membership.data.freeIdentificationsRemaining} kostenlose Pflanzenbestimmungen heute · ${membership.data.aiCredits} KI-Credits verfügbar` : "Kontingent wird geladen …"}</p></div>
       <span className="system-chip"><LockKeyhole size={13} /> {membership.data?.paymentReady ? "Zahlung sicher verfügbar" : "Zahlung wird vorbereitet"}</span>
     </section>
     {checkoutSuccess && checkoutSessionId ? <section className={`pro-checkout-success observatory-data-panel ${checkoutConfirmation.isError ? "pro-checkout-success--error" : ""}`} role="status" aria-live="polite">
@@ -67,6 +68,6 @@ export default function Pro() {
       <article className="pro-plan-card pro-plan-card--later"><span className="eyebrow">SPÄTER</span><h2>Creator / Expert</h2><p>Für Fachvorträge, exklusive LIVE-Inhalte und professionelle Hosts.</p><ul>{plans.data.creator.features.map(feature => <li key={feature}><Check size={15} />{feature}</li>)}</ul><span className="system-chip">Wird mit LIVE freigeschaltet</span></article>
     </div>
     {notice ? <p className="pro-page__note" role="status">{notice}</p> : null}
-    <p className="pro-page__note">Keine Funktionen werden heimlich gesperrt. Kontingente, Credits, Zahlung und Gutschrift bleiben serverseitig nachvollziehbar.</p>
+    <p className="pro-page__note">Pro wird ausschließlich durch Stripe oder eine dokumentierte Host-Freigabe aktiviert. Admins besitzen automatisch alle Rechte; Kontingente, Credits, Zahlung und Gutschrift bleiben serverseitig nachvollziehbar.</p>
   </div>;
 }
