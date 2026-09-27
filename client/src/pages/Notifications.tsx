@@ -14,10 +14,10 @@ function notificationIcon(type: string) {
   return Bell;
 }
 
-function notificationTarget(postId: number | null, commentId: number | null, type = "") {
+function notificationTarget(postId: number | null, commentId: number | null, type = "", feedbackId: number | null = null, partnerInquiryId: number | null = null, message = "") {
   if (type === "message") return "/messages";
-  if (type === "feedback") return "/admin";
-  if (type === "partner_inquiry") return "/marketplace";
+  if (type === "feedback") return message.startsWith("Antwort") ? `/feedback?feedback=${feedbackId ?? ""}` : `/admin?focus=feedback&id=${feedbackId ?? ""}`;
+  if (type === "partner_inquiry") return message.startsWith("Antwort") ? `/marketplace?inquiry=${partnerInquiryId ?? ""}` : `/admin/partners?focus=partner&id=${partnerInquiryId ?? ""}`;
   if (postId) return `/community?post=${postId}${commentId ? `&comment=${commentId}` : ""}`;
   return "/community";
 }
@@ -55,7 +55,7 @@ export default function Notifications() {
         <section className="notification-list observatory-data-panel" aria-label="Private Benachrichtigungen">
           {feed.data.map(item => {
             const Icon = notificationIcon(item.type);
-            const target = notificationTarget(item.postId, item.commentId, item.type);
+            const target = notificationTarget(item.postId, item.commentId, item.type, item.feedbackId, item.partnerInquiryId, item.message);
             return (
               <article key={item.id} className={`notification-card ${item.isRead ? "is-read" : "is-unread"}`}>
                 <button

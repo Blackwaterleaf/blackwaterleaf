@@ -360,17 +360,38 @@ export const partnersRouter = router({
         const confirmation = `Deine Partneranfrage #${inquiryId} wurde erfolgreich empfangen. BlackWaterLeaf meldet sich bei dir.`;
         const staffMessage = `Neue Partneranfrage #${inquiryId} wartet auf Prüfung.`;
         const rows = [
-          { recipientId: ctx.user.id, actorId: ctx.user.id, type: "partner_inquiry" as const, message: confirmation },
-          ...admins.filter(admin => admin.id !== ctx.user.id).map(admin => ({ recipientId: admin.id, actorId: ctx.user.id, type: "partner_inquiry" as const, message: staffMessage })),
+          { recipientId: ctx.user.id, actorId: ctx.user.id, type: "partner_inquiry" as const, partnerInquiryId: inquiryId, message: confirmation },
+          ...admins.filter(admin => admin.id !== ctx.user.id).map(admin => ({ recipientId: admin.id, actorId: ctx.user.id, type: "partner_inquiry" as const, partnerInquiryId: inquiryId, message: staffMessage })),
         ];
         await tx.insert(notifications).values(rows);
         return { id: inquiryId, status: "received" as const, message: confirmation };
       });
     }),
 
+
+  inquiryQueue: adminProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
+    return db.select({ id: partnerInquiries.id, userId: partnerInquiries.userId, contactEmail: partnerInquiries.contactEmail, message: partnerInquiries.message, status: partnerInquiries.status, adminNote: partnerInquiries.adminNote, responseMessage: partnerInquiries.responseMessage, createdAt: partnerInquiries.createdAt, updatedAt: partnerInquiries.updatedAt, userName: users.name }).from(partnerInquiries).leftJoin(users, eq(partnerInquiries.userId, users.id)).orderBy(desc(partnerInquiries.createdAt)).limit(100);
+  }),
+  updateInquiry: adminProcedure
+    .input(z.object({ id: z.number().int().positive(), status: z.enum(["received", "reviewing", "accepted", "declined"]), adminNote: z.string().trim().max(2000).nullable().optional(), responseMessage: z.string().trim().max(4000).nullable().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
+      const [entry] = await db.select({ id: partnerInquiries.id, userId: partnerInquiries.userId }).from(partnerInquiries).where(eq(partnerInquiries.id, input.id)).limit(1);
+      if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "partner_inquiry_not_found" });
+      const response = input.responseMessage?.trim() || null;
+      await db.transaction(async tx => {
+        await tx.update(partnerInquiries).set({ status: input.status, adminNote: input.adminNote?.trim() || null, responseMessage: response }).where(eq(partnerInquiries.id, input.id));
+        if (response) await tx.insert(notifications).values({ recipientId: entry.userId, actorId: ctx.user.id, type: "partner_inquiry", partnerInquiryId: input.id, message: `Antwort zu deiner Partneranfrage #${input.id}: ${response.slice(0, 180)}` });
+      });
+      return { id: input.id, status: input.status } as const;
+    }),
+
   myInquiries: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    return db.select({ id: partnerInquiries.id, message: partnerInquiries.message, status: partnerInquiries.status, createdAt: partnerInquiries.createdAt })
+    return db.select({ id: partnerInquiries.id, message: partnerInquiries.message, status: partnerInquiries.status, responseMessage: partnerInquiries.responseMessage, createdAt: partnerInquiries.createdAt, updatedAt: partnerInquiries.updatedAt })
       .from(partnerInquiries).where(eq(partnerInquiries.userId, ctx.user.id)).orderBy(desc(partnerInquiries.createdAt)).limit(20);
   }),
 

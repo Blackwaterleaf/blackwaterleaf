@@ -202,6 +202,8 @@ export type NativeNotification = {
   type: "comment" | "like" | "report" | "moderation" | "feedback" | "partner_inquiry" | "system" | "message";
   postId: number | null;
   commentId: number | null;
+  feedbackId: number | null;
+  partnerInquiryId: number | null;
   message: string;
   readAt: string | null;
   createdAt: string;
@@ -448,6 +450,12 @@ export const blockCommunityUser = (token: string, userId: number) =>
   trpcPost<{ blocked: true; userId: number }>("community.blockUser", { userId }, token);
 export const unblockCommunityUser = (token: string, userId: number) =>
   trpcPost<{ blocked: false; userId: number }>("community.unblockUser", { userId }, token);
+export type NativeAdminFeedback = { id: number; userId: number; kind: "feedback" | "problem" | "wish"; message: string; page: string | null; status: "received" | "reviewing" | "resolved"; adminNote: string | null; responseMessage: string | null; createdAt: string; updatedAt: string; userName: string | null; userEmail: string | null };
+export type NativeAdminPartnerInquiry = { id: number; userId: number; contactEmail: string; message: string; status: "received" | "reviewing" | "accepted" | "declined"; adminNote: string | null; responseMessage: string | null; createdAt: string; updatedAt: string; userName: string | null };
+export const adminFeedbackQueue = (token: string) => trpcGet<NativeAdminFeedback[]>("feedback.staffQueue", undefined, token);
+export const adminUpdateFeedback = (token: string, input: { id: number; status: NativeAdminFeedback["status"]; adminNote?: string | null; responseMessage?: string | null }) => trpcPost<{ id: number; status: NativeAdminFeedback["status"] }>("feedback.updateStaffEntry", input, token);
+export const adminPartnerInquiryQueue = (token: string) => trpcGet<NativeAdminPartnerInquiry[]>("partners.inquiryQueue", undefined, token);
+export const adminUpdatePartnerInquiry = (token: string, input: { id: number; status: NativeAdminPartnerInquiry["status"]; adminNote?: string | null; responseMessage?: string | null }) => trpcPost<{ id: number; status: NativeAdminPartnerInquiry["status"] }>("partners.updateInquiry", input, token);
 export const notificationFeed = (token: string) =>
   trpcGet<NativeNotification[]>("notifications.feed", undefined, token);
 export const notificationUnreadCount = (token: string) =>

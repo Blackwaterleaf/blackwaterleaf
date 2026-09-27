@@ -56,6 +56,10 @@ import {
   assistantAquariumAnalyze,
   assistantChat,
   assistantPlantIdentify,
+  adminFeedbackQueue,
+  adminUpdateFeedback,
+  adminPartnerInquiryQueue,
+  adminUpdatePartnerInquiry,
   addCommunityComment,
   updateCommunityComment,
   deleteCommunityComment,
@@ -148,6 +152,8 @@ import {
   type Observation,
   type OwnCommunityPost,
   type NativeNotification,
+  type NativeAdminFeedback,
+  type NativeAdminPartnerInquiry,
   type NativeAnalyticsOverview,
   type PlatformAvailability,
   type ProfileConsent,
@@ -556,6 +562,8 @@ function NaturApp() {
   const [carePlans, setCarePlans] = useState<CarePlan[]>([]);
   const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
   const [analytics, setAnalytics] = useState<NativeAnalyticsOverview | null>(null);
+  const [adminFeedback, setAdminFeedback] = useState<NativeAdminFeedback[]>([]);
+  const [adminPartnerInquiries, setAdminPartnerInquiries] = useState<NativeAdminPartnerInquiry[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
@@ -652,7 +660,12 @@ function NaturApp() {
           await markDirectConversationRead(token, Number(selected.id));
         } else setDirectThread([]);
       }
-      if (screen === "dashboard" && token) setAnalytics(await analyticsOverview(token, 7));
+      if (screen === "dashboard" && token) {
+        const [dashboardAnalytics, feedbackQueue, partnerQueue] = await Promise.all([analyticsOverview(token, 7), adminFeedbackQueue(token), adminPartnerInquiryQueue(token)]);
+        setAnalytics(dashboardAnalytics);
+        setAdminFeedback(feedbackQueue);
+        setAdminPartnerInquiries(partnerQueue);
+      }
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
         setCareTasks(today.tasks);
@@ -1139,6 +1152,8 @@ function NaturApp() {
             token={token}
             account={account}
             analytics={analytics}
+            adminFeedback={adminFeedback}
+            adminPartnerInquiries={adminPartnerInquiries}
             state={state}
             error={error}
             refresh={loadScreen}
@@ -3310,11 +3325,11 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   return <Page refresh={refresh} refreshing={state === "loading"}>
     <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
-    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.type === "feedback") navigate("dashboard"); else if (item.type === "partner_inquiry") navigate("marketplace"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : item.type === "feedback" || item.type === "partner_inquiry" ? "bulb-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.type === "feedback" || item.type === "partner_inquiry") navigate("dashboard"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : item.type === "feedback" || item.type === "partner_inquiry" ? "bulb-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
 }
 
-function NativeDashboardScreen({ tone, token, account, analytics, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
+function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback, adminPartnerInquiries, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; adminFeedback: NativeAdminFeedback[]; adminPartnerInquiries: NativeAdminPartnerInquiry[]; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
   const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
   if (!token) return <Page><PrivateFeature tone={tone} title="DASHBOARD GESCHÜTZT" text="Melde dich mit dem Eigentümerkonto an, um aggregierte Reichweitenzahlen zu sehen." onSignIn={onSignIn} /></Page>;
   if (!isOwner) return <Page><StatusPanel tone={tone} icon="shield-checkmark-outline" code="OWNER_ONLY" title="KEIN ZUGRIFF" text="Dieses Dashboard ist ausschließlich für das serverseitig geprüfte BlackWaterLeaf-Eigentümerkonto freigegeben." /></Page>;
@@ -3333,8 +3348,30 @@ function NativeDashboardScreen({ tone, token, account, analytics, state, error, 
       <View style={[styles.dashboardSummary, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>NUTZUNG · LETZTE 7 TAGE</Text><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Ø Aufenthaltsdauer</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{Math.floor(analytics.averageDurationSec / 60)}m {analytics.averageDurationSec % 60}s</Text></View><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Absprungrate</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{analytics.bounceRate}%</Text></View></View>
       <View style={[styles.dashboardChart, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>TOP-SEITEN</Text>{analytics.popularPages.length ? analytics.popularPages.slice(0, 6).map(row => <View key={row.label} style={styles.dashboardChartRow}><View style={styles.dashboardChartLabel}><Text style={styles.miniCopy} numberOfLines={1}>{row.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{row.value}</Text></View><View style={styles.dashboardBarTrack}><View style={[styles.dashboardBar, { width: `${Math.max(4, Math.round((row.value / maxPage) * 100))}%`, backgroundColor: tone.accent }]} /></View></View>) : <Text style={styles.copy}>Noch keine Seitenwerte vorhanden.</Text>}</View>
       <View style={[styles.dashboardPrivacy, { borderColor: `${tone.accent}55` }]}><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>Automatisch anonym und aggregiert. Live-Zuschauerzahlen bleiben getrennt und werden erst bei Freischaltung aktiviert.</Text></View>
+      <NativeAdminInbox tone={tone} token={token} feedback={adminFeedback} inquiries={adminPartnerInquiries} onRefresh={refresh} />
     </>}
   </Page>;
+}
+
+function NativeAdminInbox({ tone, token, feedback, inquiries, onRefresh }: { tone: Tone; token: string; feedback: NativeAdminFeedback[]; inquiries: NativeAdminPartnerInquiry[]; onRefresh: () => Promise<void> }) {
+  return <View style={{ gap: 12, marginTop: 8 }}>
+    <SectionLabel tone={tone} overline="HOST · EINGANG" title="FEEDBACK VERWALTEN" />
+    {feedback.length ? feedback.map(item => <NativeFeedbackAdminRow key={item.id} tone={tone} token={token} item={item} onRefresh={onRefresh} />) : <Text style={styles.miniCopy}>Keine offenen Feedback-Eingänge.</Text>}
+    <SectionLabel tone={tone} overline="HOST · PARTNER" title="PARTNERANFRAGEN" />
+    {inquiries.length ? inquiries.map(item => <NativePartnerAdminRow key={item.id} tone={tone} token={token} item={item} onRefresh={onRefresh} />) : <Text style={styles.miniCopy}>Keine Partneranfragen.</Text>}
+  </View>;
+}
+
+function NativeFeedbackAdminRow({ tone, token, item, onRefresh }: { tone: Tone; token: string; item: NativeAdminFeedback; onRefresh: () => Promise<void> }) {
+  const [status, setStatus] = useState(item.status); const [note, setNote] = useState(item.adminNote ?? ""); const [response, setResponse] = useState(item.responseMessage ?? ""); const [saving, setSaving] = useState(false);
+  const save = async () => { setSaving(true); try { await adminUpdateFeedback(token, { id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); await onRefresh(); } catch { Alert.alert("Nicht gespeichert", "Die Feedbackantwort konnte nicht gespeichert werden."); } finally { setSaving(false); } };
+  return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{item.id} · {item.kind === "problem" ? "PROBLEM" : item.kind === "wish" ? "WUNSCH" : "FEEDBACK"}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? item.userEmail ?? `Konto #${item.userId}`} · {new Date(item.createdAt).toLocaleString("de-DE")}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><TextInput value={status} onChangeText={value => setStatus(value as NativeAdminFeedback["status"])} placeholder="received / reviewing / resolved" placeholderTextColor={c.muted} style={styles.dashboardInboxInputCompact} /></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
+}
+
+function NativePartnerAdminRow({ tone, token, item, onRefresh }: { tone: Tone; token: string; item: NativeAdminPartnerInquiry; onRefresh: () => Promise<void> }) {
+  const [status, setStatus] = useState(item.status); const [note, setNote] = useState(item.adminNote ?? ""); const [response, setResponse] = useState(item.responseMessage ?? ""); const [saving, setSaving] = useState(false);
+  const save = async () => { setSaving(true); try { await adminUpdatePartnerInquiry(token, { id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); await onRefresh(); } catch { Alert.alert("Nicht gespeichert", "Die Partnerantwort konnte nicht gespeichert werden."); } finally { setSaving(false); } };
+  return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>PARTNERANFRAGE #{item.id}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? "Partnerinteressent"} · {item.contactEmail}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><TextInput value={status} onChangeText={value => setStatus(value as NativeAdminPartnerInquiry["status"])} placeholder="received / reviewing / accepted / declined" placeholderTextColor={c.muted} style={styles.dashboardInboxInputCompact} /></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
 }
 
 function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
@@ -5278,6 +5315,11 @@ const styles = StyleSheet.create({
   communityMediaMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
   communityMediaRemove: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
+  dashboardInboxCard: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 8 },
+  dashboardInboxInput: { minHeight: 48, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, color: c.text, backgroundColor: "rgba(2,12,6,.66)", textAlignVertical: "top" },
+  dashboardInboxInputCompact: { minHeight: 38, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 8, color: c.text, backgroundColor: "rgba(2,12,6,.66)" },
+  dashboardInboxActions: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
+
 });
 
 function MessagesScreen({ tone, token, account, conversations, selectedConversationId, thread, targetProfile, state, error, refresh, onSelect, onStart, onSend, onSignIn }: { tone: Tone; token: string | null; account: Account | null; conversations: DirectConversation[]; selectedConversationId: string | null; thread: DirectMessage[]; targetProfile: PublicProfile | null; state: State; error: string | null; refresh: () => Promise<void>; onSelect: (conversation: DirectConversation) => Promise<void>; onStart: (content: string) => Promise<void>; onSend: (content: string) => Promise<void>; onSignIn: () => Promise<void> }) {

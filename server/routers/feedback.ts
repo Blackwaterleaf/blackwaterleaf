@@ -37,6 +37,7 @@ export const feedbackRouter = router({
             recipientId: recipient.id,
             actorId: ctx.user.id,
             type: "feedback" as const,
+            feedbackId: id,
             message: `Neue ${input.kind === "problem" ? "Problemmeldung" : input.kind === "wish" ? "Verbesserungsidee" : "Feedback"} #${id} wartet auf deine Antwort.`,
           })));
         }
@@ -46,7 +47,7 @@ export const feedbackRouter = router({
     }),
   mine: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
-    return db.select({ id: feedbackEntries.id, kind: feedbackEntries.kind, message: feedbackEntries.message, status: feedbackEntries.status, createdAt: feedbackEntries.createdAt })
+    return db.select({ id: feedbackEntries.id, kind: feedbackEntries.kind, message: feedbackEntries.message, status: feedbackEntries.status, responseMessage: feedbackEntries.responseMessage, createdAt: feedbackEntries.createdAt, updatedAt: feedbackEntries.updatedAt })
       .from(feedbackEntries).where(eq(feedbackEntries.userId, ctx.user.id)).orderBy(desc(feedbackEntries.createdAt)).limit(20);
   }),
   preferences: protectedProcedure.query(async ({ ctx }) => {
@@ -63,6 +64,19 @@ export const feedbackRouter = router({
   }),
   staffQueue: staffProcedure.query(async () => {
     const db = await requireDatabase();
-    return db.select().from(feedbackEntries).orderBy(desc(feedbackEntries.createdAt)).limit(100);
+    return db.select({ id: feedbackEntries.id, userId: feedbackEntries.userId, kind: feedbackEntries.kind, message: feedbackEntries.message, page: feedbackEntries.page, status: feedbackEntries.status, adminNote: feedbackEntries.adminNote, responseMessage: feedbackEntries.responseMessage, createdAt: feedbackEntries.createdAt, updatedAt: feedbackEntries.updatedAt, userName: users.name, userEmail: users.email }).from(feedbackEntries).leftJoin(users, eq(feedbackEntries.userId, users.id)).orderBy(desc(feedbackEntries.createdAt)).limit(100);
   }),
+  updateStaffEntry: staffProcedure
+    .input(z.object({ id: z.number().int().positive(), status: z.enum(["received", "reviewing", "resolved"]), adminNote: z.string().trim().max(2000).nullable().optional(), responseMessage: z.string().trim().max(4000).nullable().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [entry] = await db.select({ id: feedbackEntries.id, userId: feedbackEntries.userId }).from(feedbackEntries).where(eq(feedbackEntries.id, input.id)).limit(1);
+      if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "feedback_not_found" });
+      const response = input.responseMessage?.trim() || null;
+      await db.transaction(async tx => {
+        await tx.update(feedbackEntries).set({ status: input.status, adminNote: input.adminNote?.trim() || null, responseMessage: response }).where(eq(feedbackEntries.id, input.id));
+        if (response) await tx.insert(notifications).values({ recipientId: entry.userId, actorId: ctx.user.id, type: "feedback", feedbackId: input.id, message: `Antwort zu deiner Rückmeldung #${input.id}: ${response.slice(0, 180)}` });
+      });
+      return { id: input.id, status: input.status } as const;
+    }),
 });

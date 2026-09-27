@@ -9,6 +9,7 @@ export default function PartnerInquiryCard() {
   const utils = trpc.useUtils();
   const [message, setMessage] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const mine = trpc.partners.myInquiries.useQuery(undefined, { enabled: auth.isAuthenticated });
   const submit = trpc.partners.submitInquiry.useMutation({
     onSuccess: async result => {
       setMessage("");
@@ -38,6 +39,7 @@ export default function PartnerInquiryCard() {
           {submit.isError ? <p className="form-error" role="alert">Die Anfrage konnte nicht gespeichert werden. Bitte versuche es erneut.</p> : null}
         </form>
       )}
+      {auth.isAuthenticated && mine.data?.length ? <div className="partner-inquiry-history" aria-label="Meine Partneranfragen">{mine.data.map(item => <article key={item.id}><strong>#{item.id} · {item.status}</strong><p>{item.message}</p>{item.responseMessage ? <small><b>Antwort:</b> {item.responseMessage}</small> : <small>Warten auf Antwort von BlackWaterLeaf.</small>}</article>)}</div> : null}
     </section>
   );
 }

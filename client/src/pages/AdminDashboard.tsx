@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, Check, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, UsersRound } from "lucide-react";
+import { Activity, BadgeCheck, Check, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, UsersRound, Send, Save } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
@@ -41,7 +41,13 @@ export default function AdminDashboard() {
   if (!auth.isAuthenticated) return <StatePanel code="ADMIN/AUTH" title="ANMELDUNG ERFORDERLICH" body="Das Kontrollzentrum ist ausschließlich für verifizierte Teamkonten erreichbar." action={<button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>} />;
   if (!isStaff) return <StatePanel code="ADMIN/FORBIDDEN" state="locked" title="KEINE TEAMBERECHTIGUNG" body="Diese Route ist serverseitig für aktive Moderations- und Adminrollen geschützt." />;
 
-  const section = location.split("/")[2] ?? "overview";
+  const section = location.split("/")[2]?.split("?")[0] ?? "overview";
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const focus = params.get("focus");
+    if (!focus) return;
+    window.requestAnimationFrame(() => document.getElementById(focus === "partner" ? "partner-inquiry-inbox" : "feedback-inbox")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [location]);
   return (
     <DashboardLayout menuItems={auth.user?.role === "admin" ? menuItems : menuItems.slice(0, 2)} title="BLACKWATERLEAF ADMIN">
       <div className="admin-console">
@@ -49,7 +55,7 @@ export default function AdminDashboard() {
           <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" || section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
       </div>
     </DashboardLayout>
   );
@@ -74,15 +80,43 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
     </section>
     <BroadcastPanel />
     <FeedbackInbox />
+    <PartnerInquiryInbox />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
 }
 
 function FeedbackInbox() {
   const feedback = trpc.feedback.staffQueue.useQuery();
-  if (feedback.isLoading) return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Feedback wird geladen …</p></section>;
-  if (feedback.isError || !feedback.data) return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Der Feedback-Eingang ist derzeit nicht verfügbar.</p></section>;
-  return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK / SERVER_VERIFIED]</p><h2><MessageSquareHeart size={18} /> Meldungen, Probleme & Wünsche</h2>{feedback.data.length === 0 ? <p>Noch keine eingegangenen Rückmeldungen.</p> : <div className="admin-list">{feedback.data.map(item => <article className="admin-row" key={item.id}><div><strong>#{item.id} · {item.kind === "problem" ? "Problem" : item.kind === "wish" ? "Wunsch / Verbesserung" : "Feedback"}</strong><p>{item.message}</p><small>Konto #{item.userId} · {item.page ?? "ohne Seitenangabe"} · {new Date(item.createdAt).toLocaleString("de-DE")}</small></div><span className="status-chip">{item.status}</span></article>)}</div>}</section>;
+  if (feedback.isLoading) return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Feedback wird geladen …</p></section>;
+  if (feedback.isError || !feedback.data) return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Der Feedback-Eingang ist derzeit nicht verfügbar.</p></section>;
+  return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK / SERVER_VERIFIED]</p><h2><MessageSquareHeart size={18} /> Meldungen, Probleme & Wünsche</h2>{feedback.data.length === 0 ? <p>Noch keine eingegangenen Rückmeldungen.</p> : <div className="admin-list">{feedback.data.map(item => <FeedbackAdminRow key={item.id} item={item} />)}</div>}</section>;
+}
+
+function FeedbackAdminRow({ item }: { item: { id: number; userId: number; kind: "feedback" | "problem" | "wish"; message: string; page: string | null; status: "received" | "reviewing" | "resolved"; adminNote: string | null; responseMessage: string | null; createdAt: Date; userName: string | null; userEmail: string | null } }) {
+  const utils = trpc.useUtils();
+  const update = trpc.feedback.updateStaffEntry.useMutation({ onSuccess: () => void utils.feedback.staffQueue.invalidate() });
+  const [status, setStatus] = useState(item.status);
+  const [note, setNote] = useState(item.adminNote ?? "");
+  const [response, setResponse] = useState(item.responseMessage ?? "");
+  const save = async () => { await update.mutateAsync({ id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); };
+  return <article className="admin-row admin-inbox-row"><div className="admin-inbox-copy"><strong>#{item.id} · {item.kind === "problem" ? "Problem" : item.kind === "wish" ? "Wunsch / Verbesserung" : "Feedback"}</strong><p>{item.message}</p><small>{item.userName ?? item.userEmail ?? `Konto #${item.userId}`} · {item.page ?? "ohne Seitenangabe"} · {new Date(item.createdAt).toLocaleString("de-DE")}</small><label className="admin-inbox-field"><span>Interne Bearbeitungsnotiz</span><textarea value={note} onChange={event => setNote(event.target.value)} rows={2} maxLength={2000} placeholder="Nur für das Team sichtbar …" /></label><label className="admin-inbox-field"><span>Antwort an den Absender</span><textarea value={response} onChange={event => setResponse(event.target.value)} rows={2} maxLength={4000} placeholder="Wird als Benachrichtigung gesendet …" /></label></div><div className="admin-row__actions admin-inbox-actions"><select aria-label={`Status für Feedback #${item.id}`} value={status} onChange={event => setStatus(event.target.value as typeof status)}><option value="received">Eingegangen</option><option value="reviewing">In Prüfung</option><option value="resolved">Erledigt</option></select><button type="button" className="admin-icon-action" aria-label={`Feedback #${item.id} speichern`} title="Speichern und Antwort senden" disabled={update.isPending} onClick={() => void save()}>{response.trim() ? <Send size={15} /> : <Save size={15} />}</button></div></article>;
+}
+
+function PartnerInquiryInbox() {
+  const inquiries = trpc.partners.inquiryQueue.useQuery();
+  if (inquiries.isLoading) return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES]</p><h2>Partneranfragen</h2><p>Anfragen werden geladen …</p></section>;
+  if (inquiries.isError || !inquiries.data) return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES]</p><h2>Partneranfragen</h2><p>Die Partneranfragen sind derzeit nicht verfügbar.</p></section>;
+  return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES / ADMIN_ONLY]</p><h2>Partner werden · Eingang</h2>{inquiries.data.length === 0 ? <p>Noch keine Partneranfragen.</p> : <div className="admin-list">{inquiries.data.map(item => <PartnerInquiryAdminRow key={item.id} item={item} />)}</div>}</section>;
+}
+
+function PartnerInquiryAdminRow({ item }: { item: { id: number; userId: number; contactEmail: string; message: string; status: "received" | "reviewing" | "accepted" | "declined"; adminNote: string | null; responseMessage: string | null; createdAt: Date; userName: string | null } }) {
+  const utils = trpc.useUtils();
+  const update = trpc.partners.updateInquiry.useMutation({ onSuccess: () => void utils.partners.inquiryQueue.invalidate() });
+  const [status, setStatus] = useState(item.status);
+  const [note, setNote] = useState(item.adminNote ?? "");
+  const [response, setResponse] = useState(item.responseMessage ?? "");
+  const save = async () => { await update.mutateAsync({ id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); };
+  return <article className="admin-row admin-inbox-row"><div className="admin-inbox-copy"><strong>#{item.id} · {item.userName ?? "Partnerinteressent"}</strong><p>{item.message}</p><small>{item.contactEmail} · {new Date(item.createdAt).toLocaleString("de-DE")}</small><label className="admin-inbox-field"><span>Interne Bearbeitungsnotiz</span><textarea value={note} onChange={event => setNote(event.target.value)} rows={2} maxLength={2000} placeholder="Nur für das Team sichtbar …" /></label><label className="admin-inbox-field"><span>Antwort an den Absender</span><textarea value={response} onChange={event => setResponse(event.target.value)} rows={2} maxLength={4000} placeholder="Wird als Benachrichtigung gesendet …" /></label></div><div className="admin-row__actions admin-inbox-actions"><select aria-label={`Status für Partneranfrage #${item.id}`} value={status} onChange={event => setStatus(event.target.value as typeof status)}><option value="received">Eingegangen</option><option value="reviewing">In Prüfung</option><option value="accepted">Angenommen</option><option value="declined">Abgelehnt</option></select><button type="button" className="admin-icon-action" aria-label={`Partneranfrage #${item.id} speichern`} title="Speichern und Antwort senden" disabled={update.isPending} onClick={() => void save()}>{response.trim() ? <Send size={15} /> : <Save size={15} />}</button></div></article>;
 }
 
 function BroadcastPanel() {

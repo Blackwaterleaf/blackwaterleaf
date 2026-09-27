@@ -13,7 +13,8 @@ async function requireDatabase() {
 async function enabledTypes(db: Awaited<ReturnType<typeof requireDatabase>>, userId: number, role: string) {
   const [prefs] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId)).limit(1);
   if (!prefs) return null;
-  return [prefs.community ? "comment" : null, prefs.community ? "like" : null, prefs.community ? "report" : null, prefs.moderation ? "moderation" : null, role === "admin" || role === "moderator" ? "feedback" : null, prefs.system || role === "admin" || role === "moderator" ? "partner_inquiry" : null, prefs.system ? "system" : null, prefs.messages ? "message" : null].filter(Boolean) as Array<"comment" | "like" | "report" | "moderation" | "feedback" | "partner_inquiry" | "system" | "message">;
+  const feedbackType = role === "admin" || role === "moderator" ? "feedback" : "feedback";
+  return [prefs.community ? "comment" : null, prefs.community ? "like" : null, prefs.community ? "report" : null, prefs.moderation ? "moderation" : null, feedbackType, "partner_inquiry", prefs.system ? "system" : null, prefs.messages ? "message" : null].filter(Boolean) as Array<"comment" | "like" | "report" | "moderation" | "feedback" | "partner_inquiry" | "system" | "message">;
 }
 
 export const notificationsRouter = router({
@@ -23,10 +24,12 @@ export const notificationsRouter = router({
     const rows = await db
       .select({
         id: notifications.id,
-        type: notifications.type,
-        postId: notifications.postId,
-        commentId: notifications.commentId,
-        message: notifications.message,
+          type: notifications.type,
+          postId: notifications.postId,
+          commentId: notifications.commentId,
+          feedbackId: notifications.feedbackId,
+          partnerInquiryId: notifications.partnerInquiryId,
+          message: notifications.message,
         readAt: notifications.readAt,
         createdAt: notifications.createdAt,
         actorName: users.name,
@@ -65,6 +68,8 @@ export const notificationsRouter = router({
           type: notifications.type,
           postId: notifications.postId,
           commentId: notifications.commentId,
+          feedbackId: notifications.feedbackId,
+          partnerInquiryId: notifications.partnerInquiryId,
           message: notifications.message,
           readAt: notifications.readAt,
           createdAt: notifications.createdAt,

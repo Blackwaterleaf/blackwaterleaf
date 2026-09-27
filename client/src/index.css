@@ -2008,3 +2008,14 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .partner-inquiry-form textarea { min-height:108px; resize:vertical; }
 .partner-inquiry-form__privacy { display:flex; align-items:center; gap:6px; margin:0; color:#cce8c2; font-size:.78rem; }
 @media (max-width:720px) { .partner-inquiry-card { grid-template-columns:1fr; } .partner-inquiry-form { min-width:0; } .partner-inquiry-card__action { justify-self:stretch; } }
+
+/* Admin inbox: readable on desktop and small screens without oversized controls. */
+.admin-inbox-row { align-items: flex-start; gap: 14px; }
+.admin-inbox-copy { min-width: 0; flex: 1; display: grid; gap: 6px; }
+.admin-inbox-copy > p { margin: 0; white-space: pre-wrap; }
+.admin-inbox-field { display: grid; gap: 4px; margin-top: 4px; }
+.admin-inbox-field > span { color: #d9ff68; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.admin-inbox-field textarea { width: 100%; min-height: 48px; resize: vertical; border: 1px solid rgba(199,243,91,.24); border-radius: 10px; padding: 9px 10px; color: #f4f8ee; background: rgba(2,12,6,.72); font: inherit; }
+.admin-inbox-actions { align-items: center; min-width: 145px; }
+.admin-inbox-actions select { max-width: 150px; }
+@media (max-width: 620px) { .admin-inbox-row { display: grid; grid-template-columns: 1fr; } .admin-inbox-actions { justify-content: flex-end; min-width: 0; } .admin-inbox-actions select { flex: 1; max-width: none; } }
