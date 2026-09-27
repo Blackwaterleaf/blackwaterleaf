@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } 
 import { ConnectionStateBanner } from "./ConnectionStateBanner";
 import { AnalyticsTracker } from "./AnalyticsTracker";
 import { getBlackWaterLeafSeason } from "@/lib/season";
+import { formatDayPhaseTime, getDayPhaseState, parseDayPhaseTime, type DayPhaseState } from "@shared/day-phase";
 
 const portalNavigation = [
   { href: "/explore", label: "Entdecken", icon: Compass },
@@ -31,6 +32,10 @@ function isPortalNavigationActive(location: string, hash: string, href: string) 
 export function AppShell({ children }: PropsWithChildren) {
   const [location, setLocation] = useLocation();
   const season = getBlackWaterLeafSeason();
+  const [dayPhase, setDayPhase] = useState<DayPhaseState>(() => {
+    const simulated = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bwlTime") : null;
+    return getDayPhaseState(simulated ? parseDayPhaseTime(simulated) ?? new Date() : new Date());
+  });
   const auth = useAuth();
   const { locale, setLocale } = useI18n();
   const utils = trpc.useUtils();
@@ -50,6 +55,16 @@ export function AppShell({ children }: PropsWithChildren) {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const tabTransitionTimer = useRef<number | null>(null);
   const routeToneClass = location.startsWith("/marketplace") ? "route-marketplace" : location.startsWith("/world/aquarium") ? "route-aquarium" : location.startsWith("/world/terrarium") ? "route-terrarium" : location === "/assistant" ? "route-ai" : "route-botany";
+
+  useEffect(() => {
+    const refreshDayPhase = () => {
+      const simulated = new URLSearchParams(window.location.search).get("bwlTime");
+      setDayPhase(getDayPhaseState(simulated ? parseDayPhaseTime(simulated) ?? new Date() : new Date()));
+    };
+    refreshDayPhase();
+    const timer = window.setInterval(refreshDayPhase, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     setIsTabSwitching(false);
@@ -158,7 +173,7 @@ export function AppShell({ children }: PropsWithChildren) {
   }, [profileMenuOpen]);
 
   return (
-    <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
+    <div className={`app-frame season-${season} day-phase-${dayPhase.phase} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season} data-day-phase={dayPhase.phase} data-local-time={formatDayPhaseTime(dayPhase)}>
       <header className="top-shell">
         <Link href="/" className="brand-lockup" aria-label="BlackWaterLeaf Home">
           <span className="brand-mark"><img src="/manus-storage/blackwaterleaf-original-mark-1024_28dcd697.png" alt="BlackWaterLeaf Logo" /></span>
@@ -205,7 +220,7 @@ export function AppShell({ children }: PropsWithChildren) {
             return <Link key={item.href} href={item.href} className={active ? "active" : ""}><Icon size={19} /><span>{item.label}</span></Link>;
           })}
         </div>
-        <div className="portal-sidebar__status"><i /><span><strong>Verbindung</strong><small>Aktueller Status wird pro Bereich angezeigt.</small></span></div>
+        <div className="portal-sidebar__status"><i /><span><strong>Verbindung</strong><small>Aktueller Status wird pro Bereich angezeigt.</small><small className="portal-sidebar__time" aria-label={`Lokale Tageszeit: ${dayPhase.label}, ${formatDayPhaseTime(dayPhase)}`}>{dayPhase.shortLabel} · {formatDayPhaseTime(dayPhase)}</small></span></div>
       </aside>
       <ConnectionStateBanner />
       <AnalyticsTracker />

@@ -1,0 +1,15 @@
+ID,Anforderung/Test,Testebene,Rolle/Testdaten,Web-Umgebung,Android-Umgebung,API/Build,Erwartung,Tatsächliches Ergebnis,Ausführungszeit,Evidenz,Status,offene Voraussetzung
+EVD-001,Gate-0 Repository und Versionsstand,statisch,keine,staging checkout,Native checkout,b9da0938,Code eindeutig zugeordnet,Web/Native auf b9da0938,2026-09-27 16:27,git status/log und app.json,bestanden,keine
+EVD-002,Referenzquellen vollständig,Bestandsprüfung,keine,Sandbox-Dateisuche,Sandbox-Dateisuche,n/a,Premium-Prompt und Website-Audit vorhanden,nicht gefunden,2026-09-27 16:27,find-Ausgabe,blockiert,Dateien bereitstellen
+EVD-003,Kein Deployment/keine produktive Änderung,Prozessprüfung,keine,Arbeitsrepo,Arbeitsrepo,b9da0938,nur lokale reversible Änderungen,erfüllt,2026-09-27 16:27,Auftrag/Arbeitsprotokoll,verifiziert,laufend
+BUILD-001,Web TypeScript,statisch,keine,local staging,n/a,b9da0938,keine Typfehler,erfolgreich,2026-09-27 16:24,Terminallog,bestanden,keine
+BUILD-002,Web Regression,Unit/Contract,isolierte Fixtures,local staging,n/a,b9da0938,alle Tests grün,96 Dateien/378 Tests grün,2026-09-27 16:24,Terminallog,bestanden,keine
+BUILD-003,Web Produktionsbuild,Build,keine,local staging,n/a,b9da0938,Build ohne Fehler,erfolgreich; bestehende Chunk-Warnung prüfen,2026-09-27 16:24,Terminallog,bestanden,Warnungsanalyse offen
+BUILD-004,Native TypeScript,statisch,keine,n/a,local Expo,b9da0938,keine Typfehler,erfolgreich,2026-09-27 16:25,Terminallog,bestanden,keine
+BUILD-005,Native Android Export,Build,keine,n/a,local Expo,b9da0938,Android Bundle erzeugt,erfolgreich; kein APK,2026-09-27 16:25,dist/metadata.json,teilweise,signierbares APK fehlt
+UPLOAD-001,Großes Aquaristikbild,Integration,autorisierter Nutzer mit kontrolliertem Bild,staging Web,Android unbekannt,b9da0938,Phasenkarte und sichere Fehlermeldung,Code-/Contract-Test bestanden; Realgerät nicht geprüft,2026-09-27 16:24,378 Tests/Export,teilweise,Realgerät und autorisierter Upload
+AUTH-001,Login/Logout/Rückkehr,Integration,autorisierter Testnutzer fehlt,Web offen,Android offen,aktuelle API,Session/Rolle/Rückkehr identisch,nicht ausgeführt,offen,kein Testzugang,blockiert,Testkonto
+AND-001,Installation/Upgrade,Release,autorisiertes Gerät/Artefakt fehlt,n/a,Samsung/Android fehlt,signierter APK erforderlich,Install und Upgrade ohne Datenverlust,nicht ausgeführt,offen,kein APK/Realgerät,blockiert,Artefakt und Gerät
+A11Y-001,WCAG/TalkBack,UI/Accessibility,keine Testrolle,Desktop/mobile Browser,Android TalkBack fehlt,aktueller Build,Kontrast Fokus Semantik Touchziele,automatischer Vollnachweis offen,offen,manuelle Geräteprüfung,blockiert,Browser-/Gerätezugang
+TIME-001,Fünf Tagesphasen,Unit/Integration,Mock-Uhr nur isoliert zulässig,Web test clock,Native test clock,Phase-Spec,gleiche Tonwerte ohne Funktionsänderung,nicht vollständig ausgeführt,offen,Runtime-Audit,blockiert,Implementierungsnachweis
+PERF-001,CWV und Android-Budgets,Performance,definierte Netz-/Geräteprofile fehlen,Lab/Field offen,Realgerät/Profil offen,Build b9da0938,LCP/INP/CLS und Start/RAM/Volumen gemessen,nicht gemessen,offen,Messdesign zuerst,blockiert,Profile/Geräte

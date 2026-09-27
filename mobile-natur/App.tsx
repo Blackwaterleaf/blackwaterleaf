@@ -200,6 +200,7 @@ import {
   type ObservationOutboxSummary,
 } from "./src/observationOutbox";
 import { getBlackWaterLeafSeason } from "./src/season";
+import { formatDayPhaseTime, getDayPhaseState, type DayPhaseState } from "./src/dayPhase";
 
 const ASSETS = {
   home: require("./assets/home-observatory-hero-mobile.jpg"),
@@ -562,6 +563,7 @@ export default function App() {
 function NaturApp() {
   const insets = useSafeAreaInsets();
   const season = getBlackWaterLeafSeason();
+  const [dayPhase, setDayPhase] = useState<DayPhaseState>(() => getDayPhaseState());
   const [screen, setScreen] = useState<Screen>("home");
   const [token, setToken] = useState<string | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
@@ -721,6 +723,12 @@ function NaturApp() {
     });
     return () => subscription.remove();
   }, [refreshPrivate, token]);
+  useEffect(() => {
+    const refreshDayPhase = () => setDayPhase(getDayPhaseState());
+    refreshDayPhase();
+    const timer = setInterval(refreshDayPhase, 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const signIn = useCallback(async () => {
     try {
@@ -819,10 +827,11 @@ function NaturApp() {
             ? "#07160d"
             : c.bg
       : tone.surface;
+  const phaseSurface = dayPhase.phase === "night" ? "#04101a" : dayPhase.phase === "dawn" ? "#17150b" : dayPhase.phase === "dusk" ? "#171008" : dayPhase.phase === "evening" ? "#0d0918" : seasonSurface;
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: seasonSurface }]}
+      style={[styles.safe, { backgroundColor: phaseSurface }]}
       edges={["top", "left", "right"]}
     >
       <StatusBar style="light" />
@@ -850,7 +859,11 @@ function NaturApp() {
           navigate("profile");
         }}
       />
-      <View style={[styles.body, { backgroundColor: seasonSurface }]}>
+      <View style={[styles.dayPhaseRail, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}0d` }]} accessibilityLabel={`Lokale Tagesphase ${dayPhase.label}, ${formatDayPhaseTime(dayPhase)}`}>
+        <Ionicons name={dayPhase.phase === "night" || dayPhase.phase === "evening" ? "moon-outline" : dayPhase.phase === "dawn" || dayPhase.phase === "dusk" ? "sunny-outline" : "sunny"} size={13} color={tone.accent} />
+        <Text style={[styles.dayPhaseRailText, { color: tone.accent }]}>{dayPhase.shortLabel} · {formatDayPhaseTime(dayPhase)}</Text>
+      </View>
+      <View style={[styles.body, { backgroundColor: phaseSurface }]}>
         {screen === "home" && (
           <Home
             platform={platform}
@@ -4626,6 +4639,8 @@ function realmAccent(realm: Realm) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  dayPhaseRail: { minHeight: 24, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderBottomWidth: 1 },
+  dayPhaseRailText: { fontSize: 9, fontWeight: "900", letterSpacing: 1.15 },
   body: { flex: 1, position: "relative" },
   header: {
     minHeight: 70,

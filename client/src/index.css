@@ -2367,3 +2367,14 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 @keyframes upload-progress-sheen { from { transform:translateX(-160%); } to { transform:translateX(340%); } }
 @media (prefers-reduced-motion:reduce) { .upload-progress__track > span { transition:none; }.upload-progress--transfer .upload-progress__track > span::after { animation:none; } }
 @media (max-width:620px) { .upload-progress { padding:11px; }.upload-progress__steps { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:7px; }.upload-progress__heading strong { font-size:.62rem; }.upload-progress__heading small { font-size:.67rem; } }
+
+/* Shared observatory day-phase engine: atmosphere only, never data. */
+.app-frame { --day-wash: rgba(151, 255, 164, .035); --day-edge: rgba(185, 251, 127, .14); }
+.app-frame::after { content: ""; position: fixed; inset: 0; z-index: -3; pointer-events: none; background: radial-gradient(ellipse at 50% 0%, var(--day-wash), transparent 58%); transition: background 900ms ease, opacity 900ms ease; }
+.app-frame.day-phase-night { --day-wash: rgba(30, 67, 112, .12); --day-edge: rgba(122, 186, 230, .15); }
+.app-frame.day-phase-dawn { --day-wash: rgba(244, 183, 109, .09); --day-edge: rgba(220, 211, 129, .17); }
+.app-frame.day-phase-day { --day-wash: rgba(151, 255, 164, .045); --day-edge: rgba(185, 251, 127, .16); }
+.app-frame.day-phase-dusk { --day-wash: rgba(241, 139, 92, .085); --day-edge: rgba(240, 191, 114, .18); }
+.app-frame.day-phase-evening { --day-wash: rgba(101, 60, 130, .09); --day-edge: rgba(182, 143, 227, .16); }
+.portal-sidebar__time { color: color-mix(in srgb, var(--portal-lime) 72%, var(--portal-muted)); letter-spacing: .08em; }
+@media (prefers-reduced-motion: reduce) { .app-frame::after { transition: none; } }
