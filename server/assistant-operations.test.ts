@@ -25,8 +25,13 @@ describe("assistant operations", () => {
     expect(context).not.toContain("undefined");
   });
 
-  it("keeps Gemini plant analysis within the structured JSON token budget", () => {
-    expect(assistantSource).toContain('model: "gemini-3.1-pro-preview", maxTokens: 5_000');
+  it("uses cheap multimodal triage and escalates only weak plant results", () => {
+    expect(assistantSource).toContain('const PLANT_TRIAGE_MODEL = "gemini-3-flash-preview"');
+    expect(assistantSource).toContain('const PLANT_ESCALATION_MODEL = "gemini-3.1-pro-preview"');
+    expect(assistantSource).toContain("plantResultNeedsEscalation");
+    expect(assistantSource).toContain('detail: model === PLANT_TRIAGE_MODEL ? "low"');
+    expect(assistantSource).toContain('model === PLANT_TRIAGE_MODEL ? 1_800 : 5_000');
+    expect(assistantSource).toContain("usageTotals(triageUsage, response.usage)");
     expect(assistantSource).toContain('"assistant_response_truncated"');
     expect(assistantSource).toContain('"assistant_empty_response"');
   });

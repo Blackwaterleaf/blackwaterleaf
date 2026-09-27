@@ -206,7 +206,7 @@ async function hasAiProcessingConsent(userId: number) {
   return hasCurrentConsent(db, userId, "ai_processing");
 }
 
-async function reserveRequest(user: AssistantUser, clientRequestId: string, realm: "botany" | "aquarium" | "terrarium" | undefined, promptChars: number): Promise<RequestReservation> {
+async function reserveRequest(user: AssistantUser, clientRequestId: string, realm: "botany" | "aquarium" | "terrarium" | undefined, promptChars: number, model = "gpt-5-mini"): Promise<RequestReservation> {
   if (user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
   const readiness = await getAssistantReadiness();
   if (readiness.state !== "available") throw new TRPCError({ code: "PRECONDITION_FAILED", message: `assistant_${readiness.reason}` });
@@ -217,7 +217,7 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
   }
 
   try {
-    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model: "gpt-5-mini", promptChars, completionChars: 0, provider: "manus-forge", tariffVersion: "server-reported", requestOutcome: "reserved" });
+    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model, promptChars, completionChars: 0, provider: "manus-forge", tariffVersion: "server-reported", requestOutcome: "reserved" });
     return { db, usageId: Number(inserted[0].insertId) };
   } catch (error) {
     if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
@@ -259,6 +259,43 @@ const plantIdentificationSchema = {
 
 type PlantIdentificationResult = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
 
+const PLANT_TRIAGE_MODEL = "gemini-3-flash-preview";
+const PLANT_ESCALATION_MODEL = "gemini-3.1-pro-preview";
+
+function plantResultNeedsEscalation(result: PlantIdentificationResult) {
+  // A request for more diagnostic views is already a useful, cheap outcome. Do
+  // not spend a second premium call unless the triage result is actually weak.
+  return result.candidates.length === 0
+    || result.summary.trim().length < 20
+    || (result.confidence === "low" && !result.needsMoreImages);
+}
+
+function parsePlantResult(raw: string): PlantIdentificationResult {
+  try {
+    return JSON.parse(raw) as PlantIdentificationResult;
+  } catch {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" });
+  }
+}
+
+function usageTotals(...usages: Array<{ prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined>) {
+  const present = usages.filter((usage): usage is NonNullable<typeof usage> => Boolean(usage));
+  if (!present.length) return undefined;
+  return {
+    prompt_tokens: present.reduce((sum, usage) => sum + (usage.prompt_tokens ?? 0), 0),
+    completion_tokens: present.reduce((sum, usage) => sum + (usage.completion_tokens ?? 0), 0),
+    total_tokens: present.reduce((sum, usage) => sum + (usage.total_tokens ?? 0), 0),
+  };
+}
+
+async function invokePlantModel(model: string, images: Array<{ buffer: Buffer; mimeType: string }>, note?: string) {
+  const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: model === PLANT_TRIAGE_MODEL ? "low" as const : "high" as const } }));
+  return invokeLLM({ model, maxTokens: model === PLANT_TRIAGE_MODEL ? 1_800 : 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
+    { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Dies ist ${model === PLANT_TRIAGE_MODEL ? "eine günstige Vorprüfung. Arbeite effizient und eskaliere nicht selbst; wenn diagnostische Merkmale fehlen, fordere gezielt ein weiteres Einzelbild an." : "die vertiefte Prüfung eines unklaren Vorprüfungsergebnisses."} Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
+    { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${note ? ` Zusatzinformation: ${note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
+  ] });
+}
+
 export function formatPlantIdentification(result: PlantIdentificationResult) {
   const candidates = result.candidates.length ? result.candidates.map((candidate, index) => `${index + 1}. **${candidate.commonName}** (*${candidate.scientificName}*) — ${candidate.confidence}e Sicherheit. ${candidate.reason}`).join("\n") : "Keine belastbare Kandidatenliste möglich.";
   return [`**Vorläufige Einordnung (${result.confidence}e Sicherheit)**\n${result.summary}`, `**Mögliche Kandidaten**\n${candidates}`, `**Erkennbare Merkmale**\n${result.observedFeatures.length ? result.observedFeatures.map(item => `- ${item}`).join("\n") : "- Keine ausreichenden Merkmale sicher erkennbar."}`, result.needsMoreImages ? `**Weitere Bilder benötigt**\n${result.followUpQuestion || "Bitte fotografiere eine weitere relevante Einzelansicht."}` : "**Weitere Bilder benötigt**\nNein, für diese vorläufige Einordnung sind aktuell keine weiteren Bilder erforderlich.", `**Sicherheitshinweise**\n${result.safetyNotes.length ? result.safetyNotes.map(item => `- ${item}`).join("\n") : "- Keine zusätzlichen Sicherheitshinweise aus dem Bild ableitbar."}`, `**Verifikation vor einer Entscheidung**\n${result.verificationSteps.length ? result.verificationSteps.map(item => `- ${item}`).join("\n") : "- Mit einer seriösen botanischen Quelle oder Fachperson abgleichen."}`].join("\n\n");
@@ -292,23 +329,35 @@ export const assistantRouter = router({
 
   plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
-    const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0));
-    const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "high" as const } }));
-    const response = await invokeLLM({ model: "gemini-3.1-pro-preview", maxTokens: 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
-      { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage dann gezielt nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
-      { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${input.note ? ` Zusatzinformation: ${input.note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
-    ] });
-    const raw = responseText(response.choices[0]?.message.content ?? "");
+    const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
+    let model = PLANT_TRIAGE_MODEL;
+    let response = await invokePlantModel(PLANT_TRIAGE_MODEL, images, input.note);
+    const triageUsage = response.usage;
+    let raw = responseText(response.choices[0]?.message.content ?? "");
     if (!raw) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: response.choices[0]?.finish_reason === "length"
-          ? "assistant_response_truncated"
-          : "assistant_empty_response",
-      });
+      if (response.choices[0]?.finish_reason === "length") throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_response_truncated" });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
     }
     let result: PlantIdentificationResult;
-    try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
+    try {
+      result = parsePlantResult(raw);
+    } catch {
+      model = PLANT_ESCALATION_MODEL;
+      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
+      raw = responseText(response.choices[0]?.message.content ?? "");
+      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
+      result = parsePlantResult(raw);
+    }
+    if (plantResultNeedsEscalation(result)) {
+      model = PLANT_ESCALATION_MODEL;
+      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
+      raw = responseText(response.choices[0]?.message.content ?? "");
+      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
+      result = parsePlantResult(raw);
+    }
+    if (model !== PLANT_TRIAGE_MODEL) {
+      await reservation.db.update(assistantUsage).set({ model }).where(eq(assistantUsage.id, reservation.usageId));
+    }
     const catalogReferences = await catalogReferencesForCandidates(reservation.db, result.candidates);
     const plantNetValidation = await validateWithPlantNetImages(
       images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
@@ -321,9 +370,9 @@ export const assistantRouter = router({
         ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
         : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
     ].join("\n\n");
-    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage);
+    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, usageTotals(triageUsage, response.usage));
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
-    return { answer, model: "gemini-3.1-pro-preview", assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {
