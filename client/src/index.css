@@ -2522,3 +2522,24 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .community-trust-hero__actions > * { width:100%; justify-content:center; }
   .community-public-preview__steps > div { grid-template-columns:1fr; gap:9px; }
 }
+
+
+/* Discover inspiration: named botanical ideas before the private areas begin. */
+.explore-inspiration { display:grid; gap:11px; }
+.explore-inspiration__intro { margin:-3px 0 2px; color:var(--obs-muted); font-size:.78rem; line-height:1.5; }
+.explore-inspiration__grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.explore-inspiration-card { position:relative; display:grid; grid-template-columns:auto 22px minmax(0,1fr) auto; align-items:start; gap:10px; min-height:146px; padding:15px; overflow:hidden; color:var(--obs-text); border:1px solid rgba(185,251,127,.25); border-radius:15px; background:linear-gradient(145deg,rgba(15,53,27,.94),rgba(3,20,10,.98)); text-decoration:none; transition:transform 160ms cubic-bezier(.23,1,.32,1),border-color 160ms cubic-bezier(.23,1,.32,1); }
+.explore-inspiration-card:hover { transform:translateY(-2px); border-color:var(--obs-lime); }
+.explore-inspiration-card::after { content:""; position:absolute; width:100px; height:100px; right:-28px; bottom:-36px; border-radius:50%; background:rgba(185,251,127,.08); }
+.explore-inspiration-card--2 { border-color:rgba(64,217,255,.34); background:linear-gradient(145deg,rgba(7,46,48,.94),rgba(3,20,19,.98)); }
+.explore-inspiration-card--3 { border-color:rgba(224,199,95,.34); background:linear-gradient(145deg,rgba(52,44,18,.94),rgba(21,18,8,.98)); }
+.explore-inspiration-card > svg { color:var(--obs-lime); margin-top:2px; }
+.explore-inspiration-card--2 > svg { color:#40d9ff; }
+.explore-inspiration-card--3 > svg { color:#e0c75f; }
+.explore-inspiration-card__number { color:var(--obs-muted); font:800 .54rem/1 "JetBrains Mono",monospace; letter-spacing:.08em; }
+.explore-inspiration-card > span:nth-child(3) { display:grid; gap:6px; min-width:0; z-index:1; }
+.explore-inspiration-card strong { overflow:hidden; color:#f3fff2; font:800 1.04rem/1.05 "Inter",system-ui,sans-serif; letter-spacing:-.025em; text-overflow:ellipsis; }
+.explore-inspiration-card b { color:var(--obs-lime); font-size:.7rem; }
+.explore-inspiration-card small { color:#b9cdbb; font-size:.64rem; line-height:1.4; }
+.explore-inspiration-card > svg:last-child { position:relative; z-index:1; color:#d7ead8; }
+@media (max-width:700px) { .explore-inspiration__grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; } .explore-inspiration-card { grid-template-columns:auto 18px minmax(0,1fr); min-height:153px; padding:11px; gap:7px; } .explore-inspiration-card > svg:last-child { display:none; } .explore-inspiration-card strong { font-size:.82rem; } .explore-inspiration-card b { font-size:.62rem; } .explore-inspiration-card small { font-size:.57rem; } }

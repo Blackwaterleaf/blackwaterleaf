@@ -17,6 +17,15 @@ describe("Observatory community feed interface", () => {
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
+  it("keeps Discover focused on named botanical inspiration, not private drafts", () => {
+    const web = read("client/src/pages/Explore.tsx");
+    const native = read("mobile-natur/App.tsx");
+    for (const token of ["PFLANZEN ZUM ENTDECKEN", "Anubias barteri", "Bucephalandra", "explore-inspiration__grid"]) expect(web).toContain(token);
+    for (const token of ["PFLANZEN ZUM ENTDECKEN", "Anubias barteri", "exploreInspirationGrid"]) expect(native).toContain(token);
+    expect(web).not.toContain("PRIVATE_DRAFT");
+    expect(native).not.toContain("PRIVATE_DRAFT");
+  });
+
   it("explains the protected community clearly before login", () => {
     const page = read("client/src/pages/Community.tsx");
     const css = read("client/src/index.css");

@@ -1604,6 +1604,14 @@ function Explore({
   const [realm, setRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
   const [view, setView] = useState<"map" | "list">("map");
   const realmLabels = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" } as const;
+  const plantInspiration = [
+    ["Anubias barteri", "Robuste Aufsitzerpflanze", "Schattenplätze · langsam wachsend"],
+    ["Bucephalandra", "Kleine Blätter, große Wirkung", "Auf Holz und Stein · Strömung"],
+    ["Cryptocoryne wendtii", "Wandelbare Unterwasserrosette", "Mittelgrund · ruhige Eingewöhnung"],
+    ["Echinodorus bleheri", "Der grüne Solitär", "Hintergrund · nährstoffreicher Boden"],
+    ["Microsorum pteropus", "Javafarn für natürliche Räume", "Aufsitzer · wenig Licht"],
+    ["Hygrophila polysperma", "Schneller grüner Akzent", "Hintergrund · regelmäßiger Rückschnitt"],
+  ] as const;
   const filtered = realm === "all" ? observations : observations.filter(item => item.realm === realm);
   const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
   return (
@@ -1615,6 +1623,11 @@ function Explore({
           { label: "Aquaristik", screen: "aquarium" as Screen, icon: "fish-outline" as IconName, image: ASSETS.aquarium, color: TONES.aquarium.accent },
           { label: "Terraristik", screen: "terrarium" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.terrarium, color: TONES.terrarium.accent },
         ].map(item => <Pressable key={item.label} onPress={() => navigate(item.screen)} style={({ pressed }) => [styles.explorePortalCard, { borderColor: `${item.color}66` }, pressed && styles.pressed]}><ImageBackground source={item.image} style={styles.explorePortalImage} imageStyle={styles.explorePortalImageStyle}><View style={styles.explorePortalShade} /><Ionicons name={item.icon} size={21} color={item.color} /><Text style={styles.explorePortalLabel}>{item.label}</Text></ImageBackground></Pressable>)}
+      </View>
+      <View style={styles.exploreInspirationSection}>
+        <View style={styles.exploreInspirationHeading}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>NEUE IDEEN · BOTANIK</Text><Text style={styles.sectionTitle}>PFLANZEN ZUM ENTDECKEN</Text></View><Pressable onPress={() => navigate("search")}><Text style={[styles.miniCopy, { color: tone.accent }]}>KATALOG</Text></Pressable></View>
+        <Text style={styles.copy}>Echte Arten als Inspiration – mit Namen, Pflegehinweisen und Quellen im Katalog.</Text>
+        <View style={styles.exploreInspirationGrid}>{plantInspiration.map(([name, hook, note], index) => <Pressable key={name} onPress={() => navigate("search")} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>0{index + 1}</Text></View><Ionicons name="leaf-outline" size={19} color={index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent} /><View style={styles.flex}><Text style={styles.exploreInspirationName}>{name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{hook}</Text><Text style={styles.exploreInspirationNote}>{note}</Text></View></Pressable>)}</View>
       </View>
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>
@@ -2864,7 +2877,7 @@ function PostScreen({
         });
       // Host media uses the same secure upload pipeline, then becomes public in
       // the explicitly selected feed (or all feeds) just like the web app.
-      const shouldPublish = publishNow || (isAdmin && Boolean(postImage || postVideo));
+      const shouldPublish = true;
       if (shouldPublish)
         await setProfileConsent(token, {
           purpose: "community_publishing",
@@ -2913,11 +2926,7 @@ function PostScreen({
       setMediaConsent(false);
       setPublishNow(false);
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
-      setStatus(
-        shouldPublish
-          ? `${isAdmin ? "Admin-Beitrag öffentlich veröffentlicht" : "Beitrag öffentlich veröffentlicht"}${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
-          : `Privater Entwurf sicher hochgeladen${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
-      );
+      setStatus(`${isAdmin ? "Admin-Beitrag öffentlich veröffentlicht" : "Beitrag öffentlich veröffentlicht"}${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`);
     } catch (cause) {
       stopTransferPulse?.();
       setUploadProgress(null);
@@ -2979,12 +2988,11 @@ function PostScreen({
           ]}
         >
           <Text style={[styles.chip, { color: tone.accent }]}>
-            PRIVATE_DRAFT
+            BEITRAG ERSTELLEN
           </Text>
           <Text style={styles.cardTitle}>NATURMOMENT ERFASSEN</Text>
           <Text style={styles.copy}>
-            Es werden keine Beispielbeiträge erstellt. Dein Entwurf bleibt
-            privat, bis du die Veröffentlichung ausdrücklich aktivierst.
+            Teile einen echten Naturmoment. Beiträge werden erst nach deiner ausdrücklichen Freigabe veröffentlicht.
           </Text>
           {token ? <SecondaryButton tone={tone} label={showOwnPosts ? "EIGENE BEITRÄGE AUSBLENDEN" : "EIGENE BEITRÄGE VERWALTEN"} icon={showOwnPosts ? "chevron-up-outline" : "create-outline"} onPress={() => setShowOwnPosts(value => !value)} /> : null}
           {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "alle Bereiche"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
@@ -5657,6 +5665,14 @@ const styles = StyleSheet.create({
   explorePortalImageStyle: { borderRadius: 14 },
   explorePortalShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,16,8,.52)" },
   explorePortalLabel: { color: c.text, fontSize: 10, fontWeight: "900" },
+  exploreInspirationSection: { gap: 9, marginTop: 4 },
+  exploreInspirationHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  exploreInspirationGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  exploreInspirationCard: { width: "48.5%", minHeight: 143, padding: 10, borderRadius: 14, borderWidth: 1, flexDirection: "row", alignItems: "flex-start", gap: 6 },
+  exploreInspirationNumber: { width: 17, paddingTop: 2 },
+  exploreInspirationName: { color: c.text, fontSize: 12, lineHeight: 15, fontWeight: "900" },
+  exploreInspirationHook: { marginTop: 5, fontSize: 9, lineHeight: 12, fontWeight: "800" },
+  exploreInspirationNote: { marginTop: 5, color: c.muted, fontSize: 8, lineHeight: 11 },
   explorePanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 10 },
   explorePanelHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   exploreStatus: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 9, borderWidth: 1 },
