@@ -26,7 +26,9 @@ describe("protected Community detail and Live Hub", () => {
     const app = read("client/src/App.tsx");
     const page = read("client/src/pages/CommunityPostDetail.tsx");
     expect(app).toContain('path={"/community/post/:id"}');
-    for (const token of ["community.byId", "community.comments", "community.addComment", "community-detail-thread", "parentId", "social.follow", "social.block"]) expect(page).toContain(token);
+    for (const token of ["community.byId", "community.comments", "community.addComment", "community-detail-thread", "parentId", "href={`/member/${item.author.id}`}"]) expect(page).toContain(token);
+    expect(page).not.toContain("social.follow");
+    expect(page).not.toContain("Konto blockieren");
   });
 
   it("separates community live sessions from staff-approved expert lectures", () => {

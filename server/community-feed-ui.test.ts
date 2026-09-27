@@ -47,4 +47,17 @@ describe("Observatory community feed interface", () => {
     const native = read("mobile-natur/App.tsx");
     for (const token of ["realmFilter", "communityFeedSelector", "communityFeedFilterRow", "FEED / BEREICH_LEER", "KEINE BEITRÄGE IN DIESEM BEREICH"]) expect(native).toContain(token);
   });
+
+  it("opens author profiles from posts and keeps follow/block actions on profiles", () => {
+    const web = read("client/src/pages/Community.tsx");
+    const detail = read("client/src/pages/CommunityPostDetail.tsx");
+    const native = read("mobile-natur/App.tsx");
+    expect(web).toContain('className="post-author-profile"');
+    expect(web).toContain('href={`/member/${post.author.id}`}');
+    expect(detail).not.toContain("FOLGST DU");
+    expect(detail).not.toContain("Konto blockieren");
+    expect(native).toContain("onOpenProfile");
+    expect(native).toContain("toggleBlock");
+    expect(native).not.toContain("Konto blockieren");
+  });
 });

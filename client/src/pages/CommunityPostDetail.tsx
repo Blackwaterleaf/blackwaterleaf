@@ -3,7 +3,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { StatePanel } from "@/components/StatePanel";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Ban, Check, Flag, Heart, MessageCircle, Pencil, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UsersRound } from "lucide-react";
+import { ArrowLeft, Check, Flag, Heart, MessageCircle, Pencil, Send, ShieldCheck, Trash2, UsersRound } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, useRoute } from "wouter";
 
@@ -19,11 +19,6 @@ export default function CommunityPostDetail() {
   const [editingCommentText, setEditingCommentText] = useState("");
   const post = trpc.community.byId.useQuery({ postId }, { enabled: auth.isAuthenticated && Number.isSafeInteger(postId) && postId > 0, retry: false });
   const comments = trpc.community.comments.useQuery({ postId }, { enabled: auth.isAuthenticated && post.isSuccess, retry: false });
-  const relationship = trpc.social.relationship.useQuery({ id: Number(post.data?.author.id) }, { enabled: auth.isAuthenticated && Boolean(post.data?.author.id), retry: false });
-  const follow = trpc.social.follow.useMutation({ onSuccess: () => void relationship.refetch() });
-  const unfollow = trpc.social.unfollow.useMutation({ onSuccess: () => void relationship.refetch() });
-  const block = trpc.social.block.useMutation({ onSuccess: () => void post.refetch() });
-  const unblock = trpc.social.unblock.useMutation({ onSuccess: () => void relationship.refetch() });
   const like = trpc.community.like.useMutation({ onSuccess: () => void post.refetch(), onError: error => setStatus(error.message) });
   const report = trpc.community.report.useMutation({ onSuccess: () => setStatus("Meldung zur Prüfung gespeichert."), onError: error => setStatus(error.message) });
   const addComment = trpc.community.addComment.useMutation({ onSuccess: async () => { setContent(""); setReplyTo(null); setStatus("Kommentar veröffentlicht."); await Promise.all([comments.refetch(), post.refetch(), utils.community.feed.invalidate()]); }, onError: error => setStatus(error.message) });
@@ -35,9 +30,7 @@ export default function CommunityPostDetail() {
   if (post.isError || !post.data) return <div className="observatory-route observatory-route--botany community-detail-page"><StatePanel code="COMMUNITY_DETAIL/UNAVAILABLE" state="empty" title="BEITRAG NICHT VERFÜGBAR" body="Der Beitrag wurde entfernt, ist nicht veröffentlicht oder das Konto ist in deiner Blockliste." action={<Link href="/community" className="secondary-action">ZUM COMMUNITY-FEED</Link>} /></div>;
 
   const item = post.data;
-  const authorId = Number(item.author.id);
   const isOwn = String(auth.user?.id) === item.author.id;
-  const toggleFollow = () => { if (!isOwn) (relationship.data?.isFollowing ? unfollow : follow).mutate({ id: authorId }); };
   const submit = (event: FormEvent) => { event.preventDefault(); const value = content.trim(); if (value) addComment.mutate({ postId, parentId: replyTo, content: value }); };
 
   return <div className="observatory-route observatory-route--botany community-detail-page">
@@ -47,7 +40,6 @@ export default function CommunityPostDetail() {
       <header className="community-detail-record__author">
         <Link href={`/member/${item.author.id}`} className="community-detail-avatar">{item.author.avatarUrl ? <img src={item.author.avatarUrl} alt="" /> : <UsersRound size={22} />}</Link>
         <div><Link href={`/member/${item.author.id}`}>{item.author.name ?? item.author.username ?? "Verifiziertes Konto"}</Link><small>{new Date(item.createdAt).toLocaleString("de-DE")}</small><span>{item.realm ? item.realm.toUpperCase() : "COMMUNITY"} · ÖFFENTLICH</span></div>
-        {!isOwn ? <div className="community-detail-record__actions"><button type="button" className={relationship.data?.isFollowing ? "secondary-action" : "primary-action"} disabled={follow.isPending || unfollow.isPending} onClick={toggleFollow}>{relationship.data?.isFollowing ? <Check size={15} /> : <UserPlus size={15} />}{relationship.data?.isFollowing ? "FOLGST DU" : "FOLGEN"}</button><button type="button" className="icon-button" title={relationship.data?.isBlockedByMe ? "Konto entblocken" : "Konto blockieren"} onClick={() => relationship.data?.isBlockedByMe ? unblock.mutate({ id: authorId }) : block.mutate({ id: authorId })}>{relationship.data?.isBlockedByMe ? <UserRoundCheck size={16} /> : <Ban size={16} />}</button></div> : null}
       </header>
       <p className="community-detail-record__content">{item.content}</p>
       {item.media.map(media => media.mimeType.startsWith("video/") ? <video key={media.id} className="community-detail-record__media" src={media.accessUrl} controls preload="metadata" playsInline aria-label="Community-Video" /> : <img key={media.id} className="community-detail-record__media" src={media.accessUrl} alt="Community-Beitragsbild" loading="lazy" />)}

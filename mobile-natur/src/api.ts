@@ -715,7 +715,7 @@ export type UnifiedSearchResult = {
   nextCursor: string | null;
 };
 export type PublicProfile = Account & { location?: string | null; profileVisibility?: string; socialLinks?: Record<string, string | null> };
-export type SocialRelationship = { followers: number; following: number; isFollowing: boolean };
+export type SocialRelationship = { followers: number; following: number; isFollowing: boolean; isBlockedByMe?: boolean };
 export type SocialAdminProfile = { id: string; name: string | null; username: string | null; bio: string | null; avatarUrl: string | null; followers: number; isFollowing: boolean };
 export type PublicProfilePost = { id: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; updatedAt: string; media?: Array<{ id: string; kind: string; mimeType: string; url: string | null }> };
 export type SavedItem = { id: number; targetType: "post" | "knowledge" | "plant_taxon" | "aquarium_taxon" | "product" | "profile"; targetId: number; createdAt: string };
