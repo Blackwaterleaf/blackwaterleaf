@@ -45,6 +45,13 @@ async function assertNotBlocked(db: Awaited<ReturnType<typeof requireDatabase>>,
   if (rows[0]) throw new TRPCError({ code: "FORBIDDEN", message: "social_relationship_blocked" });
 }
 
+const publicProfileList = async (db: Awaited<ReturnType<typeof requireDatabase>>, profileId: number, direction: "followers" | "following") => {
+  const rows = direction === "followers"
+    ? await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl }).from(userFollows).innerJoin(users, eq(userFollows.followerId, users.id)).where(and(eq(userFollows.followingId, profileId), eq(userFollows.status, "active"), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).orderBy(desc(userFollows.createdAt)).limit(200)
+    : await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl }).from(userFollows).innerJoin(users, eq(userFollows.followingId, users.id)).where(and(eq(userFollows.followerId, profileId), eq(userFollows.status, "active"), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).orderBy(desc(userFollows.createdAt)).limit(200);
+  return rows.map(row => ({ ...row, id: String(row.id) }));
+};
+
 export const socialRouter = router({
   adminProfile: publicProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
@@ -67,6 +74,18 @@ export const socialRouter = router({
       ctx.user ? db.select({ id: userBlocks.id }).from(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.id))).limit(1) : Promise.resolve([]),
     ]);
     return { followers: Number(followers[0]?.value ?? 0), following: Number(following[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active", isBlockedByMe: Boolean(block[0]) } as const;
+  }),
+
+  followers: publicProcedure.input(idInput).query(async ({ input }) => {
+    const db = await requireDatabase();
+    await assertPublicTarget(db, "profile", input.id);
+    return publicProfileList(db, input.id, "followers");
+  }),
+
+  following: publicProcedure.input(idInput).query(async ({ input }) => {
+    const db = await requireDatabase();
+    await assertPublicTarget(db, "profile", input.id);
+    return publicProfileList(db, input.id, "following");
   }),
 
   follow: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {

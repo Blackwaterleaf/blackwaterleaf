@@ -736,6 +736,9 @@ export const observationMap = (realm?: "botany" | "aquarium" | "terrarium", limi
   trpcGet<ObservationMapPoint[]>("observations.map", { realm, limit });
 export const socialRelationship = (token: string | null, id: number) => trpcGet<SocialRelationship>("social.relationship", { id }, token);
 export const socialAdminProfile = (token?: string | null) => trpcGet<SocialAdminProfile>("social.adminProfile", undefined, token);
+export type SocialProfileListEntry = { id: string; name: string | null; username: string | null; avatarUrl: string | null };
+export const socialFollowers = (token: string | null, id: number) => trpcGet<SocialProfileListEntry[]>("social.followers", { id }, token);
+export const socialFollowing = (token: string | null, id: number) => trpcGet<SocialProfileListEntry[]>("social.following", { id }, token);
 export const followProfile = (token: string, id: number) => trpcPost<{ following: true }>("social.follow", { id }, token);
 export const unfollowProfile = (token: string, id: number) => trpcPost<{ following: false }>("social.unfollow", { id }, token);
 export const removeFollower = (token: string, followerId: number) => trpcPost<{ removed: true }>("social.removeFollower", { id: followerId }, token);

@@ -2289,3 +2289,17 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
   .community-upload-target select { min-height:40px; }
   .community-upload-target__hint { font-size:.55rem; }
 }
+
+/* Public profile relationship lists: compact, readable and mobile-safe. */
+.public-profile-social-lists { display:grid; gap:14px; }
+.public-profile-social-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.public-profile-social-tabs button { display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; padding:10px 12px; color:var(--obs-muted); border:1px solid rgba(185,251,127,.22); border-radius:10px; background:rgba(1,13,7,.42); font:800 .64rem/1 "JetBrains Mono",monospace; letter-spacing:.08em; cursor:pointer; }
+.public-profile-social-tabs button span { color:var(--obs-text); font-size:.72rem; }
+.public-profile-social-tabs button.is-active { color:var(--obs-text); border-color:rgba(199,243,91,.68); background:rgba(137,196,62,.14); }
+.public-profile-social-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.public-profile-social-person { display:grid; grid-template-columns:34px minmax(0,1fr); column-gap:9px; align-items:center; min-width:0; padding:9px; color:inherit; text-decoration:none; border:1px solid rgba(185,251,127,.16); border-radius:11px; background:rgba(1,13,7,.36); }
+.public-profile-social-person:hover { border-color:rgba(199,243,91,.58); background:rgba(137,196,62,.1); }
+.public-profile-social-person img, .public-profile-social-person > span { grid-row:span 2; width:34px; height:34px; display:grid; place-items:center; overflow:hidden; color:var(--obs-lime); border:1px solid rgba(199,243,91,.32); border-radius:50%; background:rgba(137,196,62,.12); object-fit:cover; font:800 .72rem/1 "JetBrains Mono",monospace; }
+.public-profile-social-person strong { min-width:0; overflow:hidden; color:var(--obs-text); font-size:.72rem; text-overflow:ellipsis; white-space:nowrap; }
+.public-profile-social-person small { min-width:0; overflow:hidden; color:var(--obs-muted); font-size:.59rem; text-overflow:ellipsis; white-space:nowrap; }
+@media (max-width:600px) { .public-profile-social-list { grid-template-columns:1fr; } .public-profile-social-tabs button { min-height:42px; } }
