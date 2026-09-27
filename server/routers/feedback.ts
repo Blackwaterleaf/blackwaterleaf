@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { feedbackEntries, notificationPreferences } from "../../drizzle/schema";
+import { feedbackEntries, notificationPreferences, notifications, users } from "../../drizzle/schema";
 import { protectedProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 
@@ -27,8 +27,22 @@ export const feedbackRouter = router({
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await requireDatabase();
-      const inserted = await db.insert(feedbackEntries).values({ userId: ctx.user.id, kind: input.kind, message: input.message, page: input.page ?? null });
-      return { id: Number(inserted[0].insertId), status: "received" as const };
+      const result = await db.transaction(async tx => {
+        const inserted = await tx.insert(feedbackEntries).values({ userId: ctx.user.id, kind: input.kind, message: input.message, page: input.page ?? null });
+        const id = Number(inserted[0].insertId);
+        const staff = await tx.select({ id: users.id }).from(users).where(and(eq(users.status, "active"), eq(users.role, "admin")));
+        const recipients = staff.filter(recipient => recipient.id !== ctx.user.id);
+        if (recipients.length) {
+          await tx.insert(notifications).values(recipients.map(recipient => ({
+            recipientId: recipient.id,
+            actorId: ctx.user.id,
+            type: "moderation" as const,
+            message: `Neue ${input.kind === "problem" ? "Problemmeldung" : input.kind === "wish" ? "Verbesserungsidee" : "Feedback"} #${id} wartet auf deine Antwort.`,
+          })));
+        }
+        return id;
+      });
+      return { id: result, status: "received" as const };
     }),
   mine: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();

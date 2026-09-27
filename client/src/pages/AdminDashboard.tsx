@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, Check, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, Plus, RotateCcw, Shield, ShieldAlert, UsersRound } from "lucide-react";
+import { Activity, BadgeCheck, Check, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, UsersRound } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
@@ -73,8 +73,16 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
       <section className="admin-panel"><p className="eyebrow">[PARTNER]</p><h2>Werbeplätze</h2><button className="primary-action" type="button" onClick={onOpenPartners}>PARTNER ÖFFNEN</button></section>
     </section>
     <BroadcastPanel />
+    <FeedbackInbox />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
+}
+
+function FeedbackInbox() {
+  const feedback = trpc.feedback.staffQueue.useQuery();
+  if (feedback.isLoading) return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Feedback wird geladen …</p></section>;
+  if (feedback.isError || !feedback.data) return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Der Feedback-Eingang ist derzeit nicht verfügbar.</p></section>;
+  return <section className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK / SERVER_VERIFIED]</p><h2><MessageSquareHeart size={18} /> Meldungen, Probleme & Wünsche</h2>{feedback.data.length === 0 ? <p>Noch keine eingegangenen Rückmeldungen.</p> : <div className="admin-list">{feedback.data.map(item => <article className="admin-row" key={item.id}><div><strong>#{item.id} · {item.kind === "problem" ? "Problem" : item.kind === "wish" ? "Wunsch / Verbesserung" : "Feedback"}</strong><p>{item.message}</p><small>Konto #{item.userId} · {item.page ?? "ohne Seitenangabe"} · {new Date(item.createdAt).toLocaleString("de-DE")}</small></div><span className="status-chip">{item.status}</span></article>)}</div>}</section>;
 }
 
 function BroadcastPanel() {
