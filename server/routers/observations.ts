@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { mediaAssets, observations, users } from "../../drizzle/schema";
+import { mediaAssets, observationResponses, observations, notifications, users } from "../../drizzle/schema";
 import {
   BLACKWATERLEAF_CONTRACT_VERSION,
   createObservationInputSchema,
@@ -29,7 +29,7 @@ async function requireDatabase() {
   return db;
 }
 
-async function hasConsent(userId: number, purpose: "observation_publishing" | "media_processing") {
+async function hasConsent(userId: number, purpose: "observation_publishing" | "media_processing" | "location_processing") {
   const db = await requireDatabase();
   return hasCurrentConsent(db, userId, purpose);
 }
@@ -106,6 +106,10 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
     metrics: observationMetricSchema.array().parse(record.metrics),
     media,
     evidenceState: record.evidenceState,
+    userStatus: record.userStatus,
+    aiCandidates: Array.isArray(record.aiCandidates) ? record.aiCandidates : [],
+    aiModel: record.aiModel,
+    aiCatalogVersion: record.aiCatalogVersion,
     reviewNote: canReadPrivate ? record.reviewNote : null,
     reviewedAt: canReadPrivate ? (record.reviewedAt?.toISOString() ?? null) : null,
     visibility: record.visibility,
@@ -201,6 +205,39 @@ export const observationsRouter = router({
         }));
     }),
 
+  responses: protectedProcedure
+    .input(z.object({ observationId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [observation] = await db.select({ id: observations.id, visibility: observations.visibility, userId: observations.userId }).from(observations).where(eq(observations.id, input.observationId)).limit(1);
+      if (!observation || (observation.visibility !== "public" && observation.userId !== ctx.user.id)) throw new TRPCError({ code: "NOT_FOUND", message: "observation_not_found" });
+      return db.select({ id: observationResponses.id, observationId: observationResponses.observationId, parentId: observationResponses.parentId, kind: observationResponses.kind, proposedScientificName: observationResponses.proposedScientificName, taxonRank: observationResponses.taxonRank, content: observationResponses.content, authorId: users.id, authorName: users.name, authorUsername: users.username, createdAt: observationResponses.createdAt })
+        .from(observationResponses).innerJoin(users, eq(observationResponses.authorUserId, users.id))
+        .where(and(eq(observationResponses.observationId, input.observationId), eq(observationResponses.status, "visible"), eq(users.status, "active"))).orderBy(observationResponses.createdAt);
+    }),
+
+  respond: protectedProcedure
+    .input(z.object({ observationId: z.number().int().positive(), parentId: z.number().int().positive().nullable().optional(), kind: z.enum(["confirm", "taxon_suggestion", "question", "answer"]), proposedScientificName: z.string().trim().max(160).nullable().optional(), taxonRank: z.string().trim().max(32).nullable().optional(), content: z.string().trim().max(2_000).nullable().optional() }))
+    .mutation(async ({ ctx, input }) => {
+      assertSafetyGateAllows("publicPublication");
+      const db = await requireDatabase();
+      const [observation] = await db.select({ id: observations.id, visibility: observations.visibility, userId: observations.userId, realm: observations.realm }).from(observations).where(eq(observations.id, input.observationId)).limit(1);
+      if (!observation || observation.visibility !== "public") throw new TRPCError({ code: "NOT_FOUND", message: "public_observation_not_found" });
+      if (input.kind === "taxon_suggestion" && !input.proposedScientificName) throw new TRPCError({ code: "BAD_REQUEST", message: "taxon_suggestion_name_required" });
+      if ((input.kind === "question" || input.kind === "answer") && !input.content) throw new TRPCError({ code: "BAD_REQUEST", message: "response_content_required" });
+      if (input.parentId) {
+        const [parent] = await db.select({ id: observationResponses.id, kind: observationResponses.kind, observationId: observationResponses.observationId }).from(observationResponses).where(and(eq(observationResponses.id, input.parentId), eq(observationResponses.observationId, input.observationId), eq(observationResponses.status, "visible"))).limit(1);
+        if (!parent || (input.kind === "answer" && parent.kind !== "question")) throw new TRPCError({ code: "BAD_REQUEST", message: "invalid_response_parent" });
+      }
+      const inserted = await db.transaction(async tx => {
+        const result = await tx.insert(observationResponses).values({ observationId: input.observationId, authorUserId: ctx.user.id, parentId: input.parentId ?? null, kind: input.kind, proposedScientificName: input.proposedScientificName ?? null, taxonRank: input.taxonRank ?? null, content: input.content ?? null });
+        await tx.update(observations).set({ userStatus: input.kind === "question" ? "question_open" : input.kind === "answer" ? "question_open" : "proposal_received", revision: sql`${observations.revision} + 1` }).where(eq(observations.id, input.observationId));
+        if (observation.userId !== ctx.user.id) await tx.insert(notifications).values({ recipientId: observation.userId, actorId: ctx.user.id, type: "system", observationId: input.observationId, observationResponseId: Number(result[0].insertId), message: input.kind === "question" ? "Jemand hat eine Frage zu deiner Beobachtung gestellt." : "Jemand hat auf deine Beobachtung reagiert." });
+        return Number(result[0].insertId);
+      });
+      return { id: inserted, ok: true as const };
+    }),
+
   create: protectedProcedure.input(createObservationInputSchema).mutation(async ({ ctx, input }) => {
     if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
     assertGeoPolicy(input);
@@ -211,6 +248,10 @@ export const observationsRouter = router({
       .where(and(eq(observations.userId, ctx.user.id), eq(observations.clientId, input.clientId)))
       .limit(1);
     if (existing[0]) return serializeObservation(existing[0], true);
+
+    if ((input.latitude !== null || input.longitude !== null) && !(await hasConsent(ctx.user.id, "location_processing"))) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: "location_processing_consent_required" });
+    }
 
     if (input.visibility === "public" && !(await hasConsent(ctx.user.id, "observation_publishing"))) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_publishing_consent_required" });
@@ -236,6 +277,10 @@ export const observationsRouter = router({
       note: input.note,
       metrics: input.metrics,
       evidenceState: input.evidenceState,
+      userStatus: input.userStatus,
+      aiCandidates: input.aiCandidates,
+      aiModel: input.aiModel,
+      aiCatalogVersion: input.aiCatalogVersion,
       visibility: input.visibility,
       syncState: "synced",
       revision: 1,
@@ -266,6 +311,10 @@ export const observationsRouter = router({
         note: z.string().max(2_000).nullable().optional(),
         metrics: z.array(observationMetricSchema).max(64).optional(),
         evidenceState: evidenceStateSchema.optional(),
+        userStatus: z.enum(["draft", "saved", "help_requested", "question_open", "proposal_received", "queued_for_review"]).optional(),
+        aiCandidates: z.array(z.object({ scientificName: z.string().max(160), taxonRank: z.string().max(32).nullable(), confidenceBand: z.enum(["low", "medium", "high"]), confidencePercent: z.number().finite().min(0).max(100).nullable(), reason: z.string().max(1_000).nullable(), source: z.string().max(200).nullable(), sourceUrl: z.string().url().nullable() })).max(3).optional(),
+        aiModel: z.string().max(128).nullable().optional(),
+        aiCatalogVersion: z.string().max(128).nullable().optional(),
         visibility: visibilitySchema.optional(),
       }),
     )
@@ -284,6 +333,9 @@ export const observationsRouter = router({
         throw new TRPCError({ code: "CONFLICT", message: "observation_revision_conflict" });
       }
       if (input.visibility === "public") assertSafetyGateAllows("publicPublication");
+      if ((input.latitude !== undefined || input.longitude !== undefined) && !(await hasConsent(ctx.user.id, "location_processing"))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "location_processing_consent_required" });
+      }
       if (input.visibility === "public" && !(await hasConsent(ctx.user.id, "observation_publishing"))) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "observation_publishing_consent_required" });
       }

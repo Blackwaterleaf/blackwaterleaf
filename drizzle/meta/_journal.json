@@ -316,6 +316,20 @@
       "when": 1790481321188,
       "tag": "0044_far_network",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1790488758779,
+      "tag": "0045_curved_black_bird",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1790489027848,
+      "tag": "0046_bent_hedge_knight",
+      "breakpoints": true
     }
   ]
 }

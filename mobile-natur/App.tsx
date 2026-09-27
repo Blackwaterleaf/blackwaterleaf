@@ -87,6 +87,8 @@ import {
   privateHabitats,
   privateObservations,
   publicObservations,
+  observationResponses,
+  respondToObservation,
   profileConsents,
   publishCommunityDraft,
   readToken,
@@ -813,7 +815,7 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
-        {screen === "explore" && <Explore navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} />}
+        {screen === "explore" && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} />}
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
@@ -1474,12 +1476,14 @@ function LiveHomeWorlds({
 }
 
 function Explore({
+  token,
   navigate,
   observations,
   loading,
   error,
   refresh,
 }: {
+  token: string | null;
   navigate: (screen: Screen) => void;
   observations: Observation[];
   loading: boolean;
@@ -1507,12 +1511,23 @@ function Explore({
         <View style={styles.exploreFilterRow}>{(Object.keys(realmLabels) as Array<keyof typeof realmLabels>).map(key => <Pressable key={key} onPress={() => setRealm(key)} accessibilityRole="button" accessibilityState={{ selected: realm === key }} style={[styles.exploreFilter, { borderColor: realm === key ? tone.accent : `${tone.accent}33`, backgroundColor: realm === key ? `${tone.accent}20` : "rgba(0,0,0,.18)" }]}><Text style={[styles.exploreFilterText, { color: realm === key ? tone.accent : c.muted }]}>{realmLabels[key]}</Text></Pressable>)}</View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
         {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>Keine Kartenpunkte freigegeben</Text><Text style={styles.copy}>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten. Die Beobachtungsliste bleibt nutzbar.</Text></View><Text style={styles.exploreMapCaption}>Geschützte Orte · genaue Positionen privat</Text></ImageBackground></View> : null}
-        {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
+        {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text><NativeObservationResponsePanel token={token} observationId={Number(item.id)} accent={tone.accent} /></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
       </View>
       <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}><Text style={[styles.dividerText, { color: tone.accent }]}>WISSEN & EVIDENZ</Text></View>
       <ObservatoryActionRow tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
     </Page>
   );
+}
+
+function NativeObservationResponsePanel({ token, observationId, accent }: { token: string | null; observationId: number; accent: string }) {
+  const [items, setItems] = useState<Array<{ id: number; kind: string; proposedScientificName: string | null; content: string | null }>>([]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => { if (!token) return; setItems(await observationResponses(token, observationId)); }, [token, observationId]);
+  useEffect(() => { void load(); }, [load]);
+  if (!token) return <Text style={styles.miniCopy}>ANMELDEN FÜR ANTWORTEN</Text>;
+  const send = async (kind: "confirm" | "taxon_suggestion" | "question") => { if (kind !== "confirm" && !draft.trim()) return; setBusy(true); try { await respondToObservation(token, { observationId, kind, proposedScientificName: kind === "taxon_suggestion" ? draft.trim() : null, content: kind === "question" ? draft.trim() : null }); setDraft(""); await load(); } finally { setBusy(false); } };
+  return <View style={styles.nativeResponsePanel}><Text style={[styles.miniCopy, { color: accent }]}>{items.length} ANTWORTEN · NICHT VERIFIZIERT</Text><View style={styles.nativeResponseActions}><Pressable onPress={() => void send("confirm")} disabled={busy} style={[styles.nativeResponseButton, { borderColor: `${accent}66` }]}><Ionicons name="checkmark-outline" size={14} color={accent} /></Pressable><TextInput value={draft} onChangeText={setDraft} placeholder="Taxon-Vorschlag oder Frage …" placeholderTextColor={c.muted} style={styles.nativeResponseInput} /><Pressable onPress={() => void send(draft.includes("?") ? "question" : "taxon_suggestion")} disabled={busy || !draft.trim()} style={[styles.nativeResponseButton, { borderColor: `${accent}66` }]}><Ionicons name="send-outline" size={14} color={accent} /></Pressable></View></View>;
 }
 
 function WorldScreen({
@@ -2590,7 +2605,7 @@ function PhotoScreen({
           },
         ]}
       />
-      {token ? <View style={[styles.photoObservationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>PRIVATE BEOBACHTUNGEN</Text><Text style={styles.cardTitle}>{observations.length} gespeicherte Momente</Text></View><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /></View>{observationSync.pending || observationSync.imagePending || observationSync.conflicts ? <Text style={[styles.copy, { color: observationSync.conflicts ? c.danger : tone.accent }]}>{observationSync.conflicts ? `${observationSync.conflicts} Konflikt(e) prüfen` : `${observationSync.pending + observationSync.imagePending} Eintrag/Einträge warten auf Synchronisierung`}</Text> : <Text style={styles.copy}>Synchronisiert · nur für dich sichtbar</Text>}{observations.slice(0, 3).map(item => <View key={item.id} style={[styles.photoObservationRow, { borderColor: `${tone.accent}33` }]}><Ionicons name="eye-outline" size={16} color={tone.accent} /><View style={styles.flex}><Text style={styles.cardTitle}>{item.subject || item.scientificName || "Privater Moment"}</Text><Text style={styles.miniCopy}>{item.realm.toUpperCase()} · {new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View></View>)}</View> : null}
+      {token ? <View style={[styles.photoObservationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>PRIVATE BEOBACHTUNGEN</Text><Text style={styles.cardTitle}>{observations.length} gespeicherte Momente</Text></View><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /></View>{observationSync.pending || observationSync.imagePending || observationSync.conflicts ? <Text style={[styles.copy, { color: observationSync.conflicts ? c.danger : tone.accent }]}>{observationSync.conflicts ? `${observationSync.conflicts} Konflikt(e) prüfen` : `${observationSync.pending + observationSync.imagePending} Eintrag/Einträge warten auf Synchronisierung`}</Text> : <Text style={styles.copy}>Synchronisiert · nur für dich sichtbar</Text>}{observations.slice(0, 3).map(item => <View key={item.id} style={[styles.photoObservationRow, { borderColor: `${tone.accent}33` }]}><Ionicons name="eye-outline" size={16} color={tone.accent} /><View style={styles.flex}><Text style={styles.cardTitle}>{item.subject || item.scientificName || "Privater Moment"}</Text><Text style={styles.miniCopy}>{item.realm.toUpperCase()} · {new Date(item.createdAt).toLocaleDateString("de-DE")}</Text>{item.aiCandidates.length ? <View style={[styles.nativeCandidateBox, { borderColor: `${tone.accent}55` }]}><Text style={[styles.miniCopy, { color: tone.accent }]}>KI-KANDIDATEN · NICHT VERIFIZIERT</Text>{item.aiCandidates.slice(0, 3).map(candidate => <Text key={candidate.scientificName} style={styles.miniCopy}>{candidate.scientificName}{candidate.confidenceBand ? ` · ${candidate.confidenceBand}` : ""}</Text>)}</View> : null}</View></View>)}</View> : null}
     </Page>
   );
 }
@@ -5178,6 +5193,11 @@ const styles = StyleSheet.create({
   profilePublicPostGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   profilePublicPostTile: { width: "48.5%", minHeight: 132, padding: 10, borderRadius: 12, borderWidth: 1, justifyContent: "space-between", gap: 5 },
   photoObservationPanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 9, marginTop: 2 },
+  nativeResponsePanel: { marginTop: 6, gap: 5 },
+  nativeCandidateBox: { marginTop: 5, padding: 6, gap: 2, borderLeftWidth: 2, backgroundColor: "rgba(157,235,198,.06)" },
+  nativeResponseActions: { flexDirection: "row", alignItems: "center", gap: 5 },
+  nativeResponseButton: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  nativeResponseInput: { flex: 1, minHeight: 30, paddingHorizontal: 8, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.25)", color: c.text, fontSize: 11 },
   photoObservationRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, borderTopWidth: 1 },
   explorePortalRow: { flexDirection: "row", gap: 8 },
   explorePortalCard: { flex: 1, minWidth: 0, height: 92, overflow: "hidden", borderRadius: 15, borderWidth: 1 },

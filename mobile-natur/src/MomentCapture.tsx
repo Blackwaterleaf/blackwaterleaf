@@ -1,6 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import * as FileSystem from "expo-file-system/legacy";
 import { useState } from "react";
 import {
   Alert,
@@ -65,6 +67,13 @@ export function MomentCapture({
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageMimeType, setImageMimeType] = useState("image/jpeg");
   const [mediaConsent, setMediaConsent] = useState(false);
+  const [observedAt] = useState(() => new Date().toISOString());
+  const [wildStatus, setWildStatus] = useState<"wild" | "cultivated" | "captive" | "unknown">("unknown");
+  const [geoprivacy, setGeoprivacy] = useState<"private" | "obscured" | "public" | "embargoed">("private");
+  const [helpRequested, setHelpRequested] = useState(false);
+  const [publish, setPublish] = useState(false);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationState, setLocationState] = useState<"idle" | "requesting" | "ready" | "denied">("idle");
   const [saving, setSaving] = useState(false);
   const accent = realmColor[realm];
   const surface = realmSurface[realm];
@@ -99,12 +108,25 @@ export function MomentCapture({
     }
   };
 
+  const requestLocation = async () => {
+    setLocationState("requesting");
+    const permission = await Location.requestForegroundPermissionsAsync();
+    if (!permission.granted) { setLocationState("denied"); return; }
+    const result = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    setLocation({ latitude: result.coords.latitude, longitude: result.coords.longitude });
+    setLocationState("ready");
+  };
+
   const save = async () => {
     if (!subject.trim() && !note.trim() && !imageUri) {
       Alert.alert(
         "Moment ergänzen",
         "Füge mindestens einen Titel, eine Notiz oder ein Foto hinzu."
       );
+      return;
+    }
+    if (publish && geoprivacy !== "private" && !location) {
+      Alert.alert("Ort fehlt", "Für eine öffentliche Beobachtung mit Ortsangabe musst du zuerst einen Standort erfassen oder den Ortsschutz auf Privat setzen.");
       return;
     }
     if (imageUri && !mediaConsent) {
@@ -125,6 +147,21 @@ export function MomentCapture({
           note: note.trim() || null,
           metrics: [],
           evidenceState: "unverified",
+          userStatus: helpRequested ? "help_requested" : "saved",
+          observedAt,
+          basisOfRecord: "human_observation",
+          wildStatus,
+          latitude: location?.latitude ?? null,
+          longitude: location?.longitude ?? null,
+          coordinateUncertaintyM: location ? 500 : null,
+          publicLatitude: publish && location && geoprivacy !== "private" ? (geoprivacy === "public" ? location.latitude : Number(location.latitude.toFixed(1))) : null,
+          publicLongitude: publish && location && geoprivacy !== "private" ? (geoprivacy === "public" ? location.longitude : Number(location.longitude.toFixed(1))) : null,
+          geoprivacy,
+          embargoUntil: null,
+          aiCandidates: [],
+          aiModel: null,
+          aiCatalogVersion: null,
+          publish,
           visibility: "private",
         },
         imageUri,
@@ -137,6 +174,12 @@ export function MomentCapture({
       setImageUri(null);
       setImageMimeType("image/jpeg");
       setMediaConsent(false);
+      setWildStatus("unknown");
+      setGeoprivacy("private");
+      setHelpRequested(false);
+      setPublish(false);
+      setLocation(null);
+      setLocationState("idle");
       await onComplete();
       Alert.alert(
         summary.pending || summary.imagePending || summary.conflicts
@@ -204,6 +247,15 @@ export function MomentCapture({
           </Pressable>
         ))}
       </View>
+      <View style={[styles.card, { borderColor: `${accent}66`, backgroundColor: surface.panel }]}>{
+        /* structured observation context */
+      }
+        <Text style={[styles.label, { color: accent }]}>KONTEXT</Text>
+        <ChoiceRow accent={accent} values={[{ key: "unknown", label: "UNBEKANNT" }, { key: "wild", label: "WILDFUND" }, { key: "cultivated", label: "KULTIVIERT" }, { key: "captive", label: "IN HALTUNG" }]} value={wildStatus} onChange={value => setWildStatus(value as typeof wildStatus)} />
+        <Text style={[styles.label, { color: accent }]}>ORTSSCHUTZ</Text>
+        <ChoiceRow accent={accent} values={[{ key: "private", label: "PRIVAT" }, { key: "obscured", label: "VERGRÖBERT" }, { key: "public", label: "ÖFFENTLICH" }]} value={geoprivacy} onChange={value => setGeoprivacy(value as typeof geoprivacy)} />
+        <Pressable style={[styles.locationButton, { borderColor: `${accent}66` }]} onPress={() => void requestLocation()}><Ionicons name="location-outline" size={17} color={accent} /><Text style={[styles.photoText, { color: accent }]}>{locationState === "ready" ? "STANDORT GESPEICHERT" : locationState === "requesting" ? "ORT WIRD ERMITTELT …" : "STANDORT OPTIONAL"}</Text></Pressable>
+      </View>
       <View
         style={[
           styles.card,
@@ -227,6 +279,8 @@ export function MomentCapture({
           placeholder="Was ist dir aufgefallen?"
           multiline
         />
+        <View style={[styles.switchRow, { borderColor: `${accent}66`, backgroundColor: surface.page }]}><Switch value={helpRequested} onValueChange={setHelpRequested} trackColor={{ false: "#345440", true: accent }} thumbColor={helpRequested ? c.bg : c.muted} /><Text style={styles.consentText}>UM FACHLICHE HILFE BITTEN</Text></View>
+        <View style={[styles.switchRow, { borderColor: `${accent}66`, backgroundColor: surface.page }]}><Switch value={publish} onValueChange={setPublish} trackColor={{ false: "#345440", true: accent }} thumbColor={publish ? c.bg : c.muted} /><Text style={styles.consentText}>NACH PRÜFUNG ÖFFENTLICH FREIGEBEN</Text></View>
         {imageUri ? (
           <View style={styles.preview}>
             <Image source={{ uri: imageUri }} style={styles.image} />
@@ -310,6 +364,10 @@ export function MomentCapture({
     </ScrollView>
   );
 }
+function ChoiceRow({ accent, values, value, onChange }: { accent: string; values: Array<{ key: string; label: string }>; value: string; onChange: (value: string) => void }) {
+  return <View style={styles.choiceRow}>{values.map(item => <Pressable key={item.key} onPress={() => onChange(item.key)} style={[styles.choice, { borderColor: value === item.key ? accent : `${accent}44`, backgroundColor: value === item.key ? `${accent}1c` : "transparent" }]}><Text style={[styles.photoText, { color: value === item.key ? accent : c.muted }]}>{item.label}</Text></Pressable>)}</View>;
+}
+
 function Field({
   accent,
   surface,
@@ -420,6 +478,10 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     backgroundColor: "rgba(1,9,5,.7)",
   },
+  choiceRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  choice: { paddingHorizontal: 9, minHeight: 32, alignItems: "center", justifyContent: "center", borderWidth: 1, borderRadius: 8 },
+  locationButton: { minHeight: 40, borderWidth: 1, borderRadius: 9, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  switchRow: { padding: 10, flexDirection: "row", alignItems: "center", gap: 9, borderRadius: 10, borderWidth: 1 },
   consentRow: {
     padding: 10,
     flexDirection: "row",

@@ -8,6 +8,17 @@ export const localeSchema = z.enum(["de", "en"]);
 export const unitSystemSchema = z.enum(["metric", "imperial"]);
 export const visibilitySchema = z.enum(["private", "unlisted", "public"]);
 export const observationRealmSchema = z.enum(["botany", "aquarium", "terrarium"]);
+export const observationUserStatusSchema = z.enum(["draft", "saved", "help_requested", "question_open", "proposal_received", "queued_for_review"]);
+export const observationCandidateSchema = z.object({
+  scientificName: z.string().max(160),
+  taxonRank: z.string().max(32).nullable(),
+  confidenceBand: z.enum(["low", "medium", "high"]),
+  confidencePercent: z.number().finite().min(0).max(100).nullable(),
+  reason: z.string().max(1_000).nullable(),
+  source: z.string().max(200).nullable(),
+  sourceUrl: z.string().url().nullable(),
+});
+
 export const evidenceStateSchema = z.enum([
   "confirmed",
   "contextual",
@@ -134,6 +145,10 @@ export const observationSchema = z.object({
   metrics: z.array(observationMetricSchema).max(64),
   media: z.array(mediaAssetSchema).max(20),
   evidenceState: evidenceStateSchema,
+  userStatus: observationUserStatusSchema,
+  aiCandidates: z.array(observationCandidateSchema).max(3),
+  aiModel: z.string().max(128).nullable(),
+  aiCatalogVersion: z.string().max(128).nullable(),
   visibility: visibilitySchema,
   syncState: syncStateSchema,
   revision: z.number().int().positive(),
@@ -156,6 +171,10 @@ export const createObservationInputSchema = observationSchema
     clientId: z.string().min(1).max(128),
     visibility: visibilitySchema.default("private"),
     evidenceState: evidenceStateSchema.default("unverified"),
+    userStatus: observationUserStatusSchema.default("saved"),
+    aiCandidates: z.array(observationCandidateSchema).max(3).default([]),
+    aiModel: z.string().max(128).nullable().default(null),
+    aiCatalogVersion: z.string().max(128).nullable().default(null),
     basisOfRecord: observationBasisOfRecordSchema.default("human_observation"),
     wildStatus: observationWildStatusSchema.default("unknown"),
     geoprivacy: observationGeoprivacySchema.default("private"),

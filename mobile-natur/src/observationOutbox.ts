@@ -1,5 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
-import { createObservation, setConsent, uploadObservationImage, type Observation } from "./api";
+import { createObservation, setConsent, setProfileConsent, updateObservation, uploadObservationImage, type Observation } from "./api";
 
 type ObservationPayload = {
   clientId: string;
@@ -9,7 +9,22 @@ type ObservationPayload = {
   note: string | null;
   metrics: Array<{ key: string; value: string | number | boolean; unit?: string }>;
   evidenceState: "unverified";
+  observedAt?: string | null;
+  basisOfRecord?: "human_observation" | "machine_observation" | "material_sample";
+  wildStatus?: "wild" | "cultivated" | "captive" | "unknown";
+  latitude?: number | null;
+  longitude?: number | null;
+  coordinateUncertaintyM?: number | null;
+  publicLatitude?: number | null;
+  publicLongitude?: number | null;
+  geoprivacy?: "private" | "obscured" | "public" | "embargoed";
+  embargoUntil?: string | null;
+  userStatus?: "draft" | "saved" | "help_requested" | "question_open" | "proposal_received" | "queued_for_review";
+  aiCandidates?: Array<{ scientificName: string; taxonRank: string | null; confidenceBand: "low" | "medium" | "high"; confidencePercent: number | null; reason: string | null; source: string | null; sourceUrl: string | null }>;
+  aiModel?: string | null;
+  aiCatalogVersion?: string | null;
   visibility: "private";
+  publish?: boolean;
 };
 
 type OutboxItem = {
@@ -102,12 +117,17 @@ export async function syncObservationOutbox(token: string): Promise<ObservationO
   for (const item of items) {
     try {
       let observationId = item.observationId;
+      let createdRevision: number | null = null;
       if (!observationId) {
-        const observation = await createObservation(token, item.payload);
+        const observation = await createObservation(token, { ...item.payload, visibility: "private" });
         observationId = Number(observation.id);
+        createdRevision = observation.revision;
         if (!Number.isFinite(observationId)) throw new Error("Serverantwort ohne gültige Beobachtungs-ID.");
       }
       if (item.imagePath) {
+        if (item.payload.latitude !== null && item.payload.latitude !== undefined) {
+          await setProfileConsent(token, { purpose: "location_processing", policyVersion: "native-1.0.5", granted: true });
+        }
         if (item.needsMediaConsent) {
           await setConsent(token, {
             purpose: "media_processing",
@@ -126,6 +146,10 @@ export async function syncObservationOutbox(token: string): Promise<ObservationO
           mimeType: item.mimeType ?? "image/jpeg",
         });
         await FileSystem.deleteAsync(item.imagePath, { idempotent: true });
+      }
+      if (item.payload.publish && createdRevision !== null) {
+        await setProfileConsent(token, { purpose: "observation_publishing", policyVersion: "native-1.0.5", granted: true });
+        await updateObservation(token, { id: observationId, expectedRevision: createdRevision, visibility: "public", userStatus: item.payload.userStatus ?? "saved", geoprivacy: item.payload.geoprivacy ?? "private", publicLatitude: item.payload.publicLatitude ?? null, publicLongitude: item.payload.publicLongitude ?? null });
       }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Synchronisierung fehlgeschlagen.";

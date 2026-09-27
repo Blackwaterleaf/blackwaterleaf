@@ -1952,3 +1952,14 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 
 .profile-export-history { display: grid; gap: 4px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(199,243,91,.16); color: var(--muted-foreground, #9bb39f); font-size: .72rem; }
 .profile-export-history .eyebrow { color: #c7f35b; font-size: .62rem; }
+
+/* Observation engagement stays compact: evidence and user interaction are visually separate. */
+.observation-response-panel { display: grid; gap: 5px; margin-top: 7px; }
+.observation-response-summary, .observation-response-hint { display: inline-flex; align-items: center; gap: 4px; color: var(--muted-foreground, #9bb39f); font-size: 10px; letter-spacing: .03em; }
+.observation-response-actions { display: grid; grid-template-columns: auto auto minmax(80px, 1fr) auto; align-items: center; gap: 4px; }
+.observation-response-actions button { width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 1px solid rgba(199,243,91,.34); border-radius: 8px; color: #c7f35b; background: rgba(8,29,16,.72); cursor: pointer; }
+.observation-response-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.observation-response-actions input { min-width: 0; height: 28px; padding: 0 8px; border: 1px solid rgba(199,243,91,.22); border-radius: 8px; color: #efffe9; background: rgba(5,19,11,.62); font-size: 10px; }
+.observation-candidates { display: grid; gap: 3px; margin: 7px 0; padding: 7px 8px; border-left: 2px solid #9debc6; background: rgba(157,235,198,.06); }
+.observation-candidates small { color: #9debc6; font-size: 9px; font-weight: 800; letter-spacing: .06em; }
+.observation-candidates span { color: #d7f6de; font-size: 11px; }

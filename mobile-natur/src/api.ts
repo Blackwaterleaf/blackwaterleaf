@@ -254,12 +254,22 @@ export type Habitat = {
   images?: Array<{ id: string; accessUrl: string; mimeType: string }>;
   updatedAt: string;
 };
+export type ObservationCandidate = { scientificName: string; taxonRank: string | null; confidenceBand: "low" | "medium" | "high"; confidencePercent: number | null; reason: string | null; source: string | null; sourceUrl: string | null };
 export type Observation = {
   id: string;
   realm: "botany" | "aquarium" | "terrarium";
   subject: string | null;
   scientificName: string | null;
   note: string | null;
+  observedAt: string | null;
+  wildStatus: ObservationWildStatus;
+  geoprivacy: ObservationGeoPrivacy;
+  evidenceState: "unverified" | "confirmed" | "contextual" | "conflicting" | "insufficient";
+  userStatus: "draft" | "saved" | "help_requested" | "question_open" | "proposal_received" | "queued_for_review";
+  aiCandidates: ObservationCandidate[];
+  aiModel: string | null;
+  aiCatalogVersion: string | null;
+  revision: number;
   media: Array<{ accessUrl: string }>;
   createdAt: string;
 };
@@ -313,6 +323,7 @@ export type AssistantReply = {
 };
 export type PlantIdentificationReply = AssistantReply & {
   assistantUsageId: number;
+  identification?: { candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }> };
   needsMoreImages: boolean;
   requestedAdditionalImages: number;
 };
@@ -482,6 +493,9 @@ export const uploadHabitatImage = (
 ) => trpcPost<{ id: string; accessUrl: string }>("habitats.uploadImage", input, token);
 export const deleteHabitatImage = (token: string, input: { habitatId: number; imageId: number }) =>
   trpcPost<{ ok: true }>("habitats.deleteImage", input, token);
+export type ObservationResponse = { id: number; observationId: number; parentId: number | null; kind: "confirm" | "taxon_suggestion" | "question" | "answer"; proposedScientificName: string | null; taxonRank: string | null; content: string | null; authorId: number; authorName: string | null; authorUsername: string | null; createdAt: string };
+export const observationResponses = (token: string, observationId: number) => trpcGet<ObservationResponse[]>("observations.responses", { observationId }, token);
+export const respondToObservation = (token: string, input: { observationId: number; parentId?: number | null; kind: "confirm" | "taxon_suggestion" | "question" | "answer"; proposedScientificName?: string | null; taxonRank?: string | null; content?: string | null }) => trpcPost<{ id: number; ok: true }>("observations.respond", input, token);
 export const privateObservations = (token: string) =>
   trpcGet<Observation[]>("observations.mine", undefined, token);
 export const publicObservations = (realm?: "botany" | "aquarium" | "terrarium") =>
@@ -500,9 +514,24 @@ export const createObservation = (
       unit?: string;
     }>;
     evidenceState: "unverified";
-    visibility: "private";
+    observedAt?: string | null;
+    basisOfRecord?: "human_observation" | "machine_observation" | "material_sample";
+    wildStatus?: ObservationWildStatus;
+    latitude?: number | null;
+    longitude?: number | null;
+    coordinateUncertaintyM?: number | null;
+    publicLatitude?: number | null;
+    publicLongitude?: number | null;
+    geoprivacy?: ObservationGeoPrivacy;
+    embargoUntil?: string | null;
+    userStatus?: "draft" | "saved" | "help_requested" | "question_open" | "proposal_received" | "queued_for_review";
+    aiCandidates?: ObservationCandidate[];
+    aiModel?: string | null;
+    aiCatalogVersion?: string | null;
+    visibility: "private" | "public";
   }
 ) => trpcPost<Observation>("observations.create", input, token);
+export const updateObservation = (token: string, input: { id: number; expectedRevision: number; visibility?: "private" | "unlisted" | "public"; userStatus?: "draft" | "saved" | "help_requested" | "question_open" | "proposal_received" | "queued_for_review"; geoprivacy?: ObservationGeoPrivacy; publicLatitude?: number | null; publicLongitude?: number | null }) => trpcPost<Observation>("observations.update", input, token);
 export const uploadObservationImage = (
   token: string,
   input: { observationId: number; base64: string; mimeType: string }

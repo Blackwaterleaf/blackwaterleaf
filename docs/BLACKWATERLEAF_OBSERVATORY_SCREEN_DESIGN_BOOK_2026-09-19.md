@@ -69,3 +69,12 @@ Jeder valide Pflanzen-, Aquaristik- und Terraristik-Steckbrief bietet eine kompa
 - Jeder Kontoexport wird als geschütztes Audit-Ereignis `account_export_created` erfasst.
 - Web zeigt die letzten zehn Exportzeitpunkte kompakt im Datenschutzbereich; Native bestätigt die protokollierte Exportanzahl nach dem Teilen.
 - Exportdateien enthalten Profildaten, eigene Datensätze und Medienmetadaten, aber keine Storage-Schlüssel, Zugangsdaten oder geheimen API-Werte.
+
+
+## 15.36 Beobachtungsantworten · fachlich, kompakt, nicht als Social-Ranking
+Öffentliche Beobachtungen zeigen in Web und Native eine kleine, bereichseigene Antwortleiste. Zulässige Aktionen sind **Bestätigen**, **Taxon vorschlagen**, **Frage stellen** und – als Antwort auf eine Frage – **Antworten**. Die Aktionen stehen unter dem evidenzbezogenen Status und dürfen diesen nicht als Expertenkonsens darstellen.
+
+Antworten sind nur für angemeldete Konten möglich. Jede Antwort speichert Autor, Beobachtung, optionalen Elternbeitrag, Typ, Zeit und Moderationsstatus. Der Eigentümer erhält eine Benachrichtigung; die Antwort wird nicht automatisch in Katalog, KI-Ergebnis oder Staff-Review übernommen. Ein Taxon-Vorschlag bleibt ausdrücklich **nicht verifiziert**.
+
+## 15.37 Composer-Schutzkarten
+Der Beobachtungs-Composer verwendet Privat als Standard. Standort, Medienverarbeitung, öffentliche Veröffentlichung und optionale KI-Prüfung werden separat und verständlich freigegeben. Vor öffentlicher Veröffentlichung werden generalisierte Koordinaten verwendet; private Koordinaten werden nie an Kartenfeeds oder Antworten ausgegeben. KI-Kandidaten bleiben mit Modell-/Katalogstand und Unsicherheitskennzeichnung getrennt von Community-Vorschlägen und `evidenceState`.

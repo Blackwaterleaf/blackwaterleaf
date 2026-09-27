@@ -238,6 +238,10 @@ export const observations = mysqlTable(
     embargoUntil: timestamp("embargoUntil"),
     note: text("note"),
     metrics: json("metrics").notNull(),
+    userStatus: mysqlEnum("userStatus", ["draft", "saved", "help_requested", "question_open", "proposal_received", "queued_for_review"]).default("saved").notNull(),
+    aiCandidates: json("aiCandidates"),
+    aiModel: varchar("aiModel", { length: 128 }),
+    aiCatalogVersion: varchar("aiCatalogVersion", { length: 128 }),
     evidenceState: mysqlEnum("evidenceState", [
       "confirmed",
       "contextual",
@@ -272,6 +276,27 @@ export const observations = mysqlTable(
     index("observations_user_updated_idx").on(table.userId, table.updatedAt),
     index("observations_visibility_updated_idx").on(table.visibility, table.updatedAt),
     index("observations_public_geo_idx").on(table.visibility, table.geoprivacy, table.observedAt),
+  ],
+);
+
+export const observationResponses = mysqlTable(
+  "observation_responses",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    observationId: int("observationId").notNull().references(() => observations.id, { onDelete: "cascade" }),
+    authorUserId: int("authorUserId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    parentId: int("parentId").references((): AnyMySqlColumn => observationResponses.id, { onDelete: "set null" }),
+    kind: mysqlEnum("kind", ["confirm", "taxon_suggestion", "question", "answer"]).notNull(),
+    proposedScientificName: varchar("proposedScientificName", { length: 160 }),
+    taxonRank: varchar("taxonRank", { length: 32 }),
+    content: varchar("content", { length: 2_000 }),
+    status: mysqlEnum("status", ["visible", "hidden", "removed"]).default("visible").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    index("observation_responses_observation_created_idx").on(table.observationId, table.status, table.createdAt),
+    index("observation_responses_parent_idx").on(table.parentId, table.createdAt),
   ],
 );
 
@@ -312,6 +337,8 @@ export const notifications = mysqlTable(
     type: mysqlEnum("type", ["comment", "like", "report", "moderation", "system", "message"]).notNull(),
     postId: int("postId").references(() => communityPosts.id),
     commentId: int("commentId"),
+    observationId: int("observationId").references(() => observations.id, { onDelete: "cascade" }),
+    observationResponseId: int("observationResponseId").references(() => observationResponses.id, { onDelete: "cascade" }),
     message: varchar("message", { length: 255 }).notNull(),
     readAt: timestamp("readAt"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
