@@ -128,8 +128,8 @@ export default function Profile() {
     }
   };
 
-  const saveProfile = async (event: FormEvent) => {
-    event.preventDefault();
+  const saveProfile = async (event?: FormEvent) => {
+    event?.preventDefault();
     setStatus(null);
     try {
       if (form.profileVisibility === "public" && !consentMap.get("profile_publication")) throw new Error("profile_publication_consent_required");
@@ -253,6 +253,7 @@ export default function Profile() {
           <details id="profile-consents" className="account-section observatory-data-panel profile-menu-only">
             <summary><span>DATENSCHUTZ & FREIGABEN</span><small>Du entscheidest über jede Freigabe</small></summary>
             <section className="profile-consent-list">
+              <div className="profile-visibility-control"><div><strong>PROFIL-SICHTBARKEIT</strong><small>{form.profileVisibility === "public" ? "Dein Profil und ausdrücklich öffentliche Beiträge sind für andere sichtbar." : form.profileVisibility === "unlisted" ? "Dein Profil ist nur über direkte Links erreichbar." : "Dein Profil bleibt für andere verborgen."}</small></div><div className="profile-visibility-options" role="group" aria-label="Profil-Sichtbarkeit"><button type="button" className={form.profileVisibility === "private" ? "is-selected" : ""} onClick={() => setForm(current => ({ ...current, profileVisibility: "private" }))}>PRIVAT</button><button type="button" className={form.profileVisibility === "unlisted" ? "is-selected" : ""} onClick={() => setForm(current => ({ ...current, profileVisibility: "unlisted" }))}>UNLISTED</button><button type="button" className={form.profileVisibility === "public" ? "is-selected" : ""} onClick={() => setForm(current => ({ ...current, profileVisibility: "public" }))}>ÖFFENTLICH</button></div><button type="button" className="primary-action profile-visibility-save" disabled={update.isPending || form.profileVisibility === profile.data.profileVisibility} onClick={() => void saveProfile()}><Save size={14} />{update.isPending ? "WIRD GESPEICHERT …" : "SICHTBARKEIT SPEICHERN"}</button></div>
               <ConsentToggle label="Profil veröffentlichen" checked={Boolean(consentMap.get("profile_publication"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("profile_publication", checked)} />
               <ConsentToggle label="Beobachtungen veröffentlichen" checked={Boolean(consentMap.get("observation_publishing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("observation_publishing", checked)} />
               <ConsentToggle label="Bilder sicher verarbeiten" checked={Boolean(consentMap.get("media_processing"))} disabled={setConsent.isPending} onChange={checked => void updateConsent("media_processing", checked)} />

@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart, Heart } from "lucide-react";
+import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart, Heart, Settings, Sprout } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { APP_LOCALES, resolveAccountLocale, useI18n, type AppLocale } from "@/i18n";
 import { SEO_LOCALES, getSeoMeta } from "@/lib/seo";
@@ -46,6 +46,8 @@ export function AppShell({ children }: PropsWithChildren) {
   const [isTabSwitching, setIsTabSwitching] = useState(false);
   const [contentEntered, setContentEntered] = useState(false);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const tabTransitionTimer = useRef<number | null>(null);
   const routeToneClass = location.startsWith("/marketplace") ? "route-marketplace" : location.startsWith("/world/aquarium") ? "route-aquarium" : location.startsWith("/world/terrarium") ? "route-terrarium" : location === "/assistant" ? "route-ai" : "route-botany";
 
@@ -146,6 +148,15 @@ export function AppShell({ children }: PropsWithChildren) {
     }
   }, [locale, location]);
 
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) setProfileMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, [profileMenuOpen]);
+
   return (
     <div className={`app-frame season-${season} ${routeToneClass} ${isTabSwitching ? "is-tab-switching" : ""}`} data-season={season}>
       <header className="top-shell">
@@ -173,29 +184,17 @@ export function AppShell({ children }: PropsWithChildren) {
               {APP_LOCALES.map(option => <option key={option.value} value={option.value}>{option.nativeLabel}</option>)}
             </select>
           </label>
-          <details className="profile-header-menu">
-            <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
-            <div className="profile-header-menu__panel">
-              <span className="profile-header-menu__eyebrow">PROFIL · EINSTELLUNGEN</span>
-              <Link href="/profile">Profil öffnen</Link>
-              <span className="profile-header-menu__group-label">PFLEGE & ANLAGEN</span>
-              <Link href="/today">Heute · Pflegeaufgaben</Link>
-              <Link href="/profile/habitats">Meine Anlagen</Link>
-              <span className="profile-header-menu__group-label">KOMMUNIKATION</span>
-              <Link href="/messages">Postfach</Link>
-              <Link href="/notifications">Benachrichtigungen</Link>
-              <Link className="profile-header-menu__feedback-link" href="/feedback">Feedback · Probleme · Wünsche</Link>
-              <Link className="profile-header-menu__support-link" href="/support">Naturprojekt unterstützen</Link>
-              <span className="profile-header-menu__group-label">FORTSCHRITT & MERKLISTE</span>
-              <Link href="/profile/progress">Punkte & Fortschritt</Link>
-              <Link href="/saved">Gespeichert</Link>
-              <Link className="profile-header-menu__hub-link" href="/profile/manage">Einstellungen & Datenschutz</Link>
-              <span className="profile-header-menu__group-label">RECHTLICHES</span>
-              <Link href="/datenschutz">Datenschutz</Link>
-              <Link href="/impressum">Impressum</Link>
-              {/* Superseded contract: className="profile-header-menu__settings-group" / Einstellungen / Profil & Privatbereich. The Management Hub now owns these destinations: href="/profile/private", href="/profile/habitats", href="/profile/progress", href="/profile/privacy", href="/profile/preferences", href="/profile/tools". */}
-            </div>
-          </details>
+          <div className="profile-header-menu" ref={profileMenuRef}>
+            <button type="button" className="icon-button profile-button" aria-label="Profilmenü öffnen" aria-expanded={profileMenuOpen} onClick={() => setProfileMenuOpen(open => !open)}><Menu size={20} /></button>
+            {profileMenuOpen ? <div className="profile-header-menu__panel" role="menu" aria-label="Profilmenü">
+              <span className="profile-header-menu__eyebrow">PROFIL · MENÜ</span>
+              <Link href="/profile" onClick={() => setProfileMenuOpen(false)}><UserRound size={19} /><span><strong>Profil öffnen</strong><small>Dein Konto und deine Inhalte</small></span></Link>
+              <Link className="profile-header-menu__settings-link" href="/profile/manage" onClick={() => setProfileMenuOpen(false)}><Settings size={19} /><span><strong>Verwalten · alle Einstellungen</strong><small>Datenschutz, Sprache und Werkzeuge</small></span></Link>
+              <Link href="/messages" onClick={() => setProfileMenuOpen(false)}><Mail size={19} /><span><strong>Postfach</strong><small>Nachrichten und Antworten</small></span></Link>
+              <Link href="/marketplace" onClick={() => setProfileMenuOpen(false)}><ShoppingBag size={19} /><span><strong>Marketplace</strong><small>Partner und Naturprodukte</small></span></Link>
+              <Link href="/today" onClick={() => setProfileMenuOpen(false)}><Sprout size={19} /><span><strong>Heute · Pflegeaufgaben</strong><small>Deine aktuellen Aufgaben</small></span></Link>
+            </div> : null}
+          </div>
         </div>
       </header>
       <aside className="portal-sidebar" aria-label="Portalnavigation">

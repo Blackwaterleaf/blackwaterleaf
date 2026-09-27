@@ -3526,7 +3526,7 @@ function ProfileScreen({
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
   onExportData: () => Promise<void>;
-  onUpdateProfile: (input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial" }) => Promise<void>;
+  onUpdateProfile: (input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }) => Promise<void>;
   onSetConsent: (purpose: ProfileConsent["purpose"], granted: boolean) => Promise<void>;
   onUploadAvatar: (base64: string, mimeType: string) => Promise<void>;
   onCollection: (realm: Realm) => void;
@@ -3583,6 +3583,7 @@ function ProfileScreen({
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
         {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+        {menuTarget === "privacy" ? <View style={styles.profileVisibilityNative}><Text style={[styles.eyebrow, { color: tone.accent }]}>PROFIL-SICHTBARKEIT</Text><Text style={styles.miniCopy}>{account?.profileVisibility === "public" ? "Öffentlich: Profil und freigegebene Beiträge sind sichtbar." : account?.profileVisibility === "unlisted" ? "Unlisted: nur direkte Links zeigen das Profil." : "Privat: andere sehen dein Profil nicht."}</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="PRIVAT" icon="lock-closed-outline" onPress={() => void onUpdateProfile({ profileVisibility: "private" })} /><SecondaryButton tone={tone} label="UNLISTED" icon="link-outline" onPress={() => void onUpdateProfile({ profileVisibility: "unlisted" })} /><PrimaryButton tone={tone} label="ÖFFENTLICH" icon="globe-outline" onPress={() => void onUpdateProfile({ profileVisibility: "public" })} /></View></View> : null}
         {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten'], ['location_processing', 'Grobe Region für aktuelles Wetter verwenden']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
         {menuTarget === "privacy" ? <SecondaryButton tone={tone} label="DATENEXPORT TEILEN" icon="download-outline" onPress={() => void onExportData().then(() => setProfileMessage("Datenexport erstellt.")).catch(cause => setProfileMessage(cause instanceof Error ? cause.message : "Export fehlgeschlagen."))} /> : null}
         {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /><SecondaryButton tone={tone} label="简体中文" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "zh-CN" })} /><SecondaryButton tone={tone} label="ESPAÑOL" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "es" })} /><SecondaryButton tone={tone} label="FRANÇAIS" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "fr" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
@@ -4561,8 +4562,8 @@ const styles = StyleSheet.create({
   },
   headerActions: { flexDirection: "row", gap: 2 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
-  nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
-  nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
+  nativeProfileMenuItem: { minHeight: 56, paddingHorizontal: 13, justifyContent: "center", borderRadius: 11, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
+  nativeProfileMenuText: { color: c.text, fontSize: 14, lineHeight: 18, fontWeight: "800" },
   headerAction: {
     width: 40,
     height: 40,
@@ -5171,6 +5172,7 @@ const styles = StyleSheet.create({
   profilePostRow: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.16)", backgroundColor: "rgba(0,0,0,.14)", gap: 4 },
   profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
   profileEditPanel: { gap: 8 },
+  profileVisibilityNative: { gap: 8, marginTop: 8, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: `${c.botany}33`, backgroundColor: `${c.botany}08` },
   profileConsentPanel: { gap: 4, marginTop: 4 },
   profileConsentRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, paddingVertical: 6 },
   profilePreferencesPanel: { gap: 8, marginTop: 4 },

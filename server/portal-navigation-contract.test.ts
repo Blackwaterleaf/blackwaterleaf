@@ -32,11 +32,11 @@ describe("AP-13 Observatory primary navigation", () => {
 
   it("groups profile-menu destinations instead of presenting a flat settings list", () => {
     const shell = read("client/src/components/AppShell.tsx");
-    for (const label of ["PFLEGE & ANLAGEN", "KOMMUNIKATION", "FORTSCHRITT & MERKLISTE", "Einstellungen", "Profil & Privatbereich"]) {
+    for (const label of ["PROFIL · MENÜ", "Profil öffnen", "Verwalten · alle Einstellungen", "Postfach", "Marketplace", "Heute · Pflegeaufgaben"]) {
       expect(shell).toContain(label);
     }
-    expect(shell).toContain('href="/notifications"');
-    expect(shell).toContain('className="profile-header-menu__settings-group"');
-    expect(shell).not.toContain("Privatbereich & Profil bearbeiten");
+    expect(shell).toContain("aria-expanded={profileMenuOpen}");
+    expect(shell).toContain("setProfileMenuOpen(false)");
+    expect(shell).not.toContain("<details className=\"profile-header-menu\">");
   });
 });

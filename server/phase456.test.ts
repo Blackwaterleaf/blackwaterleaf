@@ -29,11 +29,9 @@ describe("Phase 4–6 retention, quality and SEO contracts", () => {
 });
 
 describe("profile three-line menu routes", () => {
-  it("links every settings choice to its own route and reveals that route", () => {
+  it("exposes the compact profile menu and its management destination", () => {
     const shell = read("../client/src/components/AppShell.tsx");
-    const styles = read("../client/src/index.css");
-    for (const route of ["/profile/private", "/profile/habitats", "/profile/progress", "/profile/privacy", "/profile/preferences", "/profile/tools"]) expect(shell).toContain(`href=\"${route}\"`);
-    for (const token of ["profile-section-privacy #profile-consents", "profile-section-preferences #profile-preferences", "profile-section-tools #profile-tools"]) expect(styles).toContain(token);
+    for (const token of ["profileMenuOpen", "profileMenuRef", "pointerdown", 'href="/profile/manage"', "Verwalten · alle Einstellungen", "Heute · Pflegeaufgaben"]) expect(shell).toContain(token);
   });
 });
 

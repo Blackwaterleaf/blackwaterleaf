@@ -246,6 +246,7 @@ export type Account = {
   status: string;
   locale?: "de" | "en" | "zh-CN" | "es" | "fr";
   unitSystem?: "metric" | "imperial";
+  profileVisibility?: "private" | "unlisted" | "public";
 };
 export type Habitat = {
   id: number;
@@ -518,7 +519,7 @@ export const currentAccount = (token: string) =>
   trpcGet<Account | null>("auth.me", undefined, token);
 export const updateProfile = (
   token: string,
-  input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial" }
+  input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }
 ) => trpcPost<Account>("profile.update", input, token);
 export const uploadProfileAvatar = (
   token: string,
