@@ -1971,14 +1971,15 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .feedback-page { display: grid; gap: 14px; max-width: 760px; margin: 0 auto; padding: 24px 0 120px; }
 .feedback-page__hero { padding: 22px; border-color: rgba(217,255,104,.45); }
 .feedback-page__hero h1 { margin: 5px 0; font-size: clamp(26px, 5vw, 46px); letter-spacing: -.03em; }
-.feedback-page__hero p, .feedback-page__privacy { color: var(--muted); }
+.feedback-page__hero p { color: #b9cbb9; }
 .feedback-form { display: grid; gap: 16px; padding: 18px; }
 .feedback-kind-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.feedback-kind-grid button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid rgba(217,255,104,.25); border-radius: 10px; background: rgba(8,24,14,.72); color: var(--muted); font-weight: 800; cursor: pointer; }
+.feedback-kind-grid button { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 1px solid rgba(217,255,104,.25); border-radius: 10px; background: rgba(8,24,14,.72); color: #d7e9d9; font-weight: 800; cursor: pointer; }
 .feedback-kind-grid button.active { color: #d9ff68; border-color: #d9ff68; box-shadow: 0 0 14px rgba(217,255,104,.24); }
 .feedback-field { display: grid; gap: 7px; color: #d9ff68; font-size: 11px; font-weight: 900; letter-spacing: .08em; }
-.feedback-field textarea { min-height: 170px; resize: vertical; border: 1px solid rgba(217,255,104,.28); border-radius: 10px; padding: 12px; color: var(--foreground); background: rgba(0,0,0,.2); font: inherit; }
-.feedback-field small { color: var(--muted); text-align: right; font-weight: 600; letter-spacing: 0; }
-.feedback-page__privacy { font-size: 12px; }
+.feedback-field textarea { min-height: 170px; resize: vertical; border: 1px solid rgba(217,255,104,.28); border-radius: 10px; padding: 12px; color: #effff4; background: rgba(0,0,0,.2); font: inherit; }
+.feedback-field textarea::placeholder { color: #9fbaa3; opacity: 1; }
+.feedback-field small { color: #a9c5ab; text-align: right; font-weight: 600; letter-spacing: 0; }
+.feedback-page__privacy { color: #a9c5ab; font-size: 12px; }
 .feedback-page__privacy a { color: #d9ff68; }
 @media (max-width: 560px) { .feedback-kind-grid { grid-template-columns: 1fr; } .feedback-page { padding-top: 14px; } }

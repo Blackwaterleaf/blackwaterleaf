@@ -11,6 +11,17 @@ describe("feedback and preference contracts", () => {
     expect(read("server/routers/feedback.ts")).toContain("protectedProcedure");
     expect(read("client/src/App.tsx")).toContain('path={"/feedback"}');
     expect(read("mobile-natur/src/FeedbackScreen.tsx")).toContain("submitFeedback");
+    expect(read("client/src/pages/Feedback.tsx")).toContain('label: "Problem melden"');
+    expect(read("client/src/pages/Feedback.tsx")).toContain('label: "Wunsch / Verbesserung"');
+    expect(read("mobile-natur/src/FeedbackScreen.tsx")).toContain('"Problem melden"');
+    expect(read("mobile-natur/src/FeedbackScreen.tsx")).toContain('"Wunsch / Verbesserung"');
+  });
+
+  it("keeps feedback text readable without the dark generic muted token", () => {
+    const css = read("client/src/index.css");
+    expect(css).toContain(".feedback-kind-grid button { display: flex");
+    expect(css).toContain("color: #d7e9d9");
+    expect(css).toContain(".feedback-field textarea::placeholder");
   });
   it("keeps notification controls server-backed", () => {
     expect(read("client/src/pages/Profile.tsx")).toContain("trpc.feedback.updatePreferences");
