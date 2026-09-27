@@ -2556,3 +2556,11 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .explore-inspiration-card__gallery { display:flex; grid-column:1 / -1; gap:6px; }
 .explore-inspiration-card__gallery img { width:calc(50% - 3px); height:62px; object-fit:cover; border-radius:8px; border:1px solid rgba(185,251,127,.22); }
 .explore-inspiration-card__credit { color:#8fa992 !important; font-size:.5rem !important; }
+.discover-gallery-lightbox { position:fixed; inset:0; z-index:180; display:flex; align-items:center; justify-content:center; background:rgba(0,8,4,.95); backdrop-filter:blur(14px); }
+.discover-gallery-lightbox figure { margin:0; max-width:min(92vw,1100px); max-height:90vh; display:grid; gap:10px; justify-items:center; }
+.discover-gallery-lightbox figure img { max-width:92vw; max-height:82vh; object-fit:contain; border-radius:12px; box-shadow:0 18px 70px rgba(0,0,0,.5); }
+.discover-gallery-lightbox figcaption { color:#eaffdf; font:800 .75rem/1.2 "JetBrains Mono",monospace; letter-spacing:.08em; text-transform:uppercase; }
+.discover-gallery-lightbox__close,.discover-gallery-lightbox__nav { position:absolute; z-index:2; display:grid; place-items:center; border:1px solid rgba(185,251,127,.5); border-radius:50%; background:rgba(5,30,15,.9); color:#fff; cursor:pointer; }
+.discover-gallery-lightbox__close { top:22px; right:24px; width:44px; height:44px; }
+.discover-gallery-lightbox__nav { top:50%; width:52px; height:52px; transform:translateY(-50%); }
+.discover-gallery-lightbox__nav--prev { left:22px; }.discover-gallery-lightbox__nav--next { right:22px; }
