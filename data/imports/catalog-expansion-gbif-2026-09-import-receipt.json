@@ -1,0 +1,11 @@
+{
+  "mode": "import",
+  "requested": {
+    "plants": 500,
+    "freshwaterFish": 500,
+    "terrarium": 500
+  },
+  "insertedOrUpdated": 1500,
+  "policy": "Taxonomy-only drafts. No care claims or images are published until independently sourced and verified.",
+  "completedAt": "2026-09-27T15:13:50.401Z"
+}
