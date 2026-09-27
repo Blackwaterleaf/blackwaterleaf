@@ -1,7 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
-export type AppLocale = "de" | "en";
+export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr";
 export type UnitSystem = "metric" | "imperial";
+
+export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativeLabel: string }> = [
+  { value: "de", label: "Deutsch", nativeLabel: "DE" },
+  { value: "en", label: "English", nativeLabel: "EN" },
+  { value: "zh-CN", label: "Chinesisch", nativeLabel: "中文" },
+  { value: "es", label: "Spanisch", nativeLabel: "ES" },
+  { value: "fr", label: "Französisch", nativeLabel: "FR" },
+];
 
 const de = {
   "tabs.home": "Home",
@@ -181,8 +189,13 @@ const en: Record<TranslationKey, string> = {
   "system.code": "SYSTEM STATUS",
 };
 
-export function resolveLocale(stored: string | null, _browserLanguage: string): AppLocale {
-  if (stored === "de" || stored === "en") return stored;
+export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
+  if (stored === "de" || stored === "en" || stored === "zh-CN" || stored === "es" || stored === "fr") return stored;
+  const language = browserLanguage.toLowerCase();
+  if (language.startsWith("zh")) return "zh-CN";
+  if (language.startsWith("es")) return "es";
+  if (language.startsWith("fr")) return "fr";
+  if (language.startsWith("en")) return "en";
   return "de";
 }
 
@@ -344,6 +357,10 @@ function detectUnits(): UnitSystem {
 export function I18nProvider({ children }: PropsWithChildren) {
   const [locale, setLocale] = useState<AppLocale>(detectLocale);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(detectUnits);
+  const chooseLocale = (nextLocale: AppLocale) => {
+    window.localStorage.setItem("blackwaterleaf.locale.manual.v1", "1");
+    setLocale(nextLocale);
+  };
 
   useEffect(() => {
     window.localStorage.setItem("blackwaterleaf.locale.v1", locale);
@@ -355,7 +372,7 @@ export function I18nProvider({ children }: PropsWithChildren) {
   }, [unitSystem]);
 
   const value = useMemo<I18nContextValue>(
-    () => ({ locale, unitSystem, setLocale, setUnitSystem, t: key => translate(locale, key) }),
+    () => ({ locale, unitSystem, setLocale: chooseLocale, setUnitSystem, t: key => translate(locale, key) }),
     [locale, unitSystem],
   );
 

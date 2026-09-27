@@ -74,7 +74,7 @@ export function LiveSensorStrip({ onWeatherEffectChange, compact = false }: { on
     );
   };
 
-  const weatherTitle = outdoor.data ? WEATHER_LABELS[locale][outdoor.data.condition] : locale === "de" ? "Außenwetter" : "Outdoor weather";
+  const weatherTitle = outdoor.data ? (WEATHER_LABELS[locale === "de" ? "de" : "en"]?.[outdoor.data.condition] ?? outdoor.data.condition) : locale === "de" ? "Außenwetter" : "Outdoor weather";
   const weatherDescription = locale === "de"
     ? "Dein Standort wird nur für die aktuelle Wetterabfrage verwendet und nicht gespeichert."
     : "Your location is used only for this weather request and is not stored.";

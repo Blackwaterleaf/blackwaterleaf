@@ -30,3 +30,11 @@ Jeder Kontoexport wird als `account_export_created` im unveränderlichen Audit-L
 1. **P1 Natur-/Anlagenjournal:** append-only Ereignis-Timeline und Messwertverlauf mit Ereignismarkern.
 2. **P1 sichere Snapshot-Freigabe:** feldweise Vorschau vor Community-Post; keine exakten Anlagenorte oder ungeprüften privaten Medien.
 3. **P2 Rückkehr ohne Druck:** Ruhezeiten, optionale Expeditionen und Fortschrittsansicht ohne Pflichtserie.
+
+
+## 10.6 Internationale Nutzung · umgesetzt am 27.09.2026
+- Web und Native unterstützen jetzt fünf abgestimmte Locales: Deutsch, Englisch, vereinfachtes Chinesisch, Spanisch und Französisch.
+- Der Web-Erstbesuch erkennt die Browser-Sprache; die manuelle Auswahl wird lokal und bei angemeldeten Konten serverseitig gespeichert und gilt geräteübergreifend.
+- Der Sprachwähler befindet sich sichtbar im Web-Header und bleibt durch native Select-Technik Samsung-Browser-kompatibel; Native bietet dieselben Optionen im Profil.
+- Die Locale-Enums in Shared Contract, Datenbank (`users`, `knowledge_articles`) und API sind synchronisiert. Migration `drizzle/0049_lazy_mach_iv.sql` wurde additiv angewendet.
+- Validierung: 20 gezielte Verträge, Web-TypeScript, Produktionsbuild, Native-TypeScript und `git diff --check` erfolgreich.

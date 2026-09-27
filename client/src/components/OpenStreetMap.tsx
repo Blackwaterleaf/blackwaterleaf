@@ -16,7 +16,7 @@ type OpenStreetMapProps = {
   initialZoom: number;
   points?: OpenStreetMapPoint[];
   ariaLabel?: string;
-  locale?: "de" | "en";
+  locale?: string;
 }
 
 export function OpenStreetMap({ className, initialCenter, initialZoom, points = [], ariaLabel, locale = "de" }: OpenStreetMapProps) {

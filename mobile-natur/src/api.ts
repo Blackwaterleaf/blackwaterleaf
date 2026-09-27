@@ -242,7 +242,7 @@ export type Account = {
   socialLinks?: Record<string, string | null>;
   role: "user" | "moderator" | "admin";
   status: string;
-  locale?: "de" | "en";
+  locale?: "de" | "en" | "zh-CN" | "es" | "fr";
   unitSystem?: "metric" | "imperial";
 };
 export type Habitat = {
@@ -466,16 +466,16 @@ export const markDirectConversationRead = (token: string, conversationId: number
   trpcPost<{ success: true }>("messages.markRead", { conversationId }, token);
 export const myCommunityPosts = (token: string) =>
   trpcGet<OwnCommunityPost[]>("community.myPosts", undefined, token);
-export const knowledge = () =>
+export const knowledge = (locale: "de" | "en" | "zh-CN" | "es" | "fr" = "de") =>
   trpcGet<KnowledgeArticle[]>("knowledge.listPublished", {
-    locale: "de",
+    locale,
     limit: 40,
   });
 export const currentAccount = (token: string) =>
   trpcGet<Account | null>("auth.me", undefined, token);
 export const updateProfile = (
   token: string,
-  input: { name?: string | null; bio?: string | null; locale?: "de" | "en"; unitSystem?: "metric" | "imperial" }
+  input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial" }
 ) => trpcPost<Account>("profile.update", input, token);
 export const uploadProfileAvatar = (
   token: string,

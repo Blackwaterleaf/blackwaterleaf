@@ -89,7 +89,8 @@ function regionPoints(text: string | null) {
 
 export function TaxonRangeMap({ realm, summary, careProfile, source, sourceUrl }: TaxonRangeMapProps) {
   const { locale } = useI18n();
-  const copy = realmCopy[locale][realm];
+  const copyLocale: "de" | "en" = locale === "de" ? "de" : "en";
+  const copy = realmCopy[copyLocale][realm];
   const profile = careProfile ?? {};
   const habitat = extractHabitat(summary) ?? textValue(profile.habitat) ?? textValue(profile.nativeHabitat) ?? textValue(profile.distribution);
   const origin = textValue(profile.nativeRange) ?? textValue(profile.origin) ?? textValue(profile.nativeRegion);

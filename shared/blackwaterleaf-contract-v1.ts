@@ -4,7 +4,7 @@ export const BLACKWATERLEAF_CONTRACT_VERSION = "1.0.0" as const;
 
 export const accountRoleSchema = z.enum(["user", "moderator", "admin"]);
 export const accountStatusSchema = z.enum(["active", "suspended", "banned"]);
-export const localeSchema = z.enum(["de", "en"]);
+export const localeSchema = z.enum(["de", "en", "zh-CN", "es", "fr"]);
 export const unitSystemSchema = z.enum(["metric", "imperial"]);
 export const visibilitySchema = z.enum(["private", "unlisted", "public"]);
 export const observationRealmSchema = z.enum(["botany", "aquarium", "terrarium"]);

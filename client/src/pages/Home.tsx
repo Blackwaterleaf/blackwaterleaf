@@ -19,7 +19,8 @@ const portals = [
 export default function Home() {
   const auth = useAuth();
   const { t, locale } = useI18n();
-  const pageTitle = HOME_SEO_TITLES[locale];
+  const seoLocale: "de" | "en" = locale === "de" ? "de" : "en";
+  const pageTitle = HOME_SEO_TITLES[seoLocale] ?? HOME_SEO_TITLES.en;
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.feed.useQuery({ limit: 1 }, { enabled: auth.isAuthenticated, retry: false });
   const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });

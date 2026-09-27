@@ -1,6 +1,6 @@
 import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { resolveAccountLocale, useI18n } from "@/i18n";
+import { APP_LOCALES, resolveAccountLocale, useI18n, type AppLocale } from "@/i18n";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { useEffect, useRef, useState, type MouseEvent, type PropsWithChildren } from "react";
@@ -86,6 +86,7 @@ export function AppShell({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (!profile.data?.locale) return;
+    if (window.localStorage.getItem("blackwaterleaf.locale.manual.v1") !== "1") return;
     const accountLocale = resolveAccountLocale(locale, profile.data.locale);
     if (accountLocale !== locale) setLocale(accountLocale);
   }, [locale, profile.data?.locale, setLocale]);
@@ -127,6 +128,12 @@ export function AppShell({ children }: PropsWithChildren) {
             {auth.isAuthenticated && unreadMessages.data?.count ? <span className="notification-badge" aria-label={`${unreadMessages.data.count} ungelesene Nachrichten`}>{unreadMessages.data.count > 9 ? "9+" : unreadMessages.data.count}</span> : null}
           </Link>
           <Link href="/feedback" className="icon-button feedback-header-button" aria-label="Feedback, Probleme und Wünsche" title="Feedback, Probleme und Wünsche"><MessageSquareHeart size={18} /></Link>
+          <label className="language-header-control" title="Sprache auswählen">
+            <span className="sr-only">Sprache auswählen</span>
+            <select value={locale} onChange={event => setLocale(event.target.value as AppLocale)} aria-label="Sprache auswählen">
+              {APP_LOCALES.map(option => <option key={option.value} value={option.value}>{option.nativeLabel}</option>)}
+            </select>
+          </label>
           <details className="profile-header-menu">
             <summary className="icon-button profile-button" aria-label="Profilmenü öffnen"><Menu size={20} /></summary>
             <div className="profile-header-menu__panel">

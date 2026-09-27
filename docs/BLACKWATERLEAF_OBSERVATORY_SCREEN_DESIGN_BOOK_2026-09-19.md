@@ -84,3 +84,9 @@ Der Beobachtungs-Composer verwendet Privat als Standard. Standort, Medienverarbe
 Der Web- und Native-Header führt einen klaren, leuchtenden Einstieg **FEEDBACK · PROBLEME · WÜNSCHE**. Der Glow ist ein Wegweiser, kein Werbebanner; bei reduzierter Bewegung bleibt der Einstieg funktional und sichtbar. Der Inhalt ist nur nach Anmeldung sendbar, wird dem eigenen Konto zugeordnet und mit Kategorie, Nachricht und Ursprungsseite gespeichert.
 
 Benachrichtigungen werden im privaten Profil nach Community, Nachrichten, Moderation/Review und System/Sicherheit einzeln geschaltet. Ohne gespeicherte Präferenz gelten die sicheren Standardwerte; sobald eine Präferenz gespeichert ist, filtert der Server den Feed und die ungelesene Anzahl nach diesen Schaltern. Die Plattform sendet keine globale, nicht steuerbare Sammelbenachrichtigung.
+
+
+## 15.39 Internationale Locale-Regel · fünf Sprachen, ein Gerätevertrag
+Web und Native verwenden denselben Locale-Vertrag: **Deutsch (`de`), Englisch (`en`), vereinfachtes Chinesisch (`zh-CN`), Spanisch (`es`) und Französisch (`fr`)**. Im Web wird beim ersten Besuch die Browser-Sprache ausgewertet; eine vom Nutzer gewählte Sprache wird lokal und – bei Anmeldung – im Konto gespeichert und hat Vorrang vor Browser-/IP-Hinweisen. Nicht unterstützte Browser-Sprachen fallen transparent auf Englisch zurück.
+
+Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browser-kompatible Auswahl. Auf sehr kleinen Breiten werden kompakte Sprachkürzel verwendet, ohne die Hauptnavigation zu überdecken. Native zeigt dieselben fünf Optionen im Profil. Fach- und Wissensdaten werden nur aus der jeweils angeforderten Locale geladen; fehlende Übersetzungen werden nicht durch erfundene Inhalte ersetzt.

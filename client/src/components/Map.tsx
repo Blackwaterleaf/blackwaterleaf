@@ -93,16 +93,17 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-let mapScriptPromise: { locale: "de" | "en"; promise: Promise<void> } | null = null;
+let mapScriptPromise: { locale: string; promise: Promise<void> } | null = null;
 
-function loadMapScript(locale: "de" | "en") {
+function loadMapScript(locale: string) {
   if (window.google?.maps) return Promise.resolve();
   if (!API_KEY) return Promise.reject(new Error("Kartenbasis ist nicht konfiguriert."));
   if (mapScriptPromise?.locale === locale) return mapScriptPromise.promise;
 
   const promise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&language=${locale}&region=${locale === "de" ? "DE" : "US"}&libraries=marker,places,geocoding,geometry`;
+    const region = locale === "de" ? "DE" : locale === "zh-CN" ? "CN" : locale === "es" ? "ES" : locale === "fr" ? "FR" : "US";
+    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&language=${locale}&region=${region}&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
@@ -129,7 +130,7 @@ interface MapViewProps {
   onMapError?: (error: Error) => void;
   points?: OpenStreetMapPoint[];
   fallbackPoints?: OpenStreetMapPoint[];
-  locale?: "de" | "en";
+  locale?: string;
 }
 
 export function MapView({
