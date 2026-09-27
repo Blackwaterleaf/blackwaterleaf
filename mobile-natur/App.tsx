@@ -720,6 +720,8 @@ function NaturApp() {
     if (!uri.startsWith("file:")) throw new Error("export_storage_unavailable");
     await FileSystem.writeAsStringAsync(uri, JSON.stringify(data, null, 2));
     if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: "application/json", dialogTitle: "BlackWaterLeaf-Datenexport" });
+    const historyCount = Array.isArray(data.exportHistory) ? data.exportHistory.length : 0;
+    Alert.alert("Datenexport protokolliert", `Dieser Export ist im geschützten Audit-Verlauf erfasst. Bisherige Exporte: ${historyCount}.`);
   }, [token]);
 
   const openCollection = useCallback(

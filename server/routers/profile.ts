@@ -3,6 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   aiIdentificationCorrections,
+  auditLedgerEntries,
   assistantUsage,
   careEvents,
   careJournal,
@@ -37,6 +38,7 @@ import { canReadProfile } from "../accessPolicy";
 import { hasCurrentConsent, listCurrentConsents, recordCurrentConsent } from "../consents";
 import { assertValidMediaContext } from "../mediaIntegrity";
 import { assertSafetyGateAllows } from "../safetyGates";
+import { appendAuditEntry } from "../auditLedger";
 
 const socialUrl = z.string().url().max(255).nullable().optional();
 async function requireDatabase() {
@@ -118,14 +120,22 @@ export const profileRouter = router({
 
   exportData: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
+    await appendAuditEntry({ actorId: ctx.user.id, action: "account_export_created", targetType: "user", targetId: ctx.user.id, payload: { exportVersion: "blackwaterleaf-account-export-v1", includesSecrets: false } });
     const owned = async (table: any) => db.select().from(table).where(eq(table.userId, ctx.user.id));
     const [habitats, observationsRows, community, media, plans, tasks, events, journal, consents, smartConnections, smartMeasurements, assistant, corrections] = await Promise.all([
       owned(privateHabitats), owned(observations), owned(communityPosts), owned(mediaAssets), owned(carePlans), owned(careTasks), owned(careEvents), owned(careJournal),
       owned(userConsentEvents), owned(smartDeviceConnections), owned(smartDeviceMeasurements), owned(assistantUsage), owned(aiIdentificationCorrections),
     ]);
+    const exportHistory = await db
+      .select({ id: auditLedgerEntries.id, createdAt: auditLedgerEntries.createdAt })
+      .from(auditLedgerEntries)
+      .where(and(eq(auditLedgerEntries.actorId, ctx.user.id), eq(auditLedgerEntries.action, "account_export_created"), eq(auditLedgerEntries.targetType, "user"), eq(auditLedgerEntries.targetId, ctx.user.id)))
+      .orderBy(desc(auditLedgerEntries.createdAt))
+      .limit(10);
     return {
       exportVersion: "blackwaterleaf-account-export-v1",
       generatedAt: new Date().toISOString(),
+      exportHistory: exportHistory.map(entry => ({ id: entry.id, createdAt: entry.createdAt.toISOString() })),
       profile: await serializeProfile(ctx.user, true),
       datasets: {
         habitats, observations: observationsRows, communityPosts: community,

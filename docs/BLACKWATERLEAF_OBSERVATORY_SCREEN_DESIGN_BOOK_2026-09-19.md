@@ -57,3 +57,15 @@ Die geschützte Kontofunktion bleibt über `profile.erasurePreview` nachvollzieh
 
 ## 15.33 Katalog → private Anlage
 Jeder valide Pflanzen-, Aquaristik- und Terraristik-Steckbrief bietet eine kompakte Aktion **IN ANLAGE ÜBERNEHMEN**. Nur angemeldete Konten öffnen den privaten Erfassungsflow. Artname und wissenschaftlicher Name werden vorbefüllt; private Felder wie Messwerte, Pflegezustand, Notizen, Einrichtung und Bilder bleiben leer und werden nie aus Katalogdaten erfunden. Web und Native verwenden denselben Übergabevertrag und zeigen nach der Übernahme weiterhin den jeweiligen Fachbereichsakzent.
+
+
+## 15.34 Wissenschaftlicher Review · Status, Begründung und Rollen
+- Beobachtungen mit `queued_for_review` erscheinen ausschließlich in der geschützten Staff-Moderation.
+- Jede Prüfung speichert evidenzbezogenen Status, Begründung, prüfende Person und Zeitpunkt; die Entscheidung wird zusätzlich im Audit-Ledger protokolliert.
+- KI-Korrekturen behalten die ursprüngliche KI-Antwort unverändert. Ablehnungen benötigen eine Moderationsbegründung; die betroffene Person erhält eine Benachrichtigung.
+- `evidenceState` darf nie als pauschaler Expertenkonsens beworben werden. Öffentliche Kartenpunkte bleiben von privaten Koordinaten und vom Reviewstatus getrennt.
+
+## 15.35 Datenkontrolle · Export-Historie
+- Jeder Kontoexport wird als geschütztes Audit-Ereignis `account_export_created` erfasst.
+- Web zeigt die letzten zehn Exportzeitpunkte kompakt im Datenschutzbereich; Native bestätigt die protokollierte Exportanzahl nach dem Teilen.
+- Exportdateien enthalten Profildaten, eigene Datensätze und Medienmetadaten, aber keine Storage-Schlüssel, Zugangsdaten oder geheimen API-Werte.

@@ -1948,3 +1948,7 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 @media (max-width:519px) { .admin-panel { padding:14px; } .admin-row { padding:11px; } }
 
 @media (min-width:360px) and (max-width:519px) { .admin-grid:not(.admin-grid--single) { grid-template-columns:repeat(2,minmax(0,1fr)); } .admin-grid:not(.admin-grid--single) > .admin-panel:last-child { grid-column:1 / -1; } .admin-grid:not(.admin-grid--single) .admin-panel { padding:12px; } .admin-grid:not(.admin-grid--single) .admin-panel h2 { font-size:1.45rem; } }
+
+
+.profile-export-history { display: grid; gap: 4px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(199,243,91,.16); color: var(--muted-foreground, #9bb39f); font-size: .72rem; }
+.profile-export-history .eyebrow { color: #c7f35b; font-size: .62rem; }

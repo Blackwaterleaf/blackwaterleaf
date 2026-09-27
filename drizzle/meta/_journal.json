@@ -302,6 +302,20 @@
       "when": 1790467878460,
       "tag": "0042_misty_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1790481245207,
+      "tag": "0043_cloudy_moira_mactaggert",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1790481321188,
+      "tag": "0044_far_network",
+      "breakpoints": true
     }
   ]
 }

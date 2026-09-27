@@ -1,8 +1,7 @@
 
 
-## 10.1 Fortschritts-Addendum · nach der P0-Umsetzung
-Die ursprüngliche Bestandsaufnahme oben bleibt als Audit-Baseline erhalten. Die folgenden Punkte supersedieren die dort genannten „heute“-Stände, soweit sie inzwischen umgesetzt wurden: Das Beobachtungsmodell besitzt jetzt Datum, Taxonfelder, Geoprivacy, Embargo und einen geschützten generalisierten Kartenfeed. Care-Aufgaben können einer privaten Anlage zugeordnet und wiederkehrend fortgeschrieben werden; Web und Native zeigen den jeweiligen privaten Anlagenbestand. Der Kontoexport ist als geschützter JSON-Export vorhanden, während die Kontoschließung weiterhin ehrlich als Deaktivierung/Anonymisierung mit nicht ausgeführter Storage-Löschung ausgewiesen wird.
+## 10.2 P1-Reviewblock · umgesetzt am 27.09.2026
+Der prüfbare Review-Weg ist jetzt serverseitig und im Staff-UI vorhanden. Beobachtungen mit `queued_for_review` erscheinen in einer geschützten Warteschlange; die Entscheidung speichert `evidenceState`, Begründung, prüfende Person und Zeitpunkt. Die betroffene Person erhält eine Moderationsbenachrichtigung und der Audit-Ledger protokolliert die Entscheidung. KI-Korrekturen speichern zusätzlich die Moderationsbegründung; eine Ablehnung ohne Begründung wird im UI verhindert. `evidenceState` bleibt ein evidenzbezogener Status und wird nicht als allgemeiner Expertenkonsens bezeichnet.
 
-Zusätzlich führt jeder veröffentlichte Pflanzen-, Aquaristik- und Terraristik-Steckbrief jetzt direkt in die private Anlagenverwaltung. Auf Web werden Artname und wissenschaftlicher Name über eine sichere, angemeldete Route vorbefüllt; Native öffnet denselben privaten Erfassungsflow mit denselben Feldern. Katalogdaten werden dabei nicht als private Haltungswerte ausgegeben: Temperatur, Feuchte, pH, Substrat, Notizen und Pflegezustand bleiben ausdrücklich nutzerseitig zu ergänzen.
-
-Der nächste fachliche P1-Block bleibt der prüfbare Review-Weg für Beobachtungen und KI-Korrekturen: Vorschlag, Begründung, Rollenprüfung, Statusverlauf und eine getrennte Veröffentlichung. Bis dieser Block umgesetzt und getestet ist, darf `evidenceState` nicht als Expertenkonsens beworben werden.
+## 10.3 Datenkontrolle · Export-Historie
+Jeder Kontoexport wird als `account_export_created` im unveränderlichen Audit-Ledger protokolliert. Web zeigt die letzten zehn Exportzeitpunkte im Datenschutzbereich; Native bestätigt die Anzahl der protokollierten Exporte nach dem Teilen. Exportdateien enthalten niemals Storage-Schlüssel oder geheime Zugangsdaten.

@@ -106,6 +106,8 @@ async function serializeObservation(record: typeof observations.$inferSelect, ca
     metrics: observationMetricSchema.array().parse(record.metrics),
     media,
     evidenceState: record.evidenceState,
+    reviewNote: canReadPrivate ? record.reviewNote : null,
+    reviewedAt: canReadPrivate ? (record.reviewedAt?.toISOString() ?? null) : null,
     visibility: record.visibility,
     syncState: record.syncState,
     revision: record.revision,

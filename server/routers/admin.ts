@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, communityPosts, communityReports, mediaAssets, notifications, userRoles, users } from "../../drizzle/schema";
+import { aiIdentificationCorrections, communityPosts, communityReports, mediaAssets, notifications, observations, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
@@ -142,6 +142,7 @@ export const adminRouter = router({
         originalAnswer: aiIdentificationCorrections.originalAnswer,
         correctedName: aiIdentificationCorrections.correctedName,
         correctionNote: aiIdentificationCorrections.correctionNote,
+        reviewNote: aiIdentificationCorrections.reviewNote,
         status: aiIdentificationCorrections.status,
         reviewedAt: aiIdentificationCorrections.reviewedAt,
         createdAt: aiIdentificationCorrections.createdAt,
@@ -160,10 +161,33 @@ export const adminRouter = router({
       const [correction] = await db.select({ id: aiIdentificationCorrections.id, userId: aiIdentificationCorrections.userId, status: aiIdentificationCorrections.status, correctedName: aiIdentificationCorrections.correctedName }).from(aiIdentificationCorrections).where(eq(aiIdentificationCorrections.id, input.id)).limit(1);
       if (!correction) throw new TRPCError({ code: "NOT_FOUND", message: "plant_correction_not_found" });
       if (correction.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "plant_correction_already_reviewed" });
-      await db.update(aiIdentificationCorrections).set({ status: input.status, reviewedByUserId: ctx.user.id, reviewedAt: new Date() }).where(eq(aiIdentificationCorrections.id, input.id));
+      await db.update(aiIdentificationCorrections).set({ status: input.status, reviewNote: input.note?.trim() || null, reviewedByUserId: ctx.user.id, reviewedAt: new Date() }).where(eq(aiIdentificationCorrections.id, input.id));
       await db.insert(notifications).values({ recipientId: correction.userId, actorId: ctx.user.id, type: "moderation", message: `Deine Pflanzenkorrektur #${input.id} wurde ${input.status === "approved" ? "bestätigt" : "abgelehnt"}.` });
       await appendAuditEntry({ actorId: ctx.user.id, action: "ai_identification_correction_reviewed", targetType: "ai_identification_correction", targetId: input.id, payload: { after: input.status, correctedName: correction.correctedName, noteProvided: Boolean(input.note?.trim()) } });
       return { id: input.id, status: input.status } as const;
+    }),
+
+  observationReviewQueue: staffProcedure.query(async () => {
+    const db = await requireDatabase();
+    return db.select({ id: observations.id, ownerId: observations.userId, ownerName: users.name, ownerEmail: users.email, realm: observations.realm, subject: observations.subject, scientificName: observations.scientificName, evidenceState: observations.evidenceState, reviewNote: observations.reviewNote, createdAt: observations.createdAt, updatedAt: observations.updatedAt })
+      .from(observations)
+      .leftJoin(users, eq(observations.userId, users.id))
+      .where(eq(observations.syncState, "queued_for_review"))
+      .orderBy(desc(observations.updatedAt))
+      .limit(100);
+  }),
+
+  reviewObservation: staffProcedure
+    .input(z.object({ id: z.number().int().positive(), evidenceState: z.enum(["confirmed", "contextual", "conflicting", "insufficient"]), note: z.string().trim().min(1).max(1_000) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      const [observation] = await db.select({ id: observations.id, userId: observations.userId, syncState: observations.syncState }).from(observations).where(eq(observations.id, input.id)).limit(1);
+      if (!observation) throw new TRPCError({ code: "NOT_FOUND", message: "observation_not_found" });
+      if (observation.syncState !== "queued_for_review") throw new TRPCError({ code: "CONFLICT", message: "observation_not_queued" });
+      await db.update(observations).set({ evidenceState: input.evidenceState, reviewNote: input.note, reviewedByUserId: ctx.user.id, reviewedAt: new Date(), syncState: "synced" }).where(eq(observations.id, input.id));
+      await db.insert(notifications).values({ recipientId: observation.userId, actorId: ctx.user.id, type: "moderation", message: `Deine Beobachtung #${input.id} wurde geprüft: ${input.evidenceState}.` });
+      await appendAuditEntry({ actorId: ctx.user.id, action: "observation_reviewed", targetType: "observation", targetId: input.id, payload: { evidenceState: input.evidenceState, noteProvided: true } });
+      return { id: input.id, evidenceState: input.evidenceState, status: "reviewed" } as const;
     }),
 
   accounts: adminProcedure.query(async () => {

@@ -247,6 +247,9 @@ export const observations = mysqlTable(
     ])
       .default("unverified")
       .notNull(),
+    reviewNote: text("reviewNote"),
+    reviewedByUserId: int("reviewedByUserId").references(() => users.id),
+    reviewedAt: timestamp("reviewedAt"),
     visibility: mysqlEnum("visibility", ["private", "unlisted", "public"])
       .default("private")
       .notNull(),
@@ -453,6 +456,7 @@ export const aiIdentificationCorrections = mysqlTable(
     correctedName: varchar("corrected_name", { length: 255 }).notNull(),
     correctionNote: text("correction_note"),
     status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+    reviewNote: text("review_note"),
     reviewedByUserId: int("reviewed_by_user_id").references(() => users.id),
     reviewedAt: timestamp("reviewed_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
