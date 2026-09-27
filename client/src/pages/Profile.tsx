@@ -6,7 +6,7 @@ import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { useI18n, type AppLocale, type UnitSystem } from "@/i18n";
 import { imageErrorMessage, readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { AlertTriangle, Ban, Camera, Check, Download, Leaf, Loader2, LockKeyhole, LogOut, Save, ShieldCheck, Sparkles, Trophy, UserPlus, UserRound } from "lucide-react";
+import { AlertTriangle, Ban, Camera, Check, Download, Globe2, Instagram, Leaf, Loader2, LockKeyhole, LogOut, Music2, Plus, Save, ShieldCheck, Sparkles, Trash2, Trophy, UserPlus, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -23,10 +23,16 @@ type ProfileForm = {
   facebook: string;
   profileVisibility: "private" | "unlisted" | "public";
 };
+type SocialPlatform = "instagram" | "tiktok" | "youtube" | "facebook" | "website";
+type SocialAccountDraft = { platform: SocialPlatform; label: string; url: string };
 type HabitatKind = "plant" | "aquarium" | "terrarium";
 const EMPTY_PROFILE: ProfileForm = {
   name: "", username: "", bio: "", location: "", website: "", instagram: "", tiktok: "", youtube: "", facebook: "", profileVisibility: "private",
 };
+const defaultSocialAccount = (): SocialAccountDraft => ({ platform: "instagram", label: "Instagram", url: "" });
+const legacySocialAccounts = (links: Record<string, string | null | undefined>): SocialAccountDraft[] => ([
+  ["instagram", "Instagram", links.instagram], ["tiktok", "TikTok", links.tiktok], ["youtube", "YouTube", links.youtube], ["facebook", "Facebook", links.facebook], ["website", "Website", links.website],
+] as const).filter(([, , url]) => Boolean(url)).map(([platform, label, url]) => ({ platform, label, url: url! }));
 
 export default function Profile() {
   const auth = useAuth();
@@ -49,7 +55,9 @@ export default function Profile() {
   const unblockAccount = trpc.social.unblock.useMutation({ onSuccess: () => void blockedAccounts.refetch() });
   const notificationPreferences = trpc.feedback.preferences.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const updateNotificationPreferences = trpc.feedback.updatePreferences.useMutation({ onSuccess: () => void notificationPreferences.refetch() });
+  const replaceSocialAccounts = trpc.profile.replaceSocialAccounts.useMutation();
   const [form, setForm] = useState<ProfileForm>(EMPTY_PROFILE);
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccountDraft[]>([]);
   const [status, setStatus] = useState<string | null>(null);
   const [exportHistory, setExportHistory] = useState<Array<{ id: number; createdAt: string }>>([]);
   const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
@@ -69,6 +77,7 @@ export default function Profile() {
       facebook: profile.data.socialLinks.facebook ?? "",
       profileVisibility: profile.data.profileVisibility,
     });
+    setSocialAccounts(profile.data.socialAccounts?.length ? profile.data.socialAccounts.map(account => ({ platform: account.platform, label: account.label, url: account.url })) : legacySocialAccounts(profile.data.socialLinks));
     const stored = window.localStorage.getItem(`bwl-profile-kinds-${profile.data.id}`);
     if (stored) {
       try {
@@ -133,17 +142,22 @@ export default function Profile() {
     setStatus(null);
     try {
       if (form.profileVisibility === "public" && !consentMap.get("profile_publication")) throw new Error("profile_publication_consent_required");
+      const accounts = socialAccounts.map(account => ({ ...account, label: account.label.trim(), url: account.url.trim() })).filter(account => account.url);
+      if (accounts.some(account => !account.label)) throw new Error("social_account_label_required");
+      await replaceSocialAccounts.mutateAsync({ accounts });
       await update.mutateAsync({
         name: form.name.trim() || null,
         username: form.username.trim() || null,
         bio: form.bio.trim() || null,
         location: form.location.trim() || null,
         profileVisibility: form.profileVisibility,
-        socialWebsite: form.website.trim() || null,
-        socialInstagram: form.instagram.trim() || null,
-        socialTiktok: form.tiktok.trim() || null,
-        socialYoutube: form.youtube.trim() || null,
-        socialFacebook: form.facebook.trim() || null,
+        // Multiple social links are now stored in profile_social_accounts.
+        // Clear the legacy one-per-network fields after a successful transfer.
+        socialWebsite: null,
+        socialInstagram: null,
+        socialTiktok: null,
+        socialYoutube: null,
+        socialFacebook: null,
       });
       await Promise.all([utils.profile.me.invalidate(), utils.auth.me.invalidate()]);
       setStatus(locale === "de" ? "Profil sicher gespeichert." : "Profile saved securely.");
@@ -277,7 +291,8 @@ export default function Profile() {
                 <Field label={locale === "de" ? "Benutzername" : "Username"} value={form.username} onChange={value => setForm(current => ({ ...current, username: value }))} />
               </div>
               <label className="field"><span>Bio</span><textarea rows={4} maxLength={2000} value={form.bio} onChange={event => setForm(current => ({ ...current, bio: event.target.value }))} /></label>
-              <button type="submit" className={`primary-action ${update.isPending ? "action-loading" : ""}`} disabled={update.isPending}>{update.isPending ? <Loader2 size={16} className="spin" /> : <Save size={16} />}{update.isPending ? "PROFIL WIRD GESPEICHERT …" : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
+              <fieldset className="profile-social-editor"><legend><Instagram size={16} />VERKNÜPFTE PROFILE</legend><p>Verbinde mehrere öffentliche Instagram-, TikTok- oder weitere Profilseiten. Es werden keine Zugangsdaten abgefragt oder gespeichert.</p>{socialAccounts.map((account, index) => <div className="profile-social-editor__row" key={`${account.platform}-${index}`}><select aria-label={`Plattform ${index + 1}`} value={account.platform} onChange={event => setSocialAccounts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, platform: event.target.value as SocialPlatform, label: item.label || (event.target.options[event.target.selectedIndex]?.text ?? "Profil") } : item))}><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option><option value="facebook">Facebook</option><option value="website">Website</option></select><input aria-label={`Name ${index + 1}`} value={account.label} maxLength={80} placeholder="Bezeichnung" onChange={event => setSocialAccounts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, label: event.target.value } : item))} /><input aria-label={`Link ${index + 1}`} value={account.url} type="url" placeholder="https://…" onChange={event => setSocialAccounts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, url: event.target.value } : item))} /><button type="button" className="icon-button icon-button--danger" aria-label={`${account.label || "Profil"} entfernen`} onClick={() => setSocialAccounts(current => current.filter((_, itemIndex) => itemIndex !== index))}><Trash2 size={15} /></button></div>)}<button type="button" className="secondary-action profile-social-editor__add" disabled={socialAccounts.length >= 12} onClick={() => setSocialAccounts(current => [...current, defaultSocialAccount()])}><Plus size={15} />PROFIL HINZUFÜGEN</button></fieldset>
+              <button type="submit" className={`primary-action ${update.isPending || replaceSocialAccounts.isPending ? "action-loading" : ""}`} disabled={update.isPending || replaceSocialAccounts.isPending}>{update.isPending || replaceSocialAccounts.isPending ? <Loader2 size={16} className="spin" /> : <Save size={16} />}{update.isPending || replaceSocialAccounts.isPending ? "PROFIL WIRD GESPEICHERT …" : locale === "de" ? "PROFIL SPEICHERN" : "SAVE PROFILE"}</button>
             </form>
           </details>
 

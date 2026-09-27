@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   aiIdentificationCorrections,
@@ -13,6 +13,7 @@ import {
   localAuthTokens,
   localCredentials,
   mediaAssets,
+  profileSocialAccounts,
   observations,
   privateHabitats,
   smartDeviceConnections,
@@ -41,16 +42,38 @@ import { assertSafetyGateAllows } from "../safetyGates";
 import { appendAuditEntry } from "../auditLedger";
 
 const socialUrl = z.string().url().max(255).nullable().optional();
+const socialAccountSchema = z.object({
+  platform: z.enum(["instagram", "tiktok", "youtube", "facebook", "website"]),
+  label: z.string().trim().min(1).max(80),
+  url: z.string().url().max(255).refine(value => new URL(value).protocol === "https:", "social_url_https_required"),
+});
 async function requireDatabase() {
   const db = await getDb();
   if (!db) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "database_unavailable" });
   return db;
 }
 
-async function serializeProfile(user: typeof users.$inferSelect, includePrivate: boolean) {
+async function serializeProfile(db: Awaited<ReturnType<typeof requireDatabase>>, user: typeof users.$inferSelect, includePrivate: boolean) {
   const avatarUrl = user.avatarStorageKey
     ? await storageGetSignedUrl(user.avatarStorageKey).catch(() => null)
     : null;
+  const storedSocialAccounts = await db
+    .select({ id: profileSocialAccounts.id, platform: profileSocialAccounts.platform, label: profileSocialAccounts.label, url: profileSocialAccounts.url, position: profileSocialAccounts.position })
+    .from(profileSocialAccounts)
+    .where(eq(profileSocialAccounts.userId, user.id))
+    .orderBy(asc(profileSocialAccounts.position), asc(profileSocialAccounts.id));
+  const legacySocialAccounts = [
+    ["instagram", "Instagram", user.socialInstagram],
+    ["tiktok", "TikTok", user.socialTiktok],
+    ["youtube", "YouTube", user.socialYoutube],
+    ["facebook", "Facebook", user.socialFacebook],
+    ["website", "Website", user.socialWebsite],
+  ] as const;
+  const knownUrls = new Set(storedSocialAccounts.map(item => item.url));
+  const socialAccounts = [
+    ...storedSocialAccounts.map(item => ({ id: String(item.id), platform: item.platform, label: item.label, url: item.url, position: item.position })),
+    ...legacySocialAccounts.filter(([, , url]) => Boolean(url) && !knownUrls.has(url!)).map(([platform, label, url], index) => ({ id: `legacy-${platform}`, platform, label, url: url!, position: storedSocialAccounts.length + index })),
+  ];
 
   return {
     contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
@@ -73,6 +96,7 @@ async function serializeProfile(user: typeof users.$inferSelect, includePrivate:
       facebook: user.socialFacebook,
       website: user.socialWebsite,
     },
+    socialAccounts,
     roleOrigin: "server_verified",
   } as const;
 }
@@ -83,7 +107,7 @@ async function countOwned(db: Awaited<ReturnType<typeof requireDatabase>>, table
 }
 
 export const profileRouter = router({
-  me: protectedProcedure.query(async ({ ctx }) => serializeProfile(ctx.user, true)),
+  me: protectedProcedure.query(async ({ ctx }) => serializeProfile(await requireDatabase(), ctx.user, true)),
 
   consents: protectedProcedure.query(async ({ ctx }) => {
     const db = await requireDatabase();
@@ -136,7 +160,7 @@ export const profileRouter = router({
       exportVersion: "blackwaterleaf-account-export-v1",
       generatedAt: new Date().toISOString(),
       exportHistory: exportHistory.map(entry => ({ id: entry.id, createdAt: entry.createdAt.toISOString() })),
-      profile: await serializeProfile(ctx.user, true),
+      profile: await serializeProfile(db, ctx.user, true),
       datasets: {
         habitats, observations: observationsRows, communityPosts: community,
         mediaAssets: media.map(item => ({ ...item, storageKey: undefined, accessUrl: undefined })),
@@ -167,7 +191,7 @@ export const profileRouter = router({
       ownerStatus: rows[0].status,
       visibility: rows[0].profileVisibility,
     })
-      ? serializeProfile(rows[0], false)
+      ? serializeProfile(db, rows[0], false)
       : null;
   }),
 
@@ -225,7 +249,28 @@ export const profileRouter = router({
       await db.update(users).set(input).where(eq(users.id, ctx.user.id));
       const updated = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
       if (!updated[0]) throw new TRPCError({ code: "NOT_FOUND", message: "profile_not_found" });
-      return serializeProfile(updated[0], true);
+      return serializeProfile(db, updated[0], true);
+    }),
+
+  replaceSocialAccounts: protectedProcedure
+    .input(z.object({ accounts: z.array(socialAccountSchema).max(12) }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await requireDatabase();
+      await db.transaction(async tx => {
+        await tx.delete(profileSocialAccounts).where(eq(profileSocialAccounts.userId, ctx.user.id));
+        if (input.accounts.length) {
+          await tx.insert(profileSocialAccounts).values(input.accounts.map((account, position) => ({
+            userId: ctx.user.id,
+            platform: account.platform,
+            label: account.label,
+            url: account.url,
+            position,
+          })));
+        }
+      });
+      const updated = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!updated[0]) throw new TRPCError({ code: "NOT_FOUND", message: "profile_not_found" });
+      return serializeProfile(db, updated[0], true);
     }),
 
   closeAccount: protectedProcedure

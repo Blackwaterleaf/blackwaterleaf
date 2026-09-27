@@ -27,6 +27,17 @@ describe("profile settings navigation", () => {
     for (const token of ['eq(users.profileVisibility, "public")', "publicPosts: publicProcedure"]) expect(router).toContain(token);
   });
 
+  it("lets each member safely manage multiple external public profiles", () => {
+    const profile = source("client/src/pages/Profile.tsx");
+    const publicProfile = source("client/src/pages/PublicProfile.tsx");
+    const router = source("server/routers/profile.ts");
+    const schema = source("drizzle/schema.ts");
+    for (const token of ["VERKNÜPFTE PROFILE", "PROFIL HINZUFÜGEN", "replaceSocialAccounts", "https://…"]) expect(profile).toContain(token);
+    for (const token of ["public-profile-external-links", "ExternalSocialIcon", "target=\"_blank\""]) expect(publicProfile).toContain(token);
+    for (const token of ["profileSocialAccounts", "replaceSocialAccounts: protectedProcedure", "social_url_https_required"]) expect(router).toContain(token);
+    expect(schema).toContain('"profile_social_accounts"');
+  });
+
   it("does not reintroduce the repeated six-row chooser", () => {
     const home = source("client/src/pages/ProfileHome.tsx");
     const profile = source("client/src/pages/Profile.tsx");

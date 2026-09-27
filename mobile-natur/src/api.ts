@@ -234,6 +234,13 @@ export type KnowledgeArticle = {
   evidenceState: string;
   sources: Array<{ label: string; url: string }>;
 };
+export type ProfileSocialAccount = {
+  id: string;
+  platform: "instagram" | "tiktok" | "youtube" | "facebook" | "website";
+  label: string;
+  url: string;
+  position: number;
+};
 export type Account = {
   id: number;
   name: string | null;
@@ -242,6 +249,7 @@ export type Account = {
   bio?: string | null;
   avatarUrl?: string | null;
   socialLinks?: Record<string, string | null>;
+  socialAccounts?: ProfileSocialAccount[];
   role: "user" | "moderator" | "admin";
   status: string;
   locale?: "de" | "en" | "zh-CN" | "es" | "fr";
@@ -521,6 +529,10 @@ export const updateProfile = (
   token: string,
   input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }
 ) => trpcPost<Account>("profile.update", input, token);
+export const replaceProfileSocialAccounts = (
+  token: string,
+  accounts: Array<Pick<ProfileSocialAccount, "platform" | "label" | "url">>,
+) => trpcPost<Account>("profile.replaceSocialAccounts", { accounts }, token);
 export const uploadProfileAvatar = (
   token: string,
   input: { base64: string; mimeType: string }

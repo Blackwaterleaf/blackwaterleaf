@@ -120,3 +120,11 @@ Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der 
 - Die Bereichsauswahl ist verbindlich getrennt: reguläre Konten wählen **Botanik**, **Aquaristik** oder **Terraristik**; nur serverseitig als Admin erkannte Konten erhalten **Alle Feeds · Admin**. Öffentliche Community-Veröffentlichung ist wieder aktiv, bleibt aber an Einwilligung, Content-Policy und Moderation gebunden.
 - Folgen, Entfolgen, Follower- und Folge-ich-Listen verwenden Web und Native über denselben `social.*`-Vertrag. Nach einer Aktion lädt Native den aktuellen Beziehungsstatus erneut vom Server, damit der Zustand nicht nur lokal angezeigt wird.
 - Kopfaktionen haben ein einheitliches 40×40-Raster. Profilmenü-Karten richten Icon und Text horizontal aus; alle fünf Icons haben 21 px und dieselbe linke Achse. Diese Regel verhindert Überlappung und ungleich große Aktionen auf kleinen Android-Geräten.
+
+
+## 15.44 Social-Profile · Mehrere Konten und offizielle Links (2026-09-27)
+
+- Ein Mitglied kann im Profil mehrere öffentliche **Instagram-, TikTok-, YouTube-, Facebook- oder Website-Links** mit eigener Bezeichnung verwalten. Es werden nur `https`-URLs gespeichert; niemals Zugangsdaten, Tokens oder fremde Kontoberechtigungen.
+- Web und Native bieten denselben speicherbaren Mehrfach-Link-Vertrag. Im öffentlichen Profil erscheinen diese Links erst, wenn das Profil über die bestehende Sichtbarkeitsfreigabe öffentlich ist. Private Anlagen, Nachrichten, Standorte und unveröffentlichte Inhalte bleiben davon getrennt.
+- Die offiziellen Profile sind im Impressum und im offiziellen BlackWaterLeaf-Profil sichtbar: **Instagram BlackWaterLeaf**, **Instagram House of Channa**, **TikTok BlackWaterLeaf** und **TikTok Channa World One**. Externe Links öffnen immer in einem neuen Webkontext und sind klar als externe Profile markiert.
+- Kleine Android- und mobile Web-Ansichten verwenden einspaltige Linkkarten mit 36–40 px Touchflächen, vollständigen Labels und sichtbarer Plattformkennzeichnung; der Editor verzichtet auf dichte, überlappende Steuerelemente.

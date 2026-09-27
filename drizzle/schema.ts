@@ -46,6 +46,27 @@ export const users = mysqlTable(
   table => [uniqueIndex("users_username_unique").on(table.username), index("users_status_idx").on(table.status)],
 );
 
+/** Public external profiles chosen by a member; no third-party credentials are stored. */
+export const profileSocialAccounts = mysqlTable(
+  "profile_social_accounts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId")
+      .notNull()
+      .references(() => users.id),
+    platform: mysqlEnum("platform", ["instagram", "tiktok", "youtube", "facebook", "website"]).notNull(),
+    label: varchar("label", { length: 80 }).notNull(),
+    url: varchar("url", { length: 255 }).notNull(),
+    position: int("position").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("profile_social_accounts_user_url_unique").on(table.userId, table.url),
+    index("profile_social_accounts_user_position_idx").on(table.userId, table.position),
+  ],
+);
+
 /** Additional capabilities; the legacy users.role remains the primary backward-compatible role. */
 export const userRoles = mysqlTable(
   "user_roles",

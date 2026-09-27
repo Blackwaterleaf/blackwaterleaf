@@ -1,6 +1,13 @@
-import { Building2, Mail, Phone, ShieldCheck } from "lucide-react";
+import { Building2, ExternalLink, Instagram, Mail, Music2, Phone, ShieldCheck } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { CONTACTS } from "@/lib/contact";
+
+const OFFICIAL_SOCIAL_PROFILES = [
+  { platform: "Instagram", label: "BlackWaterLeaf", href: "https://www.instagram.com/blackwaterleaf/", icon: Instagram },
+  { platform: "Instagram", label: "House of Channa", href: "https://www.instagram.com/house.of.channa/", icon: Instagram },
+  { platform: "TikTok", label: "BlackWaterLeaf", href: "https://www.tiktok.com/@blackwaterleaf", icon: Music2 },
+  { platform: "TikTok", label: "Channa World One", href: "https://www.tiktok.com/@channaworldone", icon: Music2 },
+] as const;
 
 export default function Legal() {
   const [location] = useLocation();
@@ -28,6 +35,11 @@ export default function Legal() {
             <a href={CONTACTS.imprint.href}><Mail size={16} />{CONTACTS.imprint.email}</a>
             <a href={CONTACTS.imprint.phoneHref}><Phone size={16} />{CONTACTS.imprint.phone}</a>
             <a href={CONTACTS.business.href}><Mail size={16} />Geschäftlich: {CONTACTS.business.email}</a>
+          </article>
+          <article className="observatory-data-panel legal-card legal-social-card">
+            <h2>Offizielle Profile</h2>
+            <p>Aktuelle Einblicke von BlackWaterLeaf und House of Channa.</p>
+            {OFFICIAL_SOCIAL_PROFILES.map(({ platform, label, href, icon: Icon }) => <a key={href} href={href} target="_blank" rel="noreferrer noopener"><Icon size={16} /><span>{platform} · {label}</span><ExternalLink size={14} /></a>)}
           </article>
         </section>
         <LegalBackLinks />

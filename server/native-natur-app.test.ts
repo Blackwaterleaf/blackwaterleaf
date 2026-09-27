@@ -89,6 +89,11 @@ describe("BlackWaterLeaf native application contract", () => {
     for (const token of ["socialRelationship", "followProfile", "unfollowProfile", "socialFollowers", "socialFollowing", "setRelationship(await socialRelationship(token, profileId))", "NICHT MEHR FOLGEN", "FOLGEN"]) expect(`${api}\n${app}`).toContain(token);
   });
 
+  it("keeps multi-account social profile links editable and publicly openable", () => {
+    for (const token of ["replaceProfileSocialAccounts", "ProfileSocialAccount", "profile.replaceSocialAccounts"]) expect(api).toContain(token);
+    for (const token of ["VERKNÜPFTE PROFILE", "profileSocialEditorNative", "saveNativeSocialAccounts", "NativePublicExternalProfiles", "profile.socialAccounts ?? []"]) expect(app).toContain(token);
+  });
+
   it("uses symmetrical header and profile-menu icon layout", () => {
     for (const token of ["headerAction: {", "width: 40", "height: 40", "nativeProfileMenuItem: {", 'flexDirection: "row"', "size={21}"]) expect(app).toContain(token);
   });
