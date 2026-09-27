@@ -35,4 +35,15 @@ describe("Free / Pro monetization contract", () => {
     expect(proPage).toContain("trpc.billing.history.useQuery");
     expect(proPage).toContain("DEINE CREDIT-KÄUFE");
   });
+
+  it("confirms paid checkout sessions before showing credited credits", () => {
+    const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
+    const billing = readFileSync(resolve(process.cwd(), "server/routers/billing.ts"), "utf8");
+    const proPage = readFileSync(resolve(process.cwd(), "client/src/pages/Pro.tsx"), "utf8");
+    expect(stripe).toContain("getCheckoutConfirmation");
+    expect(stripe).toContain('session.payment_status === "paid"');
+    expect(billing).toContain("checkoutConfirmation: protectedProcedure");
+    expect(proPage).toContain("Credits gutgeschrieben");
+    expect(proPage).toContain("STRIPE · ZAHLUNG BESTÄTIGT");
+  });
 });

@@ -1,18 +1,28 @@
 import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Check, Coins, LockKeyhole, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Check, CheckCircle2, Coins, LockKeyhole, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Pro() {
   const auth = useAuth();
   const plans = trpc.billing.plans.useQuery();
   const membership = trpc.billing.me.useQuery(undefined, { enabled: auth.isAuthenticated });
   const history = trpc.billing.history.useQuery(undefined, { enabled: auth.isAuthenticated });
+  const checkoutSuccess = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("checkout") === "success";
+  const checkoutSessionId = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("session_id") : null;
+  const checkoutConfirmation = trpc.billing.checkoutConfirmation.useQuery({ sessionId: checkoutSessionId ?? "" }, { enabled: auth.isAuthenticated && checkoutSuccess && Boolean(checkoutSessionId), retry: 2, refetchOnWindowFocus: false });
   const checkout = trpc.billing.createCheckout.useMutation();
+  const utils = trpc.useUtils();
   const [notice, setNotice] = useState<string | null>(null);
   const pro = plans.data?.pro;
   const credits = plans.data?.creditPacks ?? [];
+
+  useEffect(() => {
+    if (!checkoutConfirmation.data?.credited) return;
+    void utils.billing.me.invalidate();
+    void utils.billing.history.invalidate();
+  }, [checkoutConfirmation.data?.credited, utils]);
 
   const startCheckout = async (kind: "credits" | "pro_monthly" | "pro_yearly", packKey?: string) => {
     setNotice(null);
@@ -34,6 +44,15 @@ export default function Pro() {
       <div><span className="eyebrow">DEIN STATUS</span><h2>{active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</h2><p>{membership.data ? `${membership.data.freeIdentificationsRemaining} kostenlose Pflanzenbestimmungen heute · ${membership.data.aiCredits} KI-Credits verfügbar` : "Kontingent wird geladen …"}</p></div>
       <span className="system-chip"><LockKeyhole size={13} /> {membership.data?.paymentReady ? "Zahlung sicher verfügbar" : "Zahlung wird vorbereitet"}</span>
     </section>
+    {checkoutSuccess && checkoutSessionId ? <section className={`pro-checkout-success observatory-data-panel ${checkoutConfirmation.isError ? "pro-checkout-success--error" : ""}`} role="status" aria-live="polite">
+      <div className="pro-checkout-success__icon"><CheckCircle2 size={24} /></div>
+      <div className="pro-checkout-success__copy">
+        <span className="eyebrow">STRIPE · ZAHLUNG BESTÄTIGT</span>
+        <h2>{checkoutConfirmation.data?.credited ? `${checkoutConfirmation.data.credits} Credits gutgeschrieben` : checkoutConfirmation.isError ? "Gutschrift konnte nicht geprüft werden" : "Credits werden gutgeschrieben …"}</h2>
+        <p>{checkoutConfirmation.data?.credited ? `Deine ${checkoutConfirmation.data.credits} KI-Bestimmungen sind jetzt in deinem Konto verfügbar. Die Kaufhistorie wurde aktualisiert.` : checkoutConfirmation.isError ? "Bitte lade die Seite erneut oder prüfe deine Kaufhistorie. Es wurde nichts doppelt berechnet." : "Deine Zahlung ist bestätigt. Die sichere serverseitige Gutschrift wird gerade abgeschlossen."}</p>
+      </div>
+      {checkoutConfirmation.data?.credited ? <span className="system-chip">ERFOLGREICH</span> : null}
+    </section> : null}
     <section className="pro-page__credit-panel observatory-data-panel">
       <div><span className="eyebrow">KI-BESTIMMUNGEN</span><h2>Credits nach Bedarf</h2><p>Das kostenlose Tageskontingent bleibt erhalten. Gekaufte Credits verfallen nicht und werden erst nach erfolgreicher Stripe-Zahlung gutgeschrieben.</p></div>
       <div className="pro-credit-grid">{credits.map(pack => <article className="pro-credit-card" key={pack.key}><Coins size={18} /><strong>{pack.credits}</strong><span>Bestimmungen</span><b>€{pack.priceEur.toFixed(2).replace(".", ",")}</b><button className="primary-action" type="button" disabled={checkout.isPending || membership.data?.paymentReady === false} onClick={() => void startCheckout("credits", pack.key)}>CREDITS KAUFEN</button></article>)}</div>

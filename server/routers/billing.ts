@@ -3,7 +3,7 @@ import { z } from "zod";
 import { aiCreditPurchases, aiCreditWallets, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, billingAccounts } from "../../drizzle/schema";
 import { AI_CREDIT_PACKS, DEFAULT_FREE_DAILY_IDENTIFICATIONS, DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS, DEFAULT_PRO_MONTHLY_IDENTIFICATIONS, FREE_FEATURES, PRO_FEATURES, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { getDb } from "../db";
-import { createCheckoutSession } from "../stripe";
+import { createCheckoutSession, getCheckoutConfirmation } from "../stripe";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 
@@ -66,6 +66,16 @@ export const billingRouter = router({
       .where(eq(aiCreditPurchases.userId, ctx.user.id))
       .orderBy(desc(aiCreditPurchases.createdAt))
       .limit(50);
+  }),
+
+  checkoutConfirmation: protectedProcedure.input(z.object({ sessionId: z.string().min(1).max(200) })).query(async ({ ctx, input }) => {
+    try {
+      return await getCheckoutConfirmation({ userId: ctx.user.id, sessionId: input.sessionId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "checkout_confirmation_failed";
+      if (message === "checkout_session_invalid" || message === "checkout_session_forbidden") throw new TRPCError({ code: "FORBIDDEN", message });
+      throw new TRPCError({ code: "BAD_GATEWAY", message: "checkout_confirmation_failed" });
+    }
   }),
 
   createCheckout: protectedProcedure.input(checkoutInput).mutation(async ({ ctx, input }) => {

@@ -31,6 +31,17 @@ async function stripeRequest(path: string, params: URLSearchParams) {
   return body;
 }
 
+async function retrieveCheckoutSession(sessionId: string) {
+  const secret = stripeSecret();
+  if (!secret) throw new Error("payments_not_configured");
+  const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, {
+    headers: { Authorization: `Bearer ${secret}` },
+  });
+  const body = await response.json() as StripeObject;
+  if (!response.ok) throw new Error(typeof body.error === "object" && body.error && "message" in body.error ? String(body.error.message) : "stripe_session_lookup_failed");
+  return body;
+}
+
 export async function createCheckoutSession(input: { userId: number; email: string | null; name: string | null; kind: CheckoutKind; packKey?: AiCreditPackKey; req: Request }) {
   const origin = appOrigin(input.req);
   const params = new URLSearchParams();
@@ -98,6 +109,36 @@ async function completeCreditPurchase(session: StripeObject) {
     await tx.insert(aiCreditWallets).values({ userId, credits: pack.credits }).onDuplicateKeyUpdate({ set: { credits: sql`${aiCreditWallets.credits} + ${pack.credits}` } });
     await tx.update(aiCreditPurchases).set({ status: "completed", completedAt: new Date() }).where(eq(aiCreditPurchases.stripeCheckoutSessionId, sessionId));
   });
+}
+
+export async function getCheckoutConfirmation(input: { userId: number; sessionId: string }) {
+  if (!/^cs_[A-Za-z0-9_]+$/.test(input.sessionId)) throw new Error("checkout_session_invalid");
+  const session = await retrieveCheckoutSession(input.sessionId);
+  const metadata = (session.metadata as StripeObject | undefined) ?? {};
+  const sessionUserId = Number(metadata.user_id ?? session.client_reference_id);
+  if (!Number.isInteger(sessionUserId) || sessionUserId !== input.userId) throw new Error("checkout_session_forbidden");
+
+  const packKey = String(metadata.pack_key ?? "");
+  const pack = AI_CREDIT_PACKS.find(item => item.key === packKey);
+  const paid = session.mode === "payment" && session.status === "complete" && session.payment_status === "paid" && Boolean(pack);
+  if (paid) await completeCreditPurchase(session);
+
+  const db = await getDb();
+  const [purchase] = db
+    ? await db.select({ status: aiCreditPurchases.status, completedAt: aiCreditPurchases.completedAt })
+      .from(aiCreditPurchases)
+      .where(and(eq(aiCreditPurchases.userId, input.userId), eq(aiCreditPurchases.stripeCheckoutSessionId, input.sessionId)))
+      .limit(1)
+    : [];
+
+  return {
+    sessionId: input.sessionId,
+    paid,
+    credited: purchase?.status === "completed",
+    credits: pack?.credits ?? 0,
+    packLabel: pack?.label ?? "KI-Credits",
+    completedAt: purchase?.completedAt ?? null,
+  };
 }
 
 async function syncSubscription(session: StripeObject) {
