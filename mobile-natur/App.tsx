@@ -60,6 +60,11 @@ import {
   adminUpdateFeedback,
   adminPartnerInquiryQueue,
   adminUpdatePartnerInquiry,
+  adminAccounts,
+  adminSetAccountPro,
+  adminSetAccountStatus,
+  adminPublicPosts,
+  adminSetPublicPostStatus,
   addCommunityComment,
   updateCommunityComment,
   deleteCommunityComment,
@@ -162,6 +167,8 @@ import {
   type NativeNotification,
   type NativeAdminFeedback,
   type NativeAdminPartnerInquiry,
+  type NativeAdminAccount,
+  type NativeAdminPublicPost,
   type NativeAnalyticsOverview,
   type PlatformAvailability,
   type ProfileConsent,
@@ -587,6 +594,8 @@ function NaturApp() {
   const [analytics, setAnalytics] = useState<NativeAnalyticsOverview | null>(null);
   const [adminFeedback, setAdminFeedback] = useState<NativeAdminFeedback[]>([]);
   const [adminPartnerInquiries, setAdminPartnerInquiries] = useState<NativeAdminPartnerInquiry[]>([]);
+  const [adminAccountsRows, setAdminAccountsRows] = useState<NativeAdminAccount[]>([]);
+  const [adminPublicPostRows, setAdminPublicPostRows] = useState<NativeAdminPublicPost[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
@@ -684,10 +693,21 @@ function NaturApp() {
         } else setDirectThread([]);
       }
       if (screen === "dashboard" && token) {
-        const [dashboardAnalytics, feedbackQueue, partnerQueue] = await Promise.all([analyticsOverview(token, 7), adminFeedbackQueue(token), adminPartnerInquiryQueue(token)]);
-        setAnalytics(dashboardAnalytics);
-        setAdminFeedback(feedbackQueue);
-        setAdminPartnerInquiries(partnerQueue);
+        // One unavailable inbox must not blank the complete Host dashboard.
+        const [dashboardAnalytics, feedbackQueue, partnerQueue, accountsQueue, postsQueue] = await Promise.allSettled([
+          analyticsOverview(token, 7),
+          adminFeedbackQueue(token),
+          adminPartnerInquiryQueue(token),
+          adminAccounts(token),
+          adminPublicPosts(token),
+        ]);
+        if (dashboardAnalytics.status === "fulfilled") setAnalytics(dashboardAnalytics.value);
+        if (feedbackQueue.status === "fulfilled") setAdminFeedback(feedbackQueue.value);
+        if (partnerQueue.status === "fulfilled") setAdminPartnerInquiries(partnerQueue.value);
+        if (accountsQueue.status === "fulfilled") setAdminAccountsRows(accountsQueue.value);
+        if (postsQueue.status === "fulfilled") setAdminPublicPostRows(postsQueue.value);
+        const failed = [dashboardAnalytics, feedbackQueue, partnerQueue, accountsQueue, postsQueue].filter(item => item.status === "rejected");
+        if (failed.length === 3) throw new Error("Host-Dashboard konnte nicht geladen werden.");
       }
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
@@ -1192,6 +1212,8 @@ function NaturApp() {
             analytics={analytics}
             adminFeedback={adminFeedback}
             adminPartnerInquiries={adminPartnerInquiries}
+            adminAccounts={adminAccountsRows}
+            adminPublicPosts={adminPublicPostRows}
             state={state}
             error={error}
             refresh={loadScreen}
@@ -2732,10 +2754,10 @@ function PostScreen({
   useEffect(() => {
     if (!postImage) { setEstimatedPostBytes(null); return; }
     let active = true;
-    const maxDimension = 4096;
+    const maxDimension = 3200;
     const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
     const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
-    void ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.86), format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
+    void ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.82), format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
     return () => { active = false; };
   }, [postImage, postQuality]);
   useEffect(() => {
@@ -2765,8 +2787,8 @@ function PostScreen({
     const rawMimeType = asset.mimeType?.toLowerCase();
     const mimeType = rawMimeType === "image/png" || rawMimeType === "image/webp" ? rawMimeType : "image/jpeg";
     const fileSize = typeof asset.fileSize === "number" ? asset.fileSize : null;
-    if (fileSize !== null && fileSize > 24 * 1024 * 1024) {
-      Alert.alert("Bild zu groß", "Bitte wähle ein Bild mit maximal 24 MB. Du kannst das Bild vor dem Upload zuschneiden.");
+    if (fileSize !== null && fileSize > 32 * 1024 * 1024) {
+      Alert.alert("Bild zu groß", "Bitte wähle ein Bild mit maximal 32 MB. Du kannst das Bild vor dem Upload zuschneiden.");
       return;
     }
     setPostAspect(requestedAspect);
@@ -2814,6 +2836,15 @@ function PostScreen({
           policyVersion: "native-1.0.4",
           granted: true,
         });
+      // Host media uses the same secure upload pipeline, then becomes public in
+      // the explicitly selected feed (or all feeds) just like the web app.
+      const shouldPublish = publishNow || (isAdmin && Boolean(postImage || postVideo));
+      if (shouldPublish)
+        await setProfileConsent(token, {
+          purpose: "community_publishing",
+          policyVersion: "native-1.0.8",
+          granted: true,
+        });
       const draft = await createCommunityDraft(token, {
         content: content.trim(),
         realm: adminAllFeeds ? null : realm,
@@ -2821,10 +2852,10 @@ function PostScreen({
       if (postImage) {
         const isLargeImage = Boolean(postImage.fileSize && postImage.fileSize >= 5 * 1024 * 1024);
         setUploadProgress({ percent: 32, phase: "processing", label: "BILD WIRD FÜR DEN UPLOAD AUFBEREITET", detail: isLargeImage ? "Großes Bild erkannt – Qualität und Format werden sicher optimiert." : "Format und Qualität werden für den sicheren Transport geprüft." });
-        const maxDimension = 4096;
+        const maxDimension = 3200;
         const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
         const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
-        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.86), format: ImageManipulator.SaveFormat.JPEG, base64: true });
+        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.82), format: ImageManipulator.SaveFormat.JPEG, base64: true });
         if (!prepared.base64) throw new Error("image_read_failed");
         setUploadProgress({ percent: 65, phase: "transfer", label: "BILD WIRD SICHER HOCHGELADEN", detail: isLargeImage ? "Große Bilder können je nach Verbindung etwas länger übertragen werden. Bitte die App geöffnet lassen." : "Verschlüsselte Übertragung an den geschützten Medienserver läuft." });
         stopTransferPulse = pulseNativeTransferProgress(65);
@@ -2839,8 +2870,8 @@ function PostScreen({
         await uploadCommunityDraftVideo(token, { postId: Number(draft.id), base64, mimeType: postVideo.mimeType });
         stopTransferPulse(); stopTransferPulse = null;
       }
-      if (publishNow) {
-        setUploadProgress({ percent: 90, phase: "publishing", label: "BEITRAG WIRD VERÖFFENTLICHT", detail: "Sichtbarkeit und gewählter Ziel-Feed werden abschließend gesetzt." });
+      if (shouldPublish) {
+        setUploadProgress({ percent: 90, phase: "publishing", label: "BEITRAG WIRD VERÖFFENTLICHT", detail: isAdmin ? `Admin-Beitrag wird ${adminAllFeeds ? "an alle Feeds" : "an den gewählten Feed"} veröffentlicht.` : "Sichtbarkeit und gewählter Ziel-Feed werden abschließend gesetzt." });
         await publishCommunityDraft(token, { postId: Number(draft.id) });
       }
       setUploadProgress({ percent: 100, phase: "complete", label: "UPLOAD ABGESCHLOSSEN", detail: "Bild und Beitrag wurden sicher gespeichert." });
@@ -2857,8 +2888,8 @@ function PostScreen({
       setPublishNow(false);
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
       setStatus(
-        publishNow
-          ? `Beitrag öffentlich veröffentlicht${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
+        shouldPublish
+          ? `${isAdmin ? "Admin-Beitrag öffentlich veröffentlicht" : "Beitrag öffentlich veröffentlicht"}${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
           : `Privater Entwurf sicher hochgeladen${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`
       );
     } catch (cause) {
@@ -2978,7 +3009,7 @@ function PostScreen({
               <Image source={{ uri: postImage.uri }} style={[styles.communityMediaPreview, postAspect === "9:16" ? { aspectRatio: 9 / 16 } : postAspect === "4:5" ? { aspectRatio: 4 / 5 } : postAspect === "1:1" ? { aspectRatio: 1 } : postAspect === "16:9" ? { aspectRatio: 16 / 9 } : null]} />
               <View style={styles.communityMediaMeta}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>BILD BEREIT</Text><Text style={styles.miniCopy}>{postImage.fileSize ? `${Math.ceil(postImage.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Bild entfernen" onPress={() => { setPostImage(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View>
               <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><View style={styles.mediaAspectEditorNative}><Text style={[styles.chip, { color: tone.accent }]}>FORMAT VOR DEM UPLOAD</Text>{(["original", "9:16", "4:5", "1:1", "16:9"] as const).map(aspect => <Pressable key={aspect} onPress={() => { setPostAspect(aspect); void choosePostImage(aspect); }} style={[styles.mediaAspectOptionNative, { borderColor: postAspect === aspect ? tone.accent : `${tone.accent}55`, backgroundColor: postAspect === aspect ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: postAspect === aspect ? tone.accent : c.muted }]}>{aspect === "original" ? "Original" : aspect}</Text></Pressable>)}</View><View style={styles.mediaQualityNative}><View style={styles.careSectionHeader}><Text style={[styles.chip, { color: tone.accent }]}>BILDQUALITÄT {postQuality}%</Text><Text style={styles.miniCopy}>{estimatedPostBytes === null ? "Berechne …" : `ca. ${(estimatedPostBytes / 1024 / 1024).toFixed(2)} MB · Original ${postImage?.fileSize ? (postImage.fileSize / 1024 / 1024).toFixed(2) : "—"} MB`}</Text></View><Slider minimumValue={50} maximumValue={100} step={1} value={postQuality} onValueChange={value => setPostQuality(Math.round(value))} minimumTrackTintColor={tone.accent} maximumTrackTintColor={`${tone.accent}44`} thumbTintColor={tone.accent} accessibilityLabel="Bildqualität" /></View><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>Das Medium bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
-            </> : postVideo ? <><View style={[styles.communityMediaMeta, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>VIDEO BEREIT</Text><Text style={styles.miniCopy}>{postVideo.fileSize ? `${Math.ceil(postVideo.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Video entfernen" onPress={() => { setPostVideo(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View><View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>MP4 oder WebM bis 16 MB. Das Video bleibt privat, bis du veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View></> : <View style={styles.communityMediaPickerRow}><Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 24 MB · hohe Qualität · 9:16 möglich</Text></View></Pressable><Pressable accessibilityLabel="Video für Community-Beitrag auswählen" onPress={() => void choosePostVideo()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="videocam-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>VIDEO</Text><Text style={styles.copy}>MP4/WebM bis 16 MB</Text></View></Pressable></View>}
+            </> : postVideo ? <><View style={[styles.communityMediaMeta, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>VIDEO BEREIT</Text><Text style={styles.miniCopy}>{postVideo.fileSize ? `${Math.ceil(postVideo.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Video entfernen" onPress={() => { setPostVideo(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View><View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>MP4 oder WebM bis 16 MB. Das Video bleibt privat, bis du veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View></> : <View style={styles.communityMediaPickerRow}><Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 32 MB · hohe Qualität · 9:16 möglich</Text></View></Pressable><Pressable accessibilityLabel="Video für Community-Beitrag auswählen" onPress={() => void choosePostVideo()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="videocam-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>VIDEO</Text><Text style={styles.copy}>MP4/WebM bis 16 MB</Text></View></Pressable></View>}
           </View> : null}
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
             <View style={styles.flex}>
@@ -3438,7 +3469,7 @@ function NotificationsScreen({ tone, token, notifications, state, error, refresh
   </Page>;
 }
 
-function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback, adminPartnerInquiries, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; adminFeedback: NativeAdminFeedback[]; adminPartnerInquiries: NativeAdminPartnerInquiry[]; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
+function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback, adminPartnerInquiries, adminAccounts, adminPublicPosts, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; adminFeedback: NativeAdminFeedback[]; adminPartnerInquiries: NativeAdminPartnerInquiry[]; adminAccounts: NativeAdminAccount[]; adminPublicPosts: NativeAdminPublicPost[]; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
   const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
   if (!token) return <Page><PrivateFeature tone={tone} title="DASHBOARD GESCHÜTZT" text="Melde dich mit dem Eigentümerkonto an, um aggregierte Reichweitenzahlen zu sehen." onSignIn={onSignIn} /></Page>;
   if (!isOwner) return <Page><StatusPanel tone={tone} icon="shield-checkmark-outline" code="OWNER_ONLY" title="KEIN ZUGRIFF" text="Dieses Dashboard ist ausschließlich für das serverseitig geprüfte BlackWaterLeaf-Eigentümerkonto freigegeben." /></Page>;
@@ -3458,10 +3489,22 @@ function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback,
       <View style={[styles.dashboardChart, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>TOP-SEITEN</Text>{analytics.popularPages.length ? analytics.popularPages.slice(0, 6).map(row => <View key={row.label} style={styles.dashboardChartRow}><View style={styles.dashboardChartLabel}><Text style={styles.miniCopy} numberOfLines={1}>{row.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{row.value}</Text></View><View style={styles.dashboardBarTrack}><View style={[styles.dashboardBar, { width: `${Math.max(4, Math.round((row.value / maxPage) * 100))}%`, backgroundColor: tone.accent }]} /></View></View>) : <Text style={styles.copy}>Noch keine Seitenwerte vorhanden.</Text>}</View>
       <View style={[styles.dashboardPrivacy, { borderColor: `${tone.accent}55` }]}><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>Automatisch anonym und aggregiert. Live-Zuschauerzahlen bleiben getrennt und werden erst bei Freischaltung aktiviert.</Text></View>
       <NativeAdminInbox tone={tone} token={token} feedback={adminFeedback} inquiries={adminPartnerInquiries} onRefresh={refresh} />
+      <NativeHostControls tone={tone} token={token} accounts={adminAccounts} posts={adminPublicPosts} onRefresh={refresh} />
     </>}
   </Page>;
 }
 
+function NativeHostControls({ tone, token, accounts, posts, onRefresh }: { tone: Tone; token: string; accounts: NativeAdminAccount[]; posts: NativeAdminPublicPost[]; onRefresh: () => Promise<void> }) {
+  const changePro = async (item: NativeAdminAccount) => { try { await adminSetAccountPro(token, { id: item.id, active: !item.proAccess.active }); await onRefresh(); } catch (e) { Alert.alert("Abo nicht geändert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  const changeStatus = async (item: NativeAdminAccount) => { const status = item.status === "active" ? "suspended" : "active"; try { await adminSetAccountStatus(token, { id: item.id, status }); await onRefresh(); } catch (e) { Alert.alert("Status nicht geändert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  const hidePost = async (item: NativeAdminPublicPost) => { try { await adminSetPublicPostStatus(token, { id: item.id, status: "hidden" }); await onRefresh(); } catch (e) { Alert.alert("Beitrag nicht moderiert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  return <View style={{ gap: 12, marginTop: 12 }}>
+    <SectionLabel tone={tone} overline="HOST · KONTEN" title="ABO & FREIE RECHTE VERWALTEN" />
+    {accounts.slice(0, 100).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.cardTitle}>{item.name ?? item.username ?? `Konto #${item.id}`}</Text><Text style={styles.miniCopy}>{item.email ?? "Keine E-Mail"} · {item.role.toUpperCase()} · {item.status.toUpperCase()}</Text><Text style={[styles.miniCopy, { color: item.proAccess.active ? tone.accent : c.muted }]}>{item.proAccess.active ? `FULL ABO · ${item.proAccess.source === "admin" ? "ADMIN" : "FREIGEGEBEN"}` : item.proAccess.forcedFree ? "FREE · ERZWUNGEN" : "FREE"}</Text><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label={item.proAccess.active ? "FREE SETZEN" : "FULL ABO"} icon={item.proAccess.active ? "remove-circle-outline" : "sparkles-outline"} onPress={() => void changePro(item)} />{item.id !== Number(item.id) ? null : <SecondaryButton tone={tone} label={item.status === "active" ? "PAUSIEREN" : "AKTIVIEREN"} icon={item.status === "active" ? "pause-outline" : "play-outline"} onPress={() => void changeStatus(item)} />}</View></View>)}
+    <SectionLabel tone={tone} overline="HOST · MODERATION" title="ÖFFENTLICHE BEITRÄGE" />
+    {posts.slice(0, 50).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.miniCopy}>#{item.id} · {item.realm?.toUpperCase() ?? "ALLE FEEDS"} · {item.status.toUpperCase()}</Text><Text style={styles.cardTitle} numberOfLines={3}>{item.content}</Text>{item.status === "published" ? <SecondaryButton tone={tone} label="AUSBLENDEN" icon="eye-off-outline" onPress={() => void hidePost(item)} /> : null}</View>)}
+  </View>;
+}
 function statusLabel(status: string) { return ({ received: "EINGEGANGEN", reviewing: "IN PRÜFUNG", resolved: "ERLEDIGT", accepted: "ANGENOMMEN", declined: "ABGELEHNT" } as Record<string, string>)[status] ?? status.toUpperCase(); }
 function nextFeedbackStatus(status: NativeAdminFeedback["status"]): NativeAdminFeedback["status"] { return ({ received: "reviewing", reviewing: "resolved", resolved: "received" } as const)[status]; }
 function nextPartnerStatus(status: NativeAdminPartnerInquiry["status"]): NativeAdminPartnerInquiry["status"] { return ({ received: "reviewing", reviewing: "accepted", accepted: "declined", declined: "received" } as const)[status]; }
@@ -3837,7 +3880,28 @@ function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn, onOpenP
   const [state, setState] = useState<State>("loading");
   const [busy, setBusy] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
-  useEffect(() => { let active = true; setState("loading"); void Promise.all([publicProfile(profileId), socialRelationship(token, profileId), publicProfilePosts(profileId), socialFollowers(token, profileId), socialFollowing(token, profileId)]).then(([nextProfile, nextRelationship, nextPosts, nextFollowers, nextFollowing]) => { if (active) { setProfile(nextProfile); setRelationship(nextRelationship); setPosts(nextPosts); setFollowers(nextFollowers); setFollowing(nextFollowing); setState(nextProfile ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [profileId, token]);
+  useEffect(() => {
+    let active = true;
+    setState("loading");
+    void Promise.allSettled([
+      publicProfile(profileId),
+      socialRelationship(token, profileId),
+      publicProfilePosts(profileId),
+      socialFollowers(token, profileId),
+      socialFollowing(token, profileId),
+    ]).then(results => {
+      if (!active) return;
+      const [nextProfile, nextRelationship, nextPosts, nextFollowers, nextFollowing] = results;
+      if (nextProfile.status === "fulfilled") setProfile(nextProfile.value);
+      if (nextRelationship.status === "fulfilled") setRelationship(nextRelationship.value);
+      if (nextPosts.status === "fulfilled") setPosts(nextPosts.value);
+      if (nextFollowers.status === "fulfilled") setFollowers(nextFollowers.value);
+      if (nextFollowing.status === "fulfilled") setFollowing(nextFollowing.value);
+      // A temporary friends-list failure must not turn an otherwise public profile into "private".
+      setState(nextProfile.status === "fulfilled" && nextProfile.value ? "ready" : "error");
+    });
+    return () => { active = false; };
+  }, [profileId, token]);
   const toggleFollow = async () => { if (!token) { await onSignIn(); return; } setBusy(true); try { if (relationship?.isFollowing) await unfollowProfile(token, profileId); else await followProfile(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
   const toggleBlock = async () => { if (!token) { await onSignIn(); return; } setBlockBusy(true); try { if (relationship?.isBlockedByMe) await unblockCommunityUser(token, profileId); else await blockCommunityUser(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBlockBusy(false); } };
   return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.observatoryContextTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="NACHRICHT" icon="mail-outline" onPress={() => onMessage(profile)} /><PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /><SecondaryButton tone={tone} label={relationship?.isBlockedByMe ? "ENTBLOCKEN" : "BLOCKIEREN"} icon={relationship?.isBlockedByMe ? "checkmark-circle-outline" : "ban-outline"} onPress={() => void toggleBlock()} disabled={busy || blockBusy} /></View> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><NativePublicExternalProfiles tone={tone} accounts={profile.socialAccounts ?? []} /><View style={[styles.publicSocialLists, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><View style={styles.liveGroupHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>COMMUNITY · BEZIEHUNGEN</Text><Text style={styles.cardTitle}>FOLLOWER &amp; FOLGT</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{activeList === "followers" ? followers.length : following.length}</Text></View><View style={styles.publicSocialTabs}><Pressable accessibilityRole="tab" accessibilityState={{ selected: activeList === "followers" }} onPress={() => setActiveList("followers")} style={[styles.publicSocialTab, { borderColor: activeList === "followers" ? tone.accent : `${tone.accent}44`, backgroundColor: activeList === "followers" ? `${tone.accent}18` : "transparent" }]}><Text style={[styles.miniCopy, { color: activeList === "followers" ? tone.accent : c.muted }]}>FOLLOWER · {relationship?.followers ?? "—"}</Text></Pressable><Pressable accessibilityRole="tab" accessibilityState={{ selected: activeList === "following" }} onPress={() => setActiveList("following")} style={[styles.publicSocialTab, { borderColor: activeList === "following" ? tone.accent : `${tone.accent}44`, backgroundColor: activeList === "following" ? `${tone.accent}18` : "transparent" }]}><Text style={[styles.miniCopy, { color: activeList === "following" ? tone.accent : c.muted }]}>FOLGT · {relationship?.following ?? "—"}</Text></Pressable></View>{(activeList === "followers" ? followers : following).length ? <View style={styles.publicSocialList}>{(activeList === "followers" ? followers : following).map(person => <Pressable key={person.id} onPress={() => onOpenProfile(Number(person.id))} style={({ pressed }) => [styles.publicSocialPerson, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}>{person.avatarUrl ? <Image source={{ uri: person.avatarUrl }} style={styles.publicSocialAvatar} /> : <View style={[styles.publicSocialAvatar, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}12` }]}><Ionicons name="person-outline" size={16} color={tone.accent} /></View>}<View style={styles.flex}><Text style={styles.cardTitle} numberOfLines={1}>{person.name ?? person.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy} numberOfLines={1}>{person.username ? `@${person.username}` : "Öffentliches Profil"}</Text></View><Ionicons name="chevron-forward" size={16} color={tone.accent} /></Pressable>)}</View> : <Text style={styles.miniCopy}>NOCH KEINE ÖFFENTLICHEN KONTEN IN DIESER LISTE.</Text>}</View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;

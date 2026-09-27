@@ -364,6 +364,10 @@ function unwrap<T>(payload: TrpcEnvelope<T>): T {
 function readableApiError(message: string, status?: number) {
   const known: Record<string, string> = {
     invalid_image_encoding: "Das Bild konnte nicht gelesen werden. Bitte wähle es erneut aus.",
+    image_read_failed: "Das Foto konnte auf diesem Gerät nicht verarbeitet werden. Bitte wähle es erneut aus oder reduziere die Bildqualität.",
+    image_processing_failed: "Die Bildaufbereitung ist fehlgeschlagen. Bitte wähle das Foto erneut aus.",
+    payload_too_large: "Der Upload ist zu groß. Wähle eine niedrigere Bildqualität.",
+    database_unavailable: "Der Medienserver ist vorübergehend nicht erreichbar. Bitte versuche es gleich erneut.",
     invalid_image_size: "Das Bild ist nach der Verarbeitung zu groß. Wähle eine niedrigere Bildqualität oder ein kleineres Bild.",
     image_signature_mismatch: "Der Bildtyp passt nicht zum Inhalt. Bitte speichere das Bild als JPG, PNG oder WebP und wähle es erneut aus.",
     media_processing_consent_required: "Bitte bestätige zuerst die sichere Medienverarbeitung.",
@@ -498,6 +502,21 @@ export const adminFeedbackQueue = (token: string) => trpcGet<NativeAdminFeedback
 export const adminUpdateFeedback = (token: string, input: { id: number; status: NativeAdminFeedback["status"]; adminNote?: string | null; responseMessage?: string | null }) => trpcPost<{ id: number; status: NativeAdminFeedback["status"] }>("feedback.updateStaffEntry", input, token);
 export const adminPartnerInquiryQueue = (token: string) => trpcGet<NativeAdminPartnerInquiry[]>("partners.inquiryQueue", undefined, token);
 export const adminUpdatePartnerInquiry = (token: string, input: { id: number; status: NativeAdminPartnerInquiry["status"]; adminNote?: string | null; responseMessage?: string | null }) => trpcPost<{ id: number; status: NativeAdminPartnerInquiry["status"] }>("partners.updateInquiry", input, token);
+export type NativeAdminAccount = {
+  id: number; name: string | null; username: string | null; email: string | null;
+  role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned";
+  lastSignedIn: string | null;
+  proAccess: { active: boolean; manuallyGranted: boolean; forcedFree: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: string | null };
+  roles: Array<"admin" | "moderator" | "merchant">;
+};
+export type NativeAdminPublicPost = { id: number; userId: number; content: string; realm: "botany" | "aquarium" | "terrarium" | null; createdAt: string; status: string; visibility: string };
+export const adminAccounts = (token: string) => trpcGet<NativeAdminAccount[]>("admin.accounts", undefined, token);
+export const adminSetAccountPro = (token: string, input: { id: number; active: boolean }) => trpcPost<{ id: number; active: boolean }>("admin.setAccountProAccess", input, token);
+export const adminSetAccountStatus = (token: string, input: { id: number; status: NativeAdminAccount["status"] }) => trpcPost<{ id: number; status: string }>("admin.setAccountStatus", input, token);
+export const adminSetAccountRoles = (token: string, input: { id: number; roles: NativeAdminAccount["roles"] }) => trpcPost<{ id: number; roles: NativeAdminAccount["roles"] }>("admin.setAccountRoles", input, token);
+export const adminPublicPosts = (token: string) => trpcGet<NativeAdminPublicPost[]>("admin.publicPosts", undefined, token);
+export const adminSetPublicPostStatus = (token: string, input: { id: number; status: "hidden" | "removed" }) => trpcPost<{ id: number; status: string }>("admin.setPublicPostStatus", input, token);
+export const adminDeletePublicPost = (token: string, id: number) => trpcPost<{ id: number; status: string }>("admin.deletePublicPost", { id }, token);
 export const notificationFeed = (token: string) =>
   trpcGet<NativeNotification[]>("notifications.feed", undefined, token);
 export const notificationUnreadCount = (token: string) =>

@@ -76,7 +76,7 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("provides a consent-gated native community photo flow", () => {
-    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "24 * 1024 * 1024", "maxDimension = 4096", "ImageManipulator.SaveFormat.JPEG", "UPLOAD ABGESCHLOSSEN"]) expect(app).toContain(token);
+    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "32 * 1024 * 1024", "maxDimension = 3200", "ImageManipulator.SaveFormat.JPEG", "UPLOAD ABGESCHLOSSEN"]) expect(app).toContain(token);
   });
 
   it("keeps large photo uploads visibly active through processing and transfer", () => {
