@@ -1724,6 +1724,19 @@ function WorldScreen({
   );
 }
 
+function PlantQuotaCard({ tone, status }: { tone: Tone; status: NativeBillingStatus | null }) {
+  const remaining = status?.freeIdentificationsRemaining ?? 0;
+  const limit = Math.max(1, status?.dailyLimit ?? 1);
+  const progress = Math.min(1, Math.max(0, remaining / limit));
+  const exhausted = Boolean(status) && remaining === 0 && (status?.aiCredits ?? 0) === 0 && (!status?.active || (status?.monthlyIdentificationsRemaining ?? 0) === 0);
+  return <View accessibilityLabel="Tägliches Pflanzenbestimmungs-Kontingent" style={[styles.plantQuotaCard, { borderColor: exhausted ? "#e49a68aa" : `${tone.accent}66`, backgroundColor: tone.panel }]}>
+    <View style={styles.plantQuotaHeader}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN KI-KONTINGENT</Text><Text style={styles.plantQuotaTitle}><Ionicons name="leaf-outline" size={17} color={tone.accent} /> PFLANZENBESTIMMUNG HEUTE</Text></View><Text style={[styles.plantQuotaValue, { color: exhausted ? "#ffc49d" : tone.accent }]}>{status ? `${remaining}/${status.dailyLimit}` : "—"}</Text></View>
+    <View style={styles.plantQuotaTrack}><View style={[styles.plantQuotaFill, { width: `${progress * 100}%`, backgroundColor: exhausted ? "#e49a68" : tone.accent }]} /></View>
+    <View style={styles.plantQuotaFooter}><Text style={styles.miniCopy}>{status ? `${remaining} kostenlose Bestimmung${remaining === 1 ? "" : "en"} übrig` : "Kontingent wird geladen …"}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{status?.aiCredits ? `+ ${status.aiCredits} Credits` : status?.active && status.monthlyIdentificationsRemaining ? `${status.monthlyIdentificationsRemaining} Pro diesen Monat` : ""}</Text></View>
+    {exhausted ? <Text style={styles.plantQuotaNotice}>Morgen wird das kostenlose Tageskontingent automatisch zurückgesetzt.</Text> : null}
+  </View>;
+}
+
 function AssistantScreen({
   token,
   habitats,
@@ -1762,6 +1775,7 @@ function AssistantScreen({
   const [aquariumAnswer, setAquariumAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [billingStatus, setBillingStatus] = useState<NativeBillingStatus | null>(null);
   const aiConsent = consents.some(
     item => item.purpose === "ai_processing" && item.granted
   );
@@ -1789,6 +1803,13 @@ function AssistantScreen({
   useEffect(() => {
     if (!selectedAquarium && aquariums[0]) setSelectedAquarium(aquariums[0].id);
   }, [aquariums, selectedAquarium]);
+  useEffect(() => {
+    if (!token) {
+      setBillingStatus(null);
+      return;
+    }
+    void billingMe(token).then(setBillingStatus).catch(() => setBillingStatus(null));
+  }, [token]);
 
   const ensureReady = async () => {
     if (!token) {
@@ -1940,6 +1961,7 @@ function AssistantScreen({
       setPlantUsageId(response.assistantUsageId);
       setNeedsMorePhotos(response.needsMoreImages);
       setRequestedPhotos(response.requestedAdditionalImages);
+      void billingMe(token).then(setBillingStatus).catch(() => undefined);
     } catch (cause) {
       const errorMessage = cause instanceof Error ? cause.message : "";
       setMessage(
@@ -2236,6 +2258,7 @@ function AssistantScreen({
                 title="PFLANZE BESTIMMEN"
                 compact
               />
+              <PlantQuotaCard tone={tone} status={billingStatus} />
               <Text style={styles.intro}>
                 Beginne mit einem Foto. Wenn entscheidende Merkmale fehlen,
                 fragt die KI gezielt nach einem oder zwei weiteren Einzelbildern
@@ -5193,6 +5216,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, ...NATIVE_SOFT_SHADOW },
+  plantQuotaCard: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
+  plantQuotaHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  plantQuotaTitle: { color: c.text, fontSize: 12, lineHeight: 17, fontWeight: "900", marginTop: 3 },
+  plantQuotaValue: { fontSize: 15, fontWeight: "900", letterSpacing: 0.3 },
+  plantQuotaTrack: { height: 9, overflow: "hidden", borderRadius: 99, backgroundColor: "rgba(0,0,0,.32)", borderWidth: 1, borderColor: "rgba(191,245,129,.22)" },
+  plantQuotaFill: { height: "100%", borderRadius: 99 },
+  plantQuotaFooter: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  plantQuotaNotice: { color: "#ffd0ad", fontSize: 10, lineHeight: 14 },
   toolTabs: { flexDirection: "row", gap: 7 },
   toolTab: {
     flex: 1,

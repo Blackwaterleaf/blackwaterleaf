@@ -2569,3 +2569,18 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .explore-inspiration-card__care { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px 7px; margin-top:2px; padding-top:5px; border-top:1px solid rgba(185,251,127,.16); }
 .explore-inspiration-card__care small { color:#d0e7d0; font-size:.56rem; line-height:1.25; }
 @media (max-width:700px) { .explore-inspiration-card__care { gap:2px 5px; } .explore-inspiration-card__care small { font-size:.5rem; } }
+
+
+/* Plant identification quota: visible before a user starts an image request. */
+.assistant-plant-quota { display:grid; gap:9px; padding:13px 14px; color:#dcebd9; border:1px solid rgba(191,245,129,.45); border-radius:14px; background:linear-gradient(135deg,rgba(92,157,45,.16),rgba(5,25,14,.82)); }
+.assistant-plant-quota--empty { border-color:rgba(255,173,112,.6); background:linear-gradient(135deg,rgba(121,58,28,.2),rgba(5,25,14,.82)); }
+.assistant-plant-quota__heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.assistant-plant-quota__heading h3 { display:flex; align-items:center; gap:7px; margin:3px 0 0; color:#f2ffe9; font:800 .9rem/1.1 "JetBrains Mono",monospace; letter-spacing:.03em; }
+.assistant-plant-quota__heading h3 svg { color:#bfff72; }
+.assistant-plant-quota__value { color:#d3ff91; font:800 1.1rem/1 "JetBrains Mono",monospace; white-space:nowrap; }
+.assistant-plant-quota__track { overflow:hidden; height:9px; border:1px solid rgba(191,245,129,.25); border-radius:999px; background:rgba(0,0,0,.35); }
+.assistant-plant-quota__track span { display:block; height:100%; min-width:0; border-radius:inherit; background:linear-gradient(90deg,#75d63e,#d3ff79); transition:width 260ms ease; }
+.assistant-plant-quota--empty .assistant-plant-quota__track span { background:#e49a68; }
+.assistant-plant-quota__footer { display:flex; justify-content:space-between; gap:10px; color:#bdd0bd; font:700 .58rem/1.3 "JetBrains Mono",monospace; }
+.assistant-plant-quota__footer span:last-child { color:#d3ff91; text-align:right; }
+.assistant-plant-quota__notice { margin:0; color:#ffd0ad; font-size:.7rem; line-height:1.4; }
