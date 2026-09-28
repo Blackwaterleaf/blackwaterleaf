@@ -777,6 +777,7 @@ export const knowledgeArticles = mysqlTable(
   table => [
     uniqueIndex("knowledge_slug_locale_unique").on(table.slug, table.locale),
     index("knowledge_public_locale_idx").on(table.isPublished, table.locale, table.updatedAt),
+    index("knowledge_public_realm_updated_idx").on(table.isPublished, table.locale, table.realm, table.updatedAt),
   ],
 );
 
@@ -818,6 +819,7 @@ export const plantTaxa = mysqlTable(
     index("plant_taxa_scientific_name_idx").on(table.scientificName),
     index("plant_taxa_genus_family_idx").on(table.status, table.genus, table.family),
     index("plant_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+    index("plant_taxa_public_status_updated_idx").on(table.status, table.updatedAt),
   ],
 );
 
@@ -859,6 +861,7 @@ export const aquariumTaxa = mysqlTable(
     index("aquarium_taxa_scientific_name_idx").on(table.scientificName),
     index("aquarium_taxa_genus_family_idx").on(table.status, table.genus, table.family),
     index("aquarium_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+    index("aquarium_taxa_public_status_updated_idx").on(table.status, table.updatedAt),
   ],
 );
 
@@ -900,6 +903,7 @@ export const terrariumTaxa = mysqlTable(
     index("terrarium_taxa_scientific_name_idx").on(table.scientificName),
     index("terrarium_taxa_genus_family_idx").on(table.status, table.genus, table.family),
     index("terrarium_taxa_published_rank_updated_idx").on(table.status, table.rank, table.updatedAt),
+    index("terrarium_taxa_public_status_updated_idx").on(table.status, table.updatedAt),
   ],
 );
 

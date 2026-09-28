@@ -12,6 +12,7 @@ import {
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { appendAuditEntry } from "../auditLedger";
+import { cachedPublicQuery } from "../publicQueryCache";
 
 async function requireDatabase() {
   const db = await getDb();
@@ -45,22 +46,27 @@ export const knowledgeRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const db = await requireDatabase();
-      const rows = await db
-        .select()
-        .from(knowledgeArticles)
-        .where(
-          input.realm
-            ? and(
-                eq(knowledgeArticles.isPublished, true),
-                eq(knowledgeArticles.locale, input.locale),
-                eq(knowledgeArticles.realm, input.realm),
-              )
-            : and(eq(knowledgeArticles.isPublished, true), eq(knowledgeArticles.locale, input.locale)),
-        )
-        .orderBy(desc(knowledgeArticles.updatedAt))
-        .limit(input.limit);
-      return rows.map(serializeArticle);
+      return cachedPublicQuery(
+        `knowledge:list:${input.locale}:${input.realm ?? "all"}:${input.limit}`,
+        async () => {
+          const db = await requireDatabase();
+          const rows = await db
+            .select()
+            .from(knowledgeArticles)
+            .where(
+              input.realm
+                ? and(
+                    eq(knowledgeArticles.isPublished, true),
+                    eq(knowledgeArticles.locale, input.locale),
+                    eq(knowledgeArticles.realm, input.realm),
+                  )
+                : and(eq(knowledgeArticles.isPublished, true), eq(knowledgeArticles.locale, input.locale)),
+            )
+            .orderBy(desc(knowledgeArticles.updatedAt))
+            .limit(input.limit);
+          return rows.map(serializeArticle);
+        },
+      );
     }),
 
   createDraft: staffProcedure

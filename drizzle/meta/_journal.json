@@ -421,6 +421,13 @@
       "when": 1790539814989,
       "tag": "0059_medical_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1790613020480,
+      "tag": "0060_fantastic_firebird",
+      "breakpoints": true
     }
   ]
 }

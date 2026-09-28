@@ -65,7 +65,7 @@ Das aktuelle Limit von zehn abgeschlossenen KI-Anfragen pro Nutzer und Tag schü
 
 ### 2. Wiederholungen können Kosten vervielfachen
 
-Der zentrale LLM-Client wiederholt nicht erfolgreiche HTTP- und Netzwerkaufrufe bis zu viermal. Dadurch kann ein einzelner Nutzeraufruf bis zu fünf Upstream-Versuche auslösen. Ob ein fehlgeschlagener Versuch berechnet wird, hängt vom Proxy und Provider ab. Für kostenkritische Bildanfragen sollte der Retry nur bei sicheren temporären Fehlern wie 429, 502, 503 und 504 greifen und eine Idempotenzstrategie verwenden.
+Der zentrale LLM-Client wiederholt nicht erfolgreiche HTTP- und Netzwerkaufrufe inzwischen höchstens zweimal und nur bei sicheren temporären Fehlern. Dadurch kann ein einzelner Nutzeraufruf höchstens drei Upstream-Versuche auslösen. Ob ein fehlgeschlagener Versuch berechnet wird, hängt vom Proxy und Provider ab; eine Idempotenzstrategie bleibt für kostenkritische Bildanfragen sinnvoll.
 
 ### 3. Der Tageszähler zählt nur abgeschlossene Anfragen
 
@@ -84,6 +84,12 @@ Der Katalogabgleich begrenzt die gefundenen Pflanzen- und Aquariumreferenzen auf
 **Für Pro:** Nicht „unbegrenzte KI“ versprechen. Sinnvoller sind feste monatliche Bestimmungspakete, zum Beispiel 20 Bildbestimmungen im Pro-Tarif. Chats können großzügiger, aber ebenfalls fair-use-begrenzt werden. So bleibt der Deckungsbeitrag kalkulierbar.
 
 **Für Transparenz:** `assistant_usage` sollte neben Tokenzahlen auch `providerRequestCount`, `estimatedCostUsd`, `imageCount`, `inputBytes`, `failureReason` und `retryCount` speichern. Die vorhandenen Tokenfelder reichen für eine spätere Rechnungsschätzung, aber noch nicht für eine belastbare Kostenkontrolle je Workflow.
+
+## Nachtrag · 28. September 2026
+
+Die empfohlenen Infrastrukturmaßnahmen für den günstigen Betrieb sind teilweise umgesetzt: öffentliche Wissensabfragen werden zehn Minuten pro Prozessinstanz gecacht, veröffentlichte Artikel- und Taxonomiefilter besitzen zusätzliche Datenbankindizes, und der LLM-Client wiederholt nur noch temporäre Fehler maximal zweimal. Zusätzlich ist ein optionaler IONOS CLOUD AI Model Hub-Provider vorbereitet. Er wird erst nach expliziter Konfiguration von `AI_PROVIDER=ionos` und eines geschützten `IONOS_AI_API_KEY` aktiv. Der standardmäßige Provider bleibt bis dahin unverändert.
+
+Ein Anbieter-Budget in Euro ist weiterhin über die IONOS-Billing-/Budgetoberfläche zu setzen; Request-Limits im Code sind kein Ersatz für ein Vertragsbudget.
 
 ## Schlussbewertung
 

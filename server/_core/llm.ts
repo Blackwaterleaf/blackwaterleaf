@@ -212,14 +212,20 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+const usingIonos = () => ENV.aiProvider === "ionos";
+
+const resolveApiUrl = () => {
+  const baseUrl = usingIonos()
+    ? ENV.ionosApiUrl
+    : ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
+      ? ENV.forgeApiUrl
+      : "https://forge.manus.im";
+  return `${baseUrl.replace(/\/$/, "")}/v1/chat/completions`;
+};
 
 const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (usingIonos() ? !ENV.ionosApiKey : !ENV.forgeApiKey) {
+    throw new Error(usingIonos() ? "IONOS_AI_API_KEY is not configured" : "OPENAI_API_KEY is not configured");
   }
 };
 
@@ -268,7 +274,7 @@ const normalizeResponseFormat = ({
   };
 };
 
-const RETRY_MAX_RETRIES = 4;
+const RETRY_MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 500;
 const RETRY_MAX_DELAY_MS = 30_000;
 
@@ -284,6 +290,9 @@ const parseRetryAfter = (value: string | null): number | undefined => {
   const at = Date.parse(value);
   return Number.isNaN(at) ? undefined : Math.max(0, at - Date.now());
 };
+
+const isRetryableStatus = (status: number) =>
+  status === 408 || status === 425 || status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
 
 // Equal-jitter exponential backoff. The cap/2 floor guarantees a minimum
 // delay so a misbehaving caller loop slows down instead of hammering the
@@ -309,6 +318,9 @@ const fetchWithBackoff = async (
     try {
       const response = await fetch(url, init);
       if (response.ok || attempt === RETRY_MAX_RETRIES) {
+        return response;
+      }
+      if (!isRetryableStatus(response.status)) {
         return response;
       }
 
@@ -362,8 +374,9 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     messages: messages.map(normalizeMessage),
   };
 
-  if (model) {
-    payload.model = model;
+  const selectedModel = usingIonos() ? ENV.ionosModel : model;
+  if (selectedModel) {
+    payload.model = selectedModel;
   }
 
   if (tools && tools.length > 0) {
@@ -389,6 +402,9 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   if (reasoning) {
     payload.reasoning = reasoning;
   }
+  if (usingIonos() && !reasoning) {
+    payload.reasoning_effort = "none";
+  }
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
@@ -405,7 +421,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+      authorization: `Bearer ${usingIonos() ? ENV.ionosApiKey : ENV.forgeApiKey}`,
     },
     body: JSON.stringify(payload),
   });
@@ -435,12 +451,15 @@ export type ModelsResponse = {
 export async function listLLMModels(): Promise<ModelsResponse> {
   assertApiKey();
 
-  const url = ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/models`
-    : "https://forge.manus.im/v1/models";
+  const baseUrl = usingIonos()
+    ? ENV.ionosApiUrl
+    : ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
+      ? ENV.forgeApiUrl
+      : "https://forge.manus.im";
+  const url = `${baseUrl.replace(/\/$/, "")}/v1/models`;
 
   const response = await fetchWithBackoff(url, {
-    headers: { authorization: `Bearer ${ENV.forgeApiKey}` },
+    headers: { authorization: `Bearer ${usingIonos() ? ENV.ionosApiKey : ENV.forgeApiKey}` },
   });
 
   if (!response.ok) {

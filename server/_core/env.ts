@@ -8,6 +8,10 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  aiProvider: process.env.AI_PROVIDER?.trim().toLowerCase() === "ionos" ? "ionos" as const : "forge" as const,
+  ionosApiUrl: process.env.IONOS_AI_API_URL ?? "https://openai.inference.de-txl.ionos.com",
+  ionosApiKey: process.env.IONOS_AI_API_KEY ?? "",
+  ionosModel: process.env.IONOS_AI_MODEL ?? "Qwen/Qwen3.5-9B",
   selfHostedMediaOrigin: process.env.BWL_MEDIA_ORIGIN ?? "",
   selfHostedMediaControlSecret: process.env.BWL_MEDIA_CONTROL_SECRET ?? "",
 };

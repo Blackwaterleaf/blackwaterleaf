@@ -6,6 +6,7 @@ import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../..
 import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, isStoredCatalogueTaxonImage, isVerifiedOpenCatalogueMediaSource, officialTaxonSource } from "../../shared/taxon-source-policy";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
+import { cachedPublicQuery } from "../publicQueryCache";
 
 const searchKindSchema = z.enum(["all", "plant", "aquarium", "knowledge", "profile", "community", "product"]);
 const taxaRecordSchema = z.object({
@@ -174,13 +175,18 @@ export const searchRouter = router({
       }
 
       if (wants("knowledge")) {
-        const rows = await db.select({ id: knowledgeArticles.id, slug: knowledgeArticles.slug, title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, realm: knowledgeArticles.realm, evidenceState: knowledgeArticles.evidenceState }).from(knowledgeArticles).where(and(
-          eq(knowledgeArticles.isPublished, true),
-          eq(knowledgeArticles.locale, input.locale),
-          input.realm ? eq(knowledgeArticles.realm, input.realm) : undefined,
-          or(like(knowledgeArticles.title, match), like(knowledgeArticles.excerpt, match), like(knowledgeArticles.content, match)),
-        )).orderBy(desc(knowledgeArticles.updatedAt)).limit(input.limit);
-        result.knowledge = rows.map(row => ({ ...row, type: "knowledge" as const, id: String(row.id) }));
+        result.knowledge = await cachedPublicQuery(
+          `search:knowledge:${input.locale}:${input.realm ?? "all"}:${input.q.toLocaleLowerCase("de-DE")}:${input.limit}`,
+          async () => {
+            const rows = await db.select({ id: knowledgeArticles.id, slug: knowledgeArticles.slug, title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, realm: knowledgeArticles.realm, evidenceState: knowledgeArticles.evidenceState }).from(knowledgeArticles).where(and(
+              eq(knowledgeArticles.isPublished, true),
+              eq(knowledgeArticles.locale, input.locale),
+              input.realm ? eq(knowledgeArticles.realm, input.realm) : undefined,
+              or(like(knowledgeArticles.title, match), like(knowledgeArticles.excerpt, match), like(knowledgeArticles.content, match)),
+            )).orderBy(desc(knowledgeArticles.updatedAt)).limit(input.limit);
+            return rows.map(row => ({ ...row, type: "knowledge" as const, id: String(row.id) }));
+          },
+        );
       }
 
       if (wants("profile")) {
