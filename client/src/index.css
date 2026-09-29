@@ -414,3 +414,29 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
 .profile-hub-habitats{display:grid;gap:14px;margin-top:16px;padding:18px;border:1px solid rgba(176,241,157,.2);border-radius:18px;background:linear-gradient(135deg,rgba(13,48,23,.82),rgba(3,19,10,.82));box-shadow:inset 0 1px rgba(255,255,255,.05),0 18px 42px rgba(0,0,0,.2)}
 .profile-hub-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}.profile-hub-section-heading h2{margin:5px 0;color:#effff1;font:400 clamp(2rem,7vw,3.5rem)/.9 "Bebas Neue",sans-serif;letter-spacing:.04em}.profile-hub-section-heading p:not(.eyebrow){margin:0;color:#b8cdb9;line-height:1.45}.profile-hub-section-heading .secondary-action{flex:0 0 auto;white-space:nowrap;text-decoration:none}.profile-hub-habitat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.profile-hub-habitat-card{position:relative;display:flex;min-height:150px;flex-direction:column;justify-content:space-between;gap:12px;padding:16px;color:#effff1;text-decoration:none;border:1px solid rgba(176,241,157,.23);border-radius:16px;background:rgba(3,25,12,.65);transition:transform .18s cubic-bezier(.23,1,.32,1),border-color .18s ease,background .18s ease}.profile-hub-habitat-card:hover,.profile-hub-habitat-card:focus-visible{transform:translateY(-3px);border-color:#bafa85;background:rgba(25,68,31,.78);outline:none}.profile-hub-habitat-card--cyan{border-color:rgba(40,216,255,.42)}.profile-hub-habitat-card--gold{border-color:rgba(225,214,97,.42)}.profile-hub-habitat-icon{display:grid;place-items:center;width:42px;height:42px;border:1px solid currentColor;border-radius:12px;color:#bafa85;background:rgba(185,251,137,.08)}.profile-hub-habitat-card--cyan .profile-hub-habitat-icon{color:#28d8ff}.profile-hub-habitat-card--gold .profile-hub-habitat-icon{color:#e1d661}.profile-hub-habitat-copy{display:grid;gap:4px}.profile-hub-habitat-copy strong{font-size:1rem}.profile-hub-habitat-copy small{color:#a8c0aa}.profile-hub-habitat-copy em{color:#d8edd9;font-size:.78rem;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-hub-habitat-arrow{position:absolute;right:14px;bottom:13px;color:#bafa85;font-size:1.35rem}.profile-quick-menu__item--admin{border-color:rgba(255,221,105,.45)!important;color:#ffe78e!important}
 @media(max-width:680px){.profile-hub-section-heading{align-items:stretch;flex-direction:column}.profile-hub-section-heading .secondary-action{align-self:flex-start}.profile-hub-habitat-grid{grid-template-columns:1fr}.profile-hub-habitat-card{min-height:112px}}
+
+
+/* BlackWaterLeaf landing story: intro film, promise cards, and membership CTA. */
+.home-intro-film { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 20px; align-items: stretch; padding: 18px; border-color: rgba(114,242,163,.35); background: linear-gradient(135deg, rgba(12,51,31,.84), rgba(3,18,12,.9)); }
+.home-intro-film__copy { display: flex; flex-direction: column; justify-content: center; padding: 8px 4px 8px 5px; }
+.home-intro-film__copy h2 { max-width: 530px; margin: 8px 0 10px; color: #f5fff2; font: 400 clamp(2rem, 5vw, 3.55rem)/.93 "Bebas Neue", sans-serif; letter-spacing: .025em; }
+.home-intro-film__copy p { max-width: 510px; margin: 0 0 18px; color: rgba(232,247,232,.72); font-size: .9rem; line-height: 1.6; }
+.home-intro-film__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.home-intro-film__media { position: relative; min-height: 260px; overflow: hidden; border: 1px solid rgba(172,255,134,.35); border-radius: 17px; background: #020805; box-shadow: 0 16px 34px rgba(0,0,0,.3); }
+.home-intro-film__video { display: block; width: 100%; height: 100%; min-height: 260px; object-fit: cover; filter: saturate(1.1) contrast(1.03); }
+.home-intro-film__media::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, transparent 48%, rgba(1,9,5,.75)); }
+.home-intro-film__badge { position: absolute; z-index: 1; left: 13px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 7px 9px; color: #d8ffc2; border: 1px solid rgba(180,255,143,.34); border-radius: 999px; background: rgba(1,12,6,.7); backdrop-filter: blur(12px); font: 700 .54rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
+.home-promise-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.home-promise-card { padding: 17px; border: 1px solid rgba(139,240,164,.21); border-radius: 17px; background: rgba(7,29,16,.62); box-shadow: inset 0 1px rgba(238,255,234,.06); }
+.home-promise-card > span { color: #aafb72; font: 800 .57rem/1 "JetBrains Mono", monospace; letter-spacing: .14em; }
+.home-promise-card h3 { margin: 10px 0 6px; color: #f2fff0; font: 400 clamp(1.45rem, 3.5vw, 2rem)/.95 "Bebas Neue", sans-serif; letter-spacing: .035em; }
+.home-promise-card p { margin: 0; color: rgba(228,244,228,.62); font-size: .76rem; line-height: 1.45; }
+@media (max-width: 760px) {
+  .home-intro-film { grid-template-columns: 1fr; gap: 13px; padding: 13px; }
+  .home-intro-film__copy { padding: 10px 6px 4px; }
+  .home-intro-film__media, .home-intro-film__video { min-height: 205px; }
+  .home-promise-grid { grid-template-columns: 1fr; gap: 8px; }
+  .home-promise-card { display: grid; grid-template-columns: 38px 1fr; gap: 0 9px; align-items: baseline; padding: 13px 15px; }
+  .home-promise-card > span { grid-row: span 2; }
+  .home-promise-card h3 { margin: 0 0 4px; }
+}
