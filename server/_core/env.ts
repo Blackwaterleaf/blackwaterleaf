@@ -8,3 +8,16 @@ export const ENV = {
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
 };
+
+export function assertProductionRuntimeConfiguration(env: NodeJS.ProcessEnv = process.env): void {
+  if (env.NODE_ENV !== "production") return;
+
+  const missing = ["VITE_APP_ID", "JWT_SECRET"].filter(key => !env[key]?.trim());
+  if (missing.length > 0) {
+    throw new Error(`Production runtime requires: ${missing.join(", ")}`);
+  }
+
+  if ((env.JWT_SECRET ?? "").length < 32) {
+    throw new Error("Production runtime JWT_SECRET must be at least 32 characters");
+  }
+}
