@@ -1,0 +1,21 @@
+{
+  "project": "blackwaterleaf-parity-staging",
+  "webDevProjectId": "nEarRHPwUMm6zboSiuht5i",
+  "sourceCommit": "382811f",
+  "restoreBranch": "handoff/blackwaterleaf-2026-09-29",
+  "github": "https://github.com/Blackwaterleaf/blackwaterleaf",
+  "expo": {
+    "projectId": "40ef1859-d5f9-484d-89e9-046333b708f4",
+    "version": "1.0.24",
+    "androidPackage": "com.blackwaterleaf"
+  },
+  "bundlePolicy": {
+    "includesSecrets": false,
+    "includesPrivateChat": false,
+    "includesGitHistory": false,
+    "preservesExistingProject": true,
+    "requiresNewSecretsInTarget": true,
+    "requiresStagingDatabaseBeforeMigration": true
+  },
+  "verification": ["pnpm check", "pnpm test", "pnpm build", "cd mobile-natur && npx tsc --noEmit", "cd mobile-natur && npx expo-doctor"]
+}
