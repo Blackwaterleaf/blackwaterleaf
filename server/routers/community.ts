@@ -3,7 +3,7 @@ import { and, count, desc, eq, gt, isNull, lt, lte, notInArray, or, sql } from "
 import { z } from "zod";
 import { communityPosts, communityReports, mediaAssets, notifications, postComments, postLikes, userBlocks, userFollows, users } from "../../drizzle/schema";
 import { BLACKWATERLEAF_CONTRACT_VERSION, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { protectedProcedure, router } from "../_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { storageGetSignedUrl, storagePut } from "../storage";
 import { validateImageUpload } from "../uploadValidation";
@@ -90,6 +90,39 @@ async function publicMediaForPost(postId: number, userId: number) {
 }
 
 export const communityRouter = router({
+  publicPreview: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(6).default(3) }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const now = new Date();
+      const rows = await db
+        .select({ post: communityPosts, author: users })
+        .from(communityPosts)
+        .innerJoin(users, eq(communityPosts.userId, users.id))
+        .where(
+          and(
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+            or(isNull(communityPosts.publishAt), lte(communityPosts.publishAt, now)),
+            or(isNull(communityPosts.expiresAt), gt(communityPosts.expiresAt, now)),
+            eq(users.status, "active"),
+          ),
+        )
+        .orderBy(desc(communityPosts.createdAt))
+        .limit(input.limit);
+
+      return Promise.all(rows.filter(({ post, author }) => canReadCommunityPost({ authorStatus: author.status, visibility: post.visibility, publicationStatus: post.status })).map(async ({ post, author }) => ({
+        id: String(post.id),
+        author: { displayName: author.name?.trim() || author.username?.trim() || "BlackWaterLeaf-Nutzer" },
+        content: post.content,
+        realm: post.realm,
+        media: await publicMediaForPost(post.id, post.userId),
+        likesCount: post.likesCount,
+        commentsCount: post.commentsCount,
+        createdAt: post.createdAt.toISOString(),
+      })));
+    }),
+
   feed: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ ctx, input }) => {

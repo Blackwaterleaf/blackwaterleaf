@@ -12,6 +12,15 @@ describe("Observatory community feed interface", () => {
     for (const filter of ["Feed", "Botanik", "Aquaristik", "Terraristik"]) expect(page).toContain(filter);
   });
 
+  it("shows real public community activity on the home page before login", () => {
+    const home = read("client/src/pages/Home.tsx");
+    const router = read("server/routers/community.ts");
+    const css = read("client/src/index.css");
+    for (const token of ["publicPreview", "Echte Naturmomente aus der Community", "home-feed-preview", "FEED ENTDECKEN", "MITMACHEN"]) expect(home).toContain(token);
+    for (const token of ["publicProcedure", "eq(communityPosts.status, \"published\")", "displayName: author.name?.trim() || author.username?.trim()"]) expect(router).toContain(token);
+    for (const token of [".home-feed-preview", ".home-feed-preview__item", "home-feed-shimmer"]) expect(css).toContain(token);
+  });
+
   it("offers refresh and creation actions without inventing feed content", () => {
     const page = read("client/src/pages/Community.tsx");
     for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);

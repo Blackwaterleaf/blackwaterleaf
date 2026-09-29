@@ -2584,3 +2584,20 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .assistant-plant-quota__footer { display:flex; justify-content:space-between; gap:10px; color:#bdd0bd; font:700 .58rem/1.3 "JetBrains Mono",monospace; }
 .assistant-plant-quota__footer span:last-child { color:#d3ff91; text-align:right; }
 .assistant-plant-quota__notice { margin:0; color:#ffd0ad; font-size:.7rem; line-height:1.4; }
+
+/* Home conversion layer: show real community activity without exposing private profiles. */
+.home-community-preview > strong { display:block; margin:8px 0 4px; color:var(--obs-text); font-size:1.02rem; }
+.home-community-preview > p { max-width:620px; margin:0 0 10px; color:#bdd4be; line-height:1.45; }
+.home-feed-preview { display:grid; gap:7px; margin:10px 0 12px; }
+.home-feed-preview__item { display:grid; grid-template-columns:46px minmax(0,1fr) auto; align-items:center; gap:9px; min-width:0; padding:7px; color:var(--obs-text); border:1px solid rgba(185,251,127,.19); border-radius:11px; background:rgba(2,17,8,.68); text-decoration:none; transition:transform 160ms var(--ease-out), border-color 160ms ease, background 160ms ease; }
+.home-feed-preview__item:hover { transform:translateY(-2px); border-color:rgba(185,251,127,.5); background:rgba(185,251,127,.08); }
+.home-feed-preview__item > img, .home-feed-preview__fallback { display:grid; width:46px; height:46px; place-items:center; overflow:hidden; color:var(--obs-lime); border-radius:8px; background:#0a2d18; object-fit:cover; }
+.home-feed-preview__item > span:nth-child(2) { display:grid; min-width:0; gap:3px; }
+.home-feed-preview__item strong { overflow:hidden; color:#effff4; font-size:.72rem; text-overflow:ellipsis; white-space:nowrap; }
+.home-feed-preview__item small { overflow:hidden; color:#bdd4be; font-size:.67rem; text-overflow:ellipsis; white-space:nowrap; }
+.home-feed-preview__item em { color:#8fae93; font:700 .5rem/1 "JetBrains Mono",monospace; font-style:normal; letter-spacing:.04em; }
+.home-feed-preview__item > svg { color:var(--obs-lime); }
+.home-community-preview__actions { display:flex; flex-wrap:wrap; gap:8px; }
+.home-feed-preview__skeleton { height:76px; border-radius:11px; background:linear-gradient(90deg,rgba(185,251,127,.06),rgba(185,251,127,.16),rgba(185,251,127,.06)); background-size:200% 100%; animation:home-feed-shimmer 1.4s ease-in-out infinite; }
+@keyframes home-feed-shimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
+@media (max-width:700px) { .home-feed-preview__item { grid-template-columns:40px minmax(0,1fr) auto; } .home-feed-preview__item > img, .home-feed-preview__fallback { width:40px; height:40px; } .home-community-preview__actions > * { flex:1; justify-content:center; } }
