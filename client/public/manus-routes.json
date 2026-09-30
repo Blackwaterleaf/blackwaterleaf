@@ -1,0 +1,22 @@
+{
+  "routes": [
+    { "path": "/", "title": "BlackWaterLeaf" },
+    { "path": "/explore", "title": "Entdecken" },
+    { "path": "/community", "title": "Community" },
+    { "path": "/assistant", "title": "KI-Assistent" },
+    { "path": "/profile", "title": "Profil" },
+    { "path": "/profile/settings", "title": "Profil-Einstellungen" },
+    { "path": "/knowledge", "title": "Wissen" },
+    { "path": "/marketplace", "title": "Marktplatz" },
+    { "path": "/marketplace/product/:id", "title": "Partnerangebot" },
+    { "path": "/flow/:flow", "title": "BlackWaterLeaf-Flow" },
+    { "path": "/world/:realm", "title": "Naturwelt" },
+    { "path": "/admin", "title": "Kontrollzentrum" },
+    { "path": "/admin/:section", "title": "Kontrollzentrum" },
+    { "path": "/login", "title": "Anmelden" },
+    { "path": "/register", "title": "Registrieren" },
+    { "path": "/forgot-password", "title": "Passwort zurücksetzen" },
+    { "path": "/verify-email", "title": "E-Mail bestätigen" },
+    { "path": "/reset-password", "title": "Neues Passwort" }
+  ]
+}
