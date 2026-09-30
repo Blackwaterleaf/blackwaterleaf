@@ -6,7 +6,7 @@ import { publicPartnerCardPresentation } from "@/lib/partnerPresentation";
 import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES } from "@/lib/seo";
 import { WORLD_ASSETS } from "@/lib/worlds";
-import { ArrowRight, Fish, Leaf, RadioTower, Sprout } from "lucide-react";
+import { ArrowRight, Fish, Leaf, Play, RadioTower, Sparkles, Sprout, UsersRound } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "wouter";
 
@@ -40,6 +40,28 @@ export default function Home() {
 
     <section className="home-portal-strip" aria-label={locale === "de" ? "BlackWaterLeaf Portale" : "BlackWaterLeaf portals"}>
       {portals.map(({ href, label, note, image, icon: Icon, tone }) => <Link key={href} className={`home-portal-row home-portal-row--${tone}`} href={href} style={{ backgroundImage: `url(${image})` }}><span className="home-portal-row__shade" /><span className="home-portal-row__icon"><Icon size={17} /></span><span><strong>{label}</strong><small>{note}</small></span><ArrowRight size={16} /></Link>)}
+    </section>
+
+    <section className="home-intro-film glass-panel" aria-labelledby="home-intro-title">
+      <div className="home-intro-film__copy">
+        <span className="eyebrow">{locale === "de" ? "BLACKWATERLEAF IN 8 SEKUNDEN" : "BLACKWATERLEAF IN 8 SECONDS"}</span>
+        <h2 id="home-intro-title">{locale === "de" ? "Natur wird lebendig, sobald du genauer hinsiehst." : "Nature comes alive when you look closer."}</h2>
+        <p>{locale === "de" ? "BlackWaterLeaf verbindet Botanik, Aquaristik und Terraristik mit Wissen, Beobachtung und einer Community, die echte Naturmomente teilt." : "BlackWaterLeaf connects botany, aquatics and terrariums with knowledge, observation and a community sharing real nature moments."}</p>
+        <div className="home-intro-film__actions">
+          <Link href="/community" className="primary-action"><Play size={15} />{locale === "de" ? "Feed entdecken" : "Explore the feed"}</Link>
+          <Link href="/register" className="hero-text-link"><UsersRound size={15} />{locale === "de" ? "Mitglied werden" : "Become a member"}</Link>
+        </div>
+      </div>
+      <div className="home-intro-film__media">
+        <video className="home-intro-film__video" src="/manus-storage/blackwaterleaf-intro_194052e3.mp4" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="metadata" aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"} />
+        <span className="home-intro-film__badge"><Sparkles size={13} />{locale === "de" ? "EINBLICKE · WISSEN · COMMUNITY" : "INSIGHT · KNOWLEDGE · COMMUNITY"}</span>
+      </div>
+    </section>
+
+    <section className="home-promise-grid" aria-label={locale === "de" ? "Was BlackWaterLeaf bietet" : "What BlackWaterLeaf offers"}>
+      <article className="home-promise-card"><span>01</span><h3>{locale === "de" ? "Erkennen" : "Identify"}</h3><p>{locale === "de" ? "Pflanzen, Lebensräume und Naturmomente schneller einordnen." : "Understand plants, habitats and nature moments faster."}</p></article>
+      <article className="home-promise-card"><span>02</span><h3>{locale === "de" ? "Verstehen" : "Understand"}</h3><p>{locale === "de" ? "Wissen, Pflege und Beobachtung an einem Ort verbinden." : "Connect knowledge, care and observation in one place."}</p></article>
+      <article className="home-promise-card"><span>03</span><h3>{locale === "de" ? "Dazugehören" : "Belong"}</h3><p>{locale === "de" ? "Mitglied werden, Momente teilen und die Community mitgestalten." : "Join, share moments and shape the community."}</p></article>
     </section>
 
     <section className="home-observatory-grid">
