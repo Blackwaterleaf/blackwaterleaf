@@ -2504,9 +2504,7 @@ select:focus-visible {
   .top-shell {
     padding-inline: 32px;
   }
-  .desktop-navigation {
-    display: flex;
-  }
+  .desktop-navigation { display:flex; }
   .app-content {
     padding: 30px 32px 70px;
   }
@@ -2584,9 +2582,7 @@ select:focus-visible {
     grid-template-columns: minmax(0, 1fr) 280px;
     align-items: center;
   }
-  .bottom-navigation {
-    display: none;
-  }
+  .bottom-navigation { display:none; }
   .app-frame {
     padding-bottom: 0;
   }
@@ -2679,7 +2675,7 @@ select:focus-visible {
   *,
   *::before,
   *::after {
-    animation-duration: 1ms !important;
+    animation-duration:1ms!important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
   }
@@ -2909,9 +2905,7 @@ select:focus-visible {
 }
 
 @media (min-width: 760px) {
-  .home-status-card .sensor-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  .home-status-card .sensor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* Live values: current outdoor data appears only after explicit browser location permission. */

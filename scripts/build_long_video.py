@@ -1,7 +1,7 @@
 import subprocess, os
 from pathlib import Path
 
-BASE = Path("/home/ubuntu/blackleaf")
+BASE = Path(__file__).resolve().parents[1]
 AUDIO = BASE / "video/intro/audio"
 SCREENS = BASE / "video/intro/assets/screens"
 OUT = BASE / "client/src/assets/intro"
@@ -9,7 +9,7 @@ TEMP = BASE / "video/intro/temp"
 TEMP.mkdir(parents=True, exist_ok=True)
 
 LOGO = BASE / "client/public/blackwaterleaf-mark.png"
-NATURE = Path("/home/ubuntu/blackwaterleaf-review/current-intro.mp4")
+NATURE = BASE / "video/intro/assets/current-intro.mp4"
 
 # Szenen für 75 Sekunden Langfassung:
 # S01: 00:00 - 05.00s | Hook: Makro Natur & Intro
@@ -213,65 +213,11 @@ subprocess.run([
 ], check=True)
 print("Video track concatenated.")
 
-# Audiospur vorbereiten
-long_takes = [
-    (AUDIO / "long_01.mp3", 0.3),
-    (AUDIO / "long_02.mp3", 5.2),
-    (AUDIO / "long_03.mp3", 13.2),
-    (AUDIO / "long_04.mp3", 21.2),
-    (AUDIO / "long_05.mp3", 29.2),
-    (AUDIO / "long_06.mp3", 38.2),
-    (AUDIO / "long_07.mp3", 46.2),
-    (AUDIO / "long_08.mp3", 54.2),
-    (AUDIO / "long_09.mp3", 63.2),
-    (AUDIO / "long_10.mp3", 70.2)
-]
-total_dur = 75.0
-ambient = TEMP / "ambient_long.aac"
+# Sprachspur robust auf der vollständigen Zeitachse erzeugen und mit dem Videotrack verbinden.
+# Das separate Werkzeug verhindert, dass eine einzelne Sprecheraufnahme die Audiodauer verkürzt.
 subprocess.run([
-    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-    "-f", "lavfi", "-i", f"sine=frequency=64:duration={total_dur}",
-    "-f", "lavfi", "-i", f"sine=frequency=128:duration={total_dur}",
-    "-f", "lavfi", "-i", f"anoisesrc=d={total_dur}:c=pink:r=48000:a=0.01",
-    "-filter_complex",
-    "[0:a]volume=0.04[a0];[1:a]volume=0.02[a1];[2:a]lowpass=f=350,volume=0.05[a2];"
-    "[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2,"
-    f"afade=t=in:ss=0:d=2.0,afade=t=out:st={total_dur - 2.5}:d=2.5,volume=0.3[out]",
-    "-map", "[out]", "-c:a", "aac", "-b:a", "128k", str(ambient)
+    "python3", str(BASE / "scripts/remix_intro_audio.py"), "--edition", "long"
 ], check=True)
 
-# Endgültige Audiomischung
-audio_inputs = []
-filter_parts = []
-for idx, (f, start) in enumerate(long_takes):
-    audio_inputs.extend(["-i", str(f)])
-    filter_parts.append(f"[{idx}:a]adelay={int(start*1000)}|{int(start*1000)}[a{idx}];")
-
-audio_inputs.extend(["-i", str(ambient)])
-amb_idx = len(long_takes)
-filter_parts.append(f"[{amb_idx}:a]volume=0.25[amb];")
-all_takes = "".join(f"[a{i}]" for i in range(len(long_takes))) + "[amb]"
-filter_parts.append(f"{all_takes}amix=inputs={len(long_takes)+1}:duration=first:dropout_transition=1[aout]")
-
-merged_audio = TEMP / "long_audio.aac"
-subprocess.run(
-    ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + audio_inputs + [
-        "-filter_complex", "".join(filter_parts),
-        "-map", "[aout]", "-c:a", "aac", "-b:a", "192k", "-t", str(total_dur), str(merged_audio)
-    ], check=True
-)
-print("Audio track mixed.")
-
-# Endgültige Ausgabe mit Muxing
 FINAL_LONG = OUT / "blackwaterleaf-intro-75s.mp4"
-subprocess.run([
-    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-    "-i", str(merged_video),
-    "-i", str(merged_audio),
-    "-c:v", "copy",
-    "-c:a", "copy",
-    "-movflags", "+faststart",
-    str(FINAL_LONG)
-], check=True)
-
 print("SUCCESS: Long video generated:", FINAL_LONG)

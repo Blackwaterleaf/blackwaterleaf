@@ -16,9 +16,10 @@ import {
   RadioTower,
   Sparkles,
   UsersRound,
+  Volume2,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import introShortVideo from "@/assets/intro/blackwaterleaf-intro-32s.mp4";
 import introLongVideo from "@/assets/intro/blackwaterleaf-intro-75s.mp4";
@@ -37,8 +38,16 @@ export default function Home() {
   const partners = trpc.partners.homepage.useQuery(undefined, { retry: false });
   const [weatherEffect, setWeatherEffect] = useState<WeatherEffect>("none");
   const [longVideoOpen, setLongVideoOpen] = useState(false);
+  const shortVideoRef = useRef<HTMLVideoElement>(null);
   const applyWeatherEffect = useCallback((effect: WeatherEffect) => {
     setWeatherEffect(current => (current === effect ? current : effect));
+  }, []);
+  const playShortVideoWithSound = useCallback(() => {
+    const video = shortVideoRef.current;
+    if (!video) return;
+    video.muted = false;
+    video.volume = 1;
+    void video.play();
   }, []);
 
   useEffect(() => {
@@ -134,6 +143,16 @@ export default function Home() {
             <button
               type="button"
               className="primary-action"
+              onClick={playShortVideoWithSound}
+            >
+              <Volume2 size={15} />
+              {locale === "de"
+                ? "Kurzvideo mit Ton starten"
+                : "Play short video with sound"}
+            </button>
+            <button
+              type="button"
+              className="secondary-action"
               onClick={() => setLongVideoOpen(true)}
             >
               <Film size={15} />
@@ -153,12 +172,10 @@ export default function Home() {
         </div>
         <div className="home-intro-film__media">
           <video
+            ref={shortVideoRef}
             className="home-intro-film__video"
             src={introShortVideo}
             poster={introPosterImage}
-            autoPlay
-            muted
-            loop
             playsInline
             controls
             preload="metadata"

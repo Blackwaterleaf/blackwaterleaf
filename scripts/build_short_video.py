@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 
-BASE = Path("/home/ubuntu/blackleaf")
+BASE = Path(__file__).resolve().parents[1]
 AUDIO = BASE / "video/intro/audio"
 SCREENS = BASE / "video/intro/assets/screens"
 OUT = BASE / "client/src/assets/intro"
@@ -9,7 +9,7 @@ TEMP = BASE / "video/intro/temp"
 TEMP.mkdir(parents=True, exist_ok=True)
 
 LOGO = BASE / "client/public/blackwaterleaf-mark.png"
-NATURE = Path("/home/ubuntu/blackwaterleaf-review/current-intro.mp4")
+NATURE = BASE / "video/intro/assets/current-intro.mp4"
 
 font_bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 font_regular = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -149,60 +149,14 @@ subprocess.run([
 ], check=True)
 print("Short video track concatenated.")
 
-# Kurze Audiospur mischen
-short_takes = [
-    (AUDIO / "short_01.mp3", 0.3),
-    (AUDIO / "short_02.mp3", 5.2),
-    (AUDIO / "short_03.mp3", 12.2),
-    (AUDIO / "short_04.mp3", 19.2),
-    (AUDIO / "short_05.mp3", 26.2)
-]
-total_short_dur = 32.0
-ambient_short = TEMP / "ambient_short.aac"
+# Sprachspur robust auf der vollständigen Zeitachse erzeugen und mit dem Videotrack verbinden.
+# Das separate Werkzeug verhindert, dass eine einzelne Sprecheraufnahme die Audiodauer verkürzt.
 subprocess.run([
-    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-    "-f", "lavfi", "-i", f"sine=frequency=64:duration={total_short_dur}",
-    "-f", "lavfi", "-i", f"sine=frequency=128:duration={total_short_dur}",
-    "-f", "lavfi", "-i", f"anoisesrc=d={total_short_dur}:c=pink:r=48000:a=0.01",
-    "-filter_complex",
-    "[0:a]volume=0.04[a0];[1:a]volume=0.02[a1];[2:a]lowpass=f=350,volume=0.05[a2];"
-    "[a0][a1][a2]amix=inputs=3:duration=first:dropout_transition=2,"
-    f"afade=t=in:ss=0:d=1.5,afade=t=out:st={total_short_dur - 2.0}:d=2.0,volume=0.3[out]",
-    "-map", "[out]", "-c:a", "aac", "-b:a", "128k", str(ambient_short)
+    "python3", str(BASE / "scripts/remix_intro_audio.py"), "--edition", "short"
 ], check=True)
-
-audio_inputs = []
-filter_parts = []
-for idx, (f, start) in enumerate(short_takes):
-    audio_inputs.extend(["-i", str(f)])
-    filter_parts.append(f"[{idx}:a]adelay={int(start*1000)}|{int(start*1000)}[a{idx}];")
-
-audio_inputs.extend(["-i", str(ambient_short)])
-amb_idx = len(short_takes)
-filter_parts.append(f"[{amb_idx}:a]volume=0.25[amb];")
-all_takes = "".join(f"[a{i}]" for i in range(len(short_takes))) + "[amb]"
-filter_parts.append(f"{all_takes}amix=inputs={len(short_takes)+1}:duration=first:dropout_transition=1[aout]")
-
-merged_short_audio = TEMP / "short_audio.aac"
-subprocess.run(
-    ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"] + audio_inputs + [
-        "-filter_complex", "".join(filter_parts),
-        "-map", "[aout]", "-c:a", "aac", "-b:a", "192k", "-t", str(total_short_dur), str(merged_short_audio)
-    ], check=True
-)
 
 FINAL_SHORT = OUT / "blackwaterleaf-intro-32s.mp4"
-subprocess.run([
-    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-    "-i", str(merged_short_video),
-    "-i", str(merged_short_audio),
-    "-c:v", "copy",
-    "-c:a", "copy",
-    "-movflags", "+faststart",
-    str(FINAL_SHORT)
-], check=True)
-
-# Außerdem erzeugen wir ein passendes 16:9-Posterbild für beide Player
+# Außerdem erzeugen wir ein passendes 16:9-Posterbild für beide Player.
 POSTER = OUT / "blackwaterleaf-intro-poster.jpg"
 subprocess.run([
     "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
