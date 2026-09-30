@@ -54,7 +54,7 @@ export default function Home() {
         </div>
       </div>
       <div className="home-intro-film__media">
-        <video className="home-intro-film__video" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="auto" crossOrigin="anonymous" onError={() => setIntroVideoError(true)} onCanPlay={event => { void event.currentTarget.play().catch(() => undefined); }} aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"}>
+        <video className="home-intro-film__video" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="auto" onError={() => setIntroVideoError(true)} onCanPlay={event => { void event.currentTarget.play().catch(() => undefined); }} aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"}>
           <source src="/manus-storage/blackwaterleaf-intro_194052e3.mp4" type="video/mp4" />
           {locale === "de" ? "Dein Browser unterstützt dieses Videoformat nicht." : "Your browser does not support this video format."}
         </video>
