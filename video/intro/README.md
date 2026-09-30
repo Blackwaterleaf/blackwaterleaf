@@ -28,7 +28,9 @@ Stand: 30. September 2026
 
 - **Same-Origin-Build-Asset:** Videos werden über Vites Asset-Pipeline als gehashte Dateien (`/assets/...`) ausgeliefert. Dadurch entfällt das bisherige Problem, dass `/blackwaterleaf-intro.mp4` vom Express-Server fälschlich als HTML-Fallback ausgeliefert wurde.
 - **CSP-Konformität:** `server/security.ts` deklariert nun explizit `mediaSrc: ["'self'", "blob:"]`.
+- **Natürliche Narration:** Die aktuelle deutsche Sprecherfassung nutzt eine warme, reife Dokumentar-Stimmrichtung und natürliche Satzpausen. Die Kurzfassung bleibt im Originaltempo; die Langfassung wird lediglich um 9,65 % tempoangepasst, ohne die Tonhöhe zu verändern. Zeitmarken und Text der WebVTT-Untertitel wurden aus der finalen Audio-Transkription aktualisiert. Details stehen in `video/intro/NATURAL_NARRATION_2026-09-30.md`.
 - **Wiederholbare Skripte:**
   - `scripts/capture_screens.py`: Erstellt reale Bildschirmaufnahmen aus den Produktionsseiten.
-  - `scripts/build_long_video.py`: Baut die 75s-Langfassung mit Sprecher, Ambient und Segmenten.
-  - `scripts/build_short_video.py`: Baut die 32s-Kurzfassung und das Posterbild.
+  - `scripts/build_long_video.py`: Baut die 75s-Langfassung mit Segmenten und natürlicher Narration.
+  - `scripts/build_short_video.py`: Baut die 32s-Kurzfassung, natürliche Narration und Posterbild.
+  - `scripts/assemble_natural_intro_narration.py`: Bindet die natürlich gesprochene WAV-Narration reproduzierbar in beide Videotracks ein.

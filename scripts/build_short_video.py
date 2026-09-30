@@ -149,10 +149,10 @@ subprocess.run([
 ], check=True)
 print("Short video track concatenated.")
 
-# Sprachspur robust auf der vollständigen Zeitachse erzeugen und mit dem Videotrack verbinden.
-# Das separate Werkzeug verhindert, dass eine einzelne Sprecheraufnahme die Audiodauer verkürzt.
+# Natürliche Narration auf der vollständigen Zeitachse einbetten.
+# Die TTS-Aufnahme wird nur minimal auf die visuelle 32s-Struktur angepasst.
 subprocess.run([
-    "python3", str(BASE / "scripts/remix_intro_audio.py"), "--edition", "short"
+    "python3", str(BASE / "scripts/assemble_natural_intro_narration.py"), "--edition", "short"
 ], check=True)
 
 FINAL_SHORT = OUT / "blackwaterleaf-intro-32s.mp4"

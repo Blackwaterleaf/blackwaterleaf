@@ -1,67 +1,35 @@
 # BlackWaterLeaf – Sprechertexte und Untertitel
 
+**Version:** natürliche deutsche Narration, 30. September 2026  
+**Stimmrichtung:** warm, reif, ruhig und dokumentarisch – direkt an eine interessierte Person gerichtet, nicht werblich und nicht gehetzt.
+
+Die Zeitmarken entsprechen den final transkribierten MP4-Ausgaben. Die Texttracks stehen in `client/public/intro-short.de.vtt` und `client/public/intro-long.de.vtt`.
+
 ## 1. Langfassung (75 Sekunden)
 
-01 [00:00 - 00:05]
-Sprecher: Jede lebendige Naturwelt beginnt mit einem genaueren Blick.
-Bildtext: BLACKWATERLEAF · OBSERVATORIUM
-
-02 [00:05 - 00:13]
-Sprecher: BlackWaterLeaf verbindet Botanik, Aquaristik und Terraristik an einem Ort – mit Wissen, System und echten Beobachtungen.
-Bildtext: DREI NATURWELTEN AN EINEM ORT
-
-03 [00:13 - 00:21]
-Sprecher: Halte deine Momente fest, lade Fotos hoch und ordne Pflanzen, Becken oder Terrarien deiner persönlichen Sammlung zu.
-Bildtext: ERFASSEN · ZUORDNEN · DOKUMENTIEREN
-
-04 [00:21 - 00:29]
-Sprecher: Ein strukturierter Katalog und quellenbasiertes Wissen helfen dir, Arten, Lebensräume und Pflege besser zu verstehen.
-Bildtext: WISSEN MIT BELEGTEN QUELLEN
-
-05 [00:29 - 00:38]
-Sprecher: Du behältst die Kontrolle: Eigene Einträge starten geschützt, und du entscheidest bewusst, was privat bleibt oder öffentlich wird.
-Bildtext: DEIN BEREICH · DEINE SICHTBARKEIT
-
-06 [00:38 - 00:46]
-Sprecher: In der Community teilen Mitglieder echte Naturmomente, tauschen Erfahrungen aus und lernen voneinander.
-Bildtext: ECHTE COMMUNITY · ECHTE ERFAHRUNGEN
-
-07 [00:46 - 00:54]
-Sprecher: Technische Smart-Werte und Kameras bleiben rein optional – sie fließen erst, wenn du sie ausdrücklich und widerrufbar freigibst.
-Bildtext: OPTIONALE TECHNIK · NUR MIT FREIGABE
-
-08 [00:54 - 01:03]
-Sprecher: Freigegebene Unternehmenspartner bieten passendes Zubehör im Marktplatz an. Transparent gekennzeichnet; Kauf und Service liegen direkt beim Partner.
-Bildtext: TRANSPARENTE PARTNER · DIREKTER SERVICE
-
-09 [01:03 - 01:10]
-Sprecher: Für die Zukunft sind eigene Zugänge für Organisationen, Vereine, Schulen und Forschungsprojekte in Vorbereitung.
-Bildtext: IN PLANUNG: ORGANISATIONEN & TEAMS
-
-10 [01:10 - 01:15]
-Sprecher: BlackWaterLeaf. Verstehe deine Welten – lebendig, achtsam und verbunden.
-Bildtext: ENTDECKE BLACKWATERLEAF.COM
-
----
+| Zeit | Sprechertext | Bildkapitel |
+|---|---|---|
+| 00:00–00:05 | Jede lebendige Naturwelt beginnt mit einem genaueren Blick. | Einführung |
+| 00:05–00:15 | BlackWaterLeaf verbindet Botanik, Aquaristik und Terraristik an einem Ort – mit Wissen, Struktur und echten Beobachtungen. | Drei Welten |
+| 00:15–00:24 | Halte deine Momente fest, lade Fotos hoch und ordne Pflanzen, Becken oder Terrarien deiner persönlichen Sammlung zu. | Erfassen & Zuordnen |
+| 00:24–00:32 | Ein strukturierter Katalog und quellenbasiertes Wissen helfen dir, Arten, Lebensräume und Pflege besser zu verstehen. | Wissen mit Quellen |
+| 00:32–00:39 | Deine Einträge starten geschützt. Du entscheidest, was privat bleibt und was du mit der Community teilst. | Privatheit & Sichtbarkeit |
+| 00:39–00:44 | Dort begegnen sich Menschen, die echte Naturmomente und Erfahrungen miteinander teilen. | Community |
+| 00:44–00:52 | Smart-Werte und Kameras bleiben optional. Sie fließen nur, wenn du sie ausdrücklich und jederzeit widerrufbar freigibst. | Optionale Technik |
+| 00:52–01:01 | Freigegebene Unternehmenspartner zeigen passendes Zubehör im Marktplatz. Angebote sind transparent gekennzeichnet. Kauf und Service liegen direkt beim Partner. | Transparente Partner |
+| 01:01–01:09 | Für die Zukunft sind eigene Bereiche für Organisationen, Vereine, Schulen, Naturschutz und Forschung in Planung. | Geplante Organisationen |
+| 01:09–01:15 | BlackWaterLeaf. Verstehe deine Welten. Lebendig, achtsam und verbunden. | Abschluss |
 
 ## 2. Kurzfassung für die Startseite (32 Sekunden)
 
-K1 [00:00 - 00:05]
-Sprecher: Willkommen bei BlackWaterLeaf – deinem digitalen Observatorium für Pflanzen, Aquarien und Terrarien.
-Bildtext: BOTANIK · AQUARISTIK · TERRARISTIK
+| Zeit | Sprechertext | Bildkapitel |
+|---|---|---|
+| 00:00–00:07 | BlackWaterLeaf ist dein Observatorium für Botanik, Aquaristik und Terraristik. | Einführung |
+| 00:07–00:14 | Halte Naturmomente fest, ordne sie deiner Sammlung zu und lerne mit belegten Quellen. | Erfassen & Wissen |
+| 00:14–00:18 | Deine Einträge starten geschützt. Teile sie, wenn du willst. | Privatheit & Community |
+| 00:18–00:27 | Optionale Technik und transparente Partner ergänzen das Erlebnis. Bereiche für Organisationen und Forschung sind in Planung. | Transparenz & Ausblick |
+| 00:27–00:32 | BlackWaterLeaf. Schau genauer hin. | Markenabschluss |
 
-K2 [00:05 - 00:12]
-Sprecher: Halte echte Naturmomente fest, dokumentiere deine Pflege und vertiefe dein Wissen mit belegten Quellen.
-Bildtext: ERFASSEN · VERSTEHEN · DOKUMENTIEREN
+## Auslieferungsnotiz
 
-K3 [00:12 - 00:19]
-Sprecher: Deine Einträge starten privat. Erst wenn du es möchtest, teilst du sie mit einer lebendigen Community.
-Bildtext: PRIVAT STARTEN · BEWUSST TEILEN
-
-K4 [00:19 - 00:26]
-Sprecher: Mit optionalen Smart-Werten, transparenten Partnern und künftig geplanten Bereichen für Organisationen und Forschung.
-Bildtext: OPTIONALE TECHNIK · GEPLANTE ORGANISATIONEN
-
-K5 [00:26 - 00:32]
-Sprecher: BlackWaterLeaf. Natur wird lebendig, sobald du genauer hinsiehst.
-Bildtext: JETZT ENTDECKEN · BLACKWATERLEAF.COM
+Die Kurzfassung ist natürlich 31,44 Sekunden lang und endet mit einer kurzen stillen Ausklingphase. Die Langfassung wird für die vorhandene 75-Sekunden-Bildstruktur behutsam um 9,65 % tempoangepasst; die Tonhöhe bleibt unverändert.
