@@ -7,7 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { HOME_SEO_TITLES } from "@/lib/seo";
 import { WORLD_ASSETS } from "@/lib/worlds";
 import { ArrowRight, Fish, Leaf, Play, RadioTower, Sparkles, Sprout, UsersRound } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 
 const portals = [
@@ -19,6 +19,7 @@ const portals = [
 export default function Home() {
   const auth = useAuth();
   const { t, locale } = useI18n();
+  const [introVideoError, setIntroVideoError] = useState(false);
   const pageTitle = HOME_SEO_TITLES[locale] ?? HOME_SEO_TITLES.en!;
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const community = trpc.community.publicPreview.useQuery({ limit: 3 }, { retry: false, staleTime: 60_000 });
@@ -53,7 +54,11 @@ export default function Home() {
         </div>
       </div>
       <div className="home-intro-film__media">
-        <video className="home-intro-film__video" src="/manus-storage/blackwaterleaf-intro_194052e3.mp4" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="metadata" aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"} />
+        <video className="home-intro-film__video" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="auto" crossOrigin="anonymous" onError={() => setIntroVideoError(true)} onCanPlay={event => { void event.currentTarget.play().catch(() => undefined); }} aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"}>
+          <source src="/manus-storage/blackwaterleaf-intro_194052e3.mp4" type="video/mp4" />
+          {locale === "de" ? "Dein Browser unterstützt dieses Videoformat nicht." : "Your browser does not support this video format."}
+        </video>
+        {introVideoError ? <div className="home-intro-film__fallback" role="status"><strong>{locale === "de" ? "Video konnte nicht automatisch geladen werden." : "The video could not load automatically."}</strong><a href="/manus-storage/blackwaterleaf-intro_194052e3.mp4" target="_blank" rel="noreferrer">{locale === "de" ? "Video direkt öffnen" : "Open video directly"}</a></div> : null}
         <span className="home-intro-film__badge"><Sparkles size={13} />{locale === "de" ? "EINBLICKE · WISSEN · COMMUNITY" : "INSIGHT · KNOWLEDGE · COMMUNITY"}</span>
       </div>
     </section>
