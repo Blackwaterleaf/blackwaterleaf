@@ -7,6 +7,8 @@ const source = readFileSync(resolve(import.meta.dirname, "_core/storageProxy.ts"
 describe("AP-03 object-authorized storage proxy", () => {
   it("allows only the immutable Observatory design allowlist", () => {
     expect(source).toContain("PUBLIC_DESIGN_ASSETS");
+    expect(source).toContain("PUBLIC_STREAM_ASSETS");
+    expect(source).toContain("blackwaterleaf-intro_194052e3.mp4");
     expect(source).toContain("isPublicCatalogueTaxonImage");
     expect(source).toContain("catalog\\/taxa");
     expect(source).toContain("Object authorization required");
@@ -14,7 +16,9 @@ describe("AP-03 object-authorized storage proxy", () => {
   });
 
   it("does not proxy arbitrary dynamic user storage keys", () => {
-    expect(source).toContain("!PUBLIC_DESIGN_ASSETS.has(key) && !isPublicCatalogueTaxonImage(key)");
+    expect(source).toContain("!isPublicStream && !PUBLIC_DESIGN_ASSETS.has(key) && !isPublicCatalogueTaxonImage(key)");
     expect(source).not.toContain("res.redirect(307, key)");
+    expect(source).toContain("Readable.fromWeb");
+    expect(source).toContain("Range: range");
   });
 });
