@@ -7,8 +7,12 @@ const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
 
 export function isSessionPayloadBoundToApp(
   payload: Record<string, unknown>,
-  expectedAppId: string,
-): payload is Record<string, unknown> & { openId: string; appId: string; name: string } {
+  expectedAppId: string
+): payload is Record<string, unknown> & {
+  openId: string;
+  appId: string;
+  name: string;
+} {
   return (
     typeof payload.openId === "string" &&
     payload.openId.length > 0 &&
@@ -21,9 +25,14 @@ export function isSessionPayloadBoundToApp(
 
 export function isActiveAccountWithRole(
   account: { status?: string; role?: string } | null | undefined,
-  allowedRoles: readonly string[],
+  allowedRoles: readonly string[]
 ): boolean {
-  return Boolean(account && account.status === "active" && account.role && allowedRoles.includes(account.role));
+  return Boolean(
+    account &&
+      account.status === "active" &&
+      account.role &&
+      allowedRoles.includes(account.role)
+  );
 }
 
 function forwardedHost(req: Request): string {
@@ -31,7 +40,11 @@ function forwardedHost(req: Request): string {
   return forwarded || req.header("host") || "";
 }
 
-export function sameOriginMutationGuard(req: Request, res: Response, next: NextFunction) {
+export function sameOriginMutationGuard(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   if (SAFE_METHODS.has(req.method.toUpperCase())) {
     next();
     return;
@@ -70,11 +83,16 @@ export const securityHeaders = helmet({
     directives: {
       defaultSrc: ["'self'"],
       baseUri: ["'self'"],
-      connectSrc: ["'self'", "https:", ...(IS_DEVELOPMENT ? ["ws:", "wss:"] : [])],
+      connectSrc: [
+        "'self'",
+        "https:",
+        ...(IS_DEVELOPMENT ? ["ws:", "wss:"] : []),
+      ],
       fontSrc: ["'self'", "https:", "data:"],
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
       imgSrc: ["'self'", "https:", "data:", "blob:"],
+      mediaSrc: ["'self'", "blob:"],
       objectSrc: ["'none'"],
       scriptSrc: ["'self'", ...(IS_DEVELOPMENT ? ["'unsafe-inline'"] : [])],
       styleSrc: ["'self'", "'unsafe-inline'", "https:"],
