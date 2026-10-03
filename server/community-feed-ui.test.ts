@@ -8,7 +8,9 @@ const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 describe("Observatory community feed interface", () => {
   it("keeps the existing realm selection while presenting a public, moderated feed", () => {
     const page = read("client/src/pages/Community.tsx");
-    for (const token of ["ObservatoryContextHeader", "ÖFFENTLICHER FACHFEED", "community-feed-command", "community-feed-filters", "aria-pressed", "QUELLENBASIERT", "Aktive · veröffentlichte Beiträge"]) expect(page).toContain(token);
+    const router = read("server/routers/community.ts");
+    for (const token of ["ObservatoryContextHeader", "ÖFFENTLICHER FACHFEED", "community-feed-command", "community-feed-filters", "aria-pressed", "QUELLENBASIERT", "Aktive · veröffentlichte Beiträge", "publicFeed", "community-guest-banner"]) expect(page).toContain(token);
+    expect(router).toContain("publicFeed: publicProcedure");
     for (const filter of ["Feed", "Botanik", "Aquaristik", "Terraristik"]) expect(page).toContain(filter);
   });
 
@@ -23,7 +25,7 @@ describe("Observatory community feed interface", () => {
 
   it("offers refresh and creation actions without inventing feed content", () => {
     const page = read("client/src/pages/Community.tsx");
-    for (const token of ["feed.refetch()", "BEITRAG ERSTELLEN", "feed.isLoading", "feed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
+    for (const token of ["activeFeed.refetch()", "BEITRAG ERSTELLEN", "activeFeed.isLoading", "activeFeed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
   it("keeps Discover focused on named botanical inspiration, not private drafts", () => {
@@ -44,11 +46,11 @@ describe("Observatory community feed interface", () => {
     expect(native).toContain("blackwaterleaf.com/manus-storage/catalog/taxa/plant/4/");
   });
 
-  it("explains the protected community clearly before login", () => {
+  it("explains the public community and protects participation before login", () => {
     const page = read("client/src/pages/Community.tsx");
     const css = read("client/src/index.css");
-    for (const token of ["COMMUNITY · TRANSPARENT & MODERIERT", "Du sollst wissen, worauf du dich einlässt.", "Geschützter Zugang", "Klare Privatsphäre", "Moderierter Raum", "DATENSCHUTZ & IMPRESSUM", "SO FUNKTIONIERT ES"]) expect(page).toContain(token);
-    for (const token of ["community-public-preview", "community-trust-hero", "community-trust-grid"]) expect(css).toContain(token);
+    for (const token of ["ÖFFENTLICH · OHNE ANMELDUNG", "Sieh dir echte Naturmomente an.", "Zum Hochladen, Liken und Kommentieren", "KOSTENLOS MITMACHEN", "onLike={() => void like(post.id)}"]) expect(page).toContain(token);
+    expect(css).toContain("community-guest-banner");
   });
 
   it("separates admin media targets from the explicit all-feeds option", () => {
@@ -114,7 +116,7 @@ describe("Observatory community feed interface", () => {
   it("shows accessible skeleton posts only while an existing feed refreshes", () => {
     const page = read("client/src/pages/Community.tsx");
     const css = read("client/src/index.css");
-    for (const token of ["CommunityPostSkeleton", "feed.isFetching", "Weitere Beiträge werden geladen", "aria-live=\"polite\""]) expect(page).toContain(token);
+    for (const token of ["CommunityPostSkeleton", "activeFeed.isFetching", "Weitere Beiträge werden geladen", "aria-live=\"polite\""]) expect(page).toContain(token);
     for (const token of ["community-feed-skeletons", "community-post-skeleton", "community-skeleton-shimmer", "prefers-reduced-motion:reduce"]) expect(css).toContain(token);
   });
 });

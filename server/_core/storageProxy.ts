@@ -21,6 +21,7 @@ const PUBLIC_DESIGN_ASSETS = new Set([
 
 const PUBLIC_STREAM_ASSETS = new Set([
   "blackwaterleaf-intro_194052e3.mp4",
+  "510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4",
 ]);
 
 /**

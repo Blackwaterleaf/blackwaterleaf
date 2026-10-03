@@ -123,6 +123,55 @@ export const communityRouter = router({
       })));
     }),
 
+  publicFeed: publicProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(20).default(12) }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const now = new Date();
+      const rows = await db
+        .select({ post: communityPosts, author: users })
+        .from(communityPosts)
+        .innerJoin(users, eq(communityPosts.userId, users.id))
+        .where(
+          and(
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+            or(isNull(communityPosts.publishAt), lte(communityPosts.publishAt, now)),
+            or(isNull(communityPosts.expiresAt), gt(communityPosts.expiresAt, now)),
+            eq(users.status, "active"),
+          ),
+        )
+        .orderBy(desc(communityPosts.createdAt))
+        .limit(input.limit);
+
+      return Promise.all(
+        rows
+          .filter(({ post, author }) => canReadCommunityPost({ authorStatus: author.status, visibility: post.visibility, publicationStatus: post.status }))
+          .map(async ({ post, author }) => ({
+            contractVersion: BLACKWATERLEAF_CONTRACT_VERSION,
+            id: String(post.id),
+            author: {
+              id: String(author.id),
+              name: author.name,
+              username: author.username,
+              displayName: author.name?.trim() || author.username?.trim() || "BlackWaterLeaf-Nutzer",
+              avatarUrl: author.avatarStorageKey ? await storageGetSignedUrl(author.avatarStorageKey).catch(() => null) : null,
+              role: author.role,
+              status: author.status,
+              roleOrigin: "server_verified" as const,
+            },
+            content: post.content,
+            realm: post.realm,
+            media: await publicMediaForPost(post.id, post.userId),
+            visibility: "public" as const,
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount,
+            createdAt: post.createdAt.toISOString(),
+            updatedAt: post.updatedAt.toISOString(),
+          })),
+      );
+    }),
+
   feed: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(50).default(20) }))
     .query(async ({ ctx, input }) => {
