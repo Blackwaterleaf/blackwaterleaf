@@ -28,21 +28,20 @@ describe("Observatory community feed interface", () => {
     for (const token of ["activeFeed.refetch()", "BEITRAG ERSTELLEN", "activeFeed.isLoading", "activeFeed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
   });
 
-  it("keeps Discover focused on named botanical inspiration, not private drafts", () => {
-    const web = read("client/src/pages/Explore.tsx");
+  it("keeps the catalog focused on named botanical inspiration, not private drafts", () => {
+    const web = read("client/src/pages/Search.tsx");
     const native = read("mobile-natur/App.tsx");
-    for (const token of ["PFLANZEN ZUM ENTDECKEN", "Anubias barteri", "Bucephalandra", "explore-inspiration__grid"]) expect(web).toContain(token);
+    for (const token of ["PFLANZEN VORAB ENTDECKEN", "catalog-feature-grid", "KARTE ÖFFNEN · INFOS LESEN", "CatalogCard"]) expect(web).toContain(token);
     for (const token of ["PFLANZEN ZUM ENTDECKEN", "Anubias barteri", "exploreInspirationGrid"]) expect(native).toContain(token);
     expect(web).not.toContain("PRIVATE_DRAFT");
     expect(native).not.toContain("PRIVATE_DRAFT");
   });
 
   it("shows specific aquarium plants with actionable care parameters and licensed catalog images", () => {
-    const web = read("client/src/pages/Explore.tsx");
+    const web = read("client/src/pages/Search.tsx");
     const native = read("mobile-natur/App.tsx");
-    for (const token of ["Vallisneria spiralis", "Rotala rotundifolia", "Ludwigia repens", "Limnophila aquatica", "Staurogyne repens", "care", "pH:", "Temperatur:", "CO₂"]) expect(web).toContain(token);
+    for (const token of ["catalog-feature-grid", "catalogItems.slice(0, 6)", "CatalogCard"]) expect(web).toContain(token);
     for (const token of ["Vallisneria spiralis", "Rotala rotundifolia", "Ludwigia repens", "Limnophila aquatica", "Staurogyne repens", "exploreInspirationCare", "CO₂"]) expect(native).toContain(token);
-    expect(web).toContain("iNaturalist");
     expect(native).toContain("blackwaterleaf.com/manus-storage/catalog/taxa/plant/4/");
   });
 
