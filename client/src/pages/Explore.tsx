@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Fish, Leaf, List, Map, Search, ShieldCheck, Sprout, WifiOff, X } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/i18n";
@@ -50,23 +50,32 @@ export default function Explore() {
   const { locale } = useI18n();
   const [realm, setRealm] = useState<RealmFilter>("all");
   const [view, setView] = useState<ViewMode>("map");
+  const [mapMode, setMapMode] = useState(false);
+  const [plantMapQuery, setPlantMapQuery] = useState("");
   const [mapError, setMapError] = useState<string | null>(null);
   const [mapAttempt, setMapAttempt] = useState(0);
   const [plantFilter, setPlantFilter] = useState<PlantFilter>("all");
   const [gallery, setGallery] = useState<{ name: string; images: string[]; index: number } | null>(null);
-  const observations = trpc.observations.publicFeed.useQuery({ realm: realm === "all" ? undefined : realm, limit: 20 }, { retry: false });
-  const mapObservations = trpc.observations.map.useQuery({ realm: realm === "all" ? undefined : realm, limit: 200 }, { retry: false });
+  const observations = trpc.observations.publicFeed.useQuery({ realm: realm === "all" ? undefined : realm, limit: 20 }, { retry: false, enabled: mapMode });
+  const mapObservations = trpc.observations.map.useQuery({ realm: realm === "all" ? undefined : realm, limit: 200 }, { retry: false, enabled: mapMode });
   const title = locale === "de" ? "WASSER VERBINDET." : "WATER CONNECTS.";
   const intro = locale === "de" ? "FORSCHEN · ENTDECKEN · SCHÜTZEN" : "RESEARCH · DISCOVER · PROTECT";
   const observationRows = observations.data ?? [];
   const observationBusy = observations.isLoading || observations.isFetching;
   const visiblePlants = plantInspiration.filter(({ id }) => plantFilter === "all" || plantTags[id].includes(plantFilter));
-  const mapPoints: OpenStreetMapPoint[] = (mapObservations.data ?? []).map(point => ({
+  const mapPoints: OpenStreetMapPoint[] = (mapObservations.data ?? []).filter(point => !plantMapQuery.trim() || `${point.label} ${point.realm}`.toLocaleLowerCase().includes(plantMapQuery.trim().toLocaleLowerCase())).map(point => ({
     lat: point.latitude,
     lng: point.longitude,
     label: point.label,
     detail: `${realmLabels[point.realm]} · ${point.geoprivacy === "obscured" ? "vergröberter Ort" : "öffentlicher Ort"}`,
   }));
+
+  useEffect(() => {
+    const syncHash = () => setMapMode(window.location.hash === "#map");
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, []);
 
   return (
     <div className="observatory-route observatory-route--botany observatory-explore-page">
@@ -76,25 +85,25 @@ export default function Explore() {
 
       <ObservatoryContextHeader tone="botany" image={REFERENCE_ASSETS.aquarium} eyebrow="UNSER OBSERVATORIUM" title={title} subtitle={intro} icon={Map} badge="PORTALE" />
 
-      <section className="observatory-section" aria-labelledby="portal-heading">
+      {!mapMode ? <section className="observatory-section" aria-labelledby="portal-heading">
         <div className="observatory-section__heading"><span className="eyebrow">PORTALE</span><h2 id="portal-heading">{locale === "de" ? "Deine Fachbereiche" : "Your specialist areas"}</h2></div>
         <div className="observatory-portal-grid">
           {portalCards.map(({ title: cardTitle, subtitle, href, image, tone, icon: Icon }) => <Link key={href} href={href} className={`observatory-portal-card observatory-portal-card--${tone}`} style={{ backgroundImage: `url(${image})` }}><span className="observatory-portal-card__icon"><Icon size={22} /></span><span><strong>{cardTitle}</strong><small>{subtitle}</small></span><ArrowRight size={17} /></Link>)}
         </div>
-      </section>
+      </section> : null}
 
-      <section className="explore-inspiration" aria-labelledby="inspiration-heading">
+      {!mapMode ? <section className="explore-inspiration" aria-labelledby="inspiration-heading">
         <div className="observatory-section__heading"><div><span className="eyebrow">NEUE IDEEN · BOTANIK</span><h2 id="inspiration-heading">PFLANZEN ZUM ENTDECKEN</h2></div><Link className="secondary-action" href="/search">KATALOG ÖFFNEN <ArrowRight size={14} /></Link></div>
         <p className="explore-inspiration__intro">Lass dich von echten Arten inspirieren und öffne den Katalog für Quellen, Standort und Pflegewissen.</p>
         <div className="explore-inspiration__filters" role="group" aria-label="Pflanzenfilter">{(["all", "Aufsitzer", "Bodendecker", "Schnellwachsend"] as PlantFilter[]).map(filter => <button type="button" key={filter} className={plantFilter === filter ? "active" : ""} onClick={() => setPlantFilter(filter)}>{filter === "all" ? "Alle Arten" : filter}</button>)}</div>
         <div className="explore-inspiration__grid">{visiblePlants.map((plant, index) => { const second = visiblePlants[(index + 1) % visiblePlants.length]?.image ?? plant.image; return <Link key={plant.id} href={`/plant/${plant.id}`} className={`explore-inspiration-card explore-inspiration-card--${(index % 3) + 1}`} aria-label={`${plant.name} – ausführliche Pflegehinweise öffnen`}><span className="explore-inspiration-card__number">{String(index + 1).padStart(2, "0")}</span><div className="explore-inspiration-card__gallery"><img src={plantImageSrc(plant.image)} alt={`${plant.name} – Pflanzenbild`} loading="lazy" onClick={event => { event.preventDefault(); event.stopPropagation(); setGallery({ name: plant.name, images: [plant.image, second], index: 0 }); }} /><img src={plantImageSrc(second)} alt={`${plant.name} – weiteres Pflanzenbild`} loading="lazy" onClick={event => { event.preventDefault(); event.stopPropagation(); setGallery({ name: plant.name, images: [plant.image, second], index: 1 }); }} /></div><span><strong>{plant.name}</strong><b>{plant.hook}</b><small>{plant.note}</small><div className="explore-inspiration-card__care" aria-label={`${plant.name} Pflegeparameter`}>{plant.care.map(parameter => <small key={parameter}>{parameter}</small>)}</div><small className="explore-inspiration-card__credit">Quelle: {plant.id >= 4 && plant.id !== 10 && plant.id !== 13 && plant.id !== 17 && plant.id !== 18 && plant.id !== 19 && plant.id !== 20 && plant.id !== 24 ? "iNaturalist · " : "Recherchierte Referenzquelle · "}Lizenz: {plant.id >= 4 && plant.id !== 10 && plant.id !== 13 && plant.id !== 17 && plant.id !== 18 && plant.id !== 19 && plant.id !== 20 && plant.id !== 24 ? "CC BY / Originalhinweis" : plantLicense}</small></span><ArrowRight size={16} /></Link>; })}</div>
-      </section>
+      </section> : null}
       {gallery ? <div className="discover-gallery-lightbox" role="dialog" aria-modal="true" aria-label={`${gallery.name} Bildergalerie`} onMouseDown={event => { if (event.target === event.currentTarget) setGallery(null); }}><button type="button" className="discover-gallery-lightbox__close" aria-label="Galerie schließen" onClick={() => setGallery(null)}><X size={22} /></button>{gallery.images.length > 1 ? <button type="button" className="discover-gallery-lightbox__nav discover-gallery-lightbox__nav--prev" aria-label="Vorheriges Bild" onClick={() => setGallery(current => current ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length } : null)}><ChevronLeft size={34} /></button> : null}<figure><img src={plantImageSrc(gallery.images[gallery.index])} alt={`${gallery.name} – Vollbild`} /><figcaption>{gallery.name} · {gallery.index + 1} / {gallery.images.length}</figcaption></figure>{gallery.images.length > 1 ? <button type="button" className="discover-gallery-lightbox__nav discover-gallery-lightbox__nav--next" aria-label="Nächstes Bild" onClick={() => setGallery(current => current ? { ...current, index: (current.index + 1) % current.images.length } : null)}><ChevronRight size={34} /></button> : null}</div> : null}
 
-      <section className="observatory-observation-panel" id="map" aria-labelledby="observation-heading">
+      {mapMode ? <section className="observatory-observation-panel" id="map" aria-labelledby="observation-heading">
         <div className="observatory-section__heading"><div><span className="eyebrow">KARTE &amp; LISTE · SYNCHRONISIERT</span><h2 id="observation-heading">{locale === "de" ? "Beobachten. Einordnen. Teilen." : "Observe. Classify. Share."}</h2></div><span className={`observatory-status observatory-status--${observations.isError ? "error" : observationBusy ? "loading" : observations.isSuccess && !observations.isFetching ? "ready" : "loading"}`}><i />{observations.isError ? "NICHT VERFÜGBAR" : observationBusy ? "SYNC …" : observations.isSuccess && !observations.isFetching ? "BEREIT" : "AKTUALISIERT"}</span></div>
         <div className="observatory-observation-toolbar" role="group" aria-label="Beobachtungsbereich">
-          <div className="observatory-filter-pills">{(Object.keys(realmLabels) as RealmFilter[]).map(key => <button type="button" key={key} className={realm === key ? "active" : ""} aria-pressed={realm === key} onClick={() => setRealm(key)}>{realmLabels[key]}</button>)}</div>
+          <div className="observatory-filter-pills">{(Object.keys(realmLabels) as RealmFilter[]).map(key => <button type="button" key={key} className={realm === key ? "active" : ""} aria-pressed={realm === key} onClick={() => setRealm(key)}>{realmLabels[key]}</button>)}</div><label className="observatory-map-search"><Search size={15} /><input value={plantMapQuery} onChange={event => setPlantMapQuery(event.target.value)} placeholder={locale === "de" ? "Pflanze oder Ort auf Karte suchen …" : "Search plant or place on map …"} aria-label={locale === "de" ? "Pflanze oder Ort auf Karte suchen" : "Search plant or place on map"} /></label>
           <div className="observatory-view-toggle" role="group" aria-label="Ansicht"><button type="button" className={view === "map" ? "active" : ""} aria-pressed={view === "map"} onClick={() => setView("map")}><Map size={15} /> Karte</button><button type="button" className={view === "list" ? "active" : ""} aria-pressed={view === "list"} onClick={() => setView("list")}><List size={15} /> Liste</button></div>
         </div>
         <div className={`observatory-observation-grid observatory-observation-grid--${view}`}>
@@ -105,7 +114,7 @@ export default function Explore() {
           </div>
           <div className="observatory-catalog-list"><div className="observatory-list-heading"><span>BEOBACHTUNGEN · {realmLabels[realm].toUpperCase()}</span><Link href="/search">KATALOG öffnen <ArrowRight size={14} /></Link></div>{observationBusy ? <p className="observatory-inline-state">Beobachtungen werden synchronisiert …</p> : observations.isError ? <p className="observatory-inline-state">Beobachtungen derzeit nicht erreichbar. Die Katalogsuche bleibt nutzbar.</p> : observationRows.length ? observationRows.map(row => <div key={row.id} className="observatory-observation-item"><span className="observatory-observation-item__icon">{row.realm === "aquarium" ? <Fish size={20} /> : row.realm === "terrarium" ? <Sprout size={20} /> : <Leaf size={20} />}</span><span><strong>{row.scientificName ?? row.subject ?? "Unbestimmte Beobachtung"}</strong><small>{realmLabels[row.realm as RealmFilter] ?? row.realm} · {row.evidenceState === "confirmed" ? "bestätigt" : "Nachweis wird geprüft"}</small></span><span className="observatory-observation-item__state">{row.visibility === "public" ? "öffentlich" : "geschützt"}</span></div>) : <p className="observatory-inline-state">Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</p>}</div>
         </div>
-      </section>
+      </section> : null}
 
       <section className="observatory-feature-card observatory-feature-card--catalog">
         <div className="observatory-feature-card__visual" aria-hidden="true"><BookOpen size={34} /></div>
