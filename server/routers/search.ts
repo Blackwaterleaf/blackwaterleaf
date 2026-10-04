@@ -253,6 +253,8 @@ export const searchRouter = router({
           acceptedScientificName: plantTaxa.acceptedScientificName,
           commonNames: plantTaxa.commonNames,
           family: plantTaxa.family,
+          genus: plantTaxa.genus,
+          careProfile: plantTaxa.careProfile,
           imageUrl: plantTaxa.imageUrl,
           imageSourceUrl: plantTaxa.imageSourceUrl,
           imageLicense: plantTaxa.imageLicense,
