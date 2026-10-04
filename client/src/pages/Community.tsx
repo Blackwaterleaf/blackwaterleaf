@@ -236,7 +236,7 @@ export default function Community() {
   return (
     <div className="observatory-route observatory-route--botany observatory-community-page">
       {!auth.isAuthenticated ? <section className="community-guest-banner observatory-data-panel" aria-label="Öffentlicher Community-Feed">
-        <div className="community-guest-banner__copy"><span className="eyebrow">ÖFFENTLICH · OHNE ANMELDUNG</span><h2>Sieh dir echte Naturmomente an.</h2><p>Öffentliche Beiträge, Bilder und Videos kannst du direkt ansehen. Zum Hochladen, Liken und Kommentieren kannst du dich kostenlos anmelden.</p><p className="community-guest-banner__video-label">So funktioniert der Feed:</p><video className="community-guest-banner__video" controls preload="metadata" playsInline src="/manus-storage/510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4" aria-label="Erklärungsvideo zum öffentlichen Community-Feed" /></div>
+        <div className="community-guest-banner__copy"><span className="eyebrow">ÖFFENTLICH · OHNE ANMELDUNG</span><h2>Sieh dir echte Naturmomente an.</h2><p>Öffentliche Beiträge, Bilder und Videos kannst du direkt ansehen. Zum Hochladen, Liken und Kommentieren kannst du dich kostenlos anmelden.</p></div>
         <button type="button" className="primary-action" onClick={startLogin}>KOSTENLOS MITMACHEN <ArrowRight size={15} /></button>
       </section> : null}
 

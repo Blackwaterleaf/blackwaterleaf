@@ -2637,9 +2637,6 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .community-guest-banner .primary-action { flex:none; white-space:nowrap; }
 @media (max-width:700px) { .community-guest-banner { align-items:flex-start; flex-direction:column; gap:14px; padding:17px; } .community-guest-banner .primary-action { width:100%; justify-content:center; } }
 .community-guest-banner__copy { min-width:0; flex:1; }
-.community-guest-banner__video-label { margin-top:12px !important; color:#b8ff78 !important; font:800 .62rem/1.3 "JetBrains Mono",monospace; letter-spacing:.1em; text-transform:uppercase; }
-.community-guest-banner__video { display:block; width:min(100%, 720px); max-height:310px; margin-top:9px; border:1px solid rgba(184,255,120,.28); border-radius:14px; background:#020804; object-fit:cover; box-shadow:0 12px 28px rgba(0,0,0,.28); }
-@media (max-width:700px) { .community-guest-banner__video { max-height:220px; } }
 
 /* Dedicated map mode: discovery stays a catalogue, map stays a geographic workspace. */
 .observatory-map-search { display:flex; align-items:center; gap:8px; min-width:min(100%, 300px); padding:9px 12px; color:#b8ff78; border:1px solid rgba(184,255,120,.28); border-radius:12px; background:rgba(1,18,9,.68); }

@@ -23,6 +23,15 @@ describe("Observatory community feed interface", () => {
     for (const token of [".home-feed-preview", ".home-feed-preview__item", "home-feed-shimmer"]) expect(css).toContain(token);
   });
 
+  it("keeps the introduction video on Home instead of duplicating it in Community", () => {
+    const home = read("client/src/pages/Home.tsx");
+    const community = read("client/src/pages/Community.tsx");
+    expect(home).toContain("home-intro-film__video");
+    expect(home).toContain("510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4");
+    expect(community).not.toContain("community-guest-banner__video");
+    expect(community).not.toContain("510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4");
+  });
+
   it("offers refresh and creation actions without inventing feed content", () => {
     const page = read("client/src/pages/Community.tsx");
     for (const token of ["activeFeed.refetch()", "BEITRAG ERSTELLEN", "activeFeed.isLoading", "activeFeed.isError", "FEED / EMPTY", "Keine Beiträge in diesem Bereich"]) expect(page).toContain(token);
