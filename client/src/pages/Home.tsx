@@ -20,6 +20,7 @@ export default function Home() {
   const auth = useAuth();
   const { t, locale } = useI18n();
   const [introVideoError, setIntroVideoError] = useState(false);
+  const [introVideoReady, setIntroVideoReady] = useState(false);
   const [introVideoPlaying, setIntroVideoPlaying] = useState(false);
   const introVideoRef = useRef<HTMLVideoElement>(null);
   const pageTitle = HOME_SEO_TITLES[locale] ?? HOME_SEO_TITLES.en!;
@@ -56,11 +57,12 @@ export default function Home() {
         </div>
       </div>
       <div className="home-intro-film__media">
-        <video ref={introVideoRef} className="home-intro-film__video" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="auto" onError={() => setIntroVideoError(true)} onPlay={() => setIntroVideoPlaying(true)} onPause={() => setIntroVideoPlaying(false)} onCanPlay={event => { void event.currentTarget.play().catch(() => undefined); }} aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"}>
+        <div className={`home-intro-film__skeleton${introVideoReady ? " is-hidden" : ""}`} role="status" aria-live="polite" aria-hidden={introVideoReady}><span className="home-intro-film__skeleton-shimmer" /><span>{locale === "de" ? "VIDEO WIRD GELADEN …" : "LOADING VIDEO …"}</span></div>
+        <video ref={introVideoRef} className="home-intro-film__video" poster={WORLD_ASSETS.botany} autoPlay muted loop playsInline controls preload="auto" onError={() => { setIntroVideoReady(true); setIntroVideoError(true); }} onLoadedData={() => setIntroVideoReady(true)} onPlay={() => setIntroVideoPlaying(true)} onPause={() => setIntroVideoPlaying(false)} onCanPlay={event => { setIntroVideoReady(true); void event.currentTarget.play().catch(() => undefined); }} aria-label={locale === "de" ? "BlackWaterLeaf Einführungsvideo" : "BlackWaterLeaf introduction video"}>
           <source src="/manus-storage/510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4" type="video/mp4" />
           {locale === "de" ? "Dein Browser unterstützt dieses Videoformat nicht." : "Your browser does not support this video format."}
         </video>
-        {!introVideoPlaying && !introVideoError ? <button type="button" className="home-intro-film__play" onClick={() => { const video = introVideoRef.current; if (video) void video.play().catch(() => setIntroVideoError(true)); }} aria-label={locale === "de" ? "Einführungsvideo abspielen" : "Play introduction video"}><Play size={16} fill="currentColor" />{locale === "de" ? "VIDEO STARTEN" : "PLAY VIDEO"}</button> : null}
+        {introVideoReady && !introVideoPlaying && !introVideoError ? <button type="button" className="home-intro-film__play" onClick={() => { const video = introVideoRef.current; if (video) void video.play().catch(() => setIntroVideoError(true)); }} aria-label={locale === "de" ? "Einführungsvideo abspielen" : "Play introduction video"}><Play size={16} fill="currentColor" />{locale === "de" ? "VIDEO STARTEN" : "PLAY VIDEO"}</button> : null}
         {introVideoError ? <div className="home-intro-film__fallback" role="status"><strong>{locale === "de" ? "Video konnte nicht automatisch geladen werden." : "The video could not load automatically."}</strong><a href="/manus-storage/510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4" target="_blank" rel="noreferrer">{locale === "de" ? "Video direkt öffnen" : "Open video directly"}</a></div> : null}
         <span className="home-intro-film__badge"><Sparkles size={13} />{locale === "de" ? "EINBLICKE · WISSEN · COMMUNITY" : "INSIGHT · KNOWLEDGE · COMMUNITY"}</span>
       </div>

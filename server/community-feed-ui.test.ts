@@ -18,9 +18,9 @@ describe("Observatory community feed interface", () => {
     const home = read("client/src/pages/Home.tsx");
     const router = read("server/routers/community.ts");
     const css = read("client/src/index.css");
-    for (const token of ["publicPreview", "Echte Naturmomente aus der Community", "home-feed-preview", "FEED ENTDECKEN", "MITMACHEN"]) expect(home).toContain(token);
+    for (const token of ["publicPreview", "Echte Naturmomente aus der Community", "home-feed-preview", "FEED ENTDECKEN", "MITMACHEN", "home-intro-film__skeleton", "introVideoReady", "VIDEO WIRD GELADEN", "onLoadedData"]) expect(home).toContain(token);
     for (const token of ["publicProcedure", "eq(communityPosts.status, \"published\")", "displayName: author.name?.trim() || author.username?.trim()"]) expect(router).toContain(token);
-    for (const token of [".home-feed-preview", ".home-feed-preview__item", "home-feed-shimmer"]) expect(css).toContain(token);
+    for (const token of [".home-feed-preview", ".home-feed-preview__item", "home-feed-shimmer", ".home-intro-film__skeleton", "home-video-shimmer"]) expect(css).toContain(token);
   });
 
   it("keeps the introduction video on Home instead of duplicating it in Community", () => {
