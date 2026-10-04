@@ -2625,12 +2625,18 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 @media (max-width:760px) {
   .home-intro-film { grid-template-columns:1fr; gap:13px; padding:13px; }
   .home-intro-film__copy { padding:10px 6px 4px; }
-  .home-intro-film__media, .home-intro-film__video { min-height:205px; }
+  .home-intro-film__media { aspect-ratio:16 / 9; min-height:0; }
+  .home-intro-film__video { min-height:0; aspect-ratio:16 / 9; }
   .home-promise-grid { grid-template-columns:1fr; gap:8px; }
   .home-promise-card { display:grid; grid-template-columns:38px 1fr; gap:0 9px; align-items:baseline; padding:13px 15px; }
   .home-promise-card > span { grid-row:span 2; }
   .home-promise-card h3 { margin:0 0 4px; }
   .home-intro-film__fallback { align-items:flex-start; flex-direction:column; gap:7px; font-size:.68rem; }
+}
+@media (max-width:360px) {
+  .home-intro-film__play { min-height:34px; padding:8px 11px; font-size:.58rem; }
+  .home-intro-film__play svg { width:14px; height:14px; }
+  .home-intro-film__badge { left:8px; bottom:8px; padding:6px 7px; font-size:.48rem; }
 }
 
 /* Public community access: let visitors browse real activity before joining. */
