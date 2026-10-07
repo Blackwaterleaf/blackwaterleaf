@@ -5,13 +5,14 @@ import { API_ORIGIN, writeToken } from "./api";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export async function signInWithBlackWaterLeaf() {
+export async function signInWithBlackWaterLeaf(options: { forceAccountSelection?: boolean } = {}) {
   const mobileState = Crypto.randomUUID().replace(/-/g, "");
   const codeVerifier = `${Crypto.randomUUID().replace(/-/g, "")}${Crypto.randomUUID().replace(/-/g, "")}`;
   const codeChallenge = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, codeVerifier, { encoding: Crypto.CryptoEncoding.BASE64 }))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const redirectUri = Linking.createURL("oauth/callback", { scheme: "blackwaterleaf" });
-  const startUrl = `${API_ORIGIN}/api/oauth/mobile/start?mobileState=${encodeURIComponent(mobileState)}&codeChallenge=${encodeURIComponent(codeChallenge)}`;
+  const accountSelection = options.forceAccountSelection ? "&prompt=select_account" : "";
+  const startUrl = `${API_ORIGIN}/api/oauth/mobile/start?mobileState=${encodeURIComponent(mobileState)}&codeChallenge=${encodeURIComponent(codeChallenge)}${accountSelection}`;
   const result = await WebBrowser.openAuthSessionAsync(startUrl, redirectUri);
 
   if (result.type !== "success") {

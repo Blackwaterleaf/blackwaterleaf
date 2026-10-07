@@ -41,10 +41,16 @@ describe("BlackWaterLeaf native application contract", () => {
   });
 
   it("uses native high-entropy state verification and secure token storage", () => {
-    for (const token of ["Crypto.randomUUID", "returnedState !== mobileState", "codeVerifier", "codeChallenge", "/api/oauth/mobile/exchange"]) expect(auth).toContain(token);
+    for (const token of ["Crypto.randomUUID", "returnedState !== mobileState", "codeVerifier", "codeChallenge", "/api/oauth/mobile/exchange", "forceAccountSelection", "prompt=select_account"]) expect(auth).toContain(token);
     expect(api).toContain("SecureStore.setItemAsync");
     expect(shared).toContain("mobileState?: string");
     expect(oauth).toContain('MOBILE_CALLBACK_SCHEME = "blackwaterleaf://oauth/callback"');
+  });
+
+  it("offers an explicit native account switch instead of routing to the inbox", () => {
+    expect(app).toContain("onSwitchAccount");
+    expect(app).toContain("Konto wechseln · E-Mail auswählen");
+    expect(app).toContain("await signOut();");
   });
 
   it("contains an Android APK profile and complete native source tree", () => {

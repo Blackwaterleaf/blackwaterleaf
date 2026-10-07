@@ -75,6 +75,7 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/mobile/start", (req: Request, res: Response) => {
     const mobileState = getQueryParam(req, "mobileState");
     const codeChallenge = getQueryParam(req, "codeChallenge");
+    const prompt = getQueryParam(req, "prompt");
     if (!isValidMobileState(mobileState) || !isValidCodeChallenge(codeChallenge) || !ENV.oAuthPortalUrl || !ENV.appId) {
       res.status(400).json({ error: "native_oauth_not_available" });
       return;
@@ -86,6 +87,7 @@ export function registerOAuthRoutes(app: Express) {
     url.searchParams.set("redirectUri", MOBILE_OAUTH_CALLBACK);
     url.searchParams.set("state", state);
     url.searchParams.set("type", "signIn");
+    if (prompt === "select_account") url.searchParams.set("prompt", "select_account");
     res.set("Cache-Control", "no-store");
     res.redirect(302, url.toString());
   });

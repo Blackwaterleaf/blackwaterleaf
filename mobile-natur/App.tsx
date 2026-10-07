@@ -762,9 +762,9 @@ function NaturApp() {
     return () => clearInterval(timer);
   }, []);
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (options: { forceAccountSelection?: boolean } = {}) => {
     try {
-      const result = await signInWithBlackWaterLeaf();
+      const result = await signInWithBlackWaterLeaf(options);
       if (result.status === "authenticated") {
         const nextToken = await readToken();
         setToken(nextToken);
@@ -799,6 +799,11 @@ function NaturApp() {
     setDirectThread([]);
     navigate("home");
   }, [navigate]);
+
+  const switchAccount = useCallback(async () => {
+    await signOut();
+    await signIn({ forceAccountSelection: true });
+  }, [signIn, signOut]);
 
   const exportAccount = useCallback(async () => {
     if (!token) throw new Error("auth_required");
@@ -878,6 +883,7 @@ function NaturApp() {
         unreadMessages={unreadMessages}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
         onFeedback={() => { if (token) navigate("feedback"); else void signIn(); }}
+        onSwitchAccount={() => void switchAccount()}
         onProfileTarget={target => {
           if (target === "progress") {
             navigate("ranking");
@@ -1325,6 +1331,7 @@ function Header({
   unreadMessages,
   onCare,
   onFeedback,
+  onSwitchAccount,
   onProfileTarget,
 }: {
   tone: Tone;
@@ -1337,6 +1344,7 @@ function Header({
   unreadMessages: number;
   onCare: () => void;
   onFeedback: () => void;
+  onSwitchAccount: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1384,6 +1392,7 @@ function Header({
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMessages(); }}><Ionicons name="mail-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Postfach</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onSwitchAccount(); }}><Ionicons name="swap-horizontal-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Konto wechseln · E-Mail auswählen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={21} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
