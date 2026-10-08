@@ -15,7 +15,7 @@ function isMissingStagedSchema(error: unknown) {
 export async function getAssistantReadiness(): Promise<AssistantReadiness> {
   const db = await getDb();
   if (!db) return { state: "temporarily_unavailable", reason: "pending_migration" };
-  if (!process.env.BUILT_IN_FORGE_API_URL || !process.env.BUILT_IN_FORGE_API_KEY) {
+  if (!process.env.IONOS_AI_API_KEY || !process.env.IONOS_AI_TEXT_MODEL || !process.env.IONOS_AI_VISION_MODEL) {
     return { state: "disabled_by_policy", reason: "pending_provider_approval" };
   }
 

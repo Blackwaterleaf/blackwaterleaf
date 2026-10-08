@@ -213,13 +213,13 @@ const normalizeToolChoice = (
 };
 
 const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+  ENV.ionosAiApiUrl && ENV.ionosAiApiUrl.trim().length > 0
+    ? `${ENV.ionosAiApiUrl.replace(/\/$/, "")}/v1/chat/completions`
+    : "";
 
 const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!ENV.ionosAiApiKey || !ENV.ionosAiTextModel || !ENV.ionosAiVisionModel) {
+    throw new Error("IONOS_AI_API_KEY, IONOS_AI_TEXT_MODEL and IONOS_AI_VISION_MODEL are required");
   }
 };
 
@@ -405,7 +405,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+      authorization: `Bearer ${ENV.ionosAiApiKey}`,
     },
     body: JSON.stringify(payload),
   });
@@ -435,12 +435,12 @@ export type ModelsResponse = {
 export async function listLLMModels(): Promise<ModelsResponse> {
   assertApiKey();
 
-  const url = ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/models`
-    : "https://forge.manus.im/v1/models";
+  const url = ENV.ionosAiApiUrl && ENV.ionosAiApiUrl.trim().length > 0
+    ? `${ENV.ionosAiApiUrl.replace(/\/$/, "")}/v1/models`
+    : "";
 
   const response = await fetchWithBackoff(url, {
-    headers: { authorization: `Bearer ${ENV.forgeApiKey}` },
+    headers: { authorization: `Bearer ${ENV.ionosAiApiKey}` },
   });
 
   if (!response.ok) {

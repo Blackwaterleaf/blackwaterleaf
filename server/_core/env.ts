@@ -8,4 +8,8 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  ionosAiApiUrl: process.env.IONOS_AI_API_URL ?? "https://openai.inference.de-txl.ionos.com",
+  ionosAiApiKey: process.env.IONOS_AI_API_KEY ?? "",
+  ionosAiTextModel: process.env.IONOS_AI_TEXT_MODEL ?? "",
+  ionosAiVisionModel: process.env.IONOS_AI_VISION_MODEL ?? "",
 };

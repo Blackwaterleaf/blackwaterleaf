@@ -18,10 +18,11 @@ describe("AP-18 KI-Evidenz und Kostenwahrheit", () => {
     expect(api).toContain("additionalImages");
   });
 
-  it("passes all accepted individual views to PlantNet with auto organ mapping", () => {
+  it("keeps accepted individual views inside the IONOS-only provider boundary", () => {
     expect(assistant).toContain("validateWithPlantNetImages");
     expect(assistant).toContain('organ: "auto"');
-    expect(plantnet).toContain('formData.append("organs", image.organ ?? "auto")');
+    expect(plantnet).toContain("IONOS-only policy");
+    expect(plantnet).not.toContain("fetch(");
     expect(plantnet).toContain("engineVersion");
     expect(plantnet).toContain("referential");
   });
