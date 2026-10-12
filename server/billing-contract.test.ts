@@ -27,6 +27,13 @@ describe("Free / Pro monetization contract", () => {
     expect(stripe).toContain('params.set("managed_payments[enabled]", "false")');
   });
 
+  it("uses the approved Pro prices in the live Checkout session", () => {
+    const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
+    expect(stripe).toContain("PRO_MONTHLY_PRICE_EUR");
+    expect(stripe).toContain("PRO_YEARLY_PRICE_EUR");
+    expect(stripe).toContain("Math.round((yearly ? PRO_YEARLY_PRICE_EUR : PRO_MONTHLY_PRICE_EUR) * 100)");
+  });
+
   it("exposes a private purchase history for completed credit purchases", () => {
     const billing = readFileSync(resolve(process.cwd(), "server/routers/billing.ts"), "utf8");
     const proPage = readFileSync(resolve(process.cwd(), "client/src/pages/Pro.tsx"), "utf8");

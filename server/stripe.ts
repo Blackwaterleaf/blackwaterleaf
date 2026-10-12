@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import type { Express, Request, Response } from "express";
 import { and, eq, sql } from "drizzle-orm";
-import { AI_CREDIT_PACKS, type AiCreditPackKey } from "@shared/monetization";
+import { AI_CREDIT_PACKS, PRO_MONTHLY_PRICE_EUR, PRO_YEARLY_PRICE_EUR, type AiCreditPackKey } from "@shared/monetization";
 import { accountEntitlements, aiCreditPurchases, aiCreditWallets, billingAccounts, donations } from "../drizzle/schema";
 import { getDb } from "./db";
 import { awardXpIfReady } from "./gamification";
@@ -85,7 +85,7 @@ export async function createCheckoutSession(input: { userId?: number; email?: st
     const yearly = input.kind === "pro_yearly";
     params.set("metadata[plan]", "pro");
     params.set("line_items[0][price_data][currency]", "eur");
-    params.set("line_items[0][price_data][unit_amount]", String(yearly ? 3_999 : 499));
+    params.set("line_items[0][price_data][unit_amount]", String(Math.round((yearly ? PRO_YEARLY_PRICE_EUR : PRO_MONTHLY_PRICE_EUR) * 100)));
     params.set("line_items[0][price_data][recurring][interval]", yearly ? "year" : "month");
     params.set("line_items[0][price_data][product_data][name]", "BlackWaterLeaf Pro");
     params.set("line_items[0][price_data][product_data][description]", "Private Anlagen, Pflegehistorie und monatliches KI-Kontingent");
