@@ -312,7 +312,7 @@ export const appRouter = router({
 
     runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
       await requireWorkspace(ctx.user.id);
-      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), capabilities: CAPABILITY_REGISTRY };
+      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), capabilities: CAPABILITY_REGISTRY };
     }),
 
     uploadArtifact: protectedProcedure

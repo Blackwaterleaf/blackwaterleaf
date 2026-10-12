@@ -1,12 +1,13 @@
-# BlackWaterLeaf Studio MVP – Fortschritt
+# BlackWaterLeaf Studio – unabhängiger Betrieb
 
-- [x] Projektprofile: Web oder Web + Native
-- [x] Strukturiertes Build-Briefing und Plan-Grundlage
-- [x] Code-Arbeitsbereich mit Dateien, Draft-Patches und Versionen
-- [x] Preview-/Staging-Umgebungen mit Freigabestatus
-- [x] Datenbankmigrationen, API-Routen und UI integrieren
-- [x] Typecheck, Tests, Build und Preview prüfen
-
-## Sicherheitsgrenzen
-
-Die isolierte Code-Execution-Plane bleibt deaktiviert. Preview- und Staging-Status werden zunächst als kontrollierte Produktverträge und Freigabegates geführt; es wird kein generierter Code automatisch auf einem Host ausgeführt.
+- [x] IONOS Cloud Server-Konfiguration und Provisionierung gestartet
+- [x] Ubuntu-24.04-/Basic-Cube-S-Zielprofil festgelegt
+- [x] Sicherheits-Skill für SSH, Bootstrap, Deploy, Rollback und Admin-Aktionen initialisiert
+- [x] Secrets aus Skill- und Projektdateien ausgeschlossen
+- [ ] IONOS-Transaktion abschließen und öffentliche Server-IP ermitteln
+- [ ] SSH-Preflight mit dem neuen Server ausführen
+- [ ] Nicht-root-Admin, UFW, Systemd und TLS einrichten
+- [ ] Studio als unabhängigen Dienst auf IONOS deployen
+- [ ] Admin-Konsole mit Status, Preflight, Staging-Deploy, Rollback und Kill-Switch verbinden
+- [ ] IONOS-API-Token serverseitig hinterlegen und Readiness auf aktiv setzen
+- [ ] Manus-Verbindung nur als optionale Entwicklungs-/Kontrollintegration belassen
