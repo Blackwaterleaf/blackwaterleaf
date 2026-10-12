@@ -1,11 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, like, lt, notInArray, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, users } from "../../drizzle/schema";
+import { aquariumTaxa, communityPosts, knowledgeArticles, partnerProfiles, partnerProducts, plantTaxa, terrariumTaxa, userBlocks, users } from "../../drizzle/schema";
 import { evidenceStateSchema, localeSchema, observationRealmSchema } from "../../shared/blackwaterleaf-contract-v1";
-import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, officialTaxonSource } from "../../shared/taxon-source-policy";
+import { belongsToOfficialMediaSource, belongsToOfficialSource, isCommerciallyReusableCatalogImageLicense, isDisallowedCatalogSource, isOfficialTaxonSourceUrl, isStoredCatalogueTaxonImage, isVerifiedOpenCatalogueMediaSource, officialTaxonSource } from "../../shared/taxon-source-policy";
 import { publicProcedure, router, staffProcedure } from "../_core/trpc";
 import { getDb } from "../db";
+import { cachedPublicQuery } from "../publicQueryCache";
 
 const searchKindSchema = z.enum(["all", "plant", "aquarium", "knowledge", "profile", "community", "product"]);
 const taxaRecordSchema = z.object({
@@ -25,7 +26,7 @@ const taxaRecordSchema = z.object({
   synonyms: z.array(z.string().trim().min(1).max(240)).max(100).default([]),
   summary: z.string().trim().max(10_000).nullable().optional(),
   careProfile: z.record(z.string(), z.unknown()).nullable().optional(),
-  imageUrl: z.string().url().max(1_000).nullable().optional(),
+  imageUrl: z.string().max(1_000).refine(value => value.startsWith("/manus-storage/") || z.string().url().safeParse(value).success, "invalid_image_url").nullable().optional(),
   imageSourceUrl: z.string().url().max(1_000).nullable().optional(),
   imageLicense: z.string().trim().max(128).nullable().optional(),
   imageAttribution: z.string().trim().max(2_000).nullable().optional(),
@@ -52,7 +53,13 @@ function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof
     if (!configuredSource || !record.imageUrl || !record.imageSourceUrl) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "official_taxon_source_required" });
     }
-    if (!isOfficialTaxonSourceUrl(record.imageSourceUrl) || !belongsToOfficialMediaSource(source, record.imageUrl) || !belongsToOfficialSource(source, record.imageSourceUrl)) {
+    const verifiedOpenCataloguePhoto = isStoredCatalogueTaxonImage(record.imageUrl)
+      && isVerifiedOpenCatalogueMediaSource(record.imageSourceUrl)
+      && record.imageAttribution?.includes("iNaturalist photo #");
+    const officialSourcePhoto = isOfficialTaxonSourceUrl(record.imageSourceUrl)
+      && belongsToOfficialMediaSource(source, record.imageUrl)
+      && belongsToOfficialSource(source, record.imageSourceUrl);
+    if (!verifiedOpenCataloguePhoto && !officialSourcePhoto) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_media_source" });
     }
     if (publish && !isCommerciallyReusableCatalogImageLicense(record.imageLicense)) {
@@ -84,7 +91,7 @@ export const searchRouter = router({
       cursor: z.string().optional(),
       limit: z.number().int().min(1).max(30).default(12),
     }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       const db = await requireDatabase();
       const match = `%${input.q}%`;
       const cursor = cursorValue(input.cursor);
@@ -117,6 +124,7 @@ export const searchRouter = router({
           evidenceState: plantTaxa.evidenceState,
         }).from(plantTaxa).where(and(
           eq(plantTaxa.status, "published"),
+          input.realm && input.realm !== "botany" ? sql`1 = 0` : undefined,
           cursor ? lt(plantTaxa.id, cursor) : undefined,
           or(
             like(plantTaxa.scientificName, match),
@@ -150,6 +158,7 @@ export const searchRouter = router({
           evidenceState: aquariumTaxa.evidenceState,
         }).from(aquariumTaxa).where(and(
           eq(aquariumTaxa.status, "published"),
+          input.realm && input.realm !== "aquarium" ? sql`1 = 0` : undefined,
           cursor ? lt(aquariumTaxa.id, cursor) : undefined,
           or(
             like(aquariumTaxa.scientificName, match),
@@ -166,13 +175,18 @@ export const searchRouter = router({
       }
 
       if (wants("knowledge")) {
-        const rows = await db.select({ id: knowledgeArticles.id, slug: knowledgeArticles.slug, title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, realm: knowledgeArticles.realm, evidenceState: knowledgeArticles.evidenceState }).from(knowledgeArticles).where(and(
-          eq(knowledgeArticles.isPublished, true),
-          eq(knowledgeArticles.locale, input.locale),
-          input.realm ? eq(knowledgeArticles.realm, input.realm) : undefined,
-          or(like(knowledgeArticles.title, match), like(knowledgeArticles.excerpt, match), like(knowledgeArticles.content, match)),
-        )).orderBy(desc(knowledgeArticles.updatedAt)).limit(input.limit);
-        result.knowledge = rows.map(row => ({ ...row, type: "knowledge" as const, id: String(row.id) }));
+        result.knowledge = await cachedPublicQuery(
+          `search:knowledge:${input.locale}:${input.realm ?? "all"}:${input.q.toLocaleLowerCase("de-DE")}:${input.limit}`,
+          async () => {
+            const rows = await db.select({ id: knowledgeArticles.id, slug: knowledgeArticles.slug, title: knowledgeArticles.title, excerpt: knowledgeArticles.excerpt, realm: knowledgeArticles.realm, evidenceState: knowledgeArticles.evidenceState }).from(knowledgeArticles).where(and(
+              eq(knowledgeArticles.isPublished, true),
+              eq(knowledgeArticles.locale, input.locale),
+              input.realm ? eq(knowledgeArticles.realm, input.realm) : undefined,
+              or(like(knowledgeArticles.title, match), like(knowledgeArticles.excerpt, match), like(knowledgeArticles.content, match)),
+            )).orderBy(desc(knowledgeArticles.updatedAt)).limit(input.limit);
+            return rows.map(row => ({ ...row, type: "knowledge" as const, id: String(row.id) }));
+          },
+        );
       }
 
       if (wants("profile")) {
@@ -185,13 +199,18 @@ export const searchRouter = router({
       }
 
       if (wants("community")) {
-        const rows = await db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, userId: communityPosts.userId, createdAt: communityPosts.createdAt }).from(communityPosts).where(and(
-          eq(communityPosts.status, "published"),
-          eq(communityPosts.visibility, "public"),
-          input.realm ? eq(communityPosts.realm, input.realm) : undefined,
-          like(communityPosts.content, match),
-        )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
-        result.community = rows.map(row => ({ ...row, type: "community" as const, id: String(row.id) }));
+        if (ctx.user) {
+          const viewerId = ctx.user.id;
+          const blockedIds = (await db.select({ blockerId: userBlocks.blockerId, blockedId: userBlocks.blockedId }).from(userBlocks).where(or(eq(userBlocks.blockerId, viewerId), eq(userBlocks.blockedId, viewerId)))).map(item => item.blockerId === viewerId ? item.blockedId : item.blockerId);
+          const rows = await db.select({ id: communityPosts.id, content: communityPosts.content, realm: communityPosts.realm, userId: communityPosts.userId, createdAt: communityPosts.createdAt }).from(communityPosts).where(and(
+            eq(communityPosts.status, "published"),
+            eq(communityPosts.visibility, "public"),
+            input.realm ? eq(communityPosts.realm, input.realm) : undefined,
+            blockedIds.length ? notInArray(communityPosts.userId, blockedIds) : undefined,
+            like(communityPosts.content, match),
+          )).orderBy(desc(communityPosts.createdAt)).limit(input.limit);
+          result.community = rows.map(row => ({ ...row, type: "community" as const, id: String(row.id) }));
+        }
       }
 
       if (wants("product")) {
@@ -207,37 +226,57 @@ export const searchRouter = router({
     }),
 
   catalogByRealm: publicProcedure
-    .input(z.object({ realm: observationRealmSchema, limit: z.number().int().min(1).max(20).default(8) }))
+    .input(z.object({ realm: observationRealmSchema, limit: z.number().int().min(1).max(200).default(8) }))
     .query(async ({ input }) => {
       const db = await requireDatabase();
-      if (input.realm === "terrarium") return [];
+      if (input.realm === "terrarium") {
+        const rows = await db.select({
+          id: terrariumTaxa.id,
+          scientificName: terrariumTaxa.scientificName,
+          acceptedScientificName: terrariumTaxa.acceptedScientificName,
+          commonNames: terrariumTaxa.commonNames,
+          family: terrariumTaxa.family,
+          genus: terrariumTaxa.genus,
+          imageUrl: terrariumTaxa.imageUrl,
+          imageSourceUrl: terrariumTaxa.imageSourceUrl,
+          imageLicense: terrariumTaxa.imageLicense,
+          imageAttribution: terrariumTaxa.imageAttribution,
+          imageVerifiedAt: terrariumTaxa.imageVerifiedAt,
+          evidenceState: terrariumTaxa.evidenceState,
+        }).from(terrariumTaxa).where(eq(terrariumTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${terrariumTaxa.imageUrl} IS NOT NULL AND ${terrariumTaxa.imageSourceUrl} IS NOT NULL AND ${terrariumTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(terrariumTaxa.acceptedScientificName), asc(terrariumTaxa.scientificName)).limit(input.limit);
+        return rows.map(row => ({ ...row, type: "terrarium" as const, id: String(row.id) }));
+      }
       if (input.realm === "botany") {
         const rows = await db.select({
           id: plantTaxa.id,
           scientificName: plantTaxa.scientificName,
           acceptedScientificName: plantTaxa.acceptedScientificName,
+          commonNames: plantTaxa.commonNames,
           family: plantTaxa.family,
+          genus: plantTaxa.genus,
+          careProfile: plantTaxa.careProfile,
           imageUrl: plantTaxa.imageUrl,
           imageSourceUrl: plantTaxa.imageSourceUrl,
           imageLicense: plantTaxa.imageLicense,
           imageAttribution: plantTaxa.imageAttribution,
           imageVerifiedAt: plantTaxa.imageVerifiedAt,
           evidenceState: plantTaxa.evidenceState,
-        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(desc(plantTaxa.updatedAt)).limit(input.limit);
+        }).from(plantTaxa).where(eq(plantTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${plantTaxa.imageUrl} IS NOT NULL AND ${plantTaxa.imageSourceUrl} IS NOT NULL AND ${plantTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(plantTaxa.acceptedScientificName), asc(plantTaxa.scientificName)).limit(input.limit);
         return rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
       }
       const rows = await db.select({
         id: aquariumTaxa.id,
-        scientificName: aquariumTaxa.scientificName,
-        acceptedScientificName: aquariumTaxa.acceptedScientificName,
-        family: aquariumTaxa.family,
+          scientificName: aquariumTaxa.scientificName,
+          acceptedScientificName: aquariumTaxa.acceptedScientificName,
+          commonNames: aquariumTaxa.commonNames,
+          family: aquariumTaxa.family,
         imageUrl: aquariumTaxa.imageUrl,
         imageSourceUrl: aquariumTaxa.imageSourceUrl,
         imageLicense: aquariumTaxa.imageLicense,
         imageAttribution: aquariumTaxa.imageAttribution,
         imageVerifiedAt: aquariumTaxa.imageVerifiedAt,
         evidenceState: aquariumTaxa.evidenceState,
-      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(desc(aquariumTaxa.updatedAt)).limit(input.limit);
+      }).from(aquariumTaxa).where(eq(aquariumTaxa.status, "published")).orderBy(desc(sql`CASE WHEN ${aquariumTaxa.imageUrl} IS NOT NULL AND ${aquariumTaxa.imageSourceUrl} IS NOT NULL AND ${aquariumTaxa.imageAttribution} IS NOT NULL THEN 1 ELSE 0 END`), asc(aquariumTaxa.acceptedScientificName), asc(aquariumTaxa.scientificName)).limit(input.limit);
       return rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
     }),
 
@@ -254,6 +293,13 @@ export const searchRouter = router({
     .query(async ({ input }) => {
       const db = await requireDatabase();
       const rows = await db.select().from(aquariumTaxa).where(and(eq(aquariumTaxa.id, input.id), eq(aquariumTaxa.status, "published"))).limit(1);
+      return rows[0] ?? null;
+    }),
+  terrariumById: publicProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      const db = await requireDatabase();
+      const rows = await db.select().from(terrariumTaxa).where(and(eq(terrariumTaxa.id, input.id), eq(terrariumTaxa.status, "published"))).limit(1);
       return rows[0] ?? null;
     }),
 
@@ -317,6 +363,50 @@ export const searchRouter = router({
       const db = await requireDatabase();
       for (const record of input.records) {
         await db.insert(aquariumTaxa).values({
+          source: input.source,
+          sourceVersion: input.sourceVersion,
+          sourceRecordId: record.sourceRecordId,
+          sourceRecordUrl: record.sourceRecordUrl ?? null,
+          sourceLicense: record.sourceLicense ?? null,
+          sourceCitation: record.sourceCitation ?? null,
+          sourceRetrievedAt: record.sourceRetrievedAt ?? null,
+          taxonomicStatus: record.taxonomicStatus ?? null,
+          matchConfidence: record.matchConfidence ?? null,
+          scientificName: record.scientificName,
+          acceptedScientificName: record.acceptedScientificName ?? null,
+          rank: record.rank ?? null,
+          family: record.family ?? null,
+          genus: record.genus ?? null,
+          commonNames: record.commonNames,
+          synonyms: record.synonyms,
+          summary: record.summary ?? null,
+          careProfile: record.careProfile ?? null,
+          imageUrl: record.imageUrl ?? null,
+          imageSourceUrl: record.imageSourceUrl ?? null,
+          imageLicense: record.imageLicense ?? null,
+          imageAttribution: record.imageAttribution ?? null,
+          imageVerifiedAt: input.publish ? new Date() : null,
+          evidenceState: record.evidenceState,
+          status: input.publish ? "published" : "draft",
+        }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+      }
+      return { imported: input.records.length, source: input.source, sourceVersion: input.sourceVersion, status: input.publish ? "published" : "draft" } as const;
+    }),
+  importValidatedTerrariumTaxa: staffProcedure
+    .input(z.object({
+      source: z.string().trim().min(1).max(96),
+      sourceVersion: z.string().trim().min(1).max(96),
+      records: z.array(taxaRecordSchema).min(1).max(5_000),
+      publish: z.boolean().default(false),
+    }))
+    .mutation(async ({ input }) => {
+      assertApprovedMediaSource(input.source, input.records, input.publish);
+      if (input.publish && input.records.some(record => (record.imageUrl || record.imageSourceUrl || record.imageLicense || record.imageAttribution) && (!record.imageUrl || !record.imageSourceUrl || !record.imageLicense || !record.imageAttribution))) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "published_taxon_image_provenance_required" });
+      }
+      const db = await requireDatabase();
+      for (const record of input.records) {
+        await db.insert(terrariumTaxa).values({
           source: input.source,
           sourceVersion: input.sourceVersion,
           sourceRecordId: record.sourceRecordId,

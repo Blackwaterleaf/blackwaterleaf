@@ -102,3 +102,22 @@ export async function sendLocalAuthEmail(input: {
   });
   if (!response.ok) throw new Error("local_auth_email_delivery_failed");
 }
+
+export async function sendStaffResponseEmail(input: { to: string; subject: string; message: string }) {
+  const config = getLocalAuthEmailConfig();
+  if (!config) return false;
+  const safeMessage = escapeHtml(input.message);
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: config.from,
+      reply_to: config.replyTo,
+      to: [input.to],
+      subject: input.subject,
+      text: input.message,
+      html: `<p>${safeMessage.replace(/\n/g, "<br />")}</p><p>Diese Antwort ist zusätzlich im BlackWaterLeaf-Benachrichtigungscenter gespeichert.</p>`,
+    }),
+  });
+  return response.ok;
+}

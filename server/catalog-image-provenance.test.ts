@@ -8,25 +8,25 @@ const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 describe("AP-12 catalog image provenance", () => {
   it("stores source, license, attribution and verification time for both public catalogs", () => {
     const schema = read("drizzle/schema.ts");
-    expect((schema.match(/imageSourceUrl: varchar/g) ?? []).length).toBe(2);
-    expect((schema.match(/imageLicense: varchar/g) ?? []).length).toBe(2);
-    expect((schema.match(/imageAttribution: text/g) ?? []).length).toBe(2);
-    expect((schema.match(/imageVerifiedAt: timestamp/g) ?? []).length).toBe(2);
+    expect((schema.match(/imageSourceUrl: varchar/g) ?? []).length).toBe(3);
+    expect((schema.match(/imageLicense: varchar/g) ?? []).length).toBe(3);
+    expect((schema.match(/imageAttribution: text/g) ?? []).length).toBe(3);
+    expect((schema.match(/imageVerifiedAt: timestamp/g) ?? []).length).toBe(3);
   });
 
   it("stores a primary scientific record, retrieval date and match quality for both catalogs", () => {
     const schema = read("drizzle/schema.ts");
-    expect((schema.match(/sourceRecordUrl: varchar/g) ?? []).length).toBe(2);
-    expect((schema.match(/sourceLicense: varchar/g) ?? []).length).toBe(2);
-    expect((schema.match(/sourceCitation: text/g) ?? []).length).toBe(2);
-    expect((schema.match(/sourceRetrievedAt: timestamp/g) ?? []).length).toBe(2);
-    expect((schema.match(/taxonomicStatus: varchar/g) ?? []).length).toBe(2);
-    expect((schema.match(/matchConfidence: int/g) ?? []).length).toBe(2);
+    expect((schema.match(/sourceRecordUrl: varchar/g) ?? []).length).toBe(3);
+    expect((schema.match(/sourceLicense: varchar/g) ?? []).length).toBe(3);
+    expect((schema.match(/sourceCitation: text/g) ?? []).length).toBe(3);
+    expect((schema.match(/sourceRetrievedAt: timestamp/g) ?? []).length).toBe(3);
+    expect((schema.match(/taxonomicStatus: varchar/g) ?? []).length).toBe(3);
+    expect((schema.match(/matchConfidence: int/g) ?? []).length).toBe(3);
   });
 
   it("requires complete image provenance before a staff import may publish records", () => {
     const router = read("server/routers/search.ts");
-    expect((router.match(/published_taxon_image_provenance_required/g) ?? []).length).toBe(2);
+    expect((router.match(/published_taxon_image_provenance_required/g) ?? []).length).toBe(3);
     expect(router).toContain("catalog_image_license_not_reusable");
     expect(router).toContain("imageVerifiedAt: input.publish ? new Date() : null");
   });

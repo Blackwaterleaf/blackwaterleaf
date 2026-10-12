@@ -13,6 +13,10 @@ describe("assistant operation interface", () => {
     expect(assistantPage).not.toContain("unavailable: true");
   });
 
+  it("shows the remaining daily plant-identification quota before image analysis", () => {
+    for (const token of ["PlantQuotaCard", "freeIdentificationsRemaining", "dailyLimit", "assistant-plant-quota", "progressbar", "billing.me"]) expect(assistantPage).toContain(token);
+  });
+
   it("keeps image identification server-validated and does not persist the image", () => {
     expect(assistantRouter).toContain("validateImageUpload(input.imageBase64, input.mimeType)");
     expect(assistantRouter).toContain("Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert");
@@ -20,7 +24,7 @@ describe("assistant operation interface", () => {
     expect(assistantRouter).toContain("additionalImages");
     expect(assistantRouter).toContain("max(2)");
     expect(assistantRouter).toContain("requestedAdditionalImages");
-    expect(assistantRouter).toContain("gemini-3.1-pro-preview");
+    expect(assistantRouter).toContain("const PLANT_ESCALATION_MODEL = ENV.ionosModel");
     expect(assistantPage).toContain("niemals nach einem 4er-Raster");
   });
 

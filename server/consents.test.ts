@@ -12,5 +12,8 @@ describe("current consent contract", () => {
     expect(source).toContain("userConsentCurrent");
     expect(source).toContain("userConsentEvents");
     expect(source).toContain("recordCurrentConsent");
+    expect(source).toContain('input.purpose === "community_publishing"');
+    expect(source).toContain('input.purpose === "observation_publishing"');
+    expect(source).toContain('set({ visibility: "private" })');
   });
 });

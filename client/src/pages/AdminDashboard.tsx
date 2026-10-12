@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, EyeOff, ImagePlus, LayoutDashboard, Megaphone, Plus, Shield, ShieldAlert, UsersRound } from "lucide-react";
+import { Activity, BadgeCheck, Check, Coins, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, SlidersHorizontal, UsersRound, Send, Save } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
@@ -15,6 +15,7 @@ const menuItems: DashboardMenuItem[] = [
   { icon: UsersRound, label: "Konten", path: "/admin/accounts" },
   { icon: Megaphone, label: "Händlerfreigaben", path: "/admin/merchant-approvals" },
   { icon: Activity, label: "Analytics", path: "/admin/analytics" },
+  { icon: Coins, label: "KI-Kontingente", path: "/admin/ai-usage" },
 ];
 
 function roleLabel(role: "user" | "moderator" | "admin" | "merchant") {
@@ -32,24 +33,40 @@ function RolePicker({ account, currentUserId, pending, onSave, disabled }: { acc
   </div>;
 }
 
+function ProAccessPicker({ account, pending, onSave }: { account: { id: number; proAccess: { active: boolean; manuallyGranted: boolean; forcedFree: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: Date | null } }; pending: boolean; onSave: (active: boolean) => void }) {
+  const [active, setActive] = useState(account.proAccess.manuallyGranted);
+  useEffect(() => setActive(account.proAccess.manuallyGranted), [account.proAccess.manuallyGranted]);
+  const label = account.proAccess.source === "admin" ? "ADMIN · VOLLZUGRIFF" : account.proAccess.source === "admin_grant" ? "FULL ABO · ADMIN-FREIGEGEBEN" : account.proAccess.forcedFree ? "FREE · ADMIN ERZWUNGEN" : account.proAccess.source === "stripe" ? "STRIPE · PRO AKTIV" : "FREE / KAUF ERFORDERLICH";
+  return <div className="pro-access-picker" aria-label={`Pro-Freigabe für Konto ${account.id}`}>
+    <span className={`system-chip ${account.proAccess.active ? "" : "system-chip--pending"}`}>{label}</span>
+    <button type="button" className="secondary-action" disabled={pending || account.proAccess.source === "admin"} onClick={() => { const next = !active; if (window.confirm(next ? "Full Abo für dieses Konto freischalten? Ein bestehendes Stripe-Pro wird damit ebenfalls übersteuert." : "Für dieses Konto Free erzwingen und Pro sperren?")) { setActive(next); onSave(next); } }}>{account.proAccess.source === "admin" ? "AUTOMATISCH AKTIV" : active ? "FREE SETZEN" : "FULL ABO FREIGEBEN · PRO FREISCHALTEN"}</button>
+  </div>;
+}
+
 export default function AdminDashboard() {
   const auth = useAuth();
   const [location, setLocation] = useLocation();
   const isStaff = auth.user?.status === "active" && (auth.user.role === "moderator" || auth.user.role === "admin");
+  const section = location.split("/")[2]?.split("?")[0] ?? "overview";
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const focus = params.get("focus");
+    if (!focus) return;
+    window.requestAnimationFrame(() => document.getElementById(focus === "partner" ? "partner-inquiry-inbox" : "feedback-inbox")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [location]);
 
   if (auth.loading) return <StatePanel code="ADMIN/LOAD" state="loading" title="KONTROLLZENTRUM WIRD GEPRÜFT" body="Die serverseitige Berechtigung wird geladen." />;
   if (!auth.isAuthenticated) return <StatePanel code="ADMIN/AUTH" title="ANMELDUNG ERFORDERLICH" body="Das Kontrollzentrum ist ausschließlich für verifizierte Teamkonten erreichbar." action={<button type="button" className="primary-action" onClick={startLogin}>ANMELDEN</button>} />;
   if (!isStaff) return <StatePanel code="ADMIN/FORBIDDEN" state="locked" title="KEINE TEAMBERECHTIGUNG" body="Diese Route ist serverseitig für aktive Moderations- und Adminrollen geschützt." />;
 
-  const section = location.split("/")[2] ?? "overview";
   return (
     <DashboardLayout menuItems={auth.user?.role === "admin" ? menuItems : menuItems.slice(0, 2)} title="BLACKWATERLEAF ADMIN">
       <div className="admin-console">
         <header className="admin-console__header">
-          <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1><p>Nur echte, serverseitig freigegebene Inhalte und Konten werden angezeigt.</p></div>
+          <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" || section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : section === "ai-usage" ? <AiUsagePanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
       </div>
     </DashboardLayout>
   );
@@ -58,6 +75,7 @@ export default function AdminDashboard() {
 function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { onOpenModeration: () => void; onOpenAccounts: () => void; onOpenPartners: () => void }) {
   const overview = trpc.admin.overview.useQuery();
   const audit = trpc.admin.auditTrail.useQuery();
+  const analytics = trpc.analytics.overview.useQuery({ days: 7 }, { retry: false });
   if (overview.isLoading || audit.isLoading) return <StatePanel code="ADMIN/SYNC" state="loading" title="ECHTE STATUSDATEN WERDEN GELADEN" body="Es werden keine Kennzahlen simuliert." />;
   if (overview.isError || audit.isError || !overview.data || !audit.data) return <StatePanel code="ADMIN/ERROR" state="error" title="KONTROLLZENTRUM NICHT VERFÜGBAR" body="Die serverseitigen Statusdaten konnten nicht verifiziert werden." />;
   return <>
@@ -66,14 +84,88 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
       <Metric icon={<BadgeCheck />} label="Aktiv" value={overview.data.activeAccounts} />
       <Metric icon={<Activity />} label="Öffentliche Beiträge" value={overview.data.publicPosts} />
       <Metric icon={<EyeOff />} label="Ausgeblendet" value={overview.data.hiddenPosts} />
+      {analytics.data ? <Metric icon={<EyeOff />} label="Seitenaufrufe · 7 Tage" value={analytics.data.pageViews} /> : null}
+      {analytics.data ? <Metric icon={<UsersRound />} label="Besuche · 7 Tage" value={analytics.data.visitors} /> : null}
     </section>
+    {!analytics.isLoading && analytics.isError ? <p className="admin-inline-note">Reichweitenwerte sind nur für das Betreiber-Konto freigeschaltet.</p> : null}
     <section className="admin-grid">
-      <section className="admin-panel"><p className="eyebrow">[MODERATION]</p><h2>Öffentliche Inhalte</h2><p>Nur veröffentlichte, öffentliche Community-Beiträge sind für Moderation sichtbar. Private Entwürfe werden nicht angezeigt.</p><button className="primary-action" type="button" onClick={onOpenModeration}>MODERATION ÖFFNEN</button></section>
-      <section className="admin-panel"><p className="eyebrow">[KONTEN]</p><h2>Rollen & Status</h2><p>Aktive Admins können reale Kontorollen und Kontostatus ändern. Jede Änderung wird revisionssicher protokolliert.</p><button className="primary-action" type="button" onClick={onOpenAccounts}>KONTEN ÖFFNEN</button></section>
-      <section className="admin-panel"><p className="eyebrow">[PARTNER]</p><h2>Werbeplätze</h2><p>Nur reale, autorisierte und ausdrücklich aktivierte Partner erscheinen sichtbar als Werbung auf der Startseite.</p><button className="primary-action" type="button" onClick={onOpenPartners}>PARTNER ÖFFNEN</button></section>
+      <section className="admin-panel"><p className="eyebrow">[MODERATION]</p><h2>Öffentliche Inhalte</h2><button className="primary-action" type="button" onClick={onOpenModeration}>MODERATION ÖFFNEN</button></section>
+      <section className="admin-panel"><p className="eyebrow">[KONTEN]</p><h2>Rollen & Status</h2><button className="primary-action" type="button" onClick={onOpenAccounts}>KONTEN ÖFFNEN</button></section>
+      <section className="admin-panel"><p className="eyebrow">[PARTNER]</p><h2>Werbeplätze</h2><button className="primary-action" type="button" onClick={onOpenPartners}>PARTNER ÖFFNEN</button></section>
     </section>
+    <BroadcastPanel />
+    <FeedbackInbox />
+    <PartnerInquiryInbox />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
+}
+
+function AiUsagePanel() {
+  const usage = trpc.admin.aiUsage.useQuery();
+  const utils = trpc.useUtils();
+  const updatePolicy = trpc.admin.updateAiPolicy.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
+  const adjustCredits = trpc.admin.adjustAiCredits.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
+  const [policy, setPolicy] = useState({ freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100 });
+  const [delta, setDelta] = useState<Record<number, string>>({});
+  useEffect(() => { if (usage.data) setPolicy({ freeDailyIdentifications: usage.data.policy.freeDailyIdentifications, proMonthlyIdentifications: usage.data.policy.proMonthlyIdentifications, globalDailyIdentifications: usage.data.policy.globalDailyIdentifications }); }, [usage.data]);
+  if (usage.isLoading) return <StatePanel code="AI_USAGE/LOAD" state="loading" title="KI-KONTINGENTE WERDEN GELADEN" body="Nutzung, Limits und Credit-Guthaben werden serverseitig geprüft." />;
+  if (usage.isError || !usage.data) return <StatePanel code="AI_USAGE/ERROR" state="error" title="KI-KONTINGENTE NICHT VERFÜGBAR" body="Die geschützten KI-Nutzungsdaten konnten nicht geladen werden." />;
+  const savePolicy = () => void updatePolicy.mutateAsync(policy);
+  return <div className="admin-grid admin-grid--single">
+    <section className="admin-panel"><p className="eyebrow">[KI_LIMITS / ADMIN_ONLY]</p><h2><SlidersHorizontal size={18} /> Strikte Nutzungssteuerung</h2><p>Diese Grenzen werden vor jedem kostenpflichtigen Bildmodell serverseitig reserviert. Änderungen gelten sofort und können keine bereits verbrauchten Credits zurückholen.</p><div className="form-grid ai-policy-grid"><label className="field"><span>Free pro Tag</span><input type="number" min={0} max={100} value={policy.freeDailyIdentifications} onChange={event => setPolicy(current => ({ ...current, freeDailyIdentifications: Number(event.target.value) }))} /></label><label className="field"><span>Pro pro Monat</span><input type="number" min={0} max={10000} value={policy.proMonthlyIdentifications} onChange={event => setPolicy(current => ({ ...current, proMonthlyIdentifications: Number(event.target.value) }))} /></label><label className="field"><span>Global pro Tag</span><input type="number" min={1} max={1000000} value={policy.globalDailyIdentifications} onChange={event => setPolicy(current => ({ ...current, globalDailyIdentifications: Number(event.target.value) }))} /></label></div><button className="primary-action" type="button" disabled={updatePolicy.isPending} onClick={savePolicy}>LIMITS SPEICHERN</button></section>
+    <section className="admin-metrics"><Metric icon={<Coins />} label="Global heute" value={usage.data.globalUsed} /><Metric icon={<UsersRound />} label="Globales Limit" value={usage.data.policy.globalDailyIdentifications} /><Metric icon={<Activity />} label="Free pro Tag" value={usage.data.policy.freeDailyIdentifications} /><Metric icon={<BadgeCheck />} label="Pro pro Monat" value={usage.data.policy.proMonthlyIdentifications} /></section>
+    <section className="admin-panel"><p className="eyebrow">[CREDIT_WALLETS / SERVER_VERIFIED]</p><h2>KI-Guthaben pro Konto</h2><p>Gekaufte Credits werden ausschließlich per Stripe-Webhook gutgeschrieben. Manuelle Korrekturen sind auditierbar.</p><div className="admin-list">{usage.data.accounts.map(account => <article className="admin-row" key={account.id}><div><strong>{account.name ?? account.email ?? `Konto #${account.id}`}</strong><small>{account.email ?? "Keine E-Mail"} · heute {account.todayIdentifications} Bestimmungen</small></div><div className="admin-row__actions"><span className="system-chip">{account.credits} Credits</span><input aria-label={`Creditänderung für Konto ${account.id}`} className="admin-credit-input" type="number" min={-10000} max={10000} placeholder="± Credits" value={delta[account.id] ?? ""} onChange={event => setDelta(current => ({ ...current, [account.id]: event.target.value }))} /><button type="button" className="admin-icon-action" title="Credits anpassen" aria-label={`Credits für Konto ${account.id} anpassen`} disabled={adjustCredits.isPending || !delta[account.id]} onClick={() => void adjustCredits.mutateAsync({ userId: account.id, delta: Number(delta[account.id]) }).then(() => setDelta(current => ({ ...current, [account.id]: "" })))}><Coins size={15} /></button></div></article>)}</div></section>
+  </div>;
+}
+
+function FeedbackInbox() {
+  const feedback = trpc.feedback.staffQueue.useQuery();
+  if (feedback.isLoading) return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Feedback wird geladen …</p></section>;
+  if (feedback.isError || !feedback.data) return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK]</p><h2>Direkter Eingang</h2><p>Der Feedback-Eingang ist derzeit nicht verfügbar.</p></section>;
+  return <section id="feedback-inbox" className="admin-panel"><p className="eyebrow">[DIRECT_FEEDBACK / SERVER_VERIFIED]</p><h2><MessageSquareHeart size={18} /> Meldungen, Probleme & Wünsche</h2>{feedback.data.length === 0 ? <p>Noch keine eingegangenen Rückmeldungen.</p> : <div className="admin-list">{feedback.data.map(item => <FeedbackAdminRow key={item.id} item={item} />)}</div>}</section>;
+}
+
+function FeedbackAdminRow({ item }: { item: { id: number; userId: number; kind: "feedback" | "problem" | "wish"; message: string; page: string | null; status: "received" | "reviewing" | "resolved"; adminNote: string | null; responseMessage: string | null; createdAt: Date; userName: string | null; userEmail: string | null } }) {
+  const utils = trpc.useUtils();
+  const update = trpc.feedback.updateStaffEntry.useMutation({ onSuccess: () => void utils.feedback.staffQueue.invalidate() });
+  const [status, setStatus] = useState(item.status);
+  const [note, setNote] = useState(item.adminNote ?? "");
+  const [response, setResponse] = useState(item.responseMessage ?? "");
+  const save = async () => { await update.mutateAsync({ id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); };
+  return <article className="admin-row admin-inbox-row"><div className="admin-inbox-copy"><strong>#{item.id} · {item.kind === "problem" ? "Problem" : item.kind === "wish" ? "Wunsch / Verbesserung" : "Feedback"}</strong><p>{item.message}</p><small>{item.userName ?? item.userEmail ?? `Konto #${item.userId}`} · {item.page ?? "ohne Seitenangabe"} · {new Date(item.createdAt).toLocaleString("de-DE")}</small><label className="admin-inbox-field"><span>Interne Bearbeitungsnotiz</span><textarea value={note} onChange={event => setNote(event.target.value)} rows={2} maxLength={2000} placeholder="Nur für das Team sichtbar …" /></label><label className="admin-inbox-field"><span>Antwort an den Absender</span><textarea value={response} onChange={event => setResponse(event.target.value)} rows={2} maxLength={4000} placeholder="Wird als Benachrichtigung gesendet …" /></label></div><div className="admin-row__actions admin-inbox-actions"><select aria-label={`Status für Feedback #${item.id}`} value={status} onChange={event => setStatus(event.target.value as typeof status)}><option value="received">Eingegangen</option><option value="reviewing">In Prüfung</option><option value="resolved">Erledigt</option></select><button type="button" className="admin-icon-action" aria-label={`Feedback #${item.id} speichern`} title="Speichern und Antwort senden" disabled={update.isPending} onClick={() => void save()}>{response.trim() ? <Send size={15} /> : <Save size={15} />}</button></div></article>;
+}
+
+function PartnerInquiryInbox() {
+  const inquiries = trpc.partners.inquiryQueue.useQuery();
+  if (inquiries.isLoading) return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES]</p><h2>Partneranfragen</h2><p>Anfragen werden geladen …</p></section>;
+  if (inquiries.isError || !inquiries.data) return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES]</p><h2>Partneranfragen</h2><p>Die Partneranfragen sind derzeit nicht verfügbar.</p></section>;
+  return <section id="partner-inquiry-inbox" className="admin-panel"><p className="eyebrow">[PARTNER_INQUIRIES / ADMIN_ONLY]</p><h2>Partner werden · Eingang</h2>{inquiries.data.length === 0 ? <p>Noch keine Partneranfragen.</p> : <div className="admin-list">{inquiries.data.map(item => <PartnerInquiryAdminRow key={item.id} item={item} />)}</div>}</section>;
+}
+
+function PartnerInquiryAdminRow({ item }: { item: { id: number; userId: number | null; organizationName: string | null; contactName: string | null; organizationType: string | null; contactEmail: string; website: string | null; message: string; status: "received" | "reviewing" | "accepted" | "declined"; adminNote: string | null; responseMessage: string | null; createdAt: Date; userName: string | null } }) {
+  const utils = trpc.useUtils();
+  const update = trpc.partners.updateInquiry.useMutation({ onSuccess: () => void utils.partners.inquiryQueue.invalidate() });
+  const [status, setStatus] = useState(item.status);
+  const [note, setNote] = useState(item.adminNote ?? "");
+  const [response, setResponse] = useState(item.responseMessage ?? "");
+  const save = async () => { await update.mutateAsync({ id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); };
+  return <article className="admin-row admin-inbox-row"><div className="admin-inbox-copy"><strong>#{item.id} · {item.organizationName ?? item.userName ?? "Partnerinteressent"}</strong><p>{item.message}</p><small>{item.contactName ? `${item.contactName} · ` : ""}{item.organizationType ? `${item.organizationType} · ` : ""}{item.contactEmail} · {new Date(item.createdAt).toLocaleString("de-DE")}{item.website ? ` · ${item.website}` : ""}</small><label className="admin-inbox-field"><span>Interne Bearbeitungsnotiz</span><textarea value={note} onChange={event => setNote(event.target.value)} rows={2} maxLength={2000} placeholder="Nur für das Team sichtbar …" /></label><label className="admin-inbox-field"><span>Antwort an den Absender</span><textarea value={response} onChange={event => setResponse(event.target.value)} rows={2} maxLength={4000} placeholder="Wird als E-Mail gesendet …" /></label></div><div className="admin-row__actions admin-inbox-actions"><select aria-label={`Status für Partneranfrage #${item.id}`} value={status} onChange={event => setStatus(event.target.value as typeof status)}><option value="received">Eingegangen</option><option value="reviewing">In Prüfung</option><option value="accepted">Angenommen</option><option value="declined">Abgelehnt</option></select><button type="button" className="admin-icon-action" aria-label={`Partneranfrage #${item.id} speichern`} title="Speichern und Antwort senden" disabled={update.isPending} onClick={() => void save()}>{response.trim() ? <Send size={15} /> : <Save size={15} />}</button></div></article>;
+}
+
+function BroadcastPanel() {
+  const utils = trpc.useUtils();
+  const broadcasts = trpc.admin.broadcasts.useQuery();
+  const create = trpc.admin.broadcast.useMutation({ onSuccess: () => { void utils.admin.broadcasts.invalidate(); setNewContent(""); setNewPublishAt(""); setNewExpiresAt(""); } });
+  const update = trpc.admin.updateBroadcast.useMutation({ onSuccess: () => void utils.admin.broadcasts.invalidate() });
+  const retract = trpc.admin.retractBroadcast.useMutation({ onSuccess: () => { void utils.admin.broadcasts.invalidate(); void utils.admin.auditTrail.invalidate(); } });
+  const [editing, setEditing] = useState<number | null>(null);
+  const [draft, setDraft] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newPublishAt, setNewPublishAt] = useState("");
+  const [newExpiresAt, setNewExpiresAt] = useState("");
+  if (broadcasts.isLoading) return <section className="admin-panel"><p>Broadcasts werden geladen …</p></section>;
+  if (broadcasts.isError || !broadcasts.data) return <section className="admin-panel"><p>Broadcasts sind derzeit nicht verfügbar.</p></section>;
+  return <section className="admin-panel"><p className="eyebrow">[ADMIN_FEED_BROADCASTS]</p><h2>Feed-Broadcasts</h2><form className="admin-broadcast-form" onSubmit={event => { event.preventDefault(); if (!newContent.trim()) return; void create.mutateAsync({ content: newContent.trim(), realm: null, publishAt: newPublishAt ? new Date(newPublishAt) : undefined, expiresAt: newExpiresAt ? new Date(newExpiresAt) : undefined }); }}><textarea value={newContent} onChange={event => setNewContent(event.target.value)} rows={3} placeholder="Neue Information an alle Feeds …" required /><div className="admin-broadcast-form__times"><label>Veröffentlichen ab<input type="datetime-local" value={newPublishAt} onChange={event => setNewPublishAt(event.target.value)} /></label><label>Ausblenden ab<input type="datetime-local" value={newExpiresAt} onChange={event => setNewExpiresAt(event.target.value)} /></label></div><button className="primary-action" type="submit" disabled={create.isPending}>BROADCAST PLANEN / SENDEN</button></form>{broadcasts.data.length === 0 ? <p>Noch keine Admin-Broadcasts.</p> : <div className="admin-list">{broadcasts.data.map(item => <article className="admin-row" key={item.id}><div><strong>#{item.id} · {item.realm ?? "Alle Feeds"} · {item.status}</strong>{editing === item.id ? <textarea value={draft} onChange={event => setDraft(event.target.value)} rows={3} /> : <p>{item.content}</p>}<small>{new Date(item.createdAt).toLocaleString("de-DE")} · {item.publishAt ? `ab ${new Date(item.publishAt).toLocaleString("de-DE")}` : "sofort"}{item.expiresAt ? ` · bis ${new Date(item.expiresAt).toLocaleString("de-DE")}` : ""}</small></div><div className="admin-row__actions">{editing === item.id ? <button type="button" className="admin-icon-action" aria-label="Broadcast speichern" title="Speichern" disabled={update.isPending} onClick={() => void update.mutateAsync({ id: item.id, content: draft, realm: item.realm }) .then(() => setEditing(null))}><Check size={15} /></button> : <button type="button" className="admin-icon-action" aria-label="Broadcast bearbeiten" title="Bearbeiten" onClick={() => { setEditing(item.id); setDraft(item.content); }}><Edit3 size={15} /></button>}{item.status === "published" ? <button type="button" className="admin-icon-action admin-icon-action--danger" aria-label="Broadcast zurückziehen" title="Zurückziehen" disabled={retract.isPending} onClick={() => { if (window.confirm("Diese Information wirklich aus allen Feeds zurückziehen?")) void retract.mutateAsync({ id: item.id }); }}><RotateCcw size={15} /></button> : null}</div></article>)}</div>}</section>;
 }
 
 function ModerationPanel() {
@@ -81,14 +173,19 @@ function ModerationPanel() {
   const utils = trpc.useUtils();
   const posts = trpc.admin.publicPosts.useQuery();
   const corrections = trpc.admin.plantCorrections.useQuery();
+  const observationReviews = trpc.admin.observationReviewQueue.useQuery();
   const moderate = trpc.admin.setPublicPostStatus.useMutation({ onSuccess: () => void utils.admin.publicPosts.invalidate() });
   const deletePost = trpc.admin.deletePublicPost.useMutation({ onSuccess: () => { void utils.admin.publicPosts.invalidate(); void utils.admin.auditTrail.invalidate(); } });
   const review = trpc.admin.reviewPlantCorrection.useMutation({ onSuccess: () => { void utils.admin.plantCorrections.invalidate(); void utils.admin.auditTrail.invalidate(); } });
-  if (posts.isLoading || corrections.isLoading) return <StatePanel code="MODERATION/LOAD" state="loading" title="MODERATION WIRD GELADEN" body="Öffentliche Inhalte und KI-Korrekturen werden serverseitig geprüft." />;
-  if (posts.isError || corrections.isError || !posts.data || !corrections.data) return <StatePanel code="MODERATION/ERROR" state="error" title="MODERATION NICHT VERFÜGBAR" body="Die serverseitigen Moderationsdaten konnten nicht verifiziert werden." />;
+  const reviewObservation = trpc.admin.reviewObservation.useMutation({ onSuccess: () => { void utils.admin.observationReviewQueue.invalidate(); void utils.admin.auditTrail.invalidate(); } });
+  const reviewObservationWithReason = (id: number, evidenceState: "confirmed" | "contextual" | "conflicting" | "insufficient") => { const note = window.prompt("Prüfbegründung für diese Beobachtung:", "") ?? ""; if (!note.trim()) return; void reviewObservation.mutateAsync({ id, evidenceState, note: note.trim() }); };
+  const reviewWithReason = (id: number, status: "approved" | "rejected") => { const note = window.prompt(status === "approved" ? "Kurze Prüfbegründung (optional):" : "Warum wird die Korrektur abgelehnt?", "") ?? ""; if (status === "rejected" && !note.trim()) return; void review.mutateAsync({ id, status, note: note.trim() || undefined }); };
+  if (posts.isLoading || corrections.isLoading || observationReviews.isLoading) return <StatePanel code="MODERATION/LOAD" state="loading" title="MODERATION WIRD GELADEN" body="Öffentliche Inhalte und KI-Korrekturen werden serverseitig geprüft." />;
+  if (posts.isError || corrections.isError || observationReviews.isError || !posts.data || !corrections.data || !observationReviews.data) return <StatePanel code="MODERATION/ERROR" state="error" title="MODERATION NICHT VERFÜGBAR" body="Die serverseitigen Moderationsdaten konnten nicht verifiziert werden." />;
   return <div className="admin-grid admin-grid--single">
-    <section className="admin-panel"><p className="eyebrow">[KI_CORRECTIONS / STAFF_ONLY]</p><h2>Pflanzenkorrekturen prüfen</h2><p>Die ursprüngliche KI-Antwort bleibt erhalten. Nutzerkorrekturen werden erst nach Prüfung als geprüft markiert.</p>{corrections.data.length === 0 ? <p>Keine offenen Pflanzenkorrekturen.</p> : <div className="admin-list">{corrections.data.map(correction => <article key={correction.id} className="admin-row"><div><strong>#{correction.id} · {correction.correctedName}</strong><p>{correction.correctionNote ?? "Keine Begründung angegeben."}</p><small>{correction.userName ?? correction.userEmail ?? `Konto #${correction.userId}`} · {new Date(correction.createdAt).toLocaleString("de-DE")}</small><details><summary>Originale KI-Antwort anzeigen</summary><p>{correction.originalAnswer}</p></details></div><div className="admin-row__actions"><button className="secondary-action" disabled={review.isPending} onClick={() => void review.mutateAsync({ id: correction.id, status: "approved" })}>BESTÄTIGEN</button><button className="secondary-action danger-action" disabled={review.isPending} onClick={() => void review.mutateAsync({ id: correction.id, status: "rejected" })}>ABLEHNEN</button></div></article>)}</div>}</section>
+    <section className="admin-panel"><p className="eyebrow">[KI_CORRECTIONS / STAFF_ONLY]</p><h2>Pflanzenkorrekturen prüfen</h2><p>Die ursprüngliche KI-Antwort bleibt erhalten. Nutzerkorrekturen werden erst nach Prüfung als geprüft markiert.</p>{corrections.data.length === 0 ? <p>Keine offenen Pflanzenkorrekturen.</p> : <div className="admin-list">{corrections.data.map(correction => <article key={correction.id} className="admin-row"><div><strong>#{correction.id} · {correction.correctedName}</strong><p>{correction.correctionNote ?? "Keine Begründung angegeben."}</p><small>{correction.userName ?? correction.userEmail ?? `Konto #${correction.userId}`} · {new Date(correction.createdAt).toLocaleString("de-DE")}</small><details><summary>Originale KI-Antwort anzeigen</summary><p>{correction.originalAnswer}</p></details></div><div className="admin-row__actions"><button className="secondary-action" disabled={review.isPending} onClick={() => reviewWithReason(correction.id, "approved")}>BESTÄTIGEN</button><button className="secondary-action danger-action" disabled={review.isPending} onClick={() => reviewWithReason(correction.id, "rejected")}>ABLEHNEN</button></div></article>)}</div>}</section>
     <section className="admin-panel"><p className="eyebrow">[PUBLIC_CONTENT_ONLY]</p><h2>Öffentliche Inhalte</h2>{posts.data.length === 0 ? <p>Keine real veröffentlichten Community-Beiträge zur Moderation.</p> : <div className="admin-list">{posts.data.map(post => <article key={post.id} className="admin-row"><div><strong>#{post.id} · {post.realm ?? "ohne Bereich"}</strong><p>{post.content}</p><small>{new Date(post.createdAt).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><button className="secondary-action" disabled={moderate.isPending} onClick={() => { if (window.confirm("Diesen öffentlichen Beitrag ausblenden?")) void moderate.mutateAsync({ id: post.id, status: "hidden" }); }}>AUSBLENDEN</button>{auth.user?.role === "admin" ? <button className="secondary-action danger-action" disabled={deletePost.isPending} onClick={() => { if (window.confirm("Diesen öffentlichen Beitrag für alle aus dem Feed entfernen?")) void deletePost.mutateAsync({ id: post.id }); }}>LÖSCHEN</button> : null}</div></article>)}</div>}</section>
+    <section className="admin-panel"><p className="eyebrow">[OBSERVATIONS / STAFF_ONLY]</p><h2>Beobachtungen prüfen</h2><p>Nur zur Prüfung eingereichte Beobachtungen erscheinen hier. Jede Entscheidung speichert Status, Begründung, prüfende Rolle und Zeitpunkt.</p>{observationReviews.data.length === 0 ? <p>Keine offenen Beobachtungen.</p> : <div className="admin-list">{observationReviews.data.map(observation => <article key={observation.id} className="admin-row"><div><strong>#{observation.id} · {observation.realm} · {observation.subject ?? observation.scientificName ?? "ohne Bestimmung"}</strong><p>{observation.scientificName ?? "Bestimmung offen"}</p><small>{observation.ownerName ?? observation.ownerEmail ?? `Konto #${observation.ownerId}`} · {new Date(observation.updatedAt).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><button className="secondary-action" disabled={reviewObservation.isPending} onClick={() => reviewObservationWithReason(observation.id, "confirmed")}>BESTÄTIGEN</button><button className="secondary-action danger-action" disabled={reviewObservation.isPending} onClick={() => reviewObservationWithReason(observation.id, "insufficient")}>RÜCKFRAGE</button></div></article>)}</div>}</section>
   </div>;
 }
 
@@ -99,10 +196,11 @@ function AccountsPanel() {
   const setStatus = trpc.admin.setAccountStatus.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   const setRole = trpc.admin.setAccountRole.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   const setRoles = trpc.admin.setAccountRoles.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
+  const setProAccess = trpc.admin.setAccountProAccess.useMutation({ onSuccess: () => void utils.admin.accounts.invalidate() });
   if (auth.user?.role !== "admin") return <StatePanel code="ACCOUNTS/ADMIN_ONLY" state="locked" title="ADMINROLLE ERFORDERLICH" body="Moderatoren erhalten keinen Zugriff auf Rollen, E-Mail-Adressen oder Kontostatus anderer Personen." />;
   if (accounts.isLoading) return <StatePanel code="ACCOUNTS/LOAD" state="loading" title="KONTEN WERDEN GELADEN" body="Die serverseitig freigegebene Kontoliste wird geladen." />;
   if (accounts.isError || !accounts.data) return <StatePanel code="ACCOUNTS/ERROR" state="error" title="KONTEN NICHT VERFÜGBAR" body="Die geschützte Kontenabfrage ist fehlgeschlagen." />;
-  return <section className="admin-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><RolePicker account={account} currentUserId={auth.user?.id} pending={setRoles.isPending} disabled={setRoles.isPending} onSave={roles => void setRoles.mutateAsync({ id: account.id, roles })} /><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
+  return <section className="admin-panel admin-accounts-panel"><p className="eyebrow">[ADMIN_ONLY]</p><h2>Reale Konten</h2><p>Admins haben automatisch Vollzugriff. Alle anderen Konten nutzen die Free-Funktionen, kaufen Pro über Stripe oder erhalten hier eine dokumentierte manuelle Freigabe.</p><div className="admin-list">{accounts.data.map(account => <article key={account.id} className="admin-row admin-account-row"><div><strong>{account.name ?? account.username ?? `Konto #${account.id}`}</strong><p>{account.email ?? "Keine E-Mail verfügbar"}</p><small>{roleLabel(account.role)} · {account.status.toUpperCase()} · zuletzt {new Date(account.lastSignedIn).toLocaleString("de-DE")}</small></div><div className="admin-row__actions admin-account-actions"><RolePicker account={account} currentUserId={auth.user?.id} pending={setRoles.isPending} disabled={setRoles.isPending} onSave={roles => void setRoles.mutateAsync({ id: account.id, roles })} /><ProAccessPicker account={account} pending={setProAccess.isPending} onSave={active => void setProAccess.mutate({ id: account.id, active })} /><select aria-label={`Status für Konto ${account.id}`} value={account.status} disabled={account.id === auth.user?.id || setStatus.isPending} onChange={event => { if (window.confirm("Den Kontostatus wirklich ändern?")) void setStatus.mutateAsync({ id: account.id, status: event.target.value as "active" | "suspended" | "banned" }); }}><option value="active">Aktiv</option><option value="suspended">Pausiert</option><option value="banned">Gesperrt</option></select></div></article>)}</div></section>;
 }
 
 function PartnersPanel() {

@@ -1,189 +1,135 @@
-# BlackWaterLeaf Observatory Screen Design Book
+## 15.19 Phase 7 · Native Shell, Home und Realm-Karten
+Die Native-App übernimmt jetzt die Phase-4-Designvorgaben in den drei sichtbaren Primärbereichen. Die Shell ist auf Suche, Benachrichtigungen und Profil als kompakte Kopfaktionen reduziert; Postfach, Marketplace und Pflege bleiben erreichbar, aber konkurrieren nicht länger mit der Hauptnavigation. Die untere Primärnavigation verwendet vier Ziele: Home, Entdecken, Community und Profil.
+Der Home-Einstieg verwendet einen großen, bildstarken Observatory-Hero, einen ehrlichen Statusstreifen ohne erfundene Messwerte sowie ein 2×2-Kartenraster. Botanik, Aquaristik und Terraristik besitzen eigene Bild- und Akzentfarben; KI bleibt als eigener Bereich mit dem reservierten Indigo-/Violett-Akzent sichtbar. Realm- und Home-Aktionskarten verwenden große Medienflächen, dunkle Leseschicht, Bereichs-Glow, klare Labels und eine vollständige Tastatur-/Screenreader-Aktion.
+Die Karten verwenden eine opake bzw. getönte Fallbackstruktur und keine dauerhafte Vollflächen-Unschärfe. Medien werden durch eine lokale Abdunklung hinter Text lesbar; der Native-Style nutzt die kompatible `StyleSheet.absoluteFill`-Definition. Die Migration wurde mit Native-TypeScript, Web-TypeScript, Produktionsbuild und `git diff --check` validiert.
+## 15.20 Native-Host-Dashboard und Inhaltsabstand
+Das Host-Dashboard ist in Web und Native ausschließlich für das serverseitig geprüfte Eigentümerkonto `blackwaterleaf@gmail.com` zugänglich. Der Native-Management-Hub öffnet keine externe Web-Weiterleitung mehr, sondern eine eigene Dashboard-Ansicht mit denselben aggregierten Analytics-Daten wie Web: registrierte Konten, Seitenaufrufe, Besuche, Logins, Aufenthaltsdauer, Absprungrate und Top-Seiten. Diagramme werden als sparsame, zugängliche Balken dargestellt; Werte werden niemals simuliert.
+Native-Seiten mit fester Observatory-Bottom-Navigation reservieren ausreichend unteren Inhaltsabstand. Upload-Fortschritt, Medieneditor, Communitykarten und weitere Inhaltsflächen dürfen nicht hinter der Navigation liegen. Marketplace- und andere Leerzustände bleiben klar sichtbar und quellengetreu; es werden keine Platzhalterangebote oder erfundenen Grafiken ergänzt.
+## 15.21 Medienupload wieder aktiv
+Der bisherige Uploadfehler lag in der serverseitigen P0-Konfiguration: `mediaUpload` war trotz fertiger Uploadoberflächen global auf aktivem Blockierstatus. Dieser Gate ist jetzt deaktiviert. Bild- und Video-Uploads laufen weiterhin durch Eigentumsprüfung, aktuelle Medien-Einwilligung, MIME-/Container- und Signaturprüfung, Größenlimit, Metadatenbereinigung sowie geschützte Speicherung. Die Sperre für öffentliche Veröffentlichung bleibt davon getrennt bestehen.
+## 15.22 Bildstarke Aktionskarten und Mobile-Layout
+Alle fachlichen Aktionskarten verwenden vorhandene, verifizierte Bereichsbilder: Botanik grün, Aquaristik cyan, Terraristik gold und KI indigo/violett. Bildflächen erhalten eine dunkle Leseschicht, damit Text und Icons auf kleinen Displays sicher lesbar bleiben. Native Karten rendern die zugewiesene Medienquelle auch in visuellen Clusterkarten; Web-Karten verwenden dieselbe Quelle als Cover-Hintergrund.
+Mobile Layouts wechseln kontrolliert zwischen zwei und einer Spalte, reduzieren Innenabstände ohne Inhalte zu beschneiden, halten Filter und Kartensteuerungen tappbar und reservieren Abstand für die feste Bottom-Navigation. Es werden keine künstlichen Ersatzbilder oder erfundenen Katalogdaten ergänzt; wenn ein Bildnachweis fehlt, bleibt der fachliche Leerzustand sichtbar.
+## 15.23 Bilddetailflächen · kein kollabierender Ladezustand
+Alle Bilddetailansichten verwenden eine stabile, responsive Bildfläche mit Mindesthöhe, `object-fit: contain`, sichtbarem Ladezustand und ehrlichem Fehlerfallback. Das gilt verbindlich für Katalog-/Taxonbilder, Community-Lightboxen, private Anlagenbilder und öffentliche Medien. Das Bild wird erst nach erfolgreichem Laden eingeblendet; ein fehlgeschlagener Abruf darf weder ein leeres Modal noch eine kollabierte Fläche erzeugen. Web und Native behalten Bildnachweis und Schließen-Aktion auch im Fehlerzustand.
+## 15.24 Einheitlicher Arten-Steckbrief · Web und Native
+Jede veröffentlichte Katalogkachel führt in einen eigenständigen Steckbrief mit Coverbild, gebräuchlichem Namen, wissenschaftlichem Namen, Nachweisstatus, Kurzprofil, Quellenangabe, Herkunfts-/Habitatkarte und strukturierten Faktenfeldern. Die Faktenfelder werden ausschließlich aus dem geprüften `careProfile` des Datensatzes befüllt: Pflegeaufwand, Licht, Wasser, Temperatur, Luftfeuchte, Substrat, Größe, Ernährung, Verhalten, Lebensraum, natürliches Habitat, natürliche Verbreitung, Herkunft und Verbreitung.
+Web und Native verwenden dieselbe Feldlogik. Auf kleinen Displays werden die Fakten zweispaltig und bei sehr schmalen Breiten einspaltig dargestellt; lange Werte umbrechen und dürfen keine Karte oder Navigation überdecken. Nicht vorhandene Felder werden nicht mit Schätzwerten ersetzt. Der Steckbrief zeigt stattdessen einen quellengebundenen Leerzustand.
+### Terraristik-Regel
+Terraristik ist als eigener Fachbereich und Steckbrief-Typ aktiv. Der Katalog enthält derzeit drei veröffentlichte, geprüfte Erstdatensätze und informiert weiterhin transparent, wenn für eine weitere Art kein geprüfter Datensatz vorliegt. Es werden keine erfundenen Tierarten, Bilder, Herkunftsorte oder Pflegewerte angezeigt. Neue geprüfte Terraristik-Taxa erscheinen automatisch in derselben Cover → Name → wissenschaftlicher Name → Faktenblatt → Herkunfts-/Habitatbezug-Struktur.
+## 15.25 Terraristik-Erstbestand und Herkunftsnachweis
+Der Terrarium-Katalog enthält jetzt drei veröffentlichte, quellengebundene Taxa: *Eublepharis macularius* (Leopardgecko), *Correlophus ciliatus* (Kronengecko) und *Pantherophis guttatus* (Kornnatter). Jede Kachel beginnt mit einem hochwertigen Coverbild und führt in einen eigenständigen Steckbrief mit wissenschaftlichem Namen, gebräuchlichen Namen, Kurzprofil, Pflegeprofil, Quellenangabe und Herkunftsbezug. Der Fachbereich nutzt Gold als eigenen Akzent; Botanik, Aquaristik und die KI bleiben visuell getrennt.
+Die Bildmedien stammen nicht aus Wikipedia-Artikelseiten, sondern aus Wikimedia Commons und werden nur zusammen mit Lizenz, Attribution, Quellseite und Abrufdatum veröffentlicht. Die Quellen- und Austauschdokumentation liegt in `docs/TERRARIUM_IMPORT_SOURCES_2026-09-27.md`. Eigene Bilder können später pro Datensatz ersetzt werden, ohne die Taxonomie- oder Steckbriefstruktur zu verändern.
+## 15.26 OAuth-Zugang
+Der Manus-Login startet Web und Preview künftig über `/api/oauth/start`. Portaladresse und App-ID bleiben serverseitig; der Server setzt das HttpOnly-CSRF-Cookie und erzeugt die Rücksprungadresse aus dem tatsächlich geöffneten Host. Dadurch kann eine veraltete oder fehlende Vite-Umgebungsvariable keinen ungültigen Login-Link mehr erzeugen. Bei fehlender OAuth-Konfiguration wird ein klarer JSON-Status `oauth_not_configured` zurückgegeben, statt eine leere Weiterleitung aufzubauen.
+## 15.27 Eigene Anlagen · bildstarke Bereichsansicht
+Die private Anlagenansicht übernimmt die Home-Farbwelten: Botanik arbeitet mit Mint-/Grünakzent, Aquaristik mit Cyan und Terraristik mit Gold. Kopfbereich, Register und Karten bleiben innerhalb dieser Bereichsatmosphäre; ein flacher olivfarbener Fremdblock ist nicht zulässig. Bereichsbilder werden als ruhige, lebende Hintergrundflächen mit dunkler Leseschicht eingesetzt.
+Jede gespeicherte eigene Anlage erscheint als große Bildkarte. Wenn private Medien vorhanden sind, wird das erste echte Anlagenbild als Cover verwendet; weitere Bilder bleiben als gut erkennbare Vorschau erreichbar. Ohne eigenes Bild wird nur das verifizierte Fachbereichsbild als atmosphärischer Hintergrund verwendet und nicht als Anlagenfoto ausgegeben. Name, Bereich, Aktualisierungsdatum und vorhandene Messwerte liegen in einer klaren unteren Informationsschicht.
+Die drei Bereichsumschalter sind als zusammengehörige Filtergruppe gestaltet. Leerzustände verwenden verständliche Formulierungen, erklären den privaten Charakter der Daten und führen mit einer klaren Aktion zur ersten Anlage. Karten und Formulare reservieren den Abstand für die feste Native-Navigation und dürfen keine Inhalte hinter System- oder App-Navigation verstecken.
 
-**Version:** 1.0 · **Datum:** 19. September 2026 · **Gültigkeit:** Web und Native
+## 15.28 Eigene Anlagen · Galerie, Overlay-Aktionen und Statuschips
+Die Web- und Native-Anlagenkarten öffnen private Bilder in einer Vollbild-Galerie mit Vor-/Zurück-Navigation, Zoom und Bildzähler. Kleine Lösch-Overlay-Icons liegen direkt auf den Bildkacheln; die Bearbeiten-Aktion bleibt als kompakte Kartenaktion sichtbar. Temperatur, Luftfeuchte, pH, Pflegezustand und Aktualisierungszeit werden ausschließlich aus tatsächlich gespeicherten privaten Anlagendaten dargestellt. Fehlende Werte bleiben unsichtbar; es gibt keine Platzhalterwerte.
 
-## 1. Verbindlicher Status
+## 15.29 Habitat-Planer als getrenntes Modul
+Der testweise Habitat-Planer gehört nicht zum aktiven Kernprodukt und wird weder in der Web-Shell noch in der Native-Navigation angezeigt. Die private Konto-Anlagenverwaltung bleibt ein aktiver Kernbereich. Eine spätere Planer-Version wird als separat versioniertes, feature-geflaggtes Modul entwickelt und darf erst nach erneuter fachlicher Freigabe in Web oder Native eingebunden werden.
 
-Dieses Dokument ist die **einzige aktive Designquelle** für BlackWaterLeaf. Es basiert auf den bereitgestellten Desktop- und Mobile-Screenshots vom 19. September 2026. Das frühere Designbuch, das frühere Reference-Overlay-System, alte Kartenraster, alte Header-/Footer-Varianten und Mischlayouts sind verworfen. Sie dürfen weder als Fallback noch als Teilkomponente in neuen oder umgebauten Screens verwendet werden.
+## 15.30 Native-API-Parität und Android-Performance
+Die Native-App verwendet keinen temporären Sandbox-Origin. `EXPO_PUBLIC_API_ORIGIN` kann den API-Host pro Build überschreiben; EAS-Builds verwenden andernfalls `app.json.extra.apiOrigin`. Die öffentliche BlackWaterLeaf-API antwortete im Audit auf Web- und Preview-Domain mit HTTP 200 für `platform.availability`.
+Auf Android ist der globale Hintergrund-Blur deaktiviert. Neon-Glows verwenden reduzierte Schattenwerte; Karten- und Anlagenlisten bleiben mit `FlatList` performant. Ein realer S10-/S23-Ultra-Abnahmetest ist erst nach Verbindung eines Geräts möglich und wird nicht als bereits ausgeführt behauptet. Details stehen in `docs/ANDROID_PERFORMANCE_AUDIT_2026-09-27.md`.
+EOF
+wc -c docs/BLACKWATERLEAF_OBSERVATORY_SCREEN_DESIGN_BOOK_2026-09-19.md
+git diff --check
 
-Die Screenshots zeigen dasselbe Produkt in zwei Breakpoints: **Desktop-Observatory** und **Mobile-Observatory**. Inhalte, Begriffe, Icons, Farben, Reihenfolge und Zustände bleiben gleich; ausschließlich die räumliche Anordnung passt sich dem Gerät an.
 
-> Ein Screen ist nicht konform, wenn nur Farben oder ein globaler Rahmen geändert wurden. Hero, Informationshierarchie, Kartenstruktur, Navigation, Zustände und Interaktionen müssen die nachstehenden Regeln sichtbar erfüllen.
+## 15.31 Verbindliche Sicherheits- und Marketplace-Regeln
+Das Design Book ist die **einzige aktive Designquelle**. Mischlayouts, nicht abgestimmte Altflächen und Beispielinhalte aus Mockups dürfen nicht als Fake-Daten in Web oder Native erscheinen. Die Begriffe **Aqua-Cyan**, Umsetzungssperre und Migrationsstand bleiben verbindliche Übergaberegeln.
 
-## 2. Produktbild
+Der geschützte Account-Löschprozess bleibt eine nicht-destruktive Vorschau über `profile.erasurePreview`. Vor einer späteren Freigabe müssen DB-, Session- und Storage-Löschlauf separat geprüft werden; bis dahin bleibt die Storage-Löschung `not_yet_executed`.
 
-BlackWaterLeaf ist ein wissenschaftliches Naturportal für Botanik, Aquaristik, Terraristik, Artenwissen, Beobachtungen, KI-Bestimmung, Community und transparente Partnerangebote. Die Oberfläche wirkt wie ein ruhiges, hochwertiges Observatorium: tiefes Schwarzgrün, klare Datenflächen, naturbezogene Bilder, gezielte Leuchtakzente und gut lesbare Fachinformationen.
+Marketplace und Partnerbereich verwenden getrennte Händler-Shops. Web und Native führen über `/marketplace/shop/:id` beziehungsweise `/marketplace/shop/` in die ausgewählte Händlerfläche. Die UI darf keine bestätigten Verkäufe behaupten; es werden nur Kaufinteressen, Weiterleitungen und **bestätigte Verkäufe** aus den jeweiligen autorisierten Daten angezeigt. `Partner`-Attribution und die Information „BlackWaterLeaf verarbeitet keine Zahlung“ bleiben sichtbar.
 
-Die Gestaltung ist **kein Entertainment-Feed**, kein generisches Dashboard und kein lose zusammengesetztes Kartenraster. Jede Seite führt den Nutzer von Orientierung über fachliche Auswahl zu echten Daten, Quellen und einer klaren nächsten Aktion.
+Die Marketplace-Übersicht beginnt mit einer kompakten **Shopauswahl**; Produkte werden erst innerhalb des ausgewählten Händler-Shops angezeigt.
 
-## 3. Feste Screen-Komposition
+## 15.32 Datenkontrolle · Export und Kontoschließung
+Web und Native bieten im Datenschutzbereich einen geschützten maschinenlesbaren Kontoexport (`blackwaterleaf-account-export-v1`) mit Profil, privaten Anlagen, Beobachtungen, Pflege, Messwerten, Einwilligungsereignissen und Medienmetadaten. Storage-URLs und geheime Storage-Schlüssel werden im Export nicht ausgegeben. Solange die vollständige DB-, Session- und Storage-Löschkette nicht nachweisbar abgeschlossen ist, verwendet die Oberfläche ausschließlich die Formulierung **Deaktivierung/Anonymisierung** und nicht „vollständig gelöscht“.
 
-### 3.1 Desktop
+Die geschützte Kontofunktion bleibt über `profile.erasurePreview` nachvollziehbar. Der vollständige **DB-, Session- und Storage-Löschlauf** ist vor einer späteren Freigabe separat zu prüfen; bis dahin bleibt die Storage-Löschung `not_yet_executed`.
 
-Der Desktop-Screen besteht aus einem festen Portalrahmen mit oberer Kopfzeile, linker Bereichsnavigation und einer breiten Inhaltsfläche. Die Inhaltsfläche nutzt eine ruhige, horizontale Komposition:
+## 15.33 Katalog → private Anlage
+Jeder valide Pflanzen-, Aquaristik- und Terraristik-Steckbrief bietet eine kompakte Aktion **IN ANLAGE ÜBERNEHMEN**. Nur angemeldete Konten öffnen den privaten Erfassungsflow. Artname und wissenschaftlicher Name werden vorbefüllt; private Felder wie Messwerte, Pflegezustand, Notizen, Einrichtung und Bilder bleiben leer und werden nie aus Katalogdaten erfunden. Web und Native verwenden denselben Übergabevertrag und zeigen nach der Übernahme weiterhin den jeweiligen Fachbereichsakzent.
 
-1. **Top-Shell:** Originalmarke links, globale Suche mittig, Suche, Marktplatz, Benachrichtigungen und Drei-Striche-Menü rechts.
-2. **Linke Navigation:** Entdecken, Karte, Erfassen, Katalog und Profil. Der aktive Punkt erhält einen Lime-Hintergrund und eine klare rechte Akzentkante.
-3. **Bereichs- oder Seitenbanner:** Bildgestützter Hero mit kurzer wissenschaftlicher Aussage, nicht überladen und nicht höher als nötig.
-4. **Fachkarten:** Botanik, Aquaristik und Terraristik als kompakte, gleich große Karten. Karten öffnen eigene echte Pfade.
-5. **Datenmodul:** Karte und Liste werden als zusammengehörige Fläche dargestellt. Die Liste zeigt nur echte Einträge; die Karte verschweigt private exakte Orte.
-6. **Beleg- und Datenschutzflächen:** Quellen, Schutzstatus, Offline-Status oder fachliche Hinweise folgen als kompakte Portalmodule.
 
-### 3.2 Mobile
+## 15.34 Wissenschaftlicher Review · Status, Begründung und Rollen
+- Beobachtungen mit `queued_for_review` erscheinen ausschließlich in der geschützten Staff-Moderation.
+- Jede Prüfung speichert evidenzbezogenen Status, Begründung, prüfende Person und Zeitpunkt; die Entscheidung wird zusätzlich im Audit-Ledger protokolliert.
+- KI-Korrekturen behalten die ursprüngliche KI-Antwort unverändert. Ablehnungen benötigen eine Moderationsbegründung; die betroffene Person erhält eine Benachrichtigung.
+- `evidenceState` darf nie als pauschaler Expertenkonsens beworben werden. Öffentliche Kartenpunkte bleiben von privaten Koordinaten und vom Reviewstatus getrennt.
 
-Der Mobile-Screen nutzt eine vertikale Portalfläche mit fester unterer Navigation:
+## 15.35 Datenkontrolle · Export-Historie
+- Jeder Kontoexport wird als geschütztes Audit-Ereignis `account_export_created` erfasst.
+- Web zeigt die letzten zehn Exportzeitpunkte kompakt im Datenschutzbereich; Native bestätigt die protokollierte Exportanzahl nach dem Teilen.
+- Exportdateien enthalten Profildaten, eigene Datensätze und Medienmetadaten, aber keine Storage-Schlüssel, Zugangsdaten oder geheimen API-Werte.
 
-1. Statusleiste des Geräts bleibt sichtbar und wird nicht nachgebaut.
-2. Brand-Zeile mit Originalmarke, BlackWaterLeaf-Name, globaler Suche, Benachrichtigung und Profil.
-3. Große Suchleiste mit den Begriffen „Arten, Orte, Themen, Community …“.
-4. Kompakter Bild-Hero mit der Aussage „WASSER VERBINDET.“ beziehungsweise einer bereichsspezifischen Entsprechung.
-5. Drei gleichwertige Portal-Karten in einer Reihe: Botanik, Aquaristik, Terraristik.
-6. Karte-/Listen-Modul mit sichtbarer Bereichskennzeichnung und geschützten Ortsdaten.
-7. Eine kompakte Katalogkarte für einen echten Treffer mit Bild, wissenschaftlichem Namen und Verifikationsstatus.
-8. Quellen-/Belege-Modul und Offline-Modul.
-9. Untere Navigation: Entdecken, Karte, Erfassen, Katalog, Profil. Aktiver Punkt ist Lime und sichtbar unterstrichen.
 
-## 4. Abstände und Größen
+## 15.36 Beobachtungsantworten · fachlich, kompakt, nicht als Social-Ranking
+Öffentliche Beobachtungen zeigen in Web und Native eine kleine, bereichseigene Antwortleiste. Zulässige Aktionen sind **Bestätigen**, **Taxon vorschlagen**, **Frage stellen** und – als Antwort auf eine Frage – **Antworten**. Die Aktionen stehen unter dem evidenzbezogenen Status und dürfen diesen nicht als Expertenkonsens darstellen.
 
-Alle Screens verwenden ein ruhiges, wiederholbares Raster. Desktop nutzt einen Inhaltsabstand von 16–28 px, Kartenabstände von 8–14 px und abgerundete Ecken von 14–22 px. Mobile nutzt 12–16 px Außenabstand, 8–12 px Zwischenräume und 14–18 px Kartenradius. Große Überschriften bleiben kompakt und dürfen den Screen nicht durch überdimensionierte Heroes blockieren.
+Antworten sind nur für angemeldete Konten möglich. Jede Antwort speichert Autor, Beobachtung, optionalen Elternbeitrag, Typ, Zeit und Moderationsstatus. Der Eigentümer erhält eine Benachrichtigung; die Antwort wird nicht automatisch in Katalog, KI-Ergebnis oder Staff-Review übernommen. Ein Taxon-Vorschlag bleibt ausdrücklich **nicht verifiziert**.
 
-Hero-Banner sind bildstark, aber funktional: Desktop etwa 210–260 px hoch, Mobile etwa 210–250 px. Die großen Karten aus den Referenz-Screenshots bleiben kompakt; kein Bereich darf durch unnötige vertikale Leerflächen endlos werden.
+## 15.37 Composer-Schutzkarten
+Der Beobachtungs-Composer verwendet Privat als Standard. Standort, Medienverarbeitung, öffentliche Veröffentlichung und optionale KI-Prüfung werden separat und verständlich freigegeben. Vor öffentlicher Veröffentlichung werden generalisierte Koordinaten verwendet; private Koordinaten werden nie an Kartenfeeds oder Antworten ausgegeben. KI-Kandidaten bleiben mit Modell-/Katalogstand und Unsicherheitskennzeichnung getrennt von Community-Vorschlägen und `evidenceState`.
 
-## 5. Farb- und Materialsystem
 
-| Zweck | Farbe | Verwendung |
-|---|---|---|
-| Portalgrund | tiefes Schwarzgrün, etwa `#020804` bis `#06160E` | Seite, Shell, Hintergrund |
-| Kartenfläche | dunkles Waldgrün, etwa `#06200F` bis `#0B2B16` | Karten und Datenmodule |
-| Haupttext | warmes Weiß, etwa `#EFFff4` | Überschriften und wichtige Daten |
-| Sekundärtext | gedämpftes Salbeigrün, etwa `#A9C5AB` | Erläuterungen und Metadaten |
-| Primärakzent | Blatt-Limette, etwa `#B9FB7F` | aktive Navigation, CTA, Bestätigung |
-| Aquaristik-/Live-Akzent | Aqua-Cyan, etwa `#40D9FF` | ausschließlich Wasser, Aquaristik und Live |
-| Terraristik-Akzent | Moos-/Naturgold, etwa `#E0C75F` | ausschließlich Terraristik |
-| Warnung/Löschen | kontrolliertes Rot | Fehler, Löschung und Warnungen |
-| Rahmen | transparente Akzentmischung | keine blauen Standardrahmen |
+## 15.38 Feedback-Header und Benachrichtigungspräferenzen
+Der Web- und Native-Header führt einen klaren, leuchtenden Einstieg **FEEDBACK · PROBLEME · WÜNSCHE**. Der Glow ist ein Wegweiser, kein Werbebanner; bei reduzierter Bewegung bleibt der Einstieg funktional und sichtbar. Der Inhalt ist nur nach Anmeldung sendbar, wird dem eigenen Konto zugeordnet und mit Kategorie, Nachricht und Ursprungsseite gespeichert.
 
-Es gibt **keine zufälligen Farbvarianten** zwischen Seiten. Botanik, Profil, Community und Marktplatz bleiben im Portalton. Aqua-Cyan darf nicht in Botanik oder Profil als Dekoration erscheinen. Neonfarben, künstliche Glows und blaue Standardkarten sind verboten.
+Benachrichtigungen werden im privaten Profil nach Community, Nachrichten, Moderation/Review und System/Sicherheit einzeln geschaltet. Ohne gespeicherte Präferenz gelten die sicheren Standardwerte; sobald eine Präferenz gespeichert ist, filtert der Server den Feed und die ungelesene Anzahl nach diesen Schaltern. Die Plattform sendet keine globale, nicht steuerbare Sammelbenachrichtigung.
 
-## 6. Bilder und Icons
 
-Die Originalmarke bleibt unverändert. Bereichsbilder müssen hochauflösend, scharf und ohne blauen Filter sein. Bilder erhalten nur eine kontrollierte dunkle Lesbarkeitsüberlagerung; ein flächiger blauer Filter ist nicht erlaubt.
+## 15.39 Internationale Locale-Regel · fünf Sprachen, ein Gerätevertrag
+Web und Native verwenden denselben Locale-Vertrag: **Deutsch (`de`), Englisch (`en`), vereinfachtes Chinesisch (`zh-CN`), Spanisch (`es`) und Französisch (`fr`)**. Im Web wird beim ersten Besuch die Browser-Sprache ausgewertet; eine vom Nutzer gewählte Sprache wird lokal und – bei Anmeldung – im Konto gespeichert und hat Vorrang vor Browser-/IP-Hinweisen. Nicht unterstützte Browser-Sprachen fallen transparent auf Englisch zurück.
 
-Icons sind klar, dünn und funktional. Ein Icon wird pro Bedeutung nur einmal prominent verwendet. Pfeil bedeutet Öffnen, Kamera bedeutet Erfassen, Buch bedeutet Katalog/Wissen, Benutzer bedeutet Profil, Herz bedeutet Merken, Stift bedeutet Bearbeiten und Papierkorb bedeutet Löschen. Icons dürfen nicht ohne Funktion dekorativ vervielfacht werden.
+Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browser-kompatible Auswahl. Auf sehr kleinen Breiten werden kompakte Sprachkürzel verwendet, ohne die Hauptnavigation zu überdecken. Native zeigt dieselben fünf Optionen im Profil. Fach- und Wissensdaten werden nur aus der jeweils angeforderten Locale geladen; fehlende Übersetzungen werden nicht durch erfundene Inhalte ersetzt.
 
-## 7. Daten, Zustände und Interaktionen
 
-Alle Karten, Katalogeinträge, Community-Beiträge, Partnerangebote und Quellen werden aus den bestehenden APIs geladen. Beispielinhalte aus Mockups dürfen nicht als Fake-Daten in der Anwendung erscheinen. Bei fehlenden Daten wird ein klarer Leerzustand gezeigt.
+## 15.40 Partneranfrage · Web-/Native-Parität und Eingangsbestätigung
+- Marketplace, Shop-Detail und Produktdetail zeigen denselben kompakten **PARTNER WERDEN**-Einstieg. Nicht angemeldete Personen werden zum Login geführt; angemeldete Konten senden die Anfrage serverseitig.
+- Jede Anfrage wird mit Konto, verifizierter Kontaktadresse, Nachricht, Status und Zeit gespeichert. Der Absender erhält unmittelbar eine private `partner_inquiry`-Benachrichtigung mit Eingangsbestätigung; aktive Host-Administratoren erhalten die Prüfbenachrichtigung.
+- Web und Native verwenden denselben `partners.submitInquiry`-Vertrag. Ein Klick auf die Host-Benachrichtigung führt zur Admin-Prüfung, ein Klick auf die Absenderbestätigung zum Marketplace. Keine Mailzustellung wird behauptet, solange kein Maildienst konfiguriert ist.
+- Die Oberfläche nennt die bestehenden Kontaktadressen ausschließlich an den vorgesehenen Partner-/Legal-Flächen: `Partnerblackwaterleaf@gmail.com` für Partneranfragen, `blackwaterleaf@gmail.com` für allgemeine Geschäftsanfragen und `info.blackwaterleaf@gmail.com` für Impressum/Datenschutz.
 
-Jede Seite benötigt echte Zustände für Laden, Fehler, leer, offline, geschützt und nicht angemeldet. Aktionen zeigen sichtbares Feedback. Private Inhalte und exakte Standorte werden niemals für nicht angemeldete oder nicht berechtigte Personen angezeigt.
 
-Karten- und Listenansicht sind gleichwertige Zugänge. Wenn eine Karte technisch nicht verfügbar ist, bleibt die Liste vollständig nutzbar. Pull-to-Refresh ist auf privaten Listen und Native-Feeds die Standardaktualisierung; unnötige Aktualisieren-Schaltflächen entfallen.
+## 15.41 Monetarisierung · Free / Pro (2026-09-27)
 
-## 8. Hauptbereiche
+- **Free bleibt offen:** Katalog, Basis-Suche, Community, öffentliche Beobachtungen, Basis-Karte, eine private Anlage und begrenzte KI-Bestimmungen.
+- **Pro-Kennzeichnung:** Pro erscheint immer mit sichtbarem `PRO`-/Sparkles-Symbol, Preis und konkreter Leistungsbeschreibung. Keine versteckten oder irreführenden Sperren.
+- **BlackWaterLeaf Pro:** 4,99 € monatlich oder 39,99 € jährlich. Kernnutzen sind unbegrenzte private Anlagen, Pflegehistorie, Auswertungen, erweitertes KI-Kontingent, Export/Backup, Herkunftskarten und werbefreie Nutzung.
+- **Creator / Expert:** bleibt bis zur Aktivierung der LIVE-Funktionen als späteres Paket sichtbar, aber nicht buchbar. Geplante Leistungen: Fach-LIVEs, exklusive Videos, Creator-Statistiken und Community-Badges.
+- Web und Native verwenden dieselben Begriffe, Preise und Free-/Pro-Grenzen. Zahlung wird erst nach Anschluss und Prüfung eines Zahlungsanbieters aktiviert.
+- Kleine Android-Geräte erhalten eine einspaltige Pro-Kartenansicht; keine Blur-/Glow-Pflicht für Pro-Flächen.
 
-**Entdecken** zeigt den Observatory-Hero, die drei Portal-Karten und den verbundenen Datenbereich. **Karte** konzentriert sich auf geschützte Beobachtungsräume und verschleiert private Details. **Erfassen** öffnet Foto, Live-Erkennung, Beobachtung und Community-Beitrag aus einem kompakten Auswahlbereich. **Katalog** verbindet Pflanzen-, Fisch- und Wissenseinträge mit Quellen. **Profil** bleibt auf Identität, Bio, Score, sichtbare Anlagen und eigene Beiträge reduziert; Datenschutz, Sprache, Einheiten und Werkzeuge liegen ausschließlich im Drei-Striche-Menü.
 
-Community bleibt ein vertikaler, fachlich moderierter Feed mit Bereich, Autor, Zeit, Sichtbarkeit, Medien, Kommentaren, Speichern, Bearbeiten, Melden und owner-scoped Löschen. Der Marktplatz bleibt transparent gekennzeichnet und darf wissenschaftliche Evidenz nicht imitieren. Die KI zeigt Hypothese, Kandidaten, Konfidenz, Merkmale, Zweitprüfung, Quellen, Sicherheitshinweise und Korrekturmöglichkeit in klaren Karten.
+## 15.42 Profil · Abo-Status und Upgrade
 
-### Marktplatz: getrennte Händler-Shops und ehrliche Vermittlungszählung
+Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der Bereich benennt den aktuellen Status (`FREE · AKTUELL` oder `PRO AKTIV`), zeigt die Free-/Pro-Leistungsgrenzen kompakt und führt über eine klare Upgrade-Aktion zur vollständigen Pro-Übersicht. Die Zahlung bleibt bis zum Anschluss eines geprüften Zahlungsanbieters deaktiviert; der Hinweis `ZAHLUNG VORBEREITET` muss sichtbar bleiben. Auf kleinen Android-Geräten stapeln sich die Free-/Pro-Karten einspaltig.
 
-Der Marktplatz zeigt nicht nur eine gemeinsame Produktreihe. Jeder freigegebene Händler erhält einen eigenen, klar abgegrenzten **Shop-Bereich** mit Händlername, Shop-Typ, Produktanzahl, seinen eigenen Produkten und einer eindeutigen Aktion wie „Ich will zu [Händler]“. Die Shop-Auswahl filtert ausschließlich diesen Händler; Produkte verschiedener Händler dürfen nicht visuell zu einem scheinbar gemeinsamen Shop verschmelzen.
+## 15.43 Native Community Release · Upload, Folgen und Icon-Raster
 
-Händler verwalten ihren eigenen Shop über ein geschütztes Händlerportal. Dort können sie Shopname und Händlerart ändern, Produktentwürfe anlegen, Produktentwürfe bearbeiten und sie zur Admin-Prüfung einreichen. Veröffentlichung, Freigabe, Startseitenplatzierung und Statuswechsel bleiben serverseitig beim Admin. Die Oberfläche muss auch bei mehreren Händlern übersichtlich bleiben und darf nicht zu einer langen ungegliederten Produktliste werden.
+- Der Community-Upload verkleinert Bilder vor dem Base64-Transport auf höchstens 3200 Pixel Kantenlänge, normalisiert sie als JPEG und überträgt sie erst nach einer expliziten Medienfreigabe. Die API akzeptiert ausschließlich validierte JPG-, PNG- oder WebP-Bilder bis 32 MB und prüft Eigentümerschaft, MIME-Signatur, Größe und Metadaten serverseitig.
+- Der mobile Web-Upload akzeptiert nun geprüfte Originalbilder bis **32 MB**. Für die Community werden große Bilder regulär mit maximal 3200 Pixel Kantenlänge auf JPEG verkleinert. Wenn ein Samsung-Browser die Canvas-Verarbeitung eines großen Fotos nicht bereitstellt, darf er das unveränderte Original innerhalb der 32-MB-Grenze hochladen; darüber zeigt die Oberfläche einen konkreten Qualitäts-/Größenhinweis statt einer ungenauen Verarbeitungsmeldung.
+- Die Bereichsauswahl ist verbindlich getrennt: reguläre Konten wählen **Botanik**, **Aquaristik** oder **Terraristik**; nur serverseitig als Admin erkannte Konten erhalten **Alle Feeds · Admin**. Öffentliche Community-Veröffentlichung ist wieder aktiv, bleibt aber an Einwilligung, Content-Policy und Moderation gebunden.
+- Folgen, Entfolgen, Follower- und Folge-ich-Listen verwenden Web und Native über denselben `social.*`-Vertrag. Nach einer Aktion lädt Native den aktuellen Beziehungsstatus erneut vom Server, damit der Zustand nicht nur lokal angezeigt wird.
+- Kopfaktionen haben ein einheitliches 40×40-Raster. Profilmenü-Karten richten Icon und Text horizontal aus; alle fünf Icons haben 21 px und dieselbe linke Achse. Diese Regel verhindert Überlappung und ungleich große Aktionen auf kleinen Android-Geräten.
 
-Solange kein Zahlungsanbieter und kein Checkout angeschlossen ist, darf BlackWaterLeaf **keine bestätigten Verkäufe behaupten**. Die Plattform zählt deshalb getrennt: datensparsame Weiterleitungen zum Partner, ausdrücklich gemerkte Kaufinteressen und bestätigte Verkäufe. Der bestätigte Verkaufszähler bleibt bis zur späteren Checkout-Integration bei null. Diese Bezeichnungen müssen in Marktplatz und Händlerportal sichtbar bleiben.
 
-### Admin: Händlerfreigabe-Warteschlange
+## 15.44 Social-Profile · Mehrere Konten und offizielle Links (2026-09-27)
 
-Der Adminbereich `/admin/merchant-approvals` ist eine eigene Prüfoberfläche und keine öffentliche Shopseite. Die Reihenfolge ist verbindlich: **Profil prüfen**, **Autorisierung prüfen**, **Platzierung prüfen**, anschließend **Produktbestände einzeln prüfen**. Die Oberfläche zeigt dafür vier kompakte Kennzahlen und pro Händler die getrennten Statuswerte. Ein Produkt darf niemals allein durch seine Existenz öffentlich werden.
+- Ein Mitglied kann im Profil mehrere öffentliche **Instagram-, TikTok-, YouTube-, Facebook- oder Website-Links** mit eigener Bezeichnung verwalten. Es werden nur `https`-URLs gespeichert; niemals Zugangsdaten, Tokens oder fremde Kontoberechtigungen.
+- Web und Native bieten denselben speicherbaren Mehrfach-Link-Vertrag. Im öffentlichen Profil erscheinen diese Links erst, wenn das Profil über die bestehende Sichtbarkeitsfreigabe öffentlich ist. Private Anlagen, Nachrichten, Standorte und unveröffentlichte Inhalte bleiben davon getrennt.
+- Die offiziellen Profile sind im Impressum und im offiziellen BlackWaterLeaf-Profil sichtbar: **Instagram BlackWaterLeaf**, **Instagram House of Channa**, **TikTok BlackWaterLeaf** und **TikTok Channa World One**. Externe Links öffnen immer in einem neuen Webkontext und sind klar als externe Profile markiert.
+- Kleine Android- und mobile Web-Ansichten verwenden einspaltige Linkkarten mit 36–40 px Touchflächen, vollständigen Labels und sichtbarer Plattformkennzeichnung; der Editor verzichtet auf dichte, überlappende Steuerelemente.
 
-Der bestätigte Katalogbestand bleibt quellengetreu und idempotent. Der aktuell verifizierte Kiemen-Kumpel-Bestand umfasst **106 gespeicherte Produkte**; die `Energiekostenpauschale` bleibt als bewusst pausiertes Nicht-Angebot erhalten. Eine frühere CSV-Angabe von 108 Quellzeilen darf erst dann als vollständig übernommen bezeichnet werden, wenn die originale CSV erneut vorliegt und ihre Handles gegen den Bestand abgeglichen wurden. Fehlende Quelldaten werden nicht erfunden.
 
-Die öffentliche Marktplatzübersicht ist ausschließlich eine **Shopauswahl**: Banner, kurzer Vertrauenshinweis, Händlerkarten und gegebenenfalls der geschützte Händlerzugang. Die vollständige Produktliste gehört nicht auf diese Übersicht. Ein Händler wird über den Pfad `/marketplace/shop/:id` geöffnet und erhält dort sein eigenes Banner, seine eigene Händlerfarbe (für Aquaristikangebote Aqua-Cyan), Kategorien, **Unterkategorien aus dem echten Produktart-Feld**, Suche, Produktkarten, eine Sortierung nach Relevanz, Aktualität, Name und Preis sowie den Link zum Originalshop. Ein offizielles Händlerbild darf nur aus einer belegten öffentlichen Händlerquelle übernommen werden; Platzhalterlogos oder fremde Suchbilder sind verboten.
+## 15.45 Community · Sichtbarer Großbildupload (2026-09-27)
 
-## 9. Web-/Native-Parität
-
-Web und Native benutzen dieselben Begriffe, Icons, Bilder, Farbtöne, Kartenhierarchien und Zustände. Native wird als echte Expo-Oberfläche umgesetzt. WebView, Screenshot-Hülle und abweichende Navigationslogik sind ausgeschlossen. Desktop erhält die linke Navigation; Mobile erhält die feste untere Navigation. Die Daten- und Berechtigungslogik bleibt identisch.
-
-## 10. Abnahme vor Veröffentlichung
-
-Vor jedem Checkpoint werden Desktop und Mobile für mindestens Entdecken, Karte, Erfassen, Katalog, Profil, Botanik, Aquaristik, Terraristik, KI, Community und Marktplatz einzeln geöffnet. Abgenommen wird nur, wenn kein alter Hero, kein altes Kartenraster, kein altes Menü, keine unlesbare Farbe, kein Fake-Eintrag und kein unverbundener Button sichtbar ist. Erst danach folgen Volltests, Produktionsbuild, Checkpoint und Veröffentlichung.
-
-## 11. Sicherheitsfortschritt des Enterprise-Plans
-
-AP-01 und AP-02 sind abgenommen. Der anonyme `/manus-storage/*`-Proxy darf ausschließlich die unveränderlichen, im Quellcode festgelegten Observatory-Designassets ausliefern. Dynamische Nutzer-, Habitat-, Beobachtungs-, Community- und Händlerbilder dürfen nicht über einen frei erratbaren Storage-Key ausgeliefert werden; ihre objektbezogene Autorisierung wird in AP-03 umgesetzt. Diese Sicherheitsregel darf nicht durch eine neue UI- oder CSS-Referenz umgangen werden.
-
-AP-04 bereinigt serverseitig vor der Speicherung JPEG-EXIF-/APP1-Metadaten, PNG-Text-, XMP-, EXIF- und physische Metadaten-Chunks sowie WebP-EXIF-/XMP-Chunks. Dadurch werden insbesondere GPS- und Geräteinformationen nicht als Bestandteil eines neu gespeicherten Bildes weitergegeben. Die Bildvalidierung und die Metadatenbereinigung bleiben getrennte, getestete Schritte.
-
-AP-05 stellt vor einer späteren Löschfreigabe eine geschützte `profile.erasurePreview` bereit. Sie zählt die tatsächlich zugeordneten Profil-, Rollen-, Einwilligungs-, Auth-, Beobachtungs-, Community-, Medien-, Habitat-, Geräte- und KI-Datensätze. Die Vorschau löscht nichts; die Ausführung bleibt bis zum nachweisbaren DB-, Session- und Storage-Löschlauf gesperrt. Ein minimierter, pseudonymer Auditnachweis bleibt separat von den gelöschten Nutzdaten erhalten.
-
-AP-07 verwendet für neue Meldungen und Einsprüche eigene Fallobjekte statt freier Audittextfelder. Moderationsfälle und Einsprüche erhalten getrennte Status, Reviewer, Begründungen und Zeitstempel; private Inhalte bleiben für Reporter verborgen. Die bestehende Ausblend-/Löschmoderation bleibt aktiv, aber die neue Tabellenmigration wird erst nach der AP-06-Backup-/Restorefreigabe ausgeführt.
-
-AP-09 behandelt Profilstandorte als private Kontodaten: Öffentliche Profilantworten enthalten keinen Standort. Öffentliche Beiträge werden zusätzlich gegen den aktuellen Kontostatus geprüft. Wird die Einwilligung zur Profilveröffentlichung widerrufen, wird das Profil atomar auf `private` gesetzt. Diese Regeln gelten serverseitig unabhängig vom Web- oder Native-Client.
-
-AP-10 verwendet eine fail-closed Rollenmatrix: `admin` verwaltet Kontorollen und globale Freigaben, `moderator` erhält nur den Staff-/Moderationsbereich, und `merchant` ist eine additive Capability aus `user_roles`, die ausschließlich den eigenen Shop, eigene Produkte und eigene Attribution sieht. Native und Web dürfen Berechtigungen nur anzeigen; die Server-Policy bleibt autoritativ.
-
-AP-11 protokolliert jede privilegierte Zustandsänderung im signierten Audit-Ledger. Challenge-Entwürfe, Challenge-Veröffentlichungen und Wissensentwürfe enthalten Actor, Ziel und Zustandswechsel; sensible Artikel- oder Nutzdaten werden nicht in das Ledger kopiert. Die Hash-Kette verwendet Previous-Hash, HMAC-Signatur und Head-Prüfung.
-
-
-## 12. Sicherheits- und Navigationszusatz 19. September 2026
-
-### 12.1 Session- und Standortzustand
-
-Web und Native registrieren verifizierte Sitzungen serverseitig nur als SHA-256-Hash. Die Registry kennt Anbieter, Gerät, letzte Aktivität, Ablauf und Widerruf, zeigt jedoch niemals Session-Token. Logout, Passwort-Reset und die explizite Aktion **Alle Geräte abmelden** widerrufen Sitzungen. Der Gerätebezeichner ist optional und darf keine E-Mail-Adresse oder freien personenbezogenen Text enthalten.
-
-Wetter darf nach einer ausdrücklich gespeicherten `location_processing`-Freigabe angefragt werden. Die aktuelle Position wird vor dem Request auf ungefähr Kilometerpräzision gerundet, ausschließlich per POST übertragen und mit `Cache-Control: no-store, private` ausgeliefert. Koordinaten werden weder in URLs noch in Telemetrie, Fehlertexten oder öffentlichen Profilantworten gespeichert. Wird die Freigabe widerrufen, zeigt die Oberfläche einen handlungsfähigen Zustand statt Wetterdaten.
-
-### 12.2 Verbindliche Primärnavigation
-
-Die globale Primärnavigation besteht auf beiden Clients aus genau fünf Zielen: **Entdecken**, **Karte**, **Erfassen**, **Katalog** und **Profil**. Marktplatz, Community, Benachrichtigungen, Heute, Live, Wissen, Händlerportal und Builder sind kontextuelle oder geschützte Ziele und dürfen nicht als zusätzliche globale Tabs erscheinen. Desktop nutzt dafür die linke Observatory-Seitenleiste; Mobile nutzt eine feste untere Leiste. Der aktive Punkt erhält genau eine Lime-Markierung und eine Unterstreichung beziehungsweise rechte Akzentkante.
-
-Die Native-Zuordnung ist identisch: Entdecken führt zur Startfläche, Karte zum Explore-/Kartenmodul, Erfassen zum Foto-/Live-Einstieg, Katalog zur Suche und Profil zum geschützten Profil. Der Admin-Builder bleibt über seinen geschützten Pfad erreichbar, verlässt aber die globale Tab-Leiste.
-
-
-## 13. Karte-/Liste-Fläche und bereichsübergreifende Beobachtungen
-
-Die Karte-/Liste-Fläche ist ein gemeinsames Observatory-Modul für **Botanik, Aquaristik und Terraristik**. Die Bereichswahl steht als kleine, horizontale Filtergruppe über der Fläche; die Auswahl bleibt bei Karten- und Listenansicht synchron. Karte und Liste verwenden dieselbe serverseitige `observations.publicFeed`-Quelle. Es werden ausschließlich aktive öffentliche Beobachtungen geliefert. Private oder geschützte Orte, exakte Koordinaten und nicht freigegebene Medien werden nicht in die öffentliche Antwort aufgenommen.
-
-Die Kartenfläche darf keine Pins als Dekoration simulieren. Existieren keine freigegebenen Beobachtungen mit zulässiger Ortsinformation, erscheint ein klarer Leerzustand: **„Keine Kartenpunkte freigegeben“** mit dem Hinweis, dass private Daten geschützt bleiben. Bei einem Fehler bleibt die Liste beziehungsweise der Katalogzugang benutzbar und zeigt einen handlungsfähigen Fehlertext. Lade-, Fehler-, Bereit- und Leerzustände sind visuell unterscheidbar. `Bereit` wird nur nach einer erfolgreichen aktuellen Serverantwort angezeigt.
-
-Web und Native verwenden dieselbe Reihenfolge: Bereichskarten, Statuszeile, Bereichsfilter, Karte-/Liste-Schalter, Datenfläche und Quellen-/Evidenzzugang. Die Fachbereichsfarben bleiben verbindlich: Botanik Lime, Aquaristik Cyan und Terraristik Gold. Bilder aus Nutzerbeobachtungen sind von verifizierten Taxon-Bildern getrennt und dürfen niemals als Artbestätigung missverstanden werden.
-
-
-## 14. Native-Erfassung, Offline-Outbox und private Beobachtungen
-
-Der Native-Erfassungsfluss legt eine private Beobachtung zuerst mit einer RFC-konformen `clientId` in einer persistenten Geräte-Outbox an. Das Bild wird im privaten App-Speicher abgelegt; das tatsächliche ImagePicker-MIME wird erhalten. Erst danach versucht die App die Serverübertragung. Bei instabiler Verbindung bleiben Beobachtung und Bild kontrolliert ausstehend. Die Zustände **warten auf Synchronisierung**, **Bild ausstehend**, **Konflikt** und **synchronisiert** sind sichtbar und unterscheiden sich von einem Erfolg.
-
-Ein erfolgreicher Text-/Beobachtungsschritt darf nicht als vollständiger Medienerfolg ausgegeben werden. Fehlt der Upload, wird nur der Bildschritt wiederholt; ein bereits angelegter Datensatz wird nicht blind doppelt angelegt. Bei Konflikten bleibt der Eintrag erhalten und wird nicht automatisch überschrieben. Beim erneuten Öffnen der App wird die Outbox sequenziell erneut verarbeitet. Private Beobachtungen werden zusätzlich zuletzt erfolgreich lokal gecacht, bleiben aber ausschließlich im authentifizierten PhotoScreen sichtbar. Der öffentliche Feed erhält diese Daten nicht.
-
-
-## 15. Marktplatz-Hub und Händler-Shop-Parität
-
-Web und Native zeigen im Marktplatz zuerst einen kompakten **Händler-Hub** mit Banner, Vertrauenshinweis und separaten Händlerkarten. Eine lange, vermischte Produktwand ist nicht zulässig. Die Aktion **SHOP ÖFFNEN** führt in den eigenständigen Bereich eines Händlers; dort erscheinen nur dessen freigegebene Angebote. Der Shop besitzt Kategoriechips, Unterkategorien beziehungsweise Produktgruppen und eine touchfreundliche Sortierung nach Aktualität, Name und Preis.
-
-Partnerlogos oder offizielle Händlerbilder dürfen nur aus verifizierten Quellen übernommen werden. Preise, Verfügbarkeit, Zahlung, Versand, Rückgabe und Support bleiben beim Händler. BlackWaterLeaf speichert lediglich nachvollziehbare Klick- und Kaufinteressen-Attribution; es gibt in diesem Stand keinen BlackWaterLeaf-Checkout und keine Zahlungsabwicklung.
-
-
-## 16. Community-Schutz, Meldungen und Benachrichtigungen
-
-Community-Aktionen bleiben im Observatory-Kontext kompakt und eindeutig: Besitzer sehen Stift- und Löschaktion, andere Nutzer sehen **Gefällt mir**, **Melden** und **Blockieren**. Eine Meldung wird nie still verworfen, sondern als nachvollziehbarer Fall mit genau einem Ziel (Beitrag oder Kommentar), Grund und optionaler Notiz gespeichert. Sexualisierte Inhalte, Belästigung und andere Regelverstöße werden serverseitig geprüft; die Oberfläche darf diese Prüfung nicht umgehen.
-
-Blockierte Konten verschwinden aus dem eigenen Community-Feed. Kommentare können vom Eigentümer bearbeitet oder entfernt werden; entfernte Kommentare bleiben für Zählung und Moderationsnachweis nachvollziehbar, werden aber nicht mehr öffentlich ausgegeben. Likes und Kommentare erzeugen nur dann eine Benachrichtigung, wenn der Akteur nicht der Eigentümer ist. Benachrichtigungen werden mit stabiler Cursor-Paginierung geladen, der Unread-Zähler basiert auf einer Datenbankzählung und Moderationsentscheidungen informieren den meldenden Nutzer.
-
-Web und Native verwenden dieselben deutschen Begriffe und dieselben serverseitigen Mutationspfade. Jede privilegierte Moderationsentscheidung bleibt im Audit-Ledger. Es gibt keine Fake-Fälle, keine erfundenen Community-Inhalte und keine öffentliche Preisgabe privater Standort- oder Kontodaten.
-
-
-## 17. Bereichsübergreifende Karte-/Liste-/Katalogfläche und Bildprovenienz
-
-Botanik, Aquaristik und Terraristik verwenden dieselbe kompakte Informationsarchitektur: Bereichsheader, **Karte & Liste**, danach der fachliche Katalog. Die Akzentfarbe bleibt pro Bereich konstant: Portalgrün für Botanik, Aqua für Aquaristik und Gold für Terraristik. Die Kartenfläche darf keine erfundenen Pins oder Orte darstellen. Solange eine Beobachtung keine zulässige öffentliche Ortsangabe besitzt, wird ausschließlich der ehrliche Schutzstatus angezeigt; exakte private Standorte werden niemals ausgegeben.
-
-Katalogkarten dürfen ein Bild nur als verifiziertes Taxonbild präsentieren, wenn Bild-URL, stabile Quellseite, Lizenz und Attribution vorhanden sind. Fehlt eine dieser Angaben, zeigt die Karte eine neutrale fachliche Platzhalterfläche und den Status **Bildprüfung ausstehend**. Nutzerbilder bleiben davon getrennt und werden nie als wissenschaftliches Katalogbild wiederverwendet.
-
-
-## 13. Wissenschaftliche Katalogquellen und Bildwahrheit
-
-BlackWaterLeaf verwendet **keine Inhalte, Bilder oder Bildprovenienzen von Wikipedia oder Wikimedia Commons**. Beide Quellen sind für den öffentlichen Taxon-Katalog ausgeschlossen. Ein Katalogdatensatz wird nur veröffentlicht, wenn seine Taxonomie, Verbreitungsangabe und gegebenenfalls sein Bild einer freigegebenen Fachquelle zugeordnet werden können.
-
-Die zulässigen Katalogquellen sind zurzeit **Plants of the World Online von Kew Science**, **FishBase**, **GBIF**, die **Biodiversity Heritage Library** und **JSTOR Global Plants**. Ein Bild benötigt immer eine nachprüfbare Artzuordnung, eine Quellen-Seite, eine Lizenz- oder Nutzungsangabe, eine Attribution und einen Prüfzeitpunkt. Fehlt einer dieser Nachweise, zeigt die Anwendung bewusst den Zustand „Bildnachweis offen“ statt eines Ersatzbildes.
-
-Fundort- und Verbreitungskarten verwenden ausschließlich veröffentlichte, quellengebundene Angaben aus dem Taxondatensatz. Sie stellen keine private Beobachtungsposition dar und dürfen weder genaue Koordinaten noch geschätzte Fundorte erfinden. Taxa aus noch nicht belegten manuellen Importen bleiben als Entwurf zur Fachprüfung erhalten und erscheinen nicht öffentlich.
+Web und Native zeigen bei jedem Community-Medienupload eine persistent sichtbare **Phasenkarte**: Entwurf vorbereiten, Bild aufbereiten, sicher übertragen und gegebenenfalls veröffentlichen. Die Karte enthält einen Fortschrittsbalken, aktuelle Prozentanzeige, aktive Phase und während der Übertragung eine klare Ladeanimation. Bei Bildern ab 5 MB erklärt sie ausdrücklich, dass die Optimierung und Übertragung je nach Verbindung länger dauern kann und die Seite beziehungsweise App geöffnet bleiben soll. Die Prozentanzeige beschreibt den tatsächlichen Ablauf der Arbeitsphasen; sie verschwindet bei Erfolg oder Fehler nicht unbemerkt hinter einem unveränderten Button. Beide Clients verwenden dieselben deutschen Begriffe, dieselbe Reihenfolge und denselben geschützten Uploadvertrag.

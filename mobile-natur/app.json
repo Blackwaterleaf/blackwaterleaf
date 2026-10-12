@@ -2,7 +2,7 @@
   "expo": {
     "name": "BlackWaterLeaf",
     "slug": "bwl",
-    "version": "1.0.18",
+    "version": "1.0.26",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "blackwaterleaf",
@@ -24,7 +24,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.blackwaterleaf",
-      "versionCode": 18,
+      "versionCode": 26,
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
@@ -53,7 +53,8 @@
           "locationWhenInUsePermission": "BlackWaterLeaf verwendet deinen Standort nur für das aktuelle Außenwetter und speichert keine Koordinaten."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-video"
     ],
     "extra": {
       "apiOrigin": "https://blackwaterleaf.com",

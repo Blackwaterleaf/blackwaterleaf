@@ -1,5 +1,6 @@
 import { assistantUsage, xpEvents } from "../drizzle/schema";
 import { getDb } from "./db";
+import { ENV } from "./_core/env";
 
 export type AssistantReadiness = {
   state: "available" | "disabled_by_policy" | "temporarily_unavailable";
@@ -15,7 +16,7 @@ function isMissingStagedSchema(error: unknown) {
 export async function getAssistantReadiness(): Promise<AssistantReadiness> {
   const db = await getDb();
   if (!db) return { state: "temporarily_unavailable", reason: "pending_migration" };
-  if (!process.env.IONOS_AI_API_KEY || !process.env.IONOS_AI_TEXT_MODEL || !process.env.IONOS_AI_VISION_MODEL) {
+  if (!ENV.ionosApiKey || !ENV.ionosModel) {
     return { state: "disabled_by_policy", reason: "pending_provider_approval" };
   }
 

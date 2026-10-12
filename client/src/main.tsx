@@ -47,6 +47,9 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
+      // Keep auth requests same-origin. The OAuth callback sets app_session_id
+      // on the active host; sending auth.me to a sandbox host would omit that
+      // cookie and make a successful Manus login appear to fail.
       url: "/api/trpc",
       transformer: superjson,
       headers() {

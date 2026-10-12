@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import type { Express } from "express";
 import { ENV } from "./env";
 
@@ -18,6 +19,19 @@ const PUBLIC_DESIGN_ASSETS = new Set([
   "terrarium-reference_c4e109d3.jpg",
 ]);
 
+const PUBLIC_STREAM_ASSETS = new Set([
+  "blackwaterleaf-intro_194052e3.mp4",
+  "510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4",
+]);
+
+/**
+ * Curated catalogue images are public reference material, never user uploads.
+ * Their filenames are allocated only by the verified taxon-media importer.
+ */
+function isPublicCatalogueTaxonImage(key: string) {
+  return /^catalog\/taxa\/(?:plant|aquarium)\/\d+\/inat-\d+_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(key);
+}
+
 export function registerStorageProxy(app: Express) {
   app.get("/manus-storage/*", async (req, res) => {
     const key = (req.params as Record<string, string>)[0];
@@ -26,7 +40,8 @@ export function registerStorageProxy(app: Express) {
       return;
     }
 
-    if (!PUBLIC_DESIGN_ASSETS.has(key)) {
+    const isPublicStream = PUBLIC_STREAM_ASSETS.has(key);
+    if (!isPublicStream && !PUBLIC_DESIGN_ASSETS.has(key) && !isPublicCatalogueTaxonImage(key)) {
       res.status(403).send("Object authorization required");
       return;
     }
@@ -57,6 +72,27 @@ export function registerStorageProxy(app: Express) {
       const { url } = (await forgeResp.json()) as { url: string };
       if (!url) {
         res.status(502).send("Empty signed URL from backend");
+        return;
+      }
+
+      if (isPublicStream) {
+        const range = req.header("range");
+        const upstream = await fetch(url, range ? { headers: { Range: range } } : undefined);
+        if (!upstream.ok && upstream.status !== 206) {
+          res.status(502).send("Storage stream error");
+          return;
+        }
+        for (const header of ["content-type", "content-length", "content-range", "accept-ranges", "etag"]) {
+          const value = upstream.headers.get(header);
+          if (value) res.setHeader(header, value);
+        }
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        res.status(upstream.status);
+        if (upstream.body) {
+          Readable.fromWeb(upstream.body as never).pipe(res);
+        } else {
+          res.end();
+        }
         return;
       }
 

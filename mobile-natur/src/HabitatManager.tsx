@@ -1,20 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as FileSystem from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Modal,
   Image,
+  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
+  type ImageSourcePropType,
 } from "react-native";
 import {
   createHabitat,
+  updateHabitat,
   uploadHabitatImage,
+  deleteHabitatImage,
   type Habitat,
   type HabitatKind,
   type HabitatPayload,
@@ -54,12 +59,20 @@ const surfaces: Record<HabitatKind, { page: string; panel: string }> = {
   aquarium: { page: "#04303e", panel: "#032231" },
   terrarium: { page: "#3e3812", panel: "#302c0f" },
 };
+const backgrounds: Record<HabitatKind, ImageSourcePropType> = {
+  plant: require("../assets/botany-reference.jpg"),
+  aquarium: require("../assets/aquarium-reference.jpg"),
+  terrarium: require("../assets/terrarium-reference.jpg"),
+};
+type CareStatus = Habitat["careStatus"];
+const careStatusLabels: Record<CareStatus, string> = { unknown: "UNBEKANNT", stable: "STABIL", attention: "ACHTUNG", critical: "KRITISCH" };
 
 type Props = {
   token: string;
   habitats: Habitat[];
   onSaved: () => Promise<void>;
   initialKind?: HabitatKind;
+  prefill?: { kind: HabitatKind; name: string; scientificName?: string };
 };
 
 export function HabitatManager({
@@ -67,6 +80,7 @@ export function HabitatManager({
   habitats,
   onSaved,
   initialKind = "plant",
+  prefill,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<HabitatKind>(initialKind);
@@ -78,10 +92,22 @@ export function HabitatManager({
   const [temperature, setTemperature] = useState("");
   const [humidity, setHumidity] = useState("");
   const [ph, setPh] = useState("");
+  const [careStatus, setCareStatus] = useState<CareStatus>("unknown");
   const [equipment, setEquipment] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [photos, setPhotos] = useState<Array<{ uri: string; base64: string; mimeType: string }>>([]);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [gallery, setGallery] = useState<{ images: NonNullable<Habitat["images"]>; index: number } | null>(null);
+  const [imagePending, setImagePending] = useState(false);
+  useEffect(() => {
+    if (!prefill) return;
+    setKind(prefill.kind);
+    setName(prefill.name);
+    setScientificName(prefill.scientificName ?? "");
+    setEditingId(null);
+    setOpen(true);
+  }, [prefill]);
   const items = useMemo(
     () => habitats.filter(item => item.kind === kind),
     [habitats, kind]
@@ -98,9 +124,11 @@ export function HabitatManager({
     setTemperature("");
     setHumidity("");
     setPh("");
+    setCareStatus("unknown");
     setEquipment("");
     setNotes("");
     setPhotos([]);
+    setEditingId(null);
   };
   const choosePhotos = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -127,6 +155,40 @@ export function HabitatManager({
   const validNumber = (value: string) =>
     value.trim() === "" || Number.isFinite(number(value));
 
+  const openEdit = (item: Habitat) => {
+    const d = item.details;
+    const value = (key: string) => d[key] == null ? "" : String(d[key]);
+    setEditingId(item.id);
+    setKind(item.kind);
+    setName(item.name);
+    setScientificName(value("scientificName"));
+    setLocation(value("location"));
+    setOccupants(value("occupants"));
+    setPlants(value("plants"));
+    setTemperature(value(item.kind === "terrarium" ? "dayTemperatureC" : "temperatureC"));
+    setHumidity(value("humidityPercent"));
+    setPh(value("ph"));
+    setCareStatus(item.careStatus ?? "unknown");
+    setEquipment(value("equipment"));
+    setNotes(value("notes"));
+    setPhotos([]);
+    setOpen(true);
+  };
+  const openGallery = (images: NonNullable<Habitat["images"]>, index: number) => setGallery({ images, index });
+  const removeImage = async (habitatId: number, imageId: string) => {
+    const numericImageId = Number(imageId);
+    if (!Number.isInteger(numericImageId)) return;
+    Alert.alert("Bild löschen", "Dieses private Anlagenbild wirklich löschen?", [
+      { text: "Abbrechen", style: "cancel" },
+      { text: "Löschen", style: "destructive", onPress: async () => {
+        setImagePending(true);
+        try { await deleteHabitatImage(token, { habitatId, imageId: numericImageId }); await onSaved(); }
+        catch (cause) { Alert.alert("Bild konnte nicht gelöscht werden", cause instanceof Error ? cause.message : "Bitte versuche es später erneut."); }
+        finally { setImagePending(false); }
+      } },
+    ]);
+  };
+
   const submit = async () => {
     if (!name.trim()) {
       Alert.alert("Name fehlt", "Bitte gib deiner Anlage einen Namen.");
@@ -144,6 +206,7 @@ export function HabitatManager({
         ? {
             kind,
             name: name.trim(),
+            careStatus,
             details: {
               scientificName: nullable(scientificName),
               quantity: null,
@@ -162,6 +225,7 @@ export function HabitatManager({
           ? {
               kind,
               name: name.trim(),
+              careStatus,
               details: {
                 volumeLiters: null,
                 lengthCm: null,
@@ -183,6 +247,7 @@ export function HabitatManager({
           : {
               kind,
               name: name.trim(),
+              careStatus,
               details: {
                 volumeLiters: null,
                 lengthCm: null,
@@ -200,7 +265,7 @@ export function HabitatManager({
             };
     setSaving(true);
     try {
-      const saved = await createHabitat(token, payload);
+      const saved = editingId ? await updateHabitat(token, { id: editingId, ...payload }) : await createHabitat(token, payload);
       for (const photo of photos) {
         await uploadHabitatImage(token, {
           habitatId: saved.id,
@@ -224,22 +289,28 @@ export function HabitatManager({
   };
 
   return (
+    <>
     <FlatList
       data={open ? [] : items}
       keyExtractor={item => String(item.id)}
       contentContainerStyle={styles.list}
       ListHeaderComponent={
         <>
+          <ImageBackground
+            source={backgrounds[kind]}
+            style={[styles.headingHero, { borderColor: `${accent}66` }]}
+            imageStyle={styles.headingHeroImage}
+          >
           <View style={styles.heading}>
             <Text style={[styles.eyebrow, { color: accent }]}>
-              MEINE ANLAGEN
+              PRIVAT · OBSERVATORY
             </Text>
-            <Text style={styles.title}>Pflegen. Beobachten. Verstehen.</Text>
+            <Text style={styles.title}>DEINE ANLAGEN.</Text>
             <Text style={styles.copy}>
-              Diese Daten gehören ausschließlich deinem Konto und werden
-              serverseitig über BlackWaterLeaf gespeichert.
+              Pflege, Bilder und Messwerte bleiben geschützt in deinem Konto.
             </Text>
           </View>
+          </ImageBackground>
           <View style={styles.kindRow}>
             {(Object.keys(labels) as HabitatKind[]).map(value => (
               <Pressable
@@ -289,7 +360,7 @@ export function HabitatManager({
               ]}
             >
               <View style={styles.formTop}>
-                <Text style={styles.formTitle}>{labels[kind]} ANLEGEN</Text>
+                <Text style={styles.formTitle}>{editingId ? `${labels[kind]} BEARBEITEN` : `${labels[kind]} ANLEGEN`}</Text>
                 <Pressable
                   onPress={() => {
                     setOpen(false);
@@ -416,6 +487,10 @@ export function HabitatManager({
                 placeholder="optional"
                 multiline
               />
+              <View style={styles.careStatusBlock} accessibilityLabel="Pflegezustand">
+                <Text style={[styles.label, { color: accent }]}>PFLEGEZUSTAND</Text>
+                <View style={styles.careStatusRow}>{(Object.keys(careStatusLabels) as CareStatus[]).map(status => <Pressable key={status} accessibilityRole="button" accessibilityState={{ selected: careStatus === status }} onPress={() => setCareStatus(status)} style={[styles.careStatusOption, { borderColor: `${accent}88`, backgroundColor: careStatus === status ? `${accent}30` : surface.page }]}><Text style={[styles.careStatusOptionText, { color: careStatus === status ? accent : c.text }]}>{careStatusLabels[status]}</Text></Pressable>)}</View>
+              </View>
               <Pressable
                 style={[styles.photoButton, { borderColor: `${accent}88`, backgroundColor: surface.page }]}
                 onPress={() => void choosePhotos()}
@@ -438,7 +513,7 @@ export function HabitatManager({
                 disabled={saving}
               >
                 <Text style={styles.addText}>
-                  {saving ? "WIRD GESPEICHERT …" : "SICHER SPEICHERN"}
+                  {saving ? "WIRD GESPEICHERT …" : editingId ? "ÄNDERUNG SPEICHERN" : "SICHER SPEICHERN"}
                 </Text>
               </Pressable>
             </View>
@@ -463,36 +538,53 @@ export function HabitatManager({
         </>
       }
       renderItem={({ item }) => (
-        <View
-          style={[
-            styles.item,
-            {
-              borderColor: `${accents[item.kind]}66`,
-              backgroundColor: surfaces[item.kind].panel,
-            },
-          ]}
+        <ImageBackground
+          source={item.images?.[0]?.accessUrl ? { uri: item.images[0].accessUrl } : backgrounds[item.kind]}
+          style={[styles.item, { borderColor: `${accents[item.kind]}88` }]}
+          imageStyle={styles.itemImage}
+          accessibilityLabel={`${item.name} · ${labels[item.kind]}`}
         >
-          <View style={[styles.itemIcon, { borderColor: accents[item.kind] }]}>
-            <Ionicons
-              name={icons[item.kind]}
-              size={18}
-              color={accents[item.kind]}
-            />
+          <View style={styles.itemShade} />
+          <View style={styles.itemContent}>
+            <View style={[styles.itemIcon, { borderColor: accents[item.kind], backgroundColor: `${surfaces[item.kind].page}cc` }] }>
+              <Ionicons name={icons[item.kind]} size={18} color={accents[item.kind]} />
+            </View>
+            <View style={styles.itemBody}>
+              <Text style={styles.itemTitle}>{item.name}</Text>
+              <Text style={styles.copy}>
+                {labels[item.kind]} · aktualisiert{" "}
+                {new Date(item.updatedAt).toLocaleDateString("de-DE")}
+              </Text>
+              {statusChips(item).length ? <View style={styles.statusRow} accessibilityLabel="Anlagenstatus">{statusChips(item).map(chip => <View key={chip.label} style={[styles.statusChip, { borderColor: accents[item.kind] }]}><Text style={[styles.statusLabel, { color: accents[item.kind] }]}>{chip.label}</Text><Text style={styles.statusValue}>{chip.value}</Text></View>)}</View> : null}
+              {item.images?.length ? <View style={styles.savedPhotoStrip} accessibilityLabel={`${item.images.length} Anlagenbilder`}>{item.images.slice(0, 3).map((image, imageIndex) => <View key={image.id} style={styles.savedPhotoFrame}><Pressable accessibilityRole="button" accessibilityLabel="Anlagenbild vergrößern" onPress={() => openGallery(item.images ?? [], imageIndex)}><Image source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} accessibilityLabel="Anlagenbild" /></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Anlagenbild löschen" style={styles.imageDeleteOverlay} disabled={imagePending} onPress={() => void removeImage(item.id, image.id)}><Ionicons name="trash-outline" size={13} color={c.danger} /></Pressable></View>)}</View> : null}
+              <View style={styles.cardActions}><Pressable accessibilityRole="button" accessibilityLabel={`${item.name} bearbeiten`} style={styles.cardIconButton} onPress={() => openEdit(item)}><Ionicons name="create-outline" size={15} color={accents[item.kind]} /></Pressable></View>
+            </View>
           </View>
-          <View style={styles.itemBody}>
-            <Text style={styles.itemTitle}>{item.name}</Text>
-            <Text style={styles.copy}>
-              {labels[item.kind]} · aktualisiert{" "}
-              {new Date(item.updatedAt).toLocaleDateString("de-DE")}
-            </Text>
-            {item.images?.length ? <View style={styles.savedPhotoStrip}>{item.images.map(image => <Image key={image.id} source={{ uri: image.accessUrl }} style={styles.savedPhotoThumb} />)}</View> : null}
-          </View>
-        </View>
+        </ImageBackground>
       )}
     />
+    <Modal visible={Boolean(gallery)} transparent animationType="fade" onRequestClose={() => setGallery(null)}>
+      <View style={styles.gallery}><Pressable style={styles.galleryClose} onPress={() => setGallery(null)} accessibilityLabel="Galerie schließen"><Ionicons name="close" size={23} color={c.text} /></Pressable>{gallery ? <><Image source={{ uri: gallery.images[gallery.index].accessUrl }} style={styles.galleryImage} resizeMode="contain" /><Text style={styles.galleryCount}>{gallery.index + 1} / {gallery.images.length}</Text>{gallery.images.length > 1 ? <><Pressable style={[styles.galleryNav, styles.galleryPrev]} onPress={() => setGallery(current => current ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length } : current)} accessibilityLabel="Vorheriges Bild"><Ionicons name="chevron-back" size={28} color={c.text} /></Pressable><Pressable style={[styles.galleryNav, styles.galleryNext]} onPress={() => setGallery(current => current ? { ...current, index: (current.index + 1) % current.images.length } : current)} accessibilityLabel="Nächstes Bild"><Ionicons name="chevron-forward" size={28} color={c.text} /></Pressable></> : null}</> : null}</View>
+    </Modal>
+    </>
   );
 }
 
+
+function statusChips(item: Habitat) {
+  const d = item.details;
+  const value = (key: string) => d[key] == null || d[key] === "" ? null : String(d[key]);
+  const chips: Array<{ label: string; value: string }> = [];
+  const temperature = value(item.kind === "terrarium" ? "dayTemperatureC" : "temperatureC");
+  const humidity = value("humidityPercent");
+  const ph = value("ph");
+  if (temperature) chips.push({ label: "TEMP", value: `${temperature} °C` });
+  if (humidity) chips.push({ label: "LUFT", value: `${humidity} %` });
+  if (ph) chips.push({ label: "pH", value: ph });
+  if (item.careStatus !== "unknown") chips.push({ label: "PFLEGE", value: careStatusLabels[item.careStatus] });
+  if (item.updatedAt) chips.push({ label: "AKTUALISIERT", value: new Date(item.updatedAt).toLocaleDateString("de-DE") });
+  return chips;
+}
 function Field({
   accent,
   surface,
@@ -534,7 +626,9 @@ function Field({
 
 const styles = StyleSheet.create({
   list: { padding: 16, paddingBottom: 112, gap: 12 },
-  heading: { gap: 7, marginBottom: 5 },
+  headingHero: { minHeight: 186, overflow: "hidden", borderRadius: 18, borderWidth: 1, backgroundColor: c.surface, justifyContent: "flex-end" },
+  headingHeroImage: { opacity: 0.48 },
+  heading: { gap: 7, marginBottom: 5, padding: 16 },
   eyebrow: {
     color: c.lime,
     fontSize: 9,
@@ -543,7 +637,7 @@ const styles = StyleSheet.create({
   },
   title: { color: c.text, fontSize: 28, lineHeight: 33, fontWeight: "800" },
   copy: { color: c.muted, fontSize: 12, lineHeight: 18 },
-  kindRow: { flexDirection: "row", gap: 8 },
+  kindRow: { flexDirection: "row", gap: 8, marginTop: 2 },
   kind: {
     flex: 1,
     minHeight: 76,
@@ -608,9 +702,21 @@ const styles = StyleSheet.create({
   photoButtonCopy: { flex: 1, gap: 3 },
   photoButtonTitle: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
   photoStrip: { flexDirection: "row", gap: 8 },
-  photoThumb: { width: 64, height: 64, borderRadius: 9, borderWidth: 1, borderColor: c.border },
-  savedPhotoStrip: { flexDirection: "row", gap: 6, marginTop: 4 },
-  savedPhotoThumb: { width: 42, height: 42, borderRadius: 7, borderWidth: 1, borderColor: c.border },
+  photoThumb: { width: 96, height: 96, borderRadius: 10, borderWidth: 1, borderColor: c.border },
+  savedPhotoStrip: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 9, width: "100%" },
+  savedPhotoFrame: { width: "31%", aspectRatio: 1, position: "relative" },
+  savedPhotoThumb: { width: "100%", height: "100%", borderRadius: 10, borderWidth: 1, borderColor: c.border },
+  imageDeleteOverlay: { position: "absolute", right: 4, bottom: 4, width: 25, height: 25, borderRadius: 7, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.88)", borderWidth: 1, borderColor: c.danger },
+  cardActions: { position: "absolute", top: 12, right: 12 },
+  cardIconButton: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,17,8,.86)", borderWidth: 1, borderColor: c.border },
+  careStatusBlock: { marginTop: 8 },
+  careStatusRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
+  careStatusOption: { borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 7 },
+  careStatusOptionText: { fontSize: 9, fontWeight: "900" },
+  statusRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 },
+  statusChip: { flexDirection: "row", gap: 4, alignItems: "center", paddingHorizontal: 7, paddingVertical: 4, borderRadius: 99, borderWidth: 1, backgroundColor: "rgba(3,17,8,.68)" },
+  statusLabel: { fontSize: 8, fontWeight: "900" },
+  statusValue: { color: c.text, fontSize: 10, fontWeight: "800" },
   empty: {
     minHeight: 165,
     padding: 22,
@@ -621,6 +727,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
+    marginTop: 2,
   },
   emptyTitle: {
     color: c.text,
@@ -629,16 +736,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   item: {
-    minHeight: 72,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 13,
-    borderRadius: 14,
+    minHeight: 220,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: c.border,
     backgroundColor: c.surface,
   },
+  itemImage: { opacity: 0.9 },
+  itemShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.42)" },
+  itemContent: { flexDirection: "row", alignItems: "flex-end", gap: 12, padding: 15 },
   itemIcon: {
     width: 38,
     height: 38,
@@ -649,4 +757,11 @@ const styles = StyleSheet.create({
   },
   itemBody: { flex: 1, gap: 3 },
   itemTitle: { color: c.text, fontSize: 14, fontWeight: "800" },
+  gallery: { flex: 1, backgroundColor: "rgba(1,8,4,.97)", alignItems: "center", justifyContent: "center" },
+  galleryImage: { width: "100%", height: "78%" },
+  galleryClose: { position: "absolute", zIndex: 2, top: 48, right: 20, width: 42, height: 42, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,18,9,.86)", borderWidth: 1, borderColor: c.border },
+  galleryCount: { position: "absolute", bottom: 44, color: c.mint, fontSize: 12, fontWeight: "900" },
+  galleryNav: { position: "absolute", top: "48%", width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(3,18,9,.86)", borderWidth: 1, borderColor: c.border },
+  galleryPrev: { left: 16 },
+  galleryNext: { right: 16 },
 });

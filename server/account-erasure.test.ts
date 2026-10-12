@@ -18,4 +18,11 @@ describe("AP-05 account erasure safety contract", () => {
     expect(designBook).toContain("profile.erasurePreview");
     expect(designBook).toContain("DB-, Session- und Storage-Löschlauf");
   });
+
+  it("offers an authenticated export without leaking storage secrets", () => {
+    expect(profile).toContain("exportData: protectedProcedure");
+    expect(profile).toContain("blackwaterleaf-account-export-v1");
+    expect(profile).toContain("storageObjects: \"not_included\"");
+    expect(profile).toContain("storageKey: undefined");
+  });
 });

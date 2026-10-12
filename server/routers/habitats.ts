@@ -46,6 +46,7 @@ async function serializeHabitat(record: typeof privateHabitats.$inferSelect) {
     ownerId: String(record.userId),
     kind: record.kind,
     name: record.name,
+    careStatus: record.careStatus,
     details: parseDetails(record),
     images: await Promise.all(images.map(async image => ({
       id: String(image.id),
@@ -75,6 +76,7 @@ export const habitatsRouter = router({
       userId: ctx.user.id,
       kind: input.kind,
       name: input.name,
+      careStatus: input.careStatus,
       details: input.details,
     });
     const rows = await db
@@ -99,7 +101,7 @@ export const habitatsRouter = router({
 
       await db
         .update(privateHabitats)
-        .set({ kind: input.kind, name: input.name, details: input.details })
+        .set({ kind: input.kind, name: input.name, careStatus: input.careStatus, details: input.details })
         .where(and(eq(privateHabitats.id, input.id), eq(privateHabitats.userId, ctx.user.id)));
       const updated = await db.select().from(privateHabitats).where(eq(privateHabitats.id, input.id)).limit(1);
       if (!updated[0]) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "habitat_update_failed" });

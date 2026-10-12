@@ -4,10 +4,21 @@ export const BLACKWATERLEAF_CONTRACT_VERSION = "1.0.0" as const;
 
 export const accountRoleSchema = z.enum(["user", "moderator", "admin"]);
 export const accountStatusSchema = z.enum(["active", "suspended", "banned"]);
-export const localeSchema = z.enum(["de", "en"]);
+export const localeSchema = z.enum(["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"]);
 export const unitSystemSchema = z.enum(["metric", "imperial"]);
 export const visibilitySchema = z.enum(["private", "unlisted", "public"]);
 export const observationRealmSchema = z.enum(["botany", "aquarium", "terrarium"]);
+export const observationUserStatusSchema = z.enum(["draft", "saved", "help_requested", "question_open", "proposal_received", "queued_for_review"]);
+export const observationCandidateSchema = z.object({
+  scientificName: z.string().max(160),
+  taxonRank: z.string().max(32).nullable(),
+  confidenceBand: z.enum(["low", "medium", "high"]),
+  confidencePercent: z.number().finite().min(0).max(100).nullable(),
+  reason: z.string().max(1_000).nullable(),
+  source: z.string().max(200).nullable(),
+  sourceUrl: z.string().url().nullable(),
+});
+
 export const evidenceStateSchema = z.enum([
   "confirmed",
   "contextual",
@@ -94,11 +105,15 @@ export const observationMetricSchema = z.object({
   unit: z.string().trim().min(1).max(32).optional(),
 });
 
+export const observationBasisOfRecordSchema = z.enum(["human_observation", "machine_observation", "material_sample"]);
+export const observationWildStatusSchema = z.enum(["wild", "cultivated", "captive", "unknown"]);
+export const observationGeoprivacySchema = z.enum(["private", "obscured", "public", "embargoed"]);
+
 export const mediaAssetSchema = z.object({
   id: z.string().min(1),
   ownerId: z.string().min(1),
-  kind: z.enum(["avatar", "observation_image", "post_image"]),
-  mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  kind: z.enum(["avatar", "observation_image", "post_image", "post_video"]),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]),
   byteSize: z.number().int().positive(),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
@@ -115,10 +130,25 @@ export const observationSchema = z.object({
   realm: observationRealmSchema,
   subject: z.string().max(128).nullable(),
   scientificName: z.string().max(160).nullable(),
+  taxonRank: z.string().max(32).nullable(),
+  observedAt: z.string().datetime().nullable(),
+  basisOfRecord: observationBasisOfRecordSchema,
+  wildStatus: observationWildStatusSchema,
+  latitude: z.number().finite().min(-90).max(90).nullable(),
+  longitude: z.number().finite().min(-180).max(180).nullable(),
+  coordinateUncertaintyM: z.number().finite().min(0).max(20_000_000).nullable(),
+  publicLatitude: z.number().finite().min(-90).max(90).nullable(),
+  publicLongitude: z.number().finite().min(-180).max(180).nullable(),
+  geoprivacy: observationGeoprivacySchema,
+  embargoUntil: z.string().datetime().nullable(),
   note: z.string().max(2_000).nullable(),
   metrics: z.array(observationMetricSchema).max(64),
   media: z.array(mediaAssetSchema).max(20),
   evidenceState: evidenceStateSchema,
+  userStatus: observationUserStatusSchema,
+  aiCandidates: z.array(observationCandidateSchema).max(3),
+  aiModel: z.string().max(128).nullable(),
+  aiCatalogVersion: z.string().max(128).nullable(),
   visibility: visibilitySchema,
   syncState: syncStateSchema,
   revision: z.number().int().positive(),
@@ -141,6 +171,21 @@ export const createObservationInputSchema = observationSchema
     clientId: z.string().min(1).max(128),
     visibility: visibilitySchema.default("private"),
     evidenceState: evidenceStateSchema.default("unverified"),
+    userStatus: observationUserStatusSchema.default("saved"),
+    aiCandidates: z.array(observationCandidateSchema).max(3).default([]),
+    aiModel: z.string().max(128).nullable().default(null),
+    aiCatalogVersion: z.string().max(128).nullable().default(null),
+    basisOfRecord: observationBasisOfRecordSchema.default("human_observation"),
+    wildStatus: observationWildStatusSchema.default("unknown"),
+    geoprivacy: observationGeoprivacySchema.default("private"),
+    observedAt: z.string().datetime().nullable().default(null),
+    taxonRank: z.string().max(32).nullable().default(null),
+    latitude: z.number().finite().min(-90).max(90).nullable().default(null),
+    longitude: z.number().finite().min(-180).max(180).nullable().default(null),
+    coordinateUncertaintyM: z.number().finite().min(0).max(20_000_000).nullable().default(null),
+    publicLatitude: z.number().finite().min(-90).max(90).nullable().default(null),
+    publicLongitude: z.number().finite().min(-180).max(180).nullable().default(null),
+    embargoUntil: z.string().datetime().nullable().default(null),
   });
 
 export const knowledgeSourceSchema = z.object({
@@ -257,6 +302,7 @@ export const partnerProductSchema = partnerProductInputSchema.extend({
 });
 
 export const privateHabitatKindSchema = z.enum(["aquarium", "plant", "terrarium"]);
+export const privateHabitatCareStatusSchema = z.enum(["unknown", "stable", "attention", "critical"]);
 
 const nullableNumber = (min: number, max: number) => z.number().finite().min(min).max(max).nullable();
 const nullableText = (max: number) => z.string().trim().max(max).nullable();
@@ -315,15 +361,16 @@ export const terrariumDetailsSchema = z
   .strict();
 
 export const privateHabitatInputSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("aquarium"), name: z.string().trim().min(1).max(128), details: aquariumDetailsSchema }),
-  z.object({ kind: z.literal("plant"), name: z.string().trim().min(1).max(128), details: plantDetailsSchema }),
-  z.object({ kind: z.literal("terrarium"), name: z.string().trim().min(1).max(128), details: terrariumDetailsSchema }),
+  z.object({ kind: z.literal("aquarium"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: aquariumDetailsSchema }),
+  z.object({ kind: z.literal("plant"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: plantDetailsSchema }),
+  z.object({ kind: z.literal("terrarium"), name: z.string().trim().min(1).max(128), careStatus: privateHabitatCareStatusSchema.default("unknown"), details: terrariumDetailsSchema }),
 ]);
 
 export const privateHabitatSchema = privateHabitatInputSchema.and(
   z.object({
     id: z.string().min(1),
     ownerId: z.string().min(1),
+    careStatus: privateHabitatCareStatusSchema,
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   }),

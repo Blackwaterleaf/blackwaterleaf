@@ -93,6 +93,26 @@ export function belongsToOfficialMediaSource(source: string, value: string | nul
   }
 }
 
+/**
+ * Open catalogue photos are stored by BlackWaterLeaf after an importer verifies
+ * the individual iNaturalist observation, exact taxon, licence and attribution.
+ * The iNaturalist observation remains the public evidence page; its S3 asset
+ * is never served directly to clients after import.
+ */
+export function isVerifiedOpenCatalogueMediaSource(value: string | null | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "www.inaturalist.org" && /^\/observations\/\d+$/.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+export function isStoredCatalogueTaxonImage(value: string | null | undefined): boolean {
+  return typeof value === "string" && /^\/manus-storage\/catalog\/taxa\/(?:plant|aquarium)\/\d+\/inat-\d+_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(value);
+}
+
 /** Taxonbilder erscheinen auch neben kommerziellen Marketplace-Flächen; NC- und unklare Rechte sind daher ausgeschlossen. */
 export function isCommerciallyReusableCatalogImageLicense(value: string | null | undefined): boolean {
   if (!value) return false;
@@ -103,7 +123,9 @@ export function isCommerciallyReusableCatalogImageLicense(value: string | null |
     "cc0-1.0",
     "https://creativecommons.org/publicdomain/zero/1.0/",
     "cc by 4.0",
+    "cc by",
     "cc-by 4.0",
+    "cc-by",
     "cc-by-4.0",
     "https://creativecommons.org/licenses/by/4.0/",
     "cc by 3.0",

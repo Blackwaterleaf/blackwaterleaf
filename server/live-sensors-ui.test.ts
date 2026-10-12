@@ -9,30 +9,23 @@ const weatherService = readFileSync(resolve(root, "server/weather.ts"), "utf8");
 const style = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("live sensor interface", () => {
-  it("keeps live sensors available as a dedicated component without placing the rail above the home hero", () => {
+  it("keeps live sensors as a dedicated component without placing them in the home context header", () => {
     expect(home).not.toContain("<LiveSensorStrip");
-    expect(home).not.toContain("weather-effect--${weatherEffect}");
-    expect(home).toContain("home-hero");
+    expect(home).toContain("ObservatoryContextHeader");
     expect(home).not.toContain('value={t("common.offline")}');
   });
 
   it("requests browser location only after a deliberate user action", () => {
-    expect(sensorStrip).toContain("navigator.geolocation.getCurrentPosition");
-    expect(sensorStrip).toContain("onClick={requestLocation}");
-    expect(sensorStrip).toContain("not stored");
-    expect(sensorStrip).toContain("enabled: auth.isAuthenticated");
+    for (const token of ["navigator.geolocation.getCurrentPosition", "onClick={requestLocation}", "not stored", "enabled: auth.isAuthenticated"]) expect(sensorStrip).toContain(token);
   });
 
   it("uses private aquarium values for water temperature and pH", () => {
-    expect(sensorStrip).toContain('item.kind === "aquarium"');
-    expect(sensorStrip).toContain("details.temperatureC");
-    expect(sensorStrip).toContain("details.ph");
+    for (const token of ['item.kind === "aquarium"', "details.temperatureC", "details.ph"]) expect(sensorStrip).toContain(token);
   });
 
-  it("keeps the mobile sensor rail readable without changing the desktop data contract", () => {
-    for (const token of ["@media (max-width: 759px)", ".reference-sensor-rail .sensor-grid", "grid-template-columns: repeat(2, minmax(0, 1fr))", "min-height: 58px", ".reference-sensor-rail .sensor strong", ".reference-sensor-rail .sensor span", ".sensor-note--action { display: none; }"]) {
-      expect(style).toContain(token);
-    }
+  it("keeps the compact sensor rail styled independently of the retired layout system", () => {
+    for (const token of ["observatory-sensor-rail", "grid-template-columns: repeat(2, minmax(0, 1fr))", "min-height: 58px", ".sensor-note--action { display: none; }"]) expect(style).toContain(token);
+    expect(style).not.toContain("reference-sensor-rail");
   });
 
   it("does not persist precise browser coordinates in the server weather service", () => {

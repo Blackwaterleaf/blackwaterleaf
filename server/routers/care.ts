@@ -49,11 +49,11 @@ export const careRouter = router({
     return rows[0];
   }),
 
-  createTask: protectedProcedure.input(z.object({ planId: z.number().int().positive(), title: z.string().trim().min(1).max(160), dueAt: z.coerce.date(), habitatId: z.number().int().positive().nullable().optional() })).mutation(async ({ ctx, input }) => {
+  createTask: protectedProcedure.input(z.object({ planId: z.number().int().positive(), title: z.string().trim().min(1).max(160), dueAt: z.coerce.date(), repeatEveryDays: z.number().int().min(1).max(3650).nullable().optional(), habitatId: z.number().int().positive().nullable().optional() })).mutation(async ({ ctx, input }) => {
     const db = await requireDatabase();
     const plan = await db.select().from(carePlans).where(and(eq(carePlans.id, input.planId), eq(carePlans.userId, ctx.user.id))).limit(1);
     if (!plan[0]) throw new TRPCError({ code: "NOT_FOUND", message: "care_plan_not_found" });
-    const inserted = await db.insert(careTasks).values({ userId: ctx.user.id, planId: input.planId, habitatId: input.habitatId ?? plan[0].habitatId ?? null, title: input.title, dueAt: input.dueAt, status: "open" });
+    const inserted = await db.insert(careTasks).values({ userId: ctx.user.id, planId: input.planId, habitatId: input.habitatId ?? plan[0].habitatId ?? null, title: input.title, dueAt: input.dueAt, repeatEveryDays: input.repeatEveryDays ?? null, status: "open" });
     const id = Number(inserted[0].insertId);
     await db.insert(careEvents).values({ userId: ctx.user.id, taskId: id, eventType: "created" });
     const rows = await db.select().from(careTasks).where(eq(careTasks.id, id)).limit(1);
@@ -67,6 +67,19 @@ export const careRouter = router({
     const eventType = input.status === "done" ? "completed" : input.status === "snoozed" ? "snoozed" : input.status === "skipped" ? "skipped" : "reopened";
     await db.update(careTasks).set({ status: input.status, skipReason: input.reason ?? null, dueAt: input.dueAt ?? current[0].dueAt, completedAt: input.status === "done" ? new Date() : null }).where(and(eq(careTasks.id, input.taskId), eq(careTasks.userId, ctx.user.id)));
     await db.insert(careEvents).values({ userId: ctx.user.id, taskId: input.taskId, eventType, reason: input.reason ?? null });
+    if (current[0].status === "open" && input.status === "done" && current[0].repeatEveryDays) {
+      const nextDueAt = new Date(current[0].dueAt.getTime() + current[0].repeatEveryDays * 24 * 60 * 60 * 1000);
+      const next = await db.insert(careTasks).values({
+        userId: ctx.user.id,
+        planId: current[0].planId,
+        habitatId: current[0].habitatId,
+        title: current[0].title,
+        dueAt: nextDueAt,
+        repeatEveryDays: current[0].repeatEveryDays,
+        status: "open",
+      });
+      await db.insert(careEvents).values({ userId: ctx.user.id, taskId: Number(next[0].insertId), eventType: "created", reason: "recurring_task_next_occurrence" });
+    }
     const updated = await db.select().from(careTasks).where(eq(careTasks.id, input.taskId)).limit(1);
     return updated[0] ? serializeTask(updated[0]) : null;
   }),

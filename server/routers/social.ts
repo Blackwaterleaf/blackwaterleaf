@@ -32,7 +32,7 @@ async function assertPublicTarget(db: Awaited<ReturnType<typeof requireDatabase>
     const row = await db.select({ id: partnerProducts.id }).from(partnerProducts).innerJoin(partnerProfiles, eq(partnerProducts.partnerId, partnerProfiles.id)).where(and(eq(partnerProducts.id, targetId), eq(partnerProducts.status, "active"), eq(partnerProfiles.status, "approved"))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "product_not_found" });
   } else {
-    const row = await db.select({ id: users.id }).from(users).where(and(eq(users.id, targetId), eq(users.status, "active"), eq(users.profileVisibility, "public"))).limit(1);
+    const row = await db.select({ id: users.id }).from(users).where(and(eq(users.id, targetId), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).limit(1);
     if (!row[0]) throw new TRPCError({ code: "NOT_FOUND", message: "public_profile_not_found" });
   }
 }
@@ -45,15 +45,47 @@ async function assertNotBlocked(db: Awaited<ReturnType<typeof requireDatabase>>,
   if (rows[0]) throw new TRPCError({ code: "FORBIDDEN", message: "social_relationship_blocked" });
 }
 
+const publicProfileList = async (db: Awaited<ReturnType<typeof requireDatabase>>, profileId: number, direction: "followers" | "following") => {
+  const rows = direction === "followers"
+    ? await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl }).from(userFollows).innerJoin(users, eq(userFollows.followerId, users.id)).where(and(eq(userFollows.followingId, profileId), eq(userFollows.status, "active"), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).orderBy(desc(userFollows.createdAt)).limit(200)
+    : await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl }).from(userFollows).innerJoin(users, eq(userFollows.followingId, users.id)).where(and(eq(userFollows.followerId, profileId), eq(userFollows.status, "active"), eq(users.status, "active"), or(eq(users.profileVisibility, "public"), eq(users.role, "admin")))).orderBy(desc(userFollows.createdAt)).limit(200);
+  return rows.map(row => ({ ...row, id: String(row.id) }));
+};
+
 export const socialRouter = router({
+  adminProfile: publicProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    const admin = await db.select({ id: users.id, name: users.name, username: users.username, bio: users.bio, avatarUrl: users.avatarUrl }).from(users).where(and(eq(users.role, "admin"), eq(users.status, "active"))).orderBy(users.id).limit(1);
+    const target = admin[0];
+    if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "admin_profile_not_found" });
+    const [followers, relationship] = await Promise.all([
+      db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followingId, target.id), eq(userFollows.status, "active"))),
+      ctx.user ? db.select({ status: userFollows.status }).from(userFollows).where(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, target.id))).limit(1) : Promise.resolve([]),
+    ]);
+    return { ...target, id: String(target.id), followers: Number(followers[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active" } as const;
+  }),
+
   relationship: publicProcedure.input(idInput).query(async ({ ctx, input }) => {
     const db = await requireDatabase();
-    const [followers, following, relationship] = await Promise.all([
+    const [followers, following, relationship, block] = await Promise.all([
       db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followingId, input.id), eq(userFollows.status, "active"))),
       db.select({ value: count() }).from(userFollows).where(and(eq(userFollows.followerId, input.id), eq(userFollows.status, "active"))),
       ctx.user ? db.select({ status: userFollows.status }).from(userFollows).where(and(eq(userFollows.followerId, ctx.user.id), eq(userFollows.followingId, input.id))).limit(1) : Promise.resolve([]),
+      ctx.user ? db.select({ id: userBlocks.id }).from(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.id))).limit(1) : Promise.resolve([]),
     ]);
-    return { followers: Number(followers[0]?.value ?? 0), following: Number(following[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active" } as const;
+    return { followers: Number(followers[0]?.value ?? 0), following: Number(following[0]?.value ?? 0), isFollowing: relationship[0]?.status === "active", isBlockedByMe: Boolean(block[0]) } as const;
+  }),
+
+  followers: publicProcedure.input(idInput).query(async ({ input }) => {
+    const db = await requireDatabase();
+    await assertPublicTarget(db, "profile", input.id);
+    return publicProfileList(db, input.id, "followers");
+  }),
+
+  following: publicProcedure.input(idInput).query(async ({ input }) => {
+    const db = await requireDatabase();
+    await assertPublicTarget(db, "profile", input.id);
+    return publicProfileList(db, input.id, "following");
   }),
 
   follow: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
@@ -71,6 +103,13 @@ export const socialRouter = router({
     return { following: false } as const;
   }),
 
+  /** Instagram-style: a profile owner can remove someone from their followers. */
+  removeFollower: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    await db.update(userFollows).set({ status: "removed", updatedAt: new Date() }).where(and(eq(userFollows.followerId, input.id), eq(userFollows.followingId, ctx.user.id)));
+    return { removed: true } as const;
+  }),
+
   block: protectedProcedure.input(idInput).mutation(async ({ ctx, input }) => {
     if (ctx.user.id === input.id) throw new TRPCError({ code: "BAD_REQUEST", message: "cannot_block_self" });
     const db = await requireDatabase();
@@ -83,6 +122,12 @@ export const socialRouter = router({
     const db = await requireDatabase();
     await db.delete(userBlocks).where(and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, input.id)));
     return { blocked: false } as const;
+  }),
+
+  blocked: protectedProcedure.query(async ({ ctx }) => {
+    const db = await requireDatabase();
+    const rows = await db.select({ id: users.id, name: users.name, username: users.username, avatarUrl: users.avatarUrl, blockedAt: userBlocks.createdAt }).from(userBlocks).innerJoin(users, eq(userBlocks.blockedId, users.id)).where(eq(userBlocks.blockerId, ctx.user.id)).orderBy(desc(userBlocks.createdAt)).limit(200);
+    return rows.map(row => ({ ...row, id: String(row.id), blockedAt: row.blockedAt.toISOString() }));
   }),
 
   save: protectedProcedure.input(targetInput).mutation(async ({ ctx, input }) => {

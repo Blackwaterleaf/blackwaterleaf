@@ -76,9 +76,10 @@
 
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import { cn } from "@/lib/utils";
+import { OpenStreetMap, type OpenStreetMapPoint } from "@/components/OpenStreetMap";
 
 declare global {
   interface Window {
@@ -92,21 +93,33 @@ const FORGE_BASE_URL =
   "https://forge.butterfly-effect.dev";
 const MAPS_PROXY_URL = `${FORGE_BASE_URL}/v1/maps/proxy`;
 
-function loadMapScript() {
-  return new Promise(resolve => {
+let mapScriptPromise: { locale: string; promise: Promise<void> } | null = null;
+
+function loadMapScript(locale: string) {
+  if (window.google?.maps) return Promise.resolve();
+  if (!API_KEY) return Promise.reject(new Error("Kartenbasis ist nicht konfiguriert."));
+  if (mapScriptPromise?.locale === locale) return mapScriptPromise.promise;
+
+  const promise = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&libraries=marker,places,geocoding,geometry`;
+    const region = locale === "de" ? "DE" : locale === "zh-CN" ? "CN" : locale === "es" ? "ES" : locale === "fr" ? "FR" : "US";
+    script.src = `${MAPS_PROXY_URL}/maps/api/js?key=${API_KEY}&v=weekly&language=${locale}&region=${region}&libraries=marker,places,geocoding,geometry`;
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
-      resolve(null);
-      script.remove(); // Clean up immediately
+      if (window.google?.maps) resolve();
+      else reject(new Error("Kartenbasis wurde ohne Google-Maps-API geladen."));
+      script.remove();
     };
     script.onerror = () => {
-      console.error("Failed to load Google Maps script");
+      script.remove();
+      mapScriptPromise = null;
+      reject(new Error("Kartenbasis konnte nicht geladen werden."));
     };
     document.head.appendChild(script);
   });
+  mapScriptPromise = { locale, promise };
+  return promise;
 }
 
 interface MapViewProps {
@@ -114,6 +127,10 @@ interface MapViewProps {
   initialCenter?: google.maps.LatLngLiteral;
   initialZoom?: number;
   onMapReady?: (map: google.maps.Map) => void;
+  onMapError?: (error: Error) => void;
+  points?: OpenStreetMapPoint[];
+  fallbackPoints?: OpenStreetMapPoint[];
+  locale?: string;
 }
 
 export function MapView({
@@ -121,27 +138,40 @@ export function MapView({
   initialCenter = { lat: 37.7749, lng: -122.4194 },
   initialZoom = 12,
   onMapReady,
+  onMapError,
+  points = [],
+  fallbackPoints = [],
+  locale = "de",
 }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
+  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const [useOpenStreetMap, setUseOpenStreetMap] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
 
   const init = usePersistFn(async () => {
-    await loadMapScript();
-    if (!mapContainer.current) {
-      console.error("Map container not found");
-      return;
-    }
-    map.current = new window.google.maps.Map(mapContainer.current, {
-      zoom: initialZoom,
-      center: initialCenter,
-      mapTypeControl: true,
-      fullscreenControl: true,
-      zoomControl: true,
-      streetViewControl: true,
-      mapId: "DEMO_MAP_ID",
-    });
-    if (onMapReady) {
-      onMapReady(map.current);
+    try {
+      await loadMapScript(locale);
+      if (!mapContainer.current || !window.google?.maps) {
+        throw new Error("Kartencontainer ist nicht verfügbar.");
+      }
+      map.current = new window.google.maps.Map(mapContainer.current, {
+        zoom: initialZoom,
+        center: initialCenter,
+        mapTypeControl: true,
+        fullscreenControl: true,
+        zoomControl: true,
+        streetViewControl: false,
+        mapId: "DEMO_MAP_ID",
+      });
+      setMapReady(true);
+      onMapReady?.(map.current);
+    } catch (error) {
+      const normalized = error instanceof Error ? error : new Error("Kartenbasis konnte nicht initialisiert werden.");
+      console.error(normalized);
+      setUseOpenStreetMap(true);
+      // The OSM surface is the truthful, keyless fallback. Do not turn a
+      // usable map fallback into a red error state in the parent surface.
     }
   });
 
@@ -149,7 +179,22 @@ export function MapView({
     init();
   }, [init]);
 
-  return (
-    <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />
-  );
+  useEffect(() => {
+    if (!mapReady || !map.current || !window.google?.maps?.marker?.AdvancedMarkerElement) return;
+    markers.current.forEach(marker => { marker.map = null; });
+    markers.current = points.map(point => new window.google.maps.marker.AdvancedMarkerElement({
+      map: map.current,
+      position: { lat: point.lat, lng: point.lng },
+      title: point.detail ? `${point.label} · ${point.detail}` : point.label,
+    }));
+    return () => {
+      markers.current.forEach(marker => { marker.map = null; });
+      markers.current = [];
+    };
+  }, [mapReady, points]);
+
+  if (useOpenStreetMap) {
+    return <OpenStreetMap className={className} initialCenter={initialCenter} initialZoom={initialZoom} points={fallbackPoints.length ? fallbackPoints : points} locale={locale} />;
+  }
+  return <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />;
 }

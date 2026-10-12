@@ -46,6 +46,26 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  /** Web login entry point. The server owns the portal/app configuration so
+   * preview and production builds cannot drift apart. */
+  app.get("/api/oauth/start", (req: Request, res: Response) => {
+    if (!ENV.oAuthPortalUrl || !ENV.appId) {
+      res.status(503).json({ error: "oauth_not_configured" });
+      return;
+    }
+    const redirectUri = `${req.protocol}://${req.get("host") ?? ""}/api/oauth/callback`;
+    const nonce = crypto.randomUUID();
+    const state = encodeOAuthState({ redirectUri, nonce });
+    res.cookie(OAUTH_STATE_COOKIE, nonce, { path: "/", maxAge: 10 * 60 * 1000, httpOnly: true, secure: true, sameSite: "none" });
+    const url = new URL(`${ENV.oAuthPortalUrl}/app-auth`);
+    url.searchParams.set("appId", ENV.appId);
+    url.searchParams.set("redirectUri", redirectUri);
+    url.searchParams.set("state", state);
+    url.searchParams.set("type", "signIn");
+    res.set("Cache-Control", "no-store");
+    res.redirect(302, url.toString());
+  });
+
   /**
    * Begins the native BlackWaterLeaf Natur OAuth flow. The web callback remains
    * the registered HTTPS redirect; only after a verified code exchange does the
@@ -55,6 +75,7 @@ export function registerOAuthRoutes(app: Express) {
   app.get("/api/oauth/mobile/start", (req: Request, res: Response) => {
     const mobileState = getQueryParam(req, "mobileState");
     const codeChallenge = getQueryParam(req, "codeChallenge");
+    const prompt = getQueryParam(req, "prompt");
     if (!isValidMobileState(mobileState) || !isValidCodeChallenge(codeChallenge) || !ENV.oAuthPortalUrl || !ENV.appId) {
       res.status(400).json({ error: "native_oauth_not_available" });
       return;
@@ -66,6 +87,7 @@ export function registerOAuthRoutes(app: Express) {
     url.searchParams.set("redirectUri", MOBILE_OAUTH_CALLBACK);
     url.searchParams.set("state", state);
     url.searchParams.set("type", "signIn");
+    if (prompt === "select_account") url.searchParams.set("prompt", "select_account");
     res.set("Cache-Control", "no-store");
     res.redirect(302, url.toString());
   });

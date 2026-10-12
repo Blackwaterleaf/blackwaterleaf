@@ -9,7 +9,7 @@ const source = (relativePath: string) => readFileSync(join(projectRoot, relative
 describe("XP and AI staged release guards", () => {
   it("keeps the legacy XP journal vocabulary and server-owned policy version", () => {
     expect(XP_POLICY_VERSION).toBe("xp-2026-09-16-v1");
-    expect(XP_REWARDS).toEqual({ dailyCheckIn: 5, observationPhoto: 10, assistantResponse: 3 });
+    expect(XP_REWARDS).toEqual({ dailyCheckIn: 5, observationPhoto: 10, communityPhoto: 10, assistantResponse: 3 });
     expect(dayKey(new Date("2026-09-16T00:00:00.000Z"))).toBe("2026-09-16");
     expect(levelForXp(200)).toBe(3);
 

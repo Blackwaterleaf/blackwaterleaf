@@ -225,6 +225,209 @@
       "when": 1789835343573,
       "tag": "0031_overconfident_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1789847325673,
+      "tag": "0032_lumpy_mentor",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1789849629055,
+      "tag": "0033_first_malice",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "5",
+      "when": 1789851067696,
+      "tag": "0034_glamorous_the_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "5",
+      "when": 1789889969854,
+      "tag": "0035_past_rawhide_kid",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "5",
+      "when": 1789891604790,
+      "tag": "0036_lumpy_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1790365622422,
+      "tag": "0037_woozy_inertia",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "5",
+      "when": 1790447183522,
+      "tag": "0038_aspiring_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "5",
+      "when": 1790462116572,
+      "tag": "0039_condemned_violations",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "5",
+      "when": 1790465916563,
+      "tag": "0040_rich_bulldozer",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1790467588289,
+      "tag": "0041_wide_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1790467878460,
+      "tag": "0042_misty_fabian_cortez",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "5",
+      "when": 1790481245207,
+      "tag": "0043_cloudy_moira_mactaggert",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "5",
+      "when": 1790481321188,
+      "tag": "0044_far_network",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "5",
+      "when": 1790488758779,
+      "tag": "0045_curved_black_bird",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "5",
+      "when": 1790489027848,
+      "tag": "0046_bent_hedge_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "5",
+      "when": 1790491142582,
+      "tag": "0047_volatile_annihilus",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "5",
+      "when": 1790492831210,
+      "tag": "0048_orange_dreaming_celestial",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "5",
+      "when": 1790493196013,
+      "tag": "0049_lazy_mach_iv",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "5",
+      "when": 1790494416552,
+      "tag": "0050_easy_texas_twister",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "5",
+      "when": 1790495024152,
+      "tag": "0051_smiling_pepper_potts",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "5",
+      "when": 1790497588308,
+      "tag": "0052_kind_rictor",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "5",
+      "when": 1790503948120,
+      "tag": "0053_analytics_events_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "5",
+      "when": 1790508066908,
+      "tag": "0054_tidy_warbound",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "5",
+      "when": 1790508937454,
+      "tag": "0055_amazing_wendell_vaughn",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "5",
+      "when": 1790510239023,
+      "tag": "0056_chief_wasp",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "5",
+      "when": 1790510689644,
+      "tag": "0057_flowery_shadow_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "5",
+      "when": 1790518257881,
+      "tag": "0058_plain_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "5",
+      "when": 1790539814989,
+      "tag": "0059_medical_juggernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1790613020480,
+      "tag": "0060_fantastic_firebird",
+      "breakpoints": true
     }
   ]
 }

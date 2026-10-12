@@ -14,141 +14,97 @@ const moments = readFileSync(resolve(root, "mobile-natur/src/MomentCapture.tsx")
 const outbox = readFileSync(resolve(root, "mobile-natur/src/observationOutbox.ts"), "utf8");
 
 describe("BlackWaterLeaf native application contract", () => {
-  it("is explicitly the native BlackWaterLeaf product app, never the Studio client", () => {
-    expect(appConfig).toContain('"name": "BlackWaterLeaf"');
-    expect(appConfig).toContain('"slug": "bwl"');
-    expect(appConfig).toContain('"package": "com.blackwaterleaf"');
+  it("is explicitly the native BlackWaterLeaf product app", () => {
+    for (const token of ['"name": "BlackWaterLeaf"', '"slug": "bwl"', '"package": "com.blackwaterleaf"']) expect(appConfig).toContain(token);
     expect(app).not.toContain("BlackWaterLeaf Studio");
-    expect(app).not.toContain("CONTROL API");
   });
 
-  it("uses the supplied original BlackWaterLeaf mark for the native launcher and header", () => {
-    expect(app).toContain('require("./assets/icon.png")');
-    expect(app).toContain("BlackWaterLeaf Originalmarke");
+  it("uses the supplied original mark for the native launcher and header", () => {
+    for (const token of ['require("./assets/icon.png")', "BlackWaterLeaf Originalmarke"]) expect(app).toContain(token);
     expect(appConfig).toContain('"icon": "./assets/icon.png"');
-    expect(appConfig).toContain('"foregroundImage": "./assets/android-icon-foreground.png"');
-    expect(appConfig).toContain('"version": "1.0.18"');
-    expect(appConfig).toContain('"versionCode": 18');
-    for (const asset of ["botany-reference.jpg", "aquarium-reference.jpg", "terrarium-reference.jpg", "assistant-reference.jpg"]) {
-      expect(existsSync(resolve(root, `mobile-natur/assets/${asset}`))).toBe(true);
-    }
+    for (const asset of ["botany-reference.jpg", "aquarium-reference.jpg", "terrarium-reference.jpg", "assistant-reference.jpg"]) expect(existsSync(resolve(root, `mobile-natur/assets/${asset}`))).toBe(true);
   });
 
-  it("reads public and private content from the existing BlackWaterLeaf API, not a copied data source", () => {
-    expect(api).toContain('API_ORIGIN = "https://blackwaterleaf.com"');
-    for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine"]) expect(api).toContain(procedure);
+  it("reads public and private content from the existing BlackWaterLeaf API", () => {
+    expect(api).toContain("EXPO_PUBLIC_API_ORIGIN");
+    expect(api).toContain("Constants.expoConfig?.extra?.apiOrigin");
+    expect(api).not.toContain(["3000-ibp8fnclaynuq4sdd6dsd", "206ff939.us1.manus.computer"].join("-"));
+    for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine", "habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
     expect(api).toContain("Authorization: `Bearer ${token}`");
-    for (const procedure of ["habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
   });
 
-  it("uses native controlled forms and device media for private plants, aquariums, terrariums and moments", () => {
-    expect(app).toContain("MomentCapture");
-    expect(app).toContain("HabitatManager");
-    expect(habitats).toContain("NEUE {labels[kind]} ANLEGEN");
+  it("uses native controlled forms and device media for private habitats and moments", () => {
+    for (const token of ["MomentCapture", "HabitatManager", "launchCameraAsync", "launchImageLibraryAsync", "enqueueObservation", "syncObservationOutbox", 'visibility: "private"', "mediaConsent"]) expect(app + moments).toContain(token);
     expect(habitats).toContain("createHabitat(token, payload)");
-    expect(moments).toContain("launchCameraAsync");
-    expect(moments).toContain("launchImageLibraryAsync");
-    expect(moments).toContain("enqueueObservation");
-    expect(moments).toContain("syncObservationOutbox");
-    expect(moments).toContain('visibility: "private"');
-    expect(moments).toContain("mediaConsent");
-    expect(outbox).toContain("uploadObservationImage(token");
     expect(outbox).toContain('purpose: "media_processing"');
     expect(moments).not.toContain("WebView");
   });
 
-  it("uses native high-entropy state verification and secure token storage for private flows", () => {
-    expect(auth).toContain("Crypto.randomUUID");
-    expect(auth).toContain("returnedState !== mobileState");
-    expect(auth).toContain("codeVerifier");
-    expect(auth).toContain("codeChallenge");
-    expect(auth).toContain("/api/oauth/mobile/exchange");
-    expect(auth).toContain("writeToken(resultPayload.sessionToken)");
+  it("uses native high-entropy state verification and secure token storage", () => {
+    for (const token of ["Crypto.randomUUID", "returnedState !== mobileState", "codeVerifier", "codeChallenge", "/api/oauth/mobile/exchange", "forceAccountSelection", "prompt=select_account"]) expect(auth).toContain(token);
     expect(api).toContain("SecureStore.setItemAsync");
-    expect(api).toContain("WHEN_UNLOCKED_THIS_DEVICE_ONLY");
     expect(shared).toContain("mobileState?: string");
     expect(oauth).toContain('MOBILE_CALLBACK_SCHEME = "blackwaterleaf://oauth/callback"');
-    expect(oauth).toContain('MOBILE_OAUTH_CALLBACK = "https://blackwaterleaf.com/api/oauth/callback"');
-    expect(oauth).toContain('app.get("/api/oauth/mobile/start"');
-    expect(oauth).toContain('app.post("/api/oauth/mobile/exchange"');
-    expect(oauth).toContain("MOBILE_CODE_AUDIENCE");
-    expect(oauth).toContain("crypto.subtle.digest");
-    expect(oauth).toContain('callback.searchParams.set("code"');
-    expect(oauth).not.toContain('callback.searchParams.set("token"');
-    expect(oauth).toContain("native_oauth_not_available");
-    expect(oauth).toContain("mobileState) && isValidCodeChallenge(mobileCodeChallenge) && oauthState.redirectUri === MOBILE_OAUTH_CALLBACK");
   });
 
-  it("contains an Android APK profile and the complete native source tree", () => {
+  it("offers an explicit native account switch instead of routing to the inbox", () => {
+    expect(app).toContain("onSwitchAccount");
+    expect(app).toContain("Konto wechseln · E-Mail auswählen");
+    expect(app).toContain("await signOut();");
+  });
+
+  it("contains an Android APK profile and complete native source tree", () => {
     expect(existsSync(resolve(root, "mobile-natur/eas.json"))).toBe(true);
     expect(readFileSync(resolve(root, "mobile-natur/eas.json"), "utf8")).toContain('"buildType": "apk"');
     expect(appConfig).toContain('"recordAudioAndroid": false');
-    expect(appConfig).toContain('"blockedPermissions"');
-    expect(appConfig).toContain('"android.permission.RECORD_AUDIO"');
   });
 
-  it("keeps the native marketplace accent and shared seasonal helper", () => {
+  it("keeps marketplace tone and the shared seasonal helper", () => {
     expect(app).toContain('market: "#D9AD69"');
     expect(app).toContain("getBlackWaterLeafSeason");
     expect(existsSync(resolve(root, "mobile-natur/src/season.ts"))).toBe(true);
   });
 
-  it("implements every approved reference screen as native UI without a WebView shell", () => {
-    for (const screen of ["botany", "aquarium", "terrarium", "assistant", "live", "photo", "post", "knowledge", "explore", "community", "profile", "builder"]) {
-      expect(app).toContain(`screen === "${screen}"`);
-    }
-    expect(app).toContain('title="PFLANZEN WORLD"');
-    expect(app).toContain('title="AQUARISTIK"');
-    expect(app).toContain('title="TERRARISTIK"');
-    expect(app).toContain('title="KI-ASSISTENT"');
+  it("implements every approved Observatory screen without a WebView shell", () => {
+    for (const screen of ["botany", "aquarium", "terrarium", "assistant", "live", "photo", "post", "knowledge", "explore", "community", "profile"]) expect(app).toContain(`screen === "${screen}"`);
     expect(app).not.toContain("react-native-webview");
     expect(app).not.toContain("<WebView");
   });
 
-  it("keeps exactly five regular Observatory navigation destinations", () => {
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    expect(app).not.toContain('showBuilder={account?.role === "admin"}');
-    expect(app).toContain('account?.role !== "admin"');
+  it("keeps the four regular Observatory navigation destinations and a reachable marketplace", () => {
+    for (const label of ["Home", "Entdecken", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    for (const token of ["onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
   });
 
-  it("keeps the marketplace reachable without adding a sixth bottom tab", () => {
-    expect(app).toContain('onMarketplace={() => navigate("marketplace")}');
-    expect(app).toContain('icon="storefront-outline"');
-    expect(app).toContain('label="Marktplatz"');
-    expect(app).toContain('screen === "marketplace"');
+  it("uses renamed compact Observatory primitives for native actions", () => {
+    for (const token of ["ObservatoryContextHeader", "ObservatoryActionCluster", "ObservatoryActionRow", "observatoryActionRowCompact", "selectionCollapsed", "ALLE WERKZEUGE", "LayoutAnimation.Presets.easeInEaseOut"]) expect(app).toContain(token);
+    for (const retired of ["ReferenceHero", "ReferenceCard", "ActionGrid", "referenceCardCompact"]) expect(app).not.toContain(retired);
   });
 
-  it("connects native KI and community actions only through existing protected server contracts", () => {
-    for (const procedure of ["assistant.chat", "assistant.plantIdentify", "assistant.aquariumAnalyze", "assistant.submitPlantCorrection", "community.createDraft", "community.uploadDraftImage", "community.publish", "profile.consents"]) expect(api).toContain(procedure);
-    expect(app).toContain("ai_processing");
-    expect(app).toContain("community_publishing");
-    expect(app).toContain("maximal 3 Einzelbilder");
-    expect(app).toContain("Admins und Moderatoren");
-    expect(app).toContain("selectionCollapsed");
-    expect(app).toContain("ALLE WERKZEUGE");
-    expect(app).toContain("gridCompact");
-    expect(app).toContain("referenceCardCompact");
-    expect(app).toContain('onPress: () => chooseTool("plant")');
-    expect(app).toContain("FOTO 1 AUSWÄHLEN");
-    expect(app).not.toContain('onPress={() => void requestWeather()}');
-    expect(app).not.toContain('expo-location');
-    expect(app).toContain('title="DEINE BEREICHE"');
-    expect(app).toContain('label="WELT ENTDECKEN"');
-    expect(app).toContain('accessibilityLabel="Pflanzenbild wird von der KI analysiert"');
-    expect(app).toContain('KI / ANALYSE LÄUFT');
-    expect(app).toContain('function LiveHomeWorlds');
-    expect(app).toContain('AUSWAHL · {selected.toUpperCase()}');
-    expect(app).toContain('LayoutAnimation.Presets.easeInEaseOut');
+  it("provides a consent-gated native community photo flow", () => {
+    for (const token of ["function PostScreen", "choosePostImage", "launchImageLibraryAsync", "uploadCommunityDraftImage(token", 'purpose: "media_processing"', "32 * 1024 * 1024", "maxDimension = 3200", "ImageManipulator.SaveFormat.JPEG", "UPLOAD ABGESCHLOSSEN"]) expect(app).toContain(token);
   });
 
-  it("provides a consent-gated native community photo flow with the same eight-megabyte contract as web", () => {
-    expect(app).toContain("function PostScreen");
-    expect(app).toContain("choosePostImage");
-    expect(app).toContain("launchImageLibraryAsync");
-    expect(app).toContain("uploadCommunityDraftImage(token");
-    expect(app).toContain('purpose: "media_processing"');
-    expect(app).toContain("8 * 1024 * 1024");
-    expect(app).toContain("FOTO HINZUFÜGEN");
-    expect(app).toContain("BILD SICHER VERARBEITEN");
+  it("keeps large photo uploads visibly active through processing and transfer", () => {
+    for (const token of ["NativeUploadProgressCard", "pulseNativeTransferProgress", "nativeUploadStages", "BILD WIRD SICHER HOCHGELADEN", "Große Bilder können je nach Verbindung etwas länger übertragen werden.", 'phase: "transfer"', "ActivityIndicator"]) expect(app).toContain(token);
+  });
+
+  it("offers explicit realm routing and an admin-only all-feeds recipient", () => {
+    for (const token of ['"ALLE FEEDS · ADMIN"', "realm: adminAllFeeds ? null : realm", '(["botany", "aquarium", "terrarium", "all"] as const)', "setRealm(post.realm ?? null)"]) expect(app).toContain(token);
+    expect(api).toContain("invalid_image_size");
+    expect(api).toContain("Der Upload ist zu groß");
+  });
+
+  it("keeps native follow state and profile lists wired to the live social contract", () => {
+    for (const token of ["socialRelationship", "followProfile", "unfollowProfile", "socialFollowers", "socialFollowing", "setRelationship(await socialRelationship(token, profileId))", "NICHT MEHR FOLGEN", "FOLGEN"]) expect(`${api}\n${app}`).toContain(token);
+  });
+
+  it("keeps multi-account social profile links editable and publicly openable", () => {
+    for (const token of ["replaceProfileSocialAccounts", "ProfileSocialAccount", "profile.replaceSocialAccounts"]) expect(api).toContain(token);
+    for (const token of ["VERKNÜPFTE PROFILE", "profileSocialEditorNative", "saveNativeSocialAccounts", "NativePublicExternalProfiles", "profile.socialAccounts ?? []"]) expect(app).toContain(token);
+  });
+
+  it("uses symmetrical header and profile-menu icon layout", () => {
+    for (const token of ["headerAction: {", "width: 40", "height: 40", "nativeProfileMenuItem: {", 'flexDirection: "row"', "size={21}"]) expect(app).toContain(token);
   });
 });

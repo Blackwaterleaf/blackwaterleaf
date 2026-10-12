@@ -1,12 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, inArray, like, or } from "drizzle-orm";
+import { and, eq, gt, inArray, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiIdentificationCorrections, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
 import { getDb } from "../db";
 import { awardXpIfReady, hasAssistantCallsToday, XP_REWARDS } from "../gamification";
+import { getProAccess } from "../entitlements";
 import { validateImageUpload } from "../uploadValidation";
 import { invokeLLM, type Message } from "../_core/llm";
 import { protectedProcedure, router } from "../_core/trpc";
@@ -44,11 +45,17 @@ const plantCorrectionInput = z.object({
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned" };
 
-type RequestReservation = { db: Database; usageId: number };
+type CreditSource = "free" | "pro" | "purchased";
+type RequestReservation = { db: Database; usageId: number; creditSource: CreditSource };
 type CatalogReference = {
   scientificName: string;
   acceptedScientificName: string | null;
   family: string | null;
+  genus?: string | null;
+  commonNames?: unknown;
+  synonyms?: unknown;
+  summary?: string | null;
+  careProfile?: unknown;
   source: string;
   sourceRecordUrl: string | null;
   sourceCitation: string | null;
@@ -70,6 +77,11 @@ function catalogReferenceFrom(row: CatalogReference): CatalogReference {
     scientificName: row.scientificName,
     acceptedScientificName: row.acceptedScientificName,
     family: row.family,
+    genus: row.genus,
+    commonNames: row.commonNames,
+    synonyms: row.synonyms,
+    summary: row.summary,
+    careProfile: row.careProfile,
     source: row.source,
     sourceRecordUrl: row.sourceRecordUrl,
     sourceCitation: row.sourceCitation,
@@ -86,7 +98,15 @@ export function formatCatalogReferences(references: CatalogReference[]) {
       : "";
     const confidence = reference.matchConfidence === null ? "" : `; Abgleich: ${reference.matchConfidence} %`;
     const source = reference.sourceRecordUrl ? `; Fachquelle: ${reference.sourceRecordUrl}` : `; Fachquelle: ${reference.source}`;
-    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${accepted}${confidence}${source}`;
+    const names = [...(Array.isArray(reference.commonNames) ? reference.commonNames : []), ...(Array.isArray(reference.synonyms) ? reference.synonyms : [])].filter((name): name is string => typeof name === "string" && Boolean(name.trim())).slice(0, 3);
+    const habitat = reference.summary?.match(/(?:Lebensraum|Fundort|Verbreitung|Habitat)\s*:\s*([^\n]+)/i)?.[1]?.trim();
+    const profile = reference.careProfile && typeof reference.careProfile === "object" ? reference.careProfile as Record<string, unknown> : {};
+    const care = [
+      typeof profile.water === "string" ? `Wasser: ${profile.water}` : null,
+      typeof profile.temperature === "string" ? `Temperatur: ${profile.temperature}` : null,
+      typeof profile.careLevel === "string" ? `Anspruch: ${profile.careLevel}` : null,
+    ].filter(Boolean).slice(0, 2).join(", ");
+    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${reference.genus ? `; Gattung: ${reference.genus}` : ""}${names.length ? `; Namen: ${names.join(", ")}` : ""}${habitat ? `; Habitat: ${habitat}` : ""}${care ? `; ${care}` : ""}${accepted}${confidence}${source}`;
   }).join("\n");
 }
 
@@ -102,17 +122,30 @@ async function catalogContextForQuery(db: Database, query: string) {
     like(plantTaxa.scientificName, `%${term}%`),
     like(plantTaxa.acceptedScientificName, `%${term}%`),
     like(plantTaxa.family, `%${term}%`),
+    like(plantTaxa.genus, `%${term}%`),
+    like(plantTaxa.summary, `%${term}%`),
+    sql`JSON_SEARCH(${plantTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+    sql`JSON_SEARCH(${plantTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
   ]);
   const aquariumConditions = terms.flatMap(term => [
     like(aquariumTaxa.scientificName, `%${term}%`),
     like(aquariumTaxa.acceptedScientificName, `%${term}%`),
     like(aquariumTaxa.family, `%${term}%`),
+    like(aquariumTaxa.genus, `%${term}%`),
+    like(aquariumTaxa.summary, `%${term}%`),
+    sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+    sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
   ]);
   const [plants, aquarium] = await Promise.all([
     db.select({
       scientificName: plantTaxa.scientificName,
       acceptedScientificName: plantTaxa.acceptedScientificName,
       family: plantTaxa.family,
+      genus: plantTaxa.genus,
+      commonNames: plantTaxa.commonNames,
+      synonyms: plantTaxa.synonyms,
+      summary: plantTaxa.summary,
+      careProfile: plantTaxa.careProfile,
       source: plantTaxa.source,
       sourceRecordUrl: plantTaxa.sourceRecordUrl,
       sourceCitation: plantTaxa.sourceCitation,
@@ -123,6 +156,11 @@ async function catalogContextForQuery(db: Database, query: string) {
       scientificName: aquariumTaxa.scientificName,
       acceptedScientificName: aquariumTaxa.acceptedScientificName,
       family: aquariumTaxa.family,
+      genus: aquariumTaxa.genus,
+      commonNames: aquariumTaxa.commonNames,
+      synonyms: aquariumTaxa.synonyms,
+      summary: aquariumTaxa.summary,
+      careProfile: aquariumTaxa.careProfile,
       source: aquariumTaxa.source,
       sourceRecordUrl: aquariumTaxa.sourceRecordUrl,
       sourceCitation: aquariumTaxa.sourceCitation,
@@ -143,6 +181,11 @@ async function catalogReferencesForCandidates(db: Database, candidates: PlantIde
     scientificName: plantTaxa.scientificName,
     acceptedScientificName: plantTaxa.acceptedScientificName,
     family: plantTaxa.family,
+    genus: plantTaxa.genus,
+    commonNames: plantTaxa.commonNames,
+    synonyms: plantTaxa.synonyms,
+    summary: plantTaxa.summary,
+    careProfile: plantTaxa.careProfile,
     source: plantTaxa.source,
     sourceRecordUrl: plantTaxa.sourceRecordUrl,
     sourceCitation: plantTaxa.sourceCitation,
@@ -166,7 +209,7 @@ async function hasAiProcessingConsent(userId: number) {
   return hasCurrentConsent(db, userId, "ai_processing");
 }
 
-async function reserveRequest(user: AssistantUser, clientRequestId: string, realm: "botany" | "aquarium" | "terrarium" | undefined, promptChars: number): Promise<RequestReservation> {
+async function reserveRequest(user: AssistantUser, clientRequestId: string, realm: "botany" | "aquarium" | "terrarium" | undefined, promptChars: number, model = ENV.ionosModel): Promise<RequestReservation> {
   if (user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
   const readiness = await getAssistantReadiness();
   if (readiness.state !== "available") throw new TRPCError({ code: "PRECONDITION_FAILED", message: `assistant_${readiness.reason}` });
@@ -177,10 +220,85 @@ async function reserveRequest(user: AssistantUser, clientRequestId: string, real
   }
 
   try {
-    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model: ENV.ionosAiTextModel, promptChars, completionChars: 0, provider: "ionos-ai-model-hub", tariffVersion: "server-reported", requestOutcome: "reserved" });
-    return { db, usageId: Number(inserted[0].insertId) };
+    const inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: realm ?? null, model, promptChars, completionChars: 0, provider: "ionos-ai-model-hub", tariffVersion: "server-reported", requestOutcome: "reserved" });
+    return { db, usageId: Number(inserted[0].insertId), creditSource: "free" };
   } catch (error) {
     if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
+    throw error;
+  }
+}
+
+function utcDayKey(date = new Date()) { return date.toISOString().slice(0, 10); }
+function utcMonthKey(date = new Date()) { return date.toISOString().slice(0, 7); }
+
+async function ensureAiCounterRows(db: Database, userId: number, dayKey: string, monthKey: string) {
+  await db.insert(aiGlobalUsageDays).values({ dayKey }).onDuplicateKeyUpdate({ set: { dayKey: sql`${aiGlobalUsageDays.dayKey}` } });
+  await db.insert(aiUserUsageDays).values({ userId, dayKey }).onDuplicateKeyUpdate({ set: { dayKey: sql`${aiUserUsageDays.dayKey}` } });
+  await db.insert(aiUserUsageMonths).values({ userId, monthKey }).onDuplicateKeyUpdate({ set: { monthKey: sql`${aiUserUsageMonths.monthKey}` } });
+  await db.insert(aiCreditWallets).values({ userId }).onDuplicateKeyUpdate({ set: { userId: sql`${aiCreditWallets.userId}` } });
+}
+
+async function adjustAiSource(db: Database, userId: number, source: CreditSource, dayKey: string, monthKey: string, direction: 1 | -1) {
+  if (source === "free") {
+    await db.update(aiUserUsageDays).set({ freeIdentifications: sql`${aiUserUsageDays.freeIdentifications} + ${direction}` }).where(and(eq(aiUserUsageDays.userId, userId), eq(aiUserUsageDays.dayKey, dayKey), ...(direction < 0 ? [gt(aiUserUsageDays.freeIdentifications, 0)] : [])));
+  } else if (source === "pro") {
+    await db.update(aiUserUsageMonths).set({ proIdentifications: sql`${aiUserUsageMonths.proIdentifications} + ${direction}` }).where(and(eq(aiUserUsageMonths.userId, userId), eq(aiUserUsageMonths.monthKey, monthKey), ...(direction < 0 ? [gt(aiUserUsageMonths.proIdentifications, 0)] : [])));
+  } else {
+    await db.update(aiCreditWallets).set({ credits: sql`${aiCreditWallets.credits} - ${direction}` }).where(and(eq(aiCreditWallets.userId, userId), ...(direction > 0 ? [gt(aiCreditWallets.credits, 0)] : [])));
+  }
+}
+
+async function reservePlantRequest(user: AssistantUser, clientRequestId: string, promptChars: number, model: string): Promise<RequestReservation> {
+  if (user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
+  const readiness = await getAssistantReadiness();
+  if (readiness.state !== "available") throw new TRPCError({ code: "PRECONDITION_FAILED", message: `assistant_${readiness.reason}` });
+  if (!(await hasAiProcessingConsent(user.id))) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "ai_processing_consent_required" });
+  const db = await requireDatabase();
+  let inserted: any;
+  try {
+    inserted = await db.insert(assistantUsage).values({ userId: user.id, clientRequestId, realm: "botany", model, promptChars, completionChars: 0, creditsConsumed: 0, creditSource: "free", provider: "ionos-ai-model-hub", tariffVersion: "server-reported", requestOutcome: "reserved" });
+  } catch (error) {
+    if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
+    throw error;
+  }
+  const reservation: RequestReservation = { db, usageId: Number(inserted[0].insertId), creditSource: "free" };
+  if (user.role === "admin") {
+    reservation.creditSource = "pro";
+    await db.update(assistantUsage).set({ creditSource: "pro", creditsConsumed: 0 }).where(eq(assistantUsage.id, reservation.usageId));
+    return reservation;
+  }
+  const dayKey = utcDayKey();
+  const monthKey = utcMonthKey();
+  let source: CreditSource | null = null;
+  let globalReserved = false;
+  try {
+    const [policy] = await db.select().from(aiUsagePolicies).where(eq(aiUsagePolicies.id, 1)).limit(1);
+    if (!policy) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "ai_usage_policy_missing" });
+    await ensureAiCounterRows(db, user.id, dayKey, monthKey);
+    const isPro = (await getProAccess(db, user)).active;
+    if (isPro) {
+      const proUpdate = await db.update(aiUserUsageMonths).set({ proIdentifications: sql`${aiUserUsageMonths.proIdentifications} + 1` }).where(and(eq(aiUserUsageMonths.userId, user.id), eq(aiUserUsageMonths.monthKey, monthKey), lt(aiUserUsageMonths.proIdentifications, policy.proMonthlyIdentifications)));
+      if (Number(proUpdate[0].affectedRows) > 0) source = "pro";
+    }
+    if (!source) {
+      const freeUpdate = await db.update(aiUserUsageDays).set({ freeIdentifications: sql`${aiUserUsageDays.freeIdentifications} + 1` }).where(and(eq(aiUserUsageDays.userId, user.id), eq(aiUserUsageDays.dayKey, dayKey), lt(aiUserUsageDays.freeIdentifications, policy.freeDailyIdentifications)));
+      if (Number(freeUpdate[0].affectedRows) > 0) source = "free";
+    }
+    if (!source) {
+      const walletUpdate = await db.update(aiCreditWallets).set({ credits: sql`${aiCreditWallets.credits} - 1` }).where(and(eq(aiCreditWallets.userId, user.id), gt(aiCreditWallets.credits, 0)));
+      if (Number(walletUpdate[0].affectedRows) > 0) source = "purchased";
+    }
+    if (!source) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "plant_identification_quota_reached" });
+    const globalUpdate = await db.update(aiGlobalUsageDays).set({ plantIdentifications: sql`${aiGlobalUsageDays.plantIdentifications} + 1` }).where(and(eq(aiGlobalUsageDays.dayKey, dayKey), lt(aiGlobalUsageDays.plantIdentifications, policy.globalDailyIdentifications)));
+    if (Number(globalUpdate[0].affectedRows) === 0) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "ai_global_daily_limit_reached" });
+    globalReserved = true;
+    reservation.creditSource = source;
+    await db.update(assistantUsage).set({ creditSource: source, creditsConsumed: 1 }).where(eq(assistantUsage.id, reservation.usageId));
+    return reservation;
+  } catch (error) {
+    if (source) await adjustAiSource(db, user.id, source, dayKey, monthKey, -1);
+    if (globalReserved) await db.update(aiGlobalUsageDays).set({ plantIdentifications: sql`${aiGlobalUsageDays.plantIdentifications} - 1` }).where(and(eq(aiGlobalUsageDays.dayKey, dayKey), gt(aiGlobalUsageDays.plantIdentifications, 0)));
+    await db.update(assistantUsage).set({ requestOutcome: error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS" ? "quota_exceeded" : "failed" }).where(eq(assistantUsage.id, reservation.usageId));
     throw error;
   }
 }
@@ -199,11 +317,11 @@ async function completeRequest(reservation: RequestReservation, userId: number, 
 }
 
 async function generateAnswer(reservation: RequestReservation, userId: number, messages: Message[]) {
-  const response = await invokeLLM({ model: ENV.ionosAiTextModel, maxTokens: 700, messages });
+  const response = await invokeLLM({ model: ENV.ionosModel, maxTokens: 700, messages });
   const answer = responseText(response.choices[0]?.message.content ?? "").slice(0, 6_000);
   if (!answer) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
   const xpAwarded = await completeRequest(reservation, userId, answer, response.usage);
-  return { answer, model: ENV.ionosAiTextModel, xpAwarded, disclaimer: "Hinweis: Die Antwort ist allgemeine Information und keine fachliche Diagnose oder Notfallberatung." };
+  return { answer, model: ENV.ionosModel, xpAwarded, disclaimer: "Hinweis: Die Antwort ist allgemeine Information und keine fachliche Diagnose oder Notfallberatung." };
 }
 
 const plantIdentificationSchema = {
@@ -218,6 +336,43 @@ const plantIdentificationSchema = {
 } as const;
 
 type PlantIdentificationResult = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
+
+const PLANT_TRIAGE_MODEL = ENV.ionosModel;
+const PLANT_ESCALATION_MODEL = ENV.ionosModel;
+
+function plantResultNeedsEscalation(result: PlantIdentificationResult) {
+  // A request for more diagnostic views is already a useful, cheap outcome. Do
+  // not spend a second premium call unless the triage result is actually weak.
+  return result.candidates.length === 0
+    || result.summary.trim().length < 20
+    || (result.confidence === "low" && !result.needsMoreImages);
+}
+
+function parsePlantResult(raw: string): PlantIdentificationResult {
+  try {
+    return JSON.parse(raw) as PlantIdentificationResult;
+  } catch {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" });
+  }
+}
+
+function usageTotals(...usages: Array<{ prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined>) {
+  const present = usages.filter((usage): usage is NonNullable<typeof usage> => Boolean(usage));
+  if (!present.length) return undefined;
+  return {
+    prompt_tokens: present.reduce((sum, usage) => sum + (usage.prompt_tokens ?? 0), 0),
+    completion_tokens: present.reduce((sum, usage) => sum + (usage.completion_tokens ?? 0), 0),
+    total_tokens: present.reduce((sum, usage) => sum + (usage.total_tokens ?? 0), 0),
+  };
+}
+
+async function invokePlantModel(model: string, images: Array<{ buffer: Buffer; mimeType: string }>, note?: string) {
+  const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: model === PLANT_TRIAGE_MODEL ? "low" as const : "high" as const } }));
+  return invokeLLM({ model, maxTokens: model === PLANT_TRIAGE_MODEL ? 1_800 : 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
+    { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Dies ist ${model === PLANT_TRIAGE_MODEL ? "eine günstige Vorprüfung. Arbeite effizient und eskaliere nicht selbst; wenn diagnostische Merkmale fehlen, fordere gezielt ein weiteres Einzelbild an." : "die vertiefte Prüfung eines unklaren Vorprüfungsergebnisses."} Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
+    { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${note ? ` Zusatzinformation: ${note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
+  ] });
+}
 
 export function formatPlantIdentification(result: PlantIdentificationResult) {
   const candidates = result.candidates.length ? result.candidates.map((candidate, index) => `${index + 1}. **${candidate.commonName}** (*${candidate.scientificName}*) — ${candidate.confidence}e Sicherheit. ${candidate.reason}`).join("\n") : "Keine belastbare Kandidatenliste möglich.";
@@ -252,23 +407,36 @@ export const assistantRouter = router({
 
   plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
-    const reservation = await reserveRequest(ctx.user, input.clientRequestId, "botany", (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0));
-    const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "high" as const } }));
-    const response = await invokeLLM({ model: ENV.ionosAiVisionModel, maxTokens: 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
-      { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage dann gezielt nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
-      { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${input.note ? ` Zusatzinformation: ${input.note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
-    ] });
-    const raw = responseText(response.choices[0]?.message.content ?? "");
+    const reservation = await reservePlantRequest(ctx.user, input.clientRequestId, (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
+    try {
+    let model = PLANT_TRIAGE_MODEL;
+    let response = await invokePlantModel(PLANT_TRIAGE_MODEL, images, input.note);
+    const triageUsage = response.usage;
+    let raw = responseText(response.choices[0]?.message.content ?? "");
     if (!raw) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: response.choices[0]?.finish_reason === "length"
-          ? "assistant_response_truncated"
-          : "assistant_empty_response",
-      });
+      if (response.choices[0]?.finish_reason === "length") throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_response_truncated" });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
     }
     let result: PlantIdentificationResult;
-    try { result = JSON.parse(raw) as PlantIdentificationResult; } catch { throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" }); }
+    try {
+      result = parsePlantResult(raw);
+    } catch {
+      model = PLANT_ESCALATION_MODEL;
+      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
+      raw = responseText(response.choices[0]?.message.content ?? "");
+      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
+      result = parsePlantResult(raw);
+    }
+    if (plantResultNeedsEscalation(result)) {
+      model = PLANT_ESCALATION_MODEL;
+      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
+      raw = responseText(response.choices[0]?.message.content ?? "");
+      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
+      result = parsePlantResult(raw);
+    }
+    if (model !== PLANT_TRIAGE_MODEL) {
+      await reservation.db.update(assistantUsage).set({ model }).where(eq(assistantUsage.id, reservation.usageId));
+    }
     const catalogReferences = await catalogReferencesForCandidates(reservation.db, result.candidates);
     const plantNetValidation = await validateWithPlantNetImages(
       images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
@@ -281,9 +449,13 @@ export const assistantRouter = router({
         ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
         : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
     ].join("\n\n");
-    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage);
+    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, usageTotals(triageUsage, response.usage));
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
-    return { answer, model: ENV.ionosAiVisionModel, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    } catch (error) {
+      await reservation.db.update(assistantUsage).set({ requestOutcome: "failed" }).where(eq(assistantUsage.id, reservation.usageId));
+      throw error;
+    }
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {

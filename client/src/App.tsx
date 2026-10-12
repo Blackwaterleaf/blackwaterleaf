@@ -1,40 +1,48 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
+import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Assistant from "./pages/Assistant";
-import Community from "./pages/Community";
-import Explore from "./pages/Explore";
-import Home from "./pages/Home";
-import Knowledge from "./pages/Knowledge";
-import Profile from "./pages/Profile";
-import ProfileHome from "./pages/ProfileHome";
-import Ranking from "./pages/Ranking";
-import ProfileMockup, { ProfileSettingsMockup } from "./pages/ProfileMockup";
-import Realm from "./pages/Realm";
-import FlowDestination from "./pages/FlowDestination";
-import AdminDashboard from "./pages/AdminDashboard";
-import AccountAccess from "./pages/AccountAccess";
-import Marketplace from "./pages/Marketplace";
-import MarketplaceShop from "./pages/MarketplaceShop";
-import MarketplaceProduct from "./pages/MarketplaceProduct";
-import MerchantMarketplace from "./pages/MerchantMarketplace";
-import Notifications from "./pages/Notifications";
-import CareToday from "./pages/CareToday";
-import Search from "./pages/Search";
-import PlantTaxon from "./pages/PlantTaxon";
-import AquariumTaxon from "./pages/AquariumTaxon";
-import PublicProfile from "./pages/PublicProfile";
-import SavedItems from "./pages/SavedItems";
-import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+const Assistant = lazy(() => import("./pages/Assistant"));
+const Community = lazy(() => import("./pages/Community"));
+const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
+const LiveHub = lazy(() => import("./pages/LiveHub"));
+const LiveSession = lazy(() => import("./pages/LiveSession"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Home = lazy(() => import("./pages/Home"));
+const Knowledge = lazy(() => import("./pages/Knowledge"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ProfileHome = lazy(() => import("./pages/ProfileHome"));
+const ManagementHub = lazy(() => import("./pages/ManagementHub"));
+const Ranking = lazy(() => import("./pages/Ranking"));
+const Realm = lazy(() => import("./pages/Realm"));
+const FlowDestination = lazy(() => import("./pages/FlowDestination"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AccountAccess = lazy(() => import("./pages/AccountAccess"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const MarketplaceShop = lazy(() => import("./pages/MarketplaceShop"));
+const MarketplaceProduct = lazy(() => import("./pages/MarketplaceProduct"));
+const MerchantMarketplace = lazy(() => import("./pages/MerchantMarketplace"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CareToday = lazy(() => import("./pages/CareToday"));
+const Search = lazy(() => import("./pages/Search"));
+const PlantTaxon = lazy(() => import("./pages/PlantTaxon"));
+const AquariumTaxon = lazy(() => import("./pages/AquariumTaxon"));
+const TerrariumTaxon = lazy(() => import("./pages/TerrariumTaxon"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const SavedItems = lazy(() => import("./pages/SavedItems"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Feedback = lazy(() => import("./pages/Feedback"));
+const Legal = lazy(() => import("./pages/Legal"));
+const Pro = lazy(() => import("./pages/Pro"));
+const Support = lazy(() => import("./pages/Support"));
+const PartnerApply = lazy(() => import("./pages/PartnerApply"));
 
-const HabitatBuilder = lazy(() => import("./pages/HabitatBuilder"));
-
-function HabitatBuilderRoute() {
-  return <Suspense fallback={<section className="habitat-builder-loading" aria-live="polite"><Loader2 size={22} className="spin" />Planungsansicht wird geladen …</section>}><HabitatBuilder /></Suspense>;
+function PageLoader() {
+  return <div className="observatory-route observatory-route--botany page-loader" role="status" aria-live="polite">BEREICH WIRD GELADEN …</div>;
 }
 
 function Router() {
@@ -53,18 +61,30 @@ function Router() {
         <Route path={"/"} component={Home} />
         <Route path={"/explore"} component={Explore} />
         <Route path={"/search"} component={Search} />
+        <Route path={"/catalog"} component={Search} />
         <Route path={"/community"} component={Community} />
+        <Route path={"/community/post/:id"} component={CommunityPostDetail} />
+        <Route path={"/live"} component={LiveHub} />
+        <Route path={"/live/:id"} component={LiveSession} />
         <Route path={"/notifications"} component={Notifications} />
+        <Route path={"/messages"} component={Messages} />
+        <Route path={"/feedback"} component={Feedback} />
+        <Route path={"/pro"} component={Pro} />
+        <Route path={"/support"} component={Support} />
+        <Route path={"/partner-werden"} component={PartnerApply} />
+        <Route path={"/datenschutz"} component={Legal} />
+        <Route path={"/privacy"} component={Legal} />
+        <Route path={"/impressum"} component={Legal} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
+        <Route path={"/profile/manage"} component={ManagementHub} />
         <Route path={"/member/:id"} component={PublicProfile} />
         <Route path={"/plant/:id"} component={PlantTaxon} />
         <Route path={"/aquarium-fish/:id"} component={AquariumTaxon} />
+        <Route path={"/terrarium/:id"} component={TerrariumTaxon} />
         <Route path={"/saved"} component={SavedItems} />
         <Route path={"/ranking"} component={Ranking} />
-        <Route path={"/profile-mockup"} component={ProfileMockup} />
-        <Route path={"/profile-mockup/settings"} component={ProfileSettingsMockup} />
         <Route path={"/profile/settings"} component={Profile} />
         <Route path={"/profile/private"} component={Profile} />
         <Route path={"/profile/habitats"} component={Profile} />
@@ -84,11 +104,10 @@ function Router() {
         <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
         <Route path={"/marketplace/manage"} component={MerchantMarketplace} />
         <Route path={"/marketplace"} component={Marketplace} />
-        <Route path={"/habitat-builder"} component={HabitatBuilderRoute} />
         <Route path={"/flow/:flow"} component={FlowDestination} />
         <Route path={"/world/:realm"} component={Realm} />
-        <Route path={"/404"} component={Home} />
-        <Route component={Home} />
+        <Route path={"/404"} component={NotFound} />
+        <Route component={NotFound} />
           </Switch>
         </AppShell>
       </Route>
@@ -110,7 +129,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <Suspense fallback={<PageLoader />}><Router /></Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

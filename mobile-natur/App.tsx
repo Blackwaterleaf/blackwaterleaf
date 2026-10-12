@@ -1,10 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Haptics from "expo-haptics";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import * as Sharing from "expo-sharing";
+import { useVideoPlayer, VideoView } from "expo-video";
+import { BlurView } from "expo-blur";
 import { StatusBar } from "expo-status-bar";
 import {
+  Component,
   useCallback,
   useEffect,
   useMemo,
@@ -20,9 +26,11 @@ import {
   ImageBackground,
   LayoutAnimation,
   Linking,
+  Modal,
   Platform,
   Pressable,
   RefreshControl,
+  Share,
   ScrollView,
   StyleSheet,
   Switch,
@@ -37,18 +45,44 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { FeedbackScreen } from "./src/FeedbackScreen";
+
+const USE_BACKGROUND_BLUR = Platform.OS !== "android";
+const NATIVE_GLOW = Platform.OS === "android"
+  ? { shadowOpacity: 0.08, shadowRadius: 4, elevation: 2 }
+  : { shadowOpacity: 0.34, shadowRadius: 14, elevation: 7 };
+const NATIVE_SOFT_SHADOW = Platform.OS === "android"
+  ? { shadowOpacity: 0.04, shadowRadius: 2, elevation: 1 }
+  : { shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 };
 import {
   assistantAquariumAnalyze,
   assistantChat,
   assistantPlantIdentify,
+  adminFeedbackQueue,
+  adminUpdateFeedback,
+  adminPartnerInquiryQueue,
+  adminUpdatePartnerInquiry,
+  adminAccounts,
+  adminSetAccountPro,
+  adminSetAccountStatus,
+  adminPublicPosts,
+  adminSetPublicPostStatus,
   addCommunityComment,
+  updateCommunityComment,
+  deleteCommunityComment,
+  reportCommunityComment,
   blockCommunityUser,
+  API_ORIGIN,
+  billingCheckout,
+  billingMe,
+  billingPlans,
   careAddJournal,
   careCreatePlan,
   careCreateTask,
   careMine,
   careToday,
   careUpdateTask,
+  catalogByRealm,
   clearToken,
   communityComments,
   communityFeed,
@@ -58,30 +92,43 @@ import {
   knowledge,
   marketplace,
   marketplaceEvent,
+  submitPartnerInquiry,
   likeCommunityPost,
   markNotificationsRead,
   myCommunityPosts,
   notificationFeed,
+  notificationUnreadCount,
+  analyticsOverview,
   platformAvailability,
   privateHabitats,
   privateObservations,
   publicObservations,
+  observationResponses,
+  respondToObservation,
   profileConsents,
   publishCommunityDraft,
   readToken,
   reportCommunityPost,
   setProfileConsent,
   updateProfile,
+  replaceProfileSocialAccounts,
   uploadCommunityDraftImage,
+  uploadCommunityDraftVideo,
   uploadProfileAvatar,
   submitPlantCorrection,
   updateCommunityPost,
   unifiedSearch,
   publicPlantTaxon,
   publicAquariumTaxon,
+  publicTerrariumTaxon,
   publicProfile,
   publicProfilePosts,
+  unblockCommunityUser,
+  profileExportData,
   socialRelationship,
+  socialAdminProfile,
+  socialFollowers,
+  socialFollowing,
   followProfile,
   unfollowProfile,
   savedItems,
@@ -90,6 +137,21 @@ import {
   publishedChallenges,
   myChallenges,
   joinChallenge,
+  liveById,
+  liveCapabilities,
+  liveList,
+  liveMessages,
+  directConversations,
+  directMessages,
+  directUnreadCount,
+  startDirectConversation,
+  sendDirectMessage,
+  markDirectConversationRead,
+  liveRotateSelfHostedKey,
+  liveSendMessage,
+  liveUpdate,
+  liveViewerPresence,
+  liveViewerTicket,
   gamificationSummary,
   gamificationLeaderboard,
   type Account,
@@ -105,19 +167,36 @@ import {
   type Observation,
   type OwnCommunityPost,
   type NativeNotification,
+  type NativeAdminFeedback,
+  type NativeAdminPartnerInquiry,
+  type NativeAdminAccount,
+  type NativeAdminPublicPost,
+  type NativeAnalyticsOverview,
   type PlatformAvailability,
   type ProfileConsent,
+  type ProfileSocialAccount,
   type UnifiedSearchResult,
   type PublicPlantTaxon,
   type PublicAquariumTaxon,
+  type PublicTerrariumTaxon,
+  type PublicCatalogTaxon,
   type PublicProfile,
   type PublicProfilePost,
   type SocialRelationship,
+  type SocialProfileListEntry,
   type SavedItem,
   type Challenge,
   type ChallengeProgress,
   type ExperienceSummary,
   type LeaderboardRow,
+  type LiveCapabilities,
+  type LiveMessage,
+  type LiveSession,
+  type LiveTrack,
+  type DirectConversation,
+  type DirectMessage,
+  type NativeBillingStatus,
+  type NativeCreditPack,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -130,8 +209,10 @@ import {
   type ObservationOutboxSummary,
 } from "./src/observationOutbox";
 import { getBlackWaterLeafSeason } from "./src/season";
+import { formatDayPhaseTime, getDayPhaseState, type DayPhaseState } from "./src/dayPhase";
 
 const ASSETS = {
+  home: require("./assets/home-observatory-hero-mobile.jpg"),
   botany: require("./assets/botany-reference.jpg"),
   aquarium: require("./assets/aquarium-reference.jpg"),
   terrarium: require("./assets/terrarium-reference.jpg"),
@@ -144,15 +225,18 @@ const c = {
   raised: "#0b2415",
   botany: "#C7F35B",
   aqua: "#28D8FF",
+  terrarium: "#E1D661",
   gold: "#E1D661",
   market: "#D9AD69",
   champagne: "#F3D59C",
   text: "#F3FFF5",
   muted: "#9BB39F",
   danger: "#FF9EA8",
+  ai: "#B96CFF",
   botanySurface: "#061b0d",
   aquariumSurface: "#04303e",
   terrariumSurface: "#3e3812",
+  aiSurface: "#170C2A",
   marketSurface: "#432f14",
 };
 
@@ -168,7 +252,10 @@ type Screen =
   | "explore"
   | "marketplace"
   | "community"
+  | "communityDetail"
   | "profile"
+  | "management"
+  | "dashboard"
   | "botany"
   | "aquarium"
   | "terrarium"
@@ -178,15 +265,19 @@ type Screen =
   | "photo"
   | "post"
   | "collection"
-  | "builder"
   | "search"
+  | "catalogOverview"
   | "publicProfile"
   | "taxon"
   | "aquariumTaxon"
+  | "terrariumTaxon"
   | "saved"
   | "ranking"
   | "notifications"
-  | "care";
+  | "messages"
+  | "care"
+  | "feedback"
+  | "pro";
 type BottomTab =
   | "discover"
   | "map"
@@ -197,7 +288,7 @@ type BottomTab =
   | "explore"
   | "marketplace"
   | "community"
-  | "builder";
+;
 type State = "loading" | "ready" | "error";
 type Tone = {
   accent: string;
@@ -209,7 +300,7 @@ type Tone = {
 };
 type IconName = keyof typeof Ionicons.glyphMap;
 type Realm = "botany" | "aquarium" | "terrarium";
-type ProfileMenuTarget = "open" | "edit" | "avatar" | "display" | "private" | "habitats" | "progress" | "privacy" | "preferences" | "tools";
+type ProfileMenuTarget = "open" | "manage" | "edit" | "avatar" | "display" | "private" | "habitats" | "progress" | "privacy" | "preferences" | "tools";
 
 type Action = {
   title: string;
@@ -232,7 +323,7 @@ const TONES: Record<Screen, Tone> = {
     accent: c.botany,
     surface: c.bg,
     panel: c.surface,
-    image: ASSETS.botany,
+    image: ASSETS.home,
     label: "NATUR APP",
     active: "home",
   },
@@ -258,7 +349,15 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "COMMUNITY",
-    active: "discover",
+    active: "community",
+  },
+  communityDetail: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "COMMUNITY · DISKUSSION",
+    active: "community",
   },
   profile: {
     accent: c.botany,
@@ -266,6 +365,30 @@ const TONES: Record<Screen, Tone> = {
     panel: c.surface,
     image: ASSETS.botany,
     label: "PRIVATER BEREICH",
+    active: "profile",
+  },
+  management: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "KONTOZENTRUM · VERWALTEN",
+    active: "profile",
+  },
+  pro: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "BLACKWATERLEAF PRO",
+    active: "profile",
+  },
+  dashboard: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "HOST-DASHBOARD",
     active: "profile",
   },
   botany: {
@@ -293,9 +416,9 @@ const TONES: Record<Screen, Tone> = {
     active: "home",
   },
   assistant: {
-    accent: c.botany,
-    surface: c.botanySurface,
-    panel: c.surface,
+    accent: c.ai,
+    surface: c.aiSurface,
+    panel: "#24113D",
     image: ASSETS.ai,
     label: "BLACKWATERLEAF KI",
     active: "capture",
@@ -340,20 +463,20 @@ const TONES: Record<Screen, Tone> = {
     label: "MEINE ANLAGEN",
     active: "profile",
   },
-  builder: {
-    accent: c.aqua,
-    surface: c.aquariumSurface,
-    panel: "#032231",
-    image: ASSETS.aquarium,
-    label: "HABITAT BUILDER",
-    active: "builder",
-  },
   search: {
     accent: c.botany,
     surface: c.botanySurface,
     panel: c.surface,
     image: ASSETS.botany,
     label: "SUCHE",
+    active: "catalog",
+  },
+  catalogOverview: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "ALPHABETISCHER KATALOG",
     active: "catalog",
   },
   publicProfile: {
@@ -380,6 +503,14 @@ const TONES: Record<Screen, Tone> = {
     label: "AQUARISTIK-KATALOG",
     active: "catalog",
   },
+  terrariumTaxon: {
+    accent: c.terrarium,
+    surface: c.terrariumSurface,
+    panel: "#18150c",
+    image: ASSETS.terrarium,
+    label: "TERRARISTIK-KATALOG",
+    active: "catalog",
+  },
   saved: {
     accent: c.botany,
     surface: c.botanySurface,
@@ -404,12 +535,28 @@ const TONES: Record<Screen, Tone> = {
     label: "BENACHRICHTIGUNGEN",
     active: "community",
   },
+  messages: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "PRIVAT · POSTFACH",
+    active: "profile",
+  },
   care: {
     accent: c.botany,
     surface: c.botanySurface,
     panel: c.surface,
     image: ASSETS.botany,
     label: "HEUTE · PFLEGE",
+    active: "profile",
+  },
+  feedback: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "DIREKTER DRAHT",
     active: "profile",
   },
 };
@@ -425,6 +572,7 @@ export default function App() {
 function NaturApp() {
   const insets = useSafeAreaInsets();
   const season = getBlackWaterLeafSeason();
+  const [dayPhase, setDayPhase] = useState<DayPhaseState>(() => getDayPhaseState());
   const [screen, setScreen] = useState<Screen>("home");
   const [token, setToken] = useState<string | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
@@ -435,21 +583,37 @@ function NaturApp() {
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [editingCommunityPost, setEditingCommunityPost] = useState<OwnCommunityPost | null>(null);
   const [notifications, setNotifications] = useState<NativeNotification[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [conversations, setConversations] = useState<DirectConversation[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [messageTargetProfile, setMessageTargetProfile] = useState<PublicProfile | null>(null);
+  const [directThread, setDirectThread] = useState<DirectMessage[]>([]);
   const [careTasks, setCareTasks] = useState<CareTask[]>([]);
   const [carePlans, setCarePlans] = useState<CarePlan[]>([]);
   const [careJournal, setCareJournal] = useState<CareJournalEntry[]>([]);
+  const [analytics, setAnalytics] = useState<NativeAnalyticsOverview | null>(null);
+  const [adminFeedback, setAdminFeedback] = useState<NativeAdminFeedback[]>([]);
+  const [adminPartnerInquiries, setAdminPartnerInquiries] = useState<NativeAdminPartnerInquiry[]>([]);
+  const [adminAccountsRows, setAdminAccountsRows] = useState<NativeAdminAccount[]>([]);
+  const [adminPublicPostRows, setAdminPublicPostRows] = useState<NativeAdminPublicPost[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
   const [state, setState] = useState<State>("loading");
   const [error, setError] = useState<string | null>(null);
   const [collectionRealm, setCollectionRealm] = useState<Realm>("botany");
+  const [collectionPrefill, setCollectionPrefill] = useState<{ kind: "plant" | "aquarium" | "terrarium"; name: string; scientificName?: string }>();
   const [visibleKinds, setVisibleKinds] = useState<Array<"plant" | "aquarium" | "terrarium">>(["plant", "aquarium", "terrarium"]);
   const [profileMenuTarget, setProfileMenuTarget] = useState<ProfileMenuTarget>("open");
   const [selectedPublicProfileId, setSelectedPublicProfileId] = useState<number | null>(null);
   const [selectedTaxonId, setSelectedTaxonId] = useState<number | null>(null);
   const [selectedAquariumTaxonId, setSelectedAquariumTaxonId] = useState<number | null>(null);
+  const [selectedTerrariumTaxonId, setSelectedTerrariumTaxonId] = useState<number | null>(null);
+  const [catalogRealm, setCatalogRealm] = useState<Realm>("botany");
+  const [selectedCommunityPostId, setSelectedCommunityPostId] = useState<string | null>(null);
 
   const tone =
     screen === "collection"
@@ -487,6 +651,7 @@ function NaturApp() {
           profileConsents(sessionToken),
           gamificationSummary(sessionToken),
         ]);
+        const [notificationSummary, messageSummary] = await Promise.all([notificationUnreadCount(sessionToken), directUnreadCount(sessionToken)]);
         setAccount(me);
         setHabitats(mine);
         setPrivateObservationRows(observations);
@@ -494,6 +659,8 @@ function NaturApp() {
         setObservationSync(await observationOutboxSummary());
         setConsents(permissions);
         setExperience(summary);
+        setUnreadNotifications(notificationSummary.count);
+        setUnreadMessages(messageSummary.count);
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -514,8 +681,46 @@ function NaturApp() {
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
       if (screen === "explore") setPublicObservationRows(await publicObservations());
-      if (screen === "community") setPosts(await communityFeed());
+      if (screen === "community" && token) setPosts(await communityFeed(token));
+      if (screen === "community" && !token) setPosts([]);
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
+      if (screen === "messages" && token) {
+        const rows = await directConversations(token);
+        setConversations(rows);
+        const selected = selectedConversationId ? rows.find(item => item.id === selectedConversationId) ?? rows[0] : rows[0];
+        setSelectedConversationId(selected?.id ?? null);
+        if (selected) {
+          const thread = await directMessages(token, Number(selected.id));
+          setDirectThread(thread.items);
+          await markDirectConversationRead(token, Number(selected.id));
+        } else setDirectThread([]);
+      }
+      if (screen === "dashboard" && token) {
+        // One unavailable inbox must not blank the complete Host dashboard.
+        const [dashboardAnalytics, feedbackQueue, partnerQueue, accountsQueue, postsQueue] = await Promise.allSettled([
+          analyticsOverview(token, 7),
+          adminFeedbackQueue(token),
+          adminPartnerInquiryQueue(token),
+          adminAccounts(token),
+          adminPublicPosts(token),
+        ]);
+        if (dashboardAnalytics.status === "fulfilled") {
+          const raw = dashboardAnalytics.value as NativeAnalyticsOverview & { loginCount?: number; averageDurationSeconds?: number };
+          setAnalytics({
+            ...raw,
+            logins: Number(raw.logins ?? raw.loginCount ?? 0),
+            averageDurationSec: Number(raw.averageDurationSec ?? raw.averageDurationSeconds ?? 0),
+            popularPages: Array.isArray(raw.popularPages) ? raw.popularPages : [],
+            countries: Array.isArray(raw.countries) ? raw.countries : [],
+          });
+        }
+        if (feedbackQueue.status === "fulfilled") setAdminFeedback(feedbackQueue.value);
+        if (partnerQueue.status === "fulfilled") setAdminPartnerInquiries(partnerQueue.value);
+        if (accountsQueue.status === "fulfilled") setAdminAccountsRows(accountsQueue.value);
+        if (postsQueue.status === "fulfilled") setAdminPublicPostRows(postsQueue.value);
+        const failed = [dashboardAnalytics, feedbackQueue, partnerQueue, accountsQueue, postsQueue].filter(item => item.status === "rejected");
+        if (failed.length === 3) throw new Error("Host-Dashboard konnte nicht geladen werden.");
+      }
       if (screen === "care" && token) {
         const [today, mine] = await Promise.all([careToday(token), careMine(token)]);
         setCareTasks(today.tasks);
@@ -550,10 +755,16 @@ function NaturApp() {
     });
     return () => subscription.remove();
   }, [refreshPrivate, token]);
+  useEffect(() => {
+    const refreshDayPhase = () => setDayPhase(getDayPhaseState());
+    refreshDayPhase();
+    const timer = setInterval(refreshDayPhase, 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const signIn = useCallback(async () => {
+  const signIn = useCallback(async (options: { forceAccountSelection?: boolean } = {}) => {
     try {
-      const result = await signInWithBlackWaterLeaf();
+      const result = await signInWithBlackWaterLeaf(options);
       if (result.status === "authenticated") {
         const nextToken = await readToken();
         setToken(nextToken);
@@ -580,16 +791,45 @@ function NaturApp() {
     setCareTasks([]);
     setCarePlans([]);
     setCareJournal([]);
+    setUnreadNotifications(0);
+    setUnreadMessages(0);
+    setConversations([]);
+    setSelectedConversationId(null);
+    setMessageTargetProfile(null);
+    setDirectThread([]);
     navigate("home");
   }, [navigate]);
+
+  const switchAccount = useCallback(async () => {
+    await signOut();
+    await signIn({ forceAccountSelection: true });
+  }, [signIn, signOut]);
+
+  const exportAccount = useCallback(async () => {
+    if (!token) throw new Error("auth_required");
+    const data = await profileExportData(token);
+    const uri = `${FileSystem.cacheDirectory ?? ""}blackwaterleaf-account-export-${new Date().toISOString().slice(0, 10)}.json`;
+    if (!uri.startsWith("file:")) throw new Error("export_storage_unavailable");
+    await FileSystem.writeAsStringAsync(uri, JSON.stringify(data, null, 2));
+    if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: "application/json", dialogTitle: "BlackWaterLeaf-Datenexport" });
+    const historyCount = Array.isArray(data.exportHistory) ? data.exportHistory.length : 0;
+    Alert.alert("Datenexport protokolliert", `Dieser Export ist im geschützten Audit-Verlauf erfasst. Bisherige Exporte: ${historyCount}.`);
+  }, [token]);
 
   const openCollection = useCallback(
     (realm: Realm) => {
       setCollectionRealm(realm);
+      setCollectionPrefill(undefined);
       navigate("collection");
     },
     [navigate]
   );
+
+  const openCollectionFromTaxon = useCallback((realm: Realm, name: string, scientificName?: string) => {
+    setCollectionRealm(realm);
+    setCollectionPrefill({ kind: realm === "botany" ? "plant" : realm, name, scientificName });
+    navigate("collection");
+  }, [navigate]);
 
   const guarded = useCallback(
     (action: () => void, description: string) => {
@@ -609,6 +849,10 @@ function NaturApp() {
     if (token) navigate("notifications");
     else void signIn();
   }, [navigate, signIn, token]);
+  const messageInfo = useCallback(() => {
+    if (token) navigate("messages");
+    else void signIn();
+  }, [navigate, signIn, token]);
 
   const seasonSurface =
     screen === "home"
@@ -620,10 +864,11 @@ function NaturApp() {
             ? "#07160d"
             : c.bg
       : tone.surface;
+  const phaseSurface = dayPhase.phase === "night" ? "#04101a" : dayPhase.phase === "dawn" ? "#17150b" : dayPhase.phase === "dusk" ? "#171008" : dayPhase.phase === "evening" ? "#0d0918" : seasonSurface;
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: seasonSurface }]}
+      style={[styles.safe, { backgroundColor: phaseSurface }]}
       edges={["top", "left", "right"]}
     >
       <StatusBar style="light" />
@@ -633,17 +878,30 @@ function NaturApp() {
         onSearch={() => navigate("search")}
         onMarketplace={() => navigate("marketplace")}
         onNotifications={notificationInfo}
+        onMessages={messageInfo}
+        unreadNotifications={unreadNotifications}
+        unreadMessages={unreadMessages}
         onCare={() => { if (token) navigate("care"); else void signIn(); }}
+        onFeedback={() => { if (token) navigate("feedback"); else void signIn(); }}
+        onSwitchAccount={() => void switchAccount()}
         onProfileTarget={target => {
           if (target === "progress") {
             navigate("ranking");
+            return;
+          }
+          if (target === "manage") {
+            navigate("management");
             return;
           }
           setProfileMenuTarget(target);
           navigate("profile");
         }}
       />
-      <View style={[styles.body, { backgroundColor: seasonSurface }]}>
+      <View style={[styles.dayPhaseRail, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}0d` }]} accessibilityLabel={`Lokale Tagesphase ${dayPhase.label}, ${formatDayPhaseTime(dayPhase)}`}>
+        <Ionicons name={dayPhase.phase === "night" || dayPhase.phase === "evening" ? "moon-outline" : dayPhase.phase === "dawn" || dayPhase.phase === "dusk" ? "sunny-outline" : "sunny"} size={13} color={tone.accent} />
+        <Text style={[styles.dayPhaseRailText, { color: tone.accent }]}>{dayPhase.shortLabel} · {formatDayPhaseTime(dayPhase)}</Text>
+      </View>
+      <View style={[styles.body, { backgroundColor: phaseSurface }]}>
         {screen === "home" && (
           <Home
             platform={platform}
@@ -654,7 +912,7 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
-        {screen === "explore" && <Explore navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} />}
+        {screen === "explore" && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} />}
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
@@ -814,14 +1072,9 @@ function NaturApp() {
         {screen === "live" && (
           <LiveScreen
             tone={TONES.live}
-            habitats={habitats}
             token={token}
-            onPrivate={() =>
-              guarded(
-                () => openCollection("aquarium"),
-                "Wasserwerte werden ausschließlich aus deinem privaten Aquarium geladen."
-              )
-            }
+            account={account}
+            onSignIn={signIn}
             navigate={navigate}
           />
         )}
@@ -839,9 +1092,11 @@ function NaturApp() {
         {screen === "post" && (
           <PostScreen
             token={token}
+            isAdmin={account?.role === "admin"}
+            initialEditPost={editingCommunityPost}
             tone={TONES.post}
             onSignIn={signIn}
-            navigate={navigate}
+            navigate={screenName => { if (screenName !== "post") setEditingCommunityPost(null); navigate(screenName); }}
           />
         )}
         {screen === "knowledge" && (
@@ -860,6 +1115,8 @@ function NaturApp() {
             state={state}
             error={error}
             refresh={loadScreen}
+            token={token}
+            onSignIn={signIn}
           />
         )}
         {screen === "community" && (
@@ -873,8 +1130,25 @@ function NaturApp() {
             token={token}
             onSignIn={signIn}
             navigate={navigate}
+            onOpenDetail={id => { setSelectedCommunityPostId(id); navigate("communityDetail"); }}
+            onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
+            onEdit={post => { const postRealm = post.realm === "botany" || post.realm === "aquarium" || post.realm === "terrarium" ? post.realm : null; setEditingCommunityPost({ id: Number(post.id), content: post.content, realm: postRealm, visibility: "public", status: "published", updatedAt: post.createdAt }); navigate("post"); }}
           />
         )}
+        {screen === "communityDetail" && selectedCommunityPostId ? (
+          <CommunityPostDetailScreen
+            tone={TONES.communityDetail}
+            token={token}
+            post={posts.find(item => item.id === selectedCommunityPostId) ?? null}
+            onBack={() => navigate("community")}
+            onSignIn={signIn}
+            onRefresh={loadScreen}
+            onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
+            onLike={async post => { if (!token) return void signIn(); await likeCommunityPost(token, Number(post.id)); await loadScreen(); }}
+            onReport={async post => { if (!token) return void signIn(); await reportCommunityPost(token, { postId: Number(post.id), reason: "other" }); Alert.alert("Meldung gespeichert", "Die Meldung wurde zur Prüfung weitergeleitet."); }}
+            onBlock={async post => { if (!token) return void signIn(); await blockCommunityUser(token, Number(post.author.id)); await loadScreen(); navigate("community"); }}
+          />
+        ) : null}
         {screen === "notifications" && (
           <NotificationsScreen
             tone={TONES.notifications}
@@ -884,6 +1158,45 @@ function NaturApp() {
             error={error}
             refresh={loadScreen}
             navigate={navigate}
+            onUnreadChange={async () => { if (token) setUnreadNotifications((await notificationUnreadCount(token)).count); }}
+          />
+        )}
+        {screen === "messages" && (
+          <MessagesScreen
+            tone={TONES.messages}
+            token={token}
+            account={account}
+            conversations={conversations}
+            selectedConversationId={selectedConversationId}
+            thread={directThread}
+            targetProfile={messageTargetProfile}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            onSelect={async conversation => {
+              if (!token) return;
+              setSelectedConversationId(conversation.id);
+              setDirectThread((await directMessages(token, Number(conversation.id))).items);
+              await markDirectConversationRead(token, Number(conversation.id));
+              setUnreadMessages((await directUnreadCount(token)).count);
+              setConversations(current => current.map(item => item.id === conversation.id ? { ...item, unreadCount: 0 } : item));
+            }}
+            onStart={async content => {
+              if (!token || !messageTargetProfile) return;
+              const result = await startDirectConversation(token, { recipientId: messageTargetProfile.id, content });
+              setMessageTargetProfile(null);
+              setSelectedConversationId(result.conversationId);
+              const rows = await directConversations(token);
+              setConversations(rows);
+              setDirectThread((await directMessages(token, Number(result.conversationId))).items);
+            }}
+            onSend={async content => {
+              if (!token || !selectedConversationId) return;
+              await sendDirectMessage(token, { conversationId: Number(selectedConversationId), content });
+              setDirectThread((await directMessages(token, Number(selectedConversationId))).items);
+              setConversations(await directConversations(token));
+            }}
+            onSignIn={signIn}
           />
         )}
         {screen === "care" && (
@@ -893,11 +1206,42 @@ function NaturApp() {
             tasks={careTasks}
             plans={carePlans}
             journal={careJournal}
+            habitats={habitats}
             state={state}
             error={error}
             refresh={loadScreen}
             onSignIn={signIn}
           />
+        )}
+        {screen === "feedback" && <FeedbackScreen tone={TONES.feedback} token={token} onSignIn={signIn} />}
+        {screen === "pro" && <NativeProScreen tone={TONES.pro} token={token} onBack={() => navigate("management")} />}
+        {screen === "management" && (
+          <ManagementScreen
+            tone={TONES.management}
+            token={token}
+            account={account}
+            navigate={navigate}
+            onSignIn={signIn}
+          />
+        )}
+        {screen === "dashboard" && (
+          <DashboardErrorBoundary onBack={() => navigate("management")}>
+          <NativeDashboardScreen
+            tone={TONES.dashboard}
+            token={token}
+            account={account}
+            analytics={analytics}
+            adminFeedback={adminFeedback}
+            adminPartnerInquiries={adminPartnerInquiries}
+            adminAccounts={adminAccountsRows}
+            adminPublicPosts={adminPublicPostRows}
+            state={state}
+            error={error}
+            refresh={loadScreen}
+            onBack={() => navigate("management")}
+            onSignIn={signIn}
+          />
+          </DashboardErrorBoundary>
         )}
         {screen === "profile" && (
           <ProfileScreen
@@ -914,7 +1258,9 @@ function NaturApp() {
             error={error}
             onSignIn={signIn}
             onSignOut={signOut}
+            onExportData={exportAccount}
             onUpdateProfile={async input => { if (!token) return; await updateProfile(token, input); await refreshPrivate(token); }}
+            onReplaceSocialAccounts={async accounts => { if (!token) return; await replaceProfileSocialAccounts(token, accounts); await refreshPrivate(token); }}
             onSetConsent={async (purpose, granted) => { if (!token) return; await setProfileConsent(token, { purpose, granted, policyVersion: "privacy-2026-09-16-v1" }); await refreshPrivate(token); }}
             onUploadAvatar={async (base64, mimeType) => { if (!token) return; await uploadProfileAvatar(token, { base64, mimeType }); await refreshPrivate(token); }}
             onCollection={openCollection}
@@ -927,16 +1273,7 @@ function NaturApp() {
             token={token}
             habitats={habitats}
             initialRealm={collectionRealm}
-            onSignIn={signIn}
-            onSaved={refreshPrivate}
-          />
-        )}
-        {screen === "builder" && (
-          <BuilderScreen
-            tone={TONES.builder}
-            token={token}
-            account={account}
-            habitats={habitats}
+            prefill={collectionPrefill}
             onSignIn={signIn}
             onSaved={refreshPrivate}
           />
@@ -953,11 +1290,24 @@ function NaturApp() {
             onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }}
             onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
             onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
+            onOpenTerrariumTaxon={id => { setSelectedTerrariumTaxonId(id); navigate("terrariumTaxon"); }}
+            onOpenCatalog={realm => { setCatalogRealm(realm); navigate("catalogOverview"); }}
           />
         )}
-        {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} /> : null}
-        {screen === "taxon" && selectedTaxonId ? <TaxonScreen tone={TONES.taxon} token={token} taxonId={selectedTaxonId} onBack={() => navigate("search")} /> : null}
-        {screen === "aquariumTaxon" && selectedAquariumTaxonId ? <AquariumTaxonScreen tone={TONES.aquariumTaxon} token={token} taxonId={selectedAquariumTaxonId} onBack={() => navigate("search")} /> : null}
+        {screen === "catalogOverview" && (
+          <CatalogOverviewScreen
+            tone={TONES[catalogRealm]}
+            realm={catalogRealm}
+            onBack={() => navigate("search")}
+            onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }}
+            onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }}
+            onOpenTerrariumTaxon={id => { setSelectedTerrariumTaxonId(id); navigate("terrariumTaxon"); }}
+          />
+        )}
+        {screen === "publicProfile" && selectedPublicProfileId ? <PublicProfileScreen tone={TONES.publicProfile} token={token} profileId={selectedPublicProfileId} onBack={() => navigate("search")} onSignIn={signIn} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onMessage={profile => { setMessageTargetProfile(profile); navigate("messages"); }} /> : null}
+        {screen === "taxon" && selectedTaxonId ? <TaxonScreen tone={TONES.taxon} token={token} taxonId={selectedTaxonId} onBack={() => navigate("search")} onOpenCollection={openCollectionFromTaxon} /> : null}
+        {screen === "aquariumTaxon" && selectedAquariumTaxonId ? <AquariumTaxonScreen tone={TONES.aquariumTaxon} token={token} taxonId={selectedAquariumTaxonId} onBack={() => navigate("search")} onOpenCollection={openCollectionFromTaxon} /> : null}
+        {screen === "terrariumTaxon" && selectedTerrariumTaxonId ? <TerrariumTaxonScreen tone={TONES.terrariumTaxon} token={token} taxonId={selectedTerrariumTaxonId} onBack={() => navigate("search")} onOpenCollection={openCollectionFromTaxon} /> : null}
         {screen === "saved" ? <SavedScreen tone={TONES.saved} token={token} onBack={() => navigate("profile")} onSignIn={signIn} navigate={navigate} onOpenProfile={id => { setSelectedPublicProfileId(id); navigate("publicProfile"); }} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} onOpenAquariumTaxon={id => { setSelectedAquariumTaxonId(id); navigate("aquariumTaxon"); }} /> : null}
         {screen === "ranking" ? <RankingScreen tone={TONES.ranking} token={token} onBack={() => navigate("profile")} onSignIn={signIn} /> : null}
       </View>
@@ -976,7 +1326,12 @@ function Header({
   onSearch,
   onMarketplace,
   onNotifications,
+  onMessages,
+  unreadNotifications,
+  unreadMessages,
   onCare,
+  onFeedback,
+  onSwitchAccount,
   onProfileTarget,
 }: {
   tone: Tone;
@@ -984,7 +1339,12 @@ function Header({
   onSearch: () => void;
   onMarketplace: () => void;
   onNotifications: () => void;
+  onMessages: () => void;
+  unreadNotifications: number;
+  unreadMessages: number;
   onCare: () => void;
+  onFeedback: () => void;
+  onSwitchAccount: () => void;
   onProfileTarget: (target: ProfileMenuTarget) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1013,17 +1373,13 @@ function Header({
           onPress={onSearch}
         />
         <HeaderAction
-          icon="storefront-outline"
-          color={c.aqua}
-          label="Marktplatz"
-          onPress={onMarketplace}
-        />
-        <HeaderAction
           icon="notifications-outline"
           color={tone.accent}
           label="Benachrichtigungen"
+          badge={unreadNotifications}
           onPress={onNotifications}
         />
+        <HeaderAction icon="chatbubble-ellipses-outline" color={c.botany} label="Feedback, Probleme und Wünsche" onPress={onFeedback} />
         <HeaderAction
           icon={account ? "person" : "person-outline"}
           color={account ? tone.accent : c.muted}
@@ -1033,16 +1389,12 @@ function Header({
       </View>
       {menuOpen ? <View style={[styles.nativeProfileMenu, { borderColor: `${tone.accent}88`, backgroundColor: "#07170d" }]}>
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · MENÜ</Text>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("edit"); }}><Text style={styles.nativeProfileMenuText}>Name & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("avatar"); }}><Text style={styles.nativeProfileMenuText}>Profilbild bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("private"); }}><Text style={styles.nativeProfileMenuText}>Privatbereich & Profil bearbeiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("habitats"); }}><Text style={styles.nativeProfileMenuText}>Meine Anlagen</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("progress"); }}><Text style={styles.nativeProfileMenuText}>Punkte & Fortschritt</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("privacy"); }}><Text style={styles.nativeProfileMenuText}>Datenschutz & Freigaben</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("preferences"); }}><Text style={styles.nativeProfileMenuText}>Sprache & Einheiten</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("tools"); }}><Text style={styles.nativeProfileMenuText}>Weitere Werkzeuge</Text></Pressable>
-        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("open"); }}><Ionicons name="person-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Profil öffnen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onProfileTarget("manage"); }}><Ionicons name="settings-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Verwalten · alle Einstellungen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMessages(); }}><Ionicons name="mail-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Postfach</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onSwitchAccount(); }}><Ionicons name="swap-horizontal-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Konto wechseln · E-Mail auswählen</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={21} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -1052,11 +1404,13 @@ function HeaderAction({
   icon,
   color,
   label,
+  badge = 0,
   onPress,
 }: {
   icon: IconName;
   color: string;
   label: string;
+  badge?: number;
   onPress: () => void;
 }) {
   return (
@@ -1064,9 +1418,10 @@ function HeaderAction({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
+      hitSlop={4}
       style={({ pressed }) => [styles.headerAction, pressed && styles.pressed]}
     >
-      <Ionicons name={icon} size={19} color={color} />
+      <View style={styles.headerActionIconWrap}><Ionicons name={icon} size={19} color={color} />{badge > 0 ? <Text style={[styles.headerUnreadBadge, { backgroundColor: color }]}>{badge > 9 ? "9+" : badge}</Text> : null}</View>
     </Pressable>
   );
 }
@@ -1089,6 +1444,7 @@ function Home({
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <HomeHero tone={TONES.home} navigate={navigate} />
+      <HomeStatusStrip tone={TONES.home} />
       {state === "error" ? (
         <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
       ) : null}
@@ -1116,6 +1472,26 @@ function Home({
   );
 }
 
+function HomeStatusStrip({ tone }: { tone: Tone }) {
+  const items = [
+    { icon: "water-outline" as IconName, label: "WASSER", value: "KEINE QUELLE" },
+    { icon: "leaf-outline" as IconName, label: "LUFT", value: "KEINE QUELLE" },
+    { icon: "flask-outline" as IconName, label: "pH-WERT", value: "NICHT VERFÜGBAR" },
+    { icon: "rainy-outline" as IconName, label: "WETTER", value: "NICHT VERFÜGBAR" },
+  ];
+  return (
+    <View style={[styles.homeStatusStrip, { borderColor: `${tone.accent}55`, backgroundColor: "rgba(4,20,11,.9)" }]}>
+      {items.map(item => (
+        <View key={item.label} style={styles.homeStatusItem}>
+          <Ionicons name={item.icon} size={18} color={tone.accent} />
+          <Text style={[styles.homeStatusLabel, { color: tone.accent }]}>{item.label}</Text>
+          <Text style={styles.homeStatusValue}>{item.value}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function HomeHero({
   tone,
   navigate,
@@ -1126,19 +1502,19 @@ function HomeHero({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.hero, styles.homeHero, { borderColor: `${tone.accent}99` }]}
-      imageStyle={styles.heroImage}
+      style={[styles.observatoryContextHeader, styles.homeContextHeader, { borderColor: `${tone.accent}99` }]}
+      imageStyle={styles.observatoryContextImage}
     >
-      <View style={styles.heroShade} />
-      <View style={styles.heroCopy}>
-        <View style={[styles.heroIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
+      <View style={styles.observatoryContextShade} />
+      <View style={styles.observatoryContextCopy}>
+        <View style={[styles.observatoryContextIcon, { borderColor: `${tone.accent}99`, backgroundColor: `${tone.accent}18` }]}>
           <Ionicons name="leaf-outline" size={24} color={tone.accent} />
         </View>
-        <Text style={[styles.eyebrow, { color: tone.accent }]}>UNSER OBSERVATORIUM</Text>
-        <Text style={styles.heroTitle}>WASSER VERBINDET.</Text>
-        <Text style={styles.heroText}>Forschen, entdecken und schützen – mit verlässlichen Daten, geschützten Orten und lebendiger Natur.</Text>
-        <View style={styles.homeHeroActions}>
-          <PrimaryButton tone={tone} label="WELT ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
+        <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · OBSERVATORY</Text>
+        <Text style={styles.observatoryContextTitle}>WASSER. WISSEN. LEBEN.</Text>
+        <Text style={styles.observatoryContextText}>Dein bildstarker Einstieg in Wasserwelten, Artenwissen und echte Beobachtungen.</Text>
+        <View style={styles.homeContextActions}>
+          <PrimaryButton tone={tone} label="ENTDECKEN" icon="arrow-forward" onPress={() => navigate("explore")} />
           <SecondaryButton tone={tone} label="MEIN BEREICH" icon="person-outline" onPress={() => navigate("profile")} />
         </View>
       </View>
@@ -1200,17 +1576,17 @@ function LiveHomeWorlds({
     <View style={styles.liveWorlds}>
       <View style={styles.grid}>
         {worlds.map(world => (
-          <ReferenceCard key={world.title} tone={tone} action={world} active={selected === world.title} />
+          <ObservatoryActionRow key={world.title} tone={tone} action={world} active={selected === world.title} imageMode visual />
         ))}
       </View>
       {selected ? (
-        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: selectedTone.panel }]}>
+        <View style={[styles.inlineChoice, { borderColor: `${selectedTone.accent}77`, backgroundColor: `${selectedTone.panel}E6`, shadowColor: selectedTone.accent, ...NATIVE_GLOW }]}>
           <View style={styles.inlineChoiceHeader}>
             <Text style={[styles.chip, { color: selectedTone.accent }]}>AUSWAHL · {selected.toUpperCase()}</Text>
             <Pressable accessibilityLabel="Auswahl schließen" onPress={() => setSelected(null)}><Ionicons name="close" size={18} color={selectedTone.accent} /></Pressable>
           </View>
           <View style={[styles.grid, styles.gridCompact]}>
-            {(choices[selected] ?? []).map(choice => <ReferenceCard key={choice.title} tone={selectedTone} action={choice} compact />)}
+            {(choices[selected] ?? []).map(choice => <ObservatoryActionRow key={choice.title} tone={selectedTone} action={choice} compact imageMode visual />)}
           </View>
         </View>
       ) : null}
@@ -1219,27 +1595,56 @@ function LiveHomeWorlds({
 }
 
 function Explore({
+  token,
   navigate,
   observations,
   loading,
   error,
   refresh,
+  onOpenTaxon,
 }: {
+  token: string | null;
   navigate: (screen: Screen) => void;
   observations: Observation[];
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  onOpenTaxon: (id: number) => void;
 }) {
   const tone = TONES.explore;
   const [realm, setRealm] = useState<"all" | "botany" | "aquarium" | "terrarium">("all");
   const [view, setView] = useState<"map" | "list">("map");
+  const [plantFilter, setPlantFilter] = useState<"all" | "Aufsitzer" | "Bodendecker" | "Schnellwachsend">("all");
+  const [gallery, setGallery] = useState<{ name: string; images: ImageSourcePropType[]; index: number } | null>(null);
   const realmLabels = { all: "Alle", botany: "Botanik", aquarium: "Aquaristik", terrarium: "Terraristik" } as const;
+  type NativePlantInspiration = { id: number; name: string; hook: string; note: string; image: ImageSourcePropType; care: string[] };
+  const plantInspiration: NativePlantInspiration[] = [
+    { id: 10, name: "Anubias barteri", hook: "Robuste Aufsitzerpflanze", note: "Schattenplätze · langsam wachsend", image: require("./assets/discover-plants/anubias.jpg"), care: ["Licht niedrig–mittel", "pH 6,0–7,8", "22–28 °C", "CO₂ optional", "weich–hart"] },
+    { id: 30062, name: "Bucephalandra motleyana", hook: "Kleine Blätter, große Wirkung", note: "Auf Holz und Stein · Strömung", image: require("./assets/discover-plants/buce.jpg"), care: ["Licht niedrig–mittel", "pH 5,5–7,5", "20–28 °C", "CO₂ optional", "Rhizom freihalten"] },
+    { id: 13, name: "Cryptocoryne wendtii", hook: "Wandelbare Unterwasserrosette", note: "Mittelgrund · ruhige Eingewöhnung", image: require("./assets/discover-plants/crypt.jpg"), care: ["Licht niedrig–mittel", "pH 6,0–8,0", "22–28 °C", "CO₂ hilfreich", "Boden nährstoffreich"] },
+    { id: 30073, name: "Echinodorus palaefolius", hook: "Der grüne Solitär", note: "Hintergrund · nährstoffreicher Boden", image: require("./assets/discover-plants/echinodorus.jpg"), care: ["Licht mittel–hoch", "pH 6,0–7,5", "22–28 °C", "CO₂ hilfreich", "Boden tief"] },
+    { id: 17, name: "Microsorum pteropus", hook: "Javafarn für natürliche Räume", note: "Aufsitzer · wenig Licht", image: require("./assets/discover-plants/microsorum.jpg"), care: ["Licht niedrig–mittel", "pH 5,5–8,0", "20–28 °C", "CO₂ optional", "Rhizom aufbinden"] },
+    { id: 30076, name: "Hygrophila polysperma", hook: "Schneller grüner Akzent", note: "Hintergrund · regelmäßiger Rückschnitt", image: require("./assets/discover-plants/hygrophila.jpg"), care: ["Licht niedrig–hoch", "pH 6,0–8,0", "20–30 °C", "CO₂ optional", "häufig trimmen"] },
+    { id: 18, name: "Taxiphyllum barbieri", hook: "Weiches Moos für Holz und Stein", note: "Aufsitzer · dichter Rückschnitt", image: require("./assets/discover-plants/moss.jpg"), care: ["Licht niedrig–mittel", "pH 5,0–8,0", "18–30 °C", "CO₂ optional", "ausdünnen"] },
+    { id: 19, name: "Vesicularia dubyana", hook: "Klassisches Javamoos", note: "Dunklere Plätze · langsam etablieren", image: require("./assets/discover-plants/vesicularia.jpg"), care: ["Licht niedrig–mittel", "pH 5,5–8,0", "20–28 °C", "CO₂ optional", "nicht bedecken"] },
+    { id: 20, name: "Hemianthus callitrichoides", hook: "Feiner grüner Bodenteppich", note: "Starkes Licht · CO₂ hilfreich", image: require("./assets/discover-plants/hemianthus.jpg"), care: ["Licht hoch", "pH 5,5–7,5", "20–28 °C", "CO₂ empfohlen", "feiner Soil"] },
+    { id: 24, name: "Alternanthera reineckii", hook: "Roter Farbakzent", note: "Licht und Nährstoffe · Rückschnitt", image: require("./assets/discover-plants/alternanthera.jpg"), care: ["Licht mittel–hoch", "pH 6,0–7,5", "22–28 °C", "CO₂ empfohlen", "Triebspitzen schneiden"] },
+    { id: 4, name: "Vallisneria spiralis", hook: "Bandblätter für den Hintergrund", note: "Robuster Ausläufer · schnell etablierend", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/4/inat-167562447_1334157f.jpg" }, care: ["Licht niedrig–mittel", "pH 6,0–8,5", "18–30 °C", "CO₂ optional", "Wurzelzehrer"] },
+    { id: 22, name: "Rotala rotundifolia", hook: "Variable Stängelpflanze", note: "Mittelgrund · bei Licht rötlich", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/22/inat-117331653_d2a483c1.jpg" }, care: ["Licht mittel–hoch", "pH 5,5–7,5", "20–30 °C", "CO₂ hilfreich", "regelmäßig kürzen"] },
+    { id: 23, name: "Ludwigia repens", hook: "Roter Kontrast im Pflanzengrupp", note: "Hintergrund · kräftige Nährstoffzehrerin", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/23/inat-354310043_e7c983a9.jpg" }, care: ["Licht mittel–hoch", "pH 6,0–7,5", "20–28 °C", "CO₂ hilfreich", "Nitrat und Eisen"] },
+    { id: 30077, name: "Limnophila aquatica", hook: "Große feinfiedrige Blätter", note: "Hintergrund · regelmäßiger Rückschnitt", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/30077/inat-191539749_cabfe9b6.jpg" }, care: ["Licht mittel–hoch", "pH 6,0–7,5", "22–28 °C", "CO₂ empfohlen", "Kopfstecklinge"] },
+    { id: 30078, name: "Limnophila aromatica", hook: "Aromatische Farbstruktur", note: "Mittelgrund · bei Licht kompakt", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/30078/inat-298348334_15eb1083.jpg" }, care: ["Licht hoch", "pH 5,5–7,0", "22–28 °C", "CO₂ empfohlen", "Mikro- und Makroelemente"] },
+    { id: 30079, name: "Limnophila sessiliflora", hook: "Pflegeleichte Fiederpflanze", note: "Hintergrund · schnell wachsend", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/30079/inat-218527569_8ac21c5c.jpg" }, care: ["Licht niedrig–mittel", "pH 5,5–8,0", "20–30 °C", "CO₂ optional", "wöchentlich auslichten"] },
+    { id: 30082, name: "Ludwigia palustris", hook: "Kompakter roter Stängel", note: "Mittelgrund · starke Farbe bei viel Licht", image: { uri: "https://blackwaterleaf.com/manus-storage/catalog/taxa/plant/30082/inat-310494289_5fc27722.jpg" }, care: ["Licht mittel–hoch", "pH 6,0–7,5", "18–28 °C", "CO₂ hilfreich", "Kopfstecklinge"] },
+    { id: 30089, name: "Staurogyne repens", hook: "Kompakter Bodendecker", note: "Vordergrund · buschig durch Rückschnitt", image: require("./assets/discover-plants/crypt.jpg"), care: ["Licht mittel–hoch", "pH 6,0–7,5", "20–28 °C", "CO₂ hilfreich", "Boden nährstoffreich"] },
+  ];
+  const plantTags: Record<number, string[]> = { 10: ["Aufsitzer"], 30062: ["Aufsitzer"], 13: ["Schnellwachsend"], 30073: ["Schnellwachsend"], 17: ["Aufsitzer"], 30076: ["Schnellwachsend"], 18: ["Aufsitzer"], 19: ["Aufsitzer"], 20: ["Bodendecker"], 24: ["Schnellwachsend"], 4: ["Schnellwachsend"], 22: ["Schnellwachsend"], 23: ["Schnellwachsend"], 30077: ["Schnellwachsend"], 30078: ["Schnellwachsend"], 30079: ["Schnellwachsend"], 30082: ["Schnellwachsend"], 30089: ["Bodendecker"] };
+  const visiblePlants = plantInspiration.filter(({ id }) => plantFilter === "all" || plantTags[id].includes(plantFilter));
   const filtered = realm === "all" ? observations : observations.filter(item => item.realm === realm);
   const iconFor = (value: Observation["realm"]): IconName => value === "aquarium" ? "fish-outline" : value === "terrarium" ? "leaf-outline" : "leaf-outline";
   return (
     <Page refresh={refresh} refreshing={loading}>
-      <ReferenceHero tone={tone} eyebrow="KARTE & LISTE · SYNCHRONISIERT" title="BEOBACHTEN. EINORDNEN. TEILEN." subtitle="Freigegebene Beobachtungen werden für alle drei Fachbereiche gleich behandelt. Private Orte bleiben privat." icon="map-outline" />
+      <ObservatoryContextHeader tone={tone} eyebrow="KARTE & LISTE · SYNCHRONISIERT" title="BEOBACHTEN. EINORDNEN. TEILEN." subtitle="Freigegebene Beobachtungen werden für alle drei Fachbereiche gleich behandelt. Private Orte bleiben privat." icon="map-outline" />
       <View style={styles.explorePortalRow}>
         {[
           { label: "Botanik", screen: "botany" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.botany, color: TONES.botany.accent },
@@ -1247,17 +1652,35 @@ function Explore({
           { label: "Terraristik", screen: "terrarium" as Screen, icon: "leaf-outline" as IconName, image: ASSETS.terrarium, color: TONES.terrarium.accent },
         ].map(item => <Pressable key={item.label} onPress={() => navigate(item.screen)} style={({ pressed }) => [styles.explorePortalCard, { borderColor: `${item.color}66` }, pressed && styles.pressed]}><ImageBackground source={item.image} style={styles.explorePortalImage} imageStyle={styles.explorePortalImageStyle}><View style={styles.explorePortalShade} /><Ionicons name={item.icon} size={21} color={item.color} /><Text style={styles.explorePortalLabel}>{item.label}</Text></ImageBackground></Pressable>)}
       </View>
+      <View style={styles.exploreInspirationSection}>
+        <View style={styles.exploreInspirationHeading}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>NEUE IDEEN · BOTANIK</Text><Text style={styles.sectionTitle}>PFLANZEN ZUM ENTDECKEN</Text></View><Pressable onPress={() => navigate("search")}><Text style={[styles.miniCopy, { color: tone.accent }]}>KATALOG</Text></Pressable></View>
+        <Text style={styles.copy}>Echte Arten als Inspiration – mit Namen, Pflegehinweisen und Quellen im Katalog.</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.explorePlantFilters}>{(["all", "Aufsitzer", "Bodendecker", "Schnellwachsend"] as const).map(filter => <Pressable key={filter} onPress={() => setPlantFilter(filter)} style={[styles.explorePlantFilter, { borderColor: plantFilter === filter ? tone.accent : `${tone.accent}44`, backgroundColor: plantFilter === filter ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: plantFilter === filter ? tone.accent : c.muted }]}>{filter === "all" ? "ALLE ARTEN" : filter.toUpperCase()}</Text></Pressable>)}</ScrollView>
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator contentContainerStyle={styles.exploreInspirationPager}>{Array.from({ length: Math.ceil(visiblePlants.length / 4) }, (_, page) => <View key={page} style={styles.exploreInspirationPage}>{visiblePlants.slice(page * 4, page * 4 + 4).map((plant, index) => { const second = visiblePlants[(page * 4 + index + 1) % visiblePlants.length]?.image ?? plant.image; return <Pressable key={plant.id} accessibilityLabel={`${plant.name} – ausführliche Pflegehinweise öffnen`} onPress={() => onOpenTaxon(plant.id)} style={({ pressed }) => [styles.exploreInspirationCard, { borderColor: `${index % 3 === 1 ? TONES.aquarium.accent : index % 3 === 2 ? TONES.terrarium.accent : tone.accent}66`, backgroundColor: index % 3 === 1 ? TONES.aquarium.panel : index % 3 === 2 ? TONES.terrarium.panel : tone.panel }, pressed && styles.pressed]}><View style={styles.exploreInspirationNumber}><Text style={[styles.miniCopy, { color: tone.accent }]}>{String(page * 4 + index + 1).padStart(2, "0")}</Text></View><View style={styles.exploreInspirationGallery}><Pressable onPress={() => setGallery({ name: plant.name, images: [plant.image, second], index: 0 })}><Image source={plant.image} style={styles.exploreInspirationImage} /></Pressable><Pressable onPress={() => setGallery({ name: plant.name, images: [plant.image, second], index: 1 })}><Image source={second} style={styles.exploreInspirationImage} /></Pressable></View><View style={styles.flex}><Text style={styles.exploreInspirationName}>{plant.name}</Text><Text style={[styles.exploreInspirationHook, { color: tone.accent }]}>{plant.hook}</Text><Text style={styles.exploreInspirationNote}>{plant.note}</Text><View style={styles.exploreInspirationCare}>{plant.care.map(parameter => <Text key={parameter} style={styles.exploreInspirationCareText}>{parameter}</Text>)}</View><Text style={styles.exploreInspirationCredit}>Quelle: Katalog · Lizenz: Originalhinweis</Text></View></Pressable>; })}</View>)}</ScrollView>
+      </View>
+      <Modal visible={Boolean(gallery)} transparent animationType="fade" onRequestClose={() => setGallery(null)}>{gallery ? <View style={styles.discoverGalleryModal}><Pressable style={styles.discoverGalleryBackdrop} onPress={() => setGallery(null)} /><Pressable style={styles.discoverGalleryClose} onPress={() => setGallery(null)}><Ionicons name="close" size={25} color="#fff" /></Pressable>{gallery.images.length > 1 ? <Pressable style={styles.discoverGalleryPrev} onPress={() => setGallery(current => current ? { ...current, index: (current.index - 1 + current.images.length) % current.images.length } : null)}><Ionicons name="chevron-back" size={38} color="#fff" /></Pressable> : null}<Image source={gallery.images[gallery.index]} style={styles.discoverGalleryImage} resizeMode="contain" /><Text style={styles.discoverGalleryCaption}>{gallery.name} · {gallery.index + 1} / {gallery.images.length}</Text>{gallery.images.length > 1 ? <Pressable style={styles.discoverGalleryNext} onPress={() => setGallery(current => current ? { ...current, index: (current.index + 1) % current.images.length } : null)}><Ionicons name="chevron-forward" size={38} color="#fff" /></Pressable> : null}</View> : null}</Modal>
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · {realmLabels[realm].toUpperCase()}</Text><Text style={styles.cardTitle}>Freigegebene Beobachtungen</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: error ? c.danger : loading ? c.gold : tone.accent }]} /><Text style={[styles.miniCopy, { color: error ? c.danger : tone.accent }]}>{error ? "FEHLER" : loading ? "SYNC …" : "BEREIT"}</Text></View></View>
         <View style={styles.exploreFilterRow}>{(Object.keys(realmLabels) as Array<keyof typeof realmLabels>).map(key => <Pressable key={key} onPress={() => setRealm(key)} accessibilityRole="button" accessibilityState={{ selected: realm === key }} style={[styles.exploreFilter, { borderColor: realm === key ? tone.accent : `${tone.accent}33`, backgroundColor: realm === key ? `${tone.accent}20` : "rgba(0,0,0,.18)" }]}><Text style={[styles.exploreFilterText, { color: realm === key ? tone.accent : c.muted }]}>{realmLabels[key]}</Text></Pressable>)}</View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
-        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{filtered.length ? "Beobachtungen vorhanden" : "Keine Kartenpunkte freigegeben"}</Text><Text style={styles.copy}>{filtered.length ? "Keine öffentlich zulässige Ortsangabe – es werden keine Pins simuliert." : "Private Daten bleiben geschützt."}</Text></View><Text style={styles.exploreMapCaption}>{filtered.length ? `${filtered.length} Beobachtung${filtered.length === 1 ? "" : "en"} · Ortsangaben geschützt` : "Geschützte Orte · genaue Positionen privat"}</Text></ImageBackground></View> : null}
-        {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={ASSETS.aquarium} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>Keine Kartenpunkte freigegeben</Text><Text style={styles.copy}>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten. Die Beobachtungsliste bleibt nutzbar.</Text></View><Text style={styles.exploreMapCaption}>Geschützte Orte · genaue Positionen privat</Text></ImageBackground></View> : null}
+        {view === "list" || !filtered.length ? <View style={styles.exploreObservationList}>{loading ? <Text style={styles.copy}>Beobachtungen werden synchronisiert …</Text> : error ? <Text style={[styles.copy, { color: c.danger }]}>Beobachtungen derzeit nicht erreichbar. Katalog und private Daten bleiben getrennt.</Text> : filtered.length ? filtered.map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={iconFor(item.realm)} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>{realmLabels[item.realm]} · {item.createdAt ? new Date(item.createdAt).toLocaleDateString("de-DE") : "Datum nicht verfügbar"}</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>ÖFFENTLICH</Text><NativeObservationResponsePanel token={token} observationId={Number(item.id)} accent={tone.accent} /></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
       </View>
       <View style={[styles.divider, { borderColor: `${tone.accent}55` }]}><Text style={[styles.dividerText, { color: tone.accent }]}>WISSEN & EVIDENZ</Text></View>
-      <ReferenceCard tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
+      <ObservatoryActionRow tone={tone} action={{ title: "Wissen & Quellen", note: "Veröffentlichte Quellen prüfen", icon: "book-outline", image: ASSETS.botany, onPress: () => navigate("knowledge") }} />
     </Page>
   );
+}
+
+function NativeObservationResponsePanel({ token, observationId, accent }: { token: string | null; observationId: number; accent: string }) {
+  const [items, setItems] = useState<Array<{ id: number; kind: string; proposedScientificName: string | null; content: string | null }>>([]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(async () => { if (!token) return; setItems(await observationResponses(token, observationId)); }, [token, observationId]);
+  useEffect(() => { void load(); }, [load]);
+  if (!token) return <Text style={styles.miniCopy}>ANMELDEN FÜR ANTWORTEN</Text>;
+  const send = async (kind: "confirm" | "taxon_suggestion" | "question") => { if (kind !== "confirm" && !draft.trim()) return; setBusy(true); try { await respondToObservation(token, { observationId, kind, proposedScientificName: kind === "taxon_suggestion" ? draft.trim() : null, content: kind === "question" ? draft.trim() : null }); setDraft(""); await load(); } finally { setBusy(false); } };
+  return <View style={styles.nativeResponsePanel}><Text style={[styles.miniCopy, { color: accent }]}>{items.length} ANTWORTEN · NICHT VERIFIZIERT</Text><View style={styles.nativeResponseActions}><Pressable onPress={() => void send("confirm")} disabled={busy} style={[styles.nativeResponseButton, { borderColor: `${accent}66` }]}><Ionicons name="checkmark-outline" size={14} color={accent} /></Pressable><TextInput value={draft} onChangeText={setDraft} placeholder="Taxon-Vorschlag oder Frage …" placeholderTextColor={c.muted} style={styles.nativeResponseInput} /><Pressable onPress={() => void send(draft.includes("?") ? "question" : "taxon_suggestion")} disabled={busy || !draft.trim()} style={[styles.nativeResponseButton, { borderColor: `${accent}66` }]}><Ionicons name="send-outline" size={14} color={accent} /></Pressable></View></View>;
 }
 
 function WorldScreen({
@@ -1281,7 +1704,7 @@ function WorldScreen({
   const visibleObservations = observations.filter(item => item.realm === realm);
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow={eyebrow}
         title={title}
@@ -1299,15 +1722,28 @@ function WorldScreen({
         overline="DEINE AUSWAHL"
         title="WÄHLE EINEN BEREICH"
       />
-      <ActionGrid tone={tone} actions={actions} />
+      <ObservatoryActionCluster tone={tone} actions={actions} visual />
       <View style={[styles.explorePanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
         <View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>KARTE & LISTE · SYNCHRONISIERT</Text><Text style={styles.cardTitle}>BEOBACHTEN. EINORDNEN. TEILEN.</Text></View><View style={[styles.exploreStatus, { borderColor: `${tone.accent}66` }]}><View style={[styles.exploreStatusDot, { backgroundColor: tone.accent }]} /><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View></View>
         <View style={styles.exploreViewRow}><Pressable onPress={() => setView("map")} style={[styles.exploreViewButton, { borderColor: view === "map" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "map" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="map-outline" size={16} color={view === "map" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "map" ? tone.accent : c.muted }]}>Karte</Text></Pressable><Pressable onPress={() => setView("list")} style={[styles.exploreViewButton, { borderColor: view === "list" ? tone.accent : `${tone.accent}33`, backgroundColor: view === "list" ? `${tone.accent}20` : "transparent" }]}><Ionicons name="list-outline" size={16} color={view === "list" ? tone.accent : c.muted} /><Text style={[styles.exploreFilterText, { color: view === "list" ? tone.accent : c.muted }]}>Liste</Text></Pressable></View>
-        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={realm === "aquarium" ? ASSETS.aquarium : realm === "terrarium" ? ASSETS.terrarium : ASSETS.botany} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>{visibleObservations.length} freigegebene Beobachtungen</Text><Text style={styles.copy}>Geschützte Orte · genaue Positionen bleiben privat</Text></View><Text style={styles.exploreMapCaption}>Keine privaten Pins · nur zulässige Ortsangaben</Text></ImageBackground></View> : null}
+        {view === "map" ? <View style={[styles.exploreMap, { borderColor: `${tone.accent}66` }]}><ImageBackground source={realm === "aquarium" ? ASSETS.aquarium : realm === "terrarium" ? ASSETS.terrarium : ASSETS.botany} style={styles.exploreMapImage} imageStyle={styles.exploreMapImageStyle}><View style={styles.exploreMapShade} /><View style={styles.exploreEmpty}><Ionicons name="location-outline" size={27} color={tone.accent} /><Text style={styles.cardTitle}>Keine Kartenpunkte freigegeben</Text><Text style={styles.copy}>Dieser Datenstand enthält keine ausdrücklich zulässigen generalisierten Ortsdaten.</Text></View><Text style={styles.exploreMapCaption}>Geschützte Orte · genaue Positionen privat</Text></ImageBackground></View> : null}
         {view === "list" || !visibleObservations.length ? <View style={styles.exploreObservationList}>{visibleObservations.length ? visibleObservations.slice(0, 5).map(item => <View key={item.id} style={[styles.exploreObservationRow, { borderColor: `${tone.accent}33` }]}><View style={[styles.exploreObservationIcon, { borderColor: `${tone.accent}66` }]}><Ionicons name={realm === "aquarium" ? "fish-outline" : "leaf-outline"} size={18} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle}>{item.scientificName ?? item.subject ?? "Unbestimmte Beobachtung"}</Text><Text style={styles.copy}>Öffentlich · Ortsangabe geschützt</Text></View><Text style={[styles.miniCopy, { color: tone.accent }]}>BEREIT</Text></View>) : <Text style={styles.copy}>Noch keine öffentlichen Beobachtungen in diesem Bereich. Private Daten bleiben geschützt.</Text>}</View> : null}
       </View>
     </Page>
   );
+}
+
+function PlantQuotaCard({ tone, status }: { tone: Tone; status: NativeBillingStatus | null }) {
+  const remaining = status?.freeIdentificationsRemaining ?? 0;
+  const limit = Math.max(1, status?.dailyLimit ?? 1);
+  const progress = Math.min(1, Math.max(0, remaining / limit));
+  const exhausted = Boolean(status) && remaining === 0 && (status?.aiCredits ?? 0) === 0 && (!status?.active || (status?.monthlyIdentificationsRemaining ?? 0) === 0);
+  return <View accessibilityLabel="Tägliches Pflanzenbestimmungs-Kontingent" style={[styles.plantQuotaCard, { borderColor: exhausted ? "#e49a68aa" : `${tone.accent}66`, backgroundColor: tone.panel }]}>
+    <View style={styles.plantQuotaHeader}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN KI-KONTINGENT</Text><Text style={styles.plantQuotaTitle}><Ionicons name="leaf-outline" size={17} color={tone.accent} /> PFLANZENBESTIMMUNG HEUTE</Text></View><Text style={[styles.plantQuotaValue, { color: exhausted ? "#ffc49d" : tone.accent }]}>{status ? `${remaining}/${status.dailyLimit}` : "—"}</Text></View>
+    <View style={styles.plantQuotaTrack}><View style={[styles.plantQuotaFill, { width: `${progress * 100}%`, backgroundColor: exhausted ? "#e49a68" : tone.accent }]} /></View>
+    <View style={styles.plantQuotaFooter}><Text style={styles.miniCopy}>{status ? `${remaining} kostenlose Bestimmung${remaining === 1 ? "" : "en"} übrig` : "Kontingent wird geladen …"}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{status?.aiCredits ? `+ ${status.aiCredits} Credits` : status?.active && status.monthlyIdentificationsRemaining ? `${status.monthlyIdentificationsRemaining} Pro diesen Monat` : ""}</Text></View>
+    {exhausted ? <Text style={styles.plantQuotaNotice}>Morgen wird das kostenlose Tageskontingent automatisch zurückgesetzt.</Text> : null}
+  </View>;
 }
 
 function AssistantScreen({
@@ -1348,6 +1784,7 @@ function AssistantScreen({
   const [aquariumAnswer, setAquariumAnswer] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [billingStatus, setBillingStatus] = useState<NativeBillingStatus | null>(null);
   const aiConsent = consents.some(
     item => item.purpose === "ai_processing" && item.granted
   );
@@ -1375,6 +1812,13 @@ function AssistantScreen({
   useEffect(() => {
     if (!selectedAquarium && aquariums[0]) setSelectedAquarium(aquariums[0].id);
   }, [aquariums, selectedAquarium]);
+  useEffect(() => {
+    if (!token) {
+      setBillingStatus(null);
+      return;
+    }
+    void billingMe(token).then(setBillingStatus).catch(() => setBillingStatus(null));
+  }, [token]);
 
   const ensureReady = async () => {
     if (!token) {
@@ -1526,6 +1970,7 @@ function AssistantScreen({
       setPlantUsageId(response.assistantUsageId);
       setNeedsMorePhotos(response.needsMoreImages);
       setRequestedPhotos(response.requestedAdditionalImages);
+      void billingMe(token).then(setBillingStatus).catch(() => undefined);
     } catch (cause) {
       const errorMessage = cause instanceof Error ? cause.message : "";
       setMessage(
@@ -1649,7 +2094,7 @@ function AssistantScreen({
           </Pressable>
         </View>
       ) : (
-        <ReferenceHero
+        <ObservatoryContextHeader
           tone={tone}
           eyebrow="BLACKWATERLEAF KI"
           title="KI-ASSISTENT"
@@ -1657,10 +2102,11 @@ function AssistantScreen({
           icon="hardware-chip-outline"
         />
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
         compact={selectionCollapsed}
         activeTitle={activeToolLabel}
+        visual
         actions={[
           {
             title: "Frage stellen",
@@ -1821,6 +2267,7 @@ function AssistantScreen({
                 title="PFLANZE BESTIMMEN"
                 compact
               />
+              <PlantQuotaCard tone={tone} status={billingStatus} />
               <Text style={styles.intro}>
                 Beginne mit einem Foto. Wenn entscheidende Merkmale fehlen,
                 fragt die KI gezielt nach einem oder zwei weiteren Einzelbildern
@@ -2099,85 +2546,154 @@ function AssistantScreen({
   );
 }
 
-function LiveScreen({
-  tone,
-  habitats,
-  token,
-  onPrivate,
-  navigate,
-}: {
-  tone: Tone;
-  habitats: Habitat[];
-  token: string | null;
-  onPrivate: () => void;
-  navigate: (screen: Screen) => void;
-}) {
-  const aquarium = habitats.find(item => item.kind === "aquarium");
-  return (
-    <Page>
-      <ReferenceHero
-        tone={tone}
-        eyebrow="LIVE-BEREICH"
-        title="DEINE WELT LIVE"
-        subtitle="Verbindung, Wasserwerte und Hinweise bleiben nur dort sichtbar, wo echte Daten vorliegen."
-        icon="videocam-outline"
-      />
-      <StatusPanel
-        tone={tone}
-        icon="link-outline"
-        code="LIVE-VERBINDUNG"
-        title="NOCH NICHT VERBUNDEN"
-        text="Es ist kein Smartgerät oder keine Kamera verbunden. BlackWaterLeaf zeigt keinen simulierten Live-Status."
-      />
-      <ActionGrid
-        tone={tone}
-        actions={[
-          {
-            title: "Kamera",
-            note: "Herstellerverbindung abwarten",
-            icon: "videocam-outline",
-            image: ASSETS.aquarium,
-            unavailable: true,
-            onPress: () =>
-              Alert.alert(
-                "Noch nicht verbunden",
-                "Eine Live-Kamera wird erst nach einer echten Geräteverbindung verfügbar."
-              ),
-          },
-          {
-            title: "Wasserwerte",
-            note: aquarium ? "Privates Aquarium öffnen" : "Aquarium eintragen",
-            icon: "flask-outline",
-            image: ASSETS.aquarium,
-            onPress: onPrivate,
-          },
-          {
-            title: "Benachrichtigungen",
-            note: "Kommentare und Kontohinweise öffnen",
-            icon: "notifications-outline",
-            image: ASSETS.aquarium,
-            onPress: () => (token ? navigate("notifications") : onPrivate()),
-          },
-          {
-            title: "Entdecken",
-            note: "Weitere Welten öffnen",
-            icon: "compass-outline",
-            image: ASSETS.terrarium,
-            onPress: () => navigate("explore"),
-          },
-        ]}
-      />
-      {!token ? (
-        <StatusPanel
-          tone={tone}
-          icon="lock-closed-outline"
-          code="PRIVAT / GESCHÜTZT"
-          title="ANMELDUNG ERFORDERLICH"
-          text="Private Wasserwerte werden erst nach sicherer Anmeldung geladen."
-        />
-      ) : null}
-    </Page>
+function NativeSelfHostedPlayer({ ticketUrl, token, title }: { ticketUrl: string; token: string; title: string }) {
+  const player = useVideoPlayer(
+    {
+      uri: `${API_ORIGIN}${ticketUrl}`,
+      headers: { Authorization: `Bearer ${token}` },
+      contentType: "hls",
+      metadata: { title, artist: "BlackWaterLeaf Live" },
+    },
+    instance => {
+      instance.play();
+    },
   );
+  return <VideoView player={player} nativeControls contentFit="contain" style={styles.nativeLiveVideo} accessibilityLabel={`${title} – BlackWaterLeaf Live`} />;
+}
+
+function NativeCommunityVideo({ uri, title }: { uri: string; title: string }) {
+  const player = useVideoPlayer({ uri, metadata: { title, artist: "BlackWaterLeaf Community" } });
+  return <VideoView player={player} nativeControls contentFit="contain" style={styles.postImage} accessibilityLabel={title} />;
+}
+
+function LiveScreen({ tone, token, account, onSignIn, navigate }: { tone: Tone; token: string | null; account: Account | null; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void }) {
+  const [track, setTrack] = useState<LiveTrack>("community");
+  const [sessions, setSessions] = useState<LiveSession[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [session, setSession] = useState<LiveSession | null>(null);
+  const [messages, setMessages] = useState<LiveMessage[]>([]);
+  const [capabilities, setCapabilities] = useState<LiveCapabilities | null>(null);
+  const [ticketUrl, setTicketUrl] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loadState, setLoadState] = useState<State>("loading");
+  const [status, setStatus] = useState<string | null>(null);
+  const canManage = account?.role === "admin" || account?.role === "moderator";
+
+  const loadHub = useCallback(async () => {
+    if (!token) return;
+    setLoadState("loading");
+    try {
+      const [rows, media] = await Promise.all([liveList(token, track), liveCapabilities(token)]);
+      setSessions(rows);
+      setCapabilities(media);
+      setLoadState("ready");
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Sitzungen konnten nicht geladen werden.");
+      setLoadState("error");
+    }
+  }, [token, track]);
+
+  const loadSession = useCallback(async (id: number) => {
+    if (!token) return;
+    setBusy(true);
+    setStatus(null);
+    setTicketUrl(null);
+    try {
+      const next = await liveById(token, id);
+      setSession(next);
+      setMessages(await liveMessages(token, id));
+      if (next.status === "live" && next.stream?.provider === "self_hosted") {
+        const ticket = await liveViewerTicket(token, id);
+        setTicketUrl(ticket.url);
+      }
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Sitzung konnte nicht geladen werden.");
+      setSession(null);
+    } finally {
+      setBusy(false);
+    }
+  }, [token]);
+
+  useEffect(() => { if (token) void loadHub(); }, [loadHub, token]);
+  useEffect(() => { if (token && selectedId) void loadSession(selectedId); }, [loadSession, selectedId, token]);
+  useEffect(() => {
+    if (!token || !session || session.status !== "live") return;
+    let cancelled = false;
+    const heartbeat = async () => {
+      const result = await liveViewerPresence(token, Number(session.id)).catch(() => null);
+      if (!cancelled && result) setSession(current => current ? { ...current, viewerCount: result.viewerCount } : current);
+    };
+    const refresh = async () => {
+      const [nextMessages, nextSession] = await Promise.all([liveMessages(token, Number(session.id)).catch(() => messages), liveById(token, Number(session.id)).catch(() => session)]);
+      if (!cancelled) { setMessages(nextMessages); setSession(nextSession); }
+    };
+    void heartbeat();
+    const heartbeatTimer = setInterval(() => void heartbeat(), 20_000);
+    const refreshTimer = setInterval(() => void refresh(), 6_000);
+    return () => { cancelled = true; clearInterval(heartbeatTimer); clearInterval(refreshTimer); };
+  }, [messages, session?.id, session?.status, token]);
+
+  const send = async () => {
+    if (!token || !session || session.status !== "live" || !messageText.trim() || busy) return;
+    setBusy(true);
+    try {
+      await liveSendMessage(token, { sessionId: Number(session.id), content: messageText.trim() });
+      setMessageText("");
+      setMessages(await liveMessages(token, Number(session.id)));
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Nachricht konnte nicht gesendet werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateStatus = async (nextStatus: "live" | "ended") => {
+    if (!token || !session || !canManage || busy) return;
+    setBusy(true);
+    try {
+      if (nextStatus === "live" && !session.stream) throw new Error("Für den Start wird eine echte Videoquelle benötigt.");
+      await liveUpdate(token, { id: Number(session.id), status: nextStatus, ...(nextStatus === "ended" ? { endsAt: new Date().toISOString() } : {}) });
+      await Promise.all([loadSession(Number(session.id)), loadHub()]);
+      setStatus(nextStatus === "live" ? "Stream gestartet." : "Stream beendet.");
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Live-Status konnte nicht aktualisiert werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const rotateKey = async () => {
+    if (!token || !session || !canManage || session.stream?.provider !== "self_hosted" || busy) return;
+    setBusy(true);
+    try {
+      const receipt = await liveRotateSelfHostedKey(token, Number(session.id));
+      setStatus(`Neuer Einspielschlüssel · ${receipt.path} · ${receipt.key}`);
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "Schlüssel konnte nicht rotiert werden.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!token) return <Page><ObservatoryContextHeader tone={tone} eyebrow="LIVE · NUR FÜR MITGLIEDER" title="ECHTE LIVE-SESSIONS." subtitle="Live-Sitzungen, Fachvorträge und der Member-Chat sind nur nach sicherer Anmeldung sichtbar." icon="radio-outline" /><PrivateFeature tone={tone} title="LIVE BLEIBT GESCHÜTZT." text="Melde dich an, damit Streamquellen, Chat und Zuschauerzahlen nur für aktive Konten geladen werden." onSignIn={onSignIn} /></Page>;
+  if (selectedId && session) {
+    const selfHosted = session.stream?.provider === "self_hosted";
+    const external = session.stream && !selfHosted ? session.stream.canonicalUrl : null;
+    return <Page refresh={() => loadSession(selectedId)} refreshing={busy}>
+      <SecondaryButton tone={tone} label="ZURÜCK ZUM LIVE-HUB" icon="arrow-back-outline" onPress={() => { setSelectedId(null); setSession(null); setMessages([]); }} />
+      <ObservatoryContextHeader tone={tone} eyebrow={`${session.track === "expert" ? "FACHVORTRAG · STAFF-ANGELEGT" : "COMMUNITY LIVE · MODERIERT"} · ${session.status.toUpperCase()}`} title={session.title} subtitle={session.description} icon="radio-outline" />
+      {canManage ? <View style={[styles.liveControlPanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>CONTROL DECK · ECHTZEIT</Text><Text style={styles.cardTitle}>{session.status === "live" ? "STREAM ONLINE" : session.status === "scheduled" ? "BEREIT ZUR SENDUNG" : "STREAM OFFLINE"}</Text><View style={styles.liveMetricRow}><Sensor color={tone.accent} icon="radio-outline" label="STATUS" value={session.status === "live" ? "ONLINE" : session.status.toUpperCase()} note={selfHosted ? "IONOS" : session.stream ? session.stream.provider.toUpperCase() : "QUELLE FEHLT"} /><Sensor color={tone.accent} icon="eye-outline" label="ZUSCHAUENDE" value={String(session.viewerCount)} note="aktive Mitglieder" /><Sensor color={tone.accent} icon="chatbubble-ellipses-outline" label="CHAT" value={session.status === "live" ? "OFFEN" : "ZU"} note="moderiert" /></View><View style={styles.inlineButtons}><PrimaryButton tone={tone} label="STREAM STARTEN" icon="play" disabled={busy || session.status === "live" || session.status === "ended" || !session.stream} onPress={() => void updateStatus("live")} /><SecondaryButton tone={tone} label="STREAM BEENDEN" icon="stop" disabled={busy || session.status !== "live"} onPress={() => void updateStatus("ended")} />{selfHosted ? <SecondaryButton tone={tone} label="SCHLÜSSEL ROTIEREN" icon="refresh-outline" disabled={busy || session.status === "ended"} onPress={() => void rotateKey()} /> : null}</View></View> : null}
+      <View style={[styles.liveStage, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.liveStageMeta}><Text style={[styles.chip, { color: tone.accent }]}>{session.status === "live" ? "LIVE-ÜBERTRAGUNG" : session.status === "scheduled" ? "BEGINN GEPLANT" : "ÜBERTRAGUNG BEENDET"}</Text><Text style={styles.miniCopy}>{session.viewerCount} ZUSCHAUENDE · {new Date(session.startsAt).toLocaleString("de-DE")}</Text></View>{session.status === "live" && selfHosted && ticketUrl ? <NativeSelfHostedPlayer ticketUrl={ticketUrl} token={token} title={session.title} /> : session.status === "live" && external ? <View style={styles.liveExternalPlayer}><Ionicons name="open-outline" size={28} color={tone.accent} /><Text style={styles.cardTitle}>{session.stream?.provider === "youtube" ? "YOUTUBE LIVE" : "TWITCH"}</Text><Text style={styles.copy}>Die geprüfte Anbieterquelle wird in der nativen App sicher außerhalb des eingebetteten Webplayers geöffnet.</Text><PrimaryButton tone={tone} label="BEIM ANBIETER ÖFFNEN" icon="open-outline" onPress={() => void Linking.openURL(external).catch(() => setStatus("Anbieterquelle konnte nicht geöffnet werden."))} /></View> : <StatusPanel tone={tone} icon="radio-outline" code="LIVE / QUELLE" title={session.status === "scheduled" ? "ÜBERTRAGUNG BEGINNT ZUM TERMIN" : "KEINE AKTIVE ÜBERTRAGUNG"} text="Es wird kein Videobild simuliert. Eine echte Quelle wird erst nach serverseitiger Freigabe wiedergegeben." />}<View style={styles.livePresenter}><Text style={styles.cardTitle}>{session.presenterName}</Text><Text style={styles.miniCopy}>{session.presenterCredential ?? "Community-Host"}</Text></View></View>
+      <View style={[styles.liveChatPanel, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.liveChatHeading}><Text style={[styles.chip, { color: tone.accent }]}>MEMBER-CHAT</Text><Text style={styles.cardTitle}>DISKUSSION · {session.status === "live" ? "AKTIV" : "GESCHLOSSEN"}</Text></View><Text style={styles.miniCopy}>Nur angemeldete Konten · maximal sechs Nachrichten pro Minute · blockierte Konten bleiben ausgeblendet.</Text>{messages.length ? messages.map(message => <View key={message.id} style={styles.liveMessage}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{message.authorName ?? message.authorUsername ?? "Konto"}</Text><Text style={styles.date}>{new Date(message.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</Text></View><Text style={styles.copy}>{message.content}</Text></View>) : <Text style={styles.miniCopy}>Noch keine Nachricht in dieser Sitzung.</Text>}<View style={styles.commentComposer}><TextInput value={messageText} onChangeText={setMessageText} placeholder={session.status === "live" ? "Sachliche Nachricht schreiben …" : "Der Chat ist nur während einer Live-Sitzung offen."} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={session.status === "live" && !busy} /><Pressable style={[styles.commentSend, (busy || session.status !== "live") && { opacity: 0.45 }]} disabled={busy || session.status !== "live"} onPress={() => void send()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View></View>{status ? <Text style={[styles.formMessage, { color: tone.accent }]}>{status}</Text> : null}
+    </Page>;
+  }
+  const visible = sessions.filter(item => item.track === track);
+  const live = visible.filter(item => item.status === "live");
+  const scheduled = visible.filter(item => item.status === "scheduled");
+  const ended = visible.filter(item => item.status === "ended");
+  const group = (label: string, rows: LiveSession[], empty: string) => <View style={styles.liveGroup}><View style={styles.liveGroupHeading}><Text style={[styles.eyebrow, { color: tone.accent }]}>{label}</Text><Text style={[styles.chip, { color: tone.accent }]}>{rows.length}</Text></View>{rows.length ? rows.map(item => <Pressable key={item.id} onPress={() => setSelectedId(Number(item.id))} style={[styles.liveSessionCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.liveSessionBadge}><Ionicons name={item.status === "live" ? "radio" : "calendar-outline"} size={14} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>{item.status === "live" ? "LIVE" : item.status === "scheduled" ? "GEPLANT" : "BEENDET"}</Text></View><Text style={styles.cardTitle}>{item.title}</Text><Text style={styles.copy}>{item.description}</Text><Text style={styles.miniCopy}>{item.presenterName}{item.presenterCredential ? ` · ${item.presenterCredential}` : " · Community-Host"}</Text><Text style={styles.miniCopy}>{item.status === "live" ? `${item.viewerCount} ZUSCHAUENDE · ` : ""}{new Date(item.startsAt).toLocaleString("de-DE")}</Text><Ionicons name="arrow-forward-outline" size={17} color={tone.accent} style={styles.liveSessionArrow} /></Pressable>) : <View style={[styles.liveEmpty, { borderColor: `${tone.accent}44` }]}><Ionicons name="radio-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>{empty}</Text></View>}</View>;
+  return <Page refresh={loadHub} refreshing={loadState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="LIVE · NUR FÜR MITGLIEDER · ANGEMELDET" title="ECHTE LIVE-SESSIONS." subtitle="Eigene IONOS-Übertragungen, YouTube Live und Twitch werden nur mit echter Quelle angezeigt." icon="radio-outline" /><View style={[styles.liveTrackPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>ZWEI GETRENNTE FORMATE</Text><Text style={styles.cardTitle}>{track === "community" ? "COMMUNITY LIVE" : "FACHVORTRÄGE"}</Text><Text style={styles.copy}>{track === "community" ? "Offener, moderierter Austausch für angemeldete Mitglieder." : "Von aktivem Staff angelegte Vorträge mit serverseitig dokumentierter Qualifikation."}</Text><View style={styles.liveTrackButtons}><Pressable onPress={() => setTrack("community")} style={[styles.liveTrackButton, { borderColor: track === "community" ? tone.accent : `${tone.accent}55`, backgroundColor: track === "community" ? `${tone.accent}22` : "transparent" }]}><Ionicons name="people-outline" size={17} color={tone.accent} /><Text style={styles.miniCopy}>COMMUNITY</Text></Pressable><Pressable onPress={() => setTrack("expert")} style={[styles.liveTrackButton, { borderColor: track === "expert" ? tone.accent : `${tone.accent}55`, backgroundColor: track === "expert" ? `${tone.accent}22` : "transparent" }]}><Ionicons name="person-outline" size={17} color={tone.accent} /><Text style={styles.miniCopy}>FACHVORTRÄGE</Text></Pressable></View><Text style={styles.miniCopy}>{capabilities?.enabled ? "IONOS-Medienserver verbunden." : "IONOS-Medienserver noch nicht verbunden. Externe Quellen bleiben separat gekennzeichnet."}</Text></View>{loadState === "loading" ? <Loading tone={tone} /> : loadState === "error" ? <ErrorNotice text={status ?? "Live-Hub konnte nicht geladen werden."} /> : <>{group("JETZT LIVE", live, "Aktuell ist keine echte Übertragung gestartet.")}{group("GEPLANT", scheduled, "Derzeit sind keine weiteren Sitzungen terminiert.")}{group("ABGESCHLOSSEN", ended, "Noch keine abgeschlossenen Sitzungen in diesem Bereich.")}</>}{status ? <Text style={[styles.formMessage, { color: tone.accent }]}>{status}</Text> : null}</Page>;
 }
 
 function PhotoScreen({
@@ -2208,7 +2724,7 @@ function PhotoScreen({
     );
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="MOMENT FESTHALTEN"
         title="FOTO"
@@ -2231,8 +2747,9 @@ function PhotoScreen({
           text="Kamera oder Mediathek werden erst im nächsten Schritt und nur nach deiner Auswahl geöffnet."
         />
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Pflanzenfoto",
@@ -2264,100 +2781,208 @@ function PhotoScreen({
           },
         ]}
       />
-      {token ? <View style={[styles.photoObservationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>PRIVATE BEOBACHTUNGEN</Text><Text style={styles.cardTitle}>{observations.length} gespeicherte Momente</Text></View><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /></View>{observationSync.pending || observationSync.imagePending || observationSync.conflicts ? <Text style={[styles.copy, { color: observationSync.conflicts ? c.danger : tone.accent }]}>{observationSync.conflicts ? `${observationSync.conflicts} Konflikt(e) prüfen` : `${observationSync.pending + observationSync.imagePending} Eintrag/Einträge warten auf Synchronisierung`}</Text> : <Text style={styles.copy}>Synchronisiert · nur für dich sichtbar</Text>}{observations.slice(0, 3).map(item => <View key={item.id} style={[styles.photoObservationRow, { borderColor: `${tone.accent}33` }]}><Ionicons name="eye-outline" size={16} color={tone.accent} /><View style={styles.flex}><Text style={styles.cardTitle}>{item.subject || item.scientificName || "Privater Moment"}</Text><Text style={styles.miniCopy}>{item.realm.toUpperCase()} · {new Date(item.createdAt).toLocaleDateString("de-DE")}</Text></View></View>)}</View> : null}
+      {token ? <View style={[styles.photoObservationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.explorePanelHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>PRIVATE BEOBACHTUNGEN</Text><Text style={styles.cardTitle}>{observations.length} gespeicherte Momente</Text></View><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /></View>{observationSync.pending || observationSync.imagePending || observationSync.conflicts ? <Text style={[styles.copy, { color: observationSync.conflicts ? c.danger : tone.accent }]}>{observationSync.conflicts ? `${observationSync.conflicts} Konflikt(e) prüfen` : `${observationSync.pending + observationSync.imagePending} Eintrag/Einträge warten auf Synchronisierung`}</Text> : <Text style={styles.copy}>Synchronisiert · nur für dich sichtbar</Text>}{observations.slice(0, 3).map(item => <View key={item.id} style={[styles.photoObservationRow, { borderColor: `${tone.accent}33` }]}><Ionicons name="eye-outline" size={16} color={tone.accent} /><View style={styles.flex}><Text style={styles.cardTitle}>{item.subject || item.scientificName || "Privater Moment"}</Text><Text style={styles.miniCopy}>{item.realm.toUpperCase()} · {new Date(item.createdAt).toLocaleDateString("de-DE")}</Text>{item.aiCandidates.length ? <View style={[styles.nativeCandidateBox, { borderColor: `${tone.accent}55` }]}><Text style={[styles.miniCopy, { color: tone.accent }]}>KI-KANDIDATEN · NICHT VERIFIZIERT</Text>{item.aiCandidates.slice(0, 3).map(candidate => <Text key={candidate.scientificName} style={styles.miniCopy}>{candidate.scientificName}{candidate.confidenceBand ? ` · ${candidate.confidenceBand}` : ""}</Text>)}</View> : null}</View></View>)}</View> : null}
     </Page>
   );
 }
 
+type NativeCommunityUploadProgress = {
+  percent: number;
+  label: string;
+  detail: string;
+  phase: "draft" | "processing" | "transfer" | "publishing" | "complete";
+};
+
+function NativeUploadProgressCard({ tone, progress }: { tone: Tone; progress: NativeCommunityUploadProgress }) {
+  const stages = [["draft", "Entwurf"], ["processing", "Bild aufbereiten"], ["transfer", "Übertragen"], ["publishing", "Veröffentlichen"]] as const;
+  const activeStage = stages.findIndex(([phase]) => phase === progress.phase);
+  return <View style={[styles.nativeUploadProgress, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}10` }]} accessibilityRole="progressbar" accessibilityLabel={`Bildupload: ${progress.label}, ${progress.percent} Prozent`} accessibilityValue={{ min: 0, max: 100, now: progress.percent }}>
+    <View style={styles.nativeUploadProgressTop}><ActivityIndicator size="small" color={tone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>{progress.label}</Text><Text style={styles.miniCopy}>{progress.detail}</Text></View><Text style={[styles.nativeUploadPercent, { color: tone.accent }]}>{progress.percent}%</Text></View>
+    <View style={styles.nativeUploadTrack}><View style={[styles.nativeUploadFill, { width: `${progress.percent}%`, backgroundColor: tone.accent }]} /></View>
+    <View style={styles.nativeUploadStages}>{stages.map(([phase, label], index) => <View key={phase} style={styles.nativeUploadStage}><Ionicons name={index < activeStage || progress.phase === "complete" ? "checkmark-circle" : index === activeStage ? "ellipse" : "ellipse-outline"} size={12} color={index <= activeStage || progress.phase === "complete" ? tone.accent : c.muted} /><Text style={[styles.nativeUploadStageText, { color: index <= activeStage || progress.phase === "complete" ? c.text : c.muted }]}>{label}</Text></View>)}</View>
+  </View>;
+}
+
 function PostScreen({
   token,
+  isAdmin,
+  initialEditPost,
   tone,
   onSignIn,
   navigate,
 }: {
   token: string | null;
+  isAdmin: boolean;
+  initialEditPost: OwnCommunityPost | null;
   tone: Tone;
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
 }) {
   const [content, setContent] = useState("");
-  const [realm, setRealm] = useState<Realm>("botany");
-  const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null } | null>(null);
+  const [realm, setRealm] = useState<Realm | null>("botany");
+  const [adminAllFeeds, setAdminAllFeeds] = useState(false);
+  const [postImage, setPostImage] = useState<{ uri: string; mimeType: "image/jpeg" | "image/png" | "image/webp"; fileSize: number | null; width: number; height: number } | null>(null);
+  const [postAspect, setPostAspect] = useState<"original" | "9:16" | "4:5" | "1:1" | "16:9">("original");
+  const [postQuality, setPostQuality] = useState(92);
+  const [estimatedPostBytes, setEstimatedPostBytes] = useState<number | null>(null);
+  const [postVideo, setPostVideo] = useState<{ uri: string; mimeType: "video/mp4" | "video/webm"; fileSize: number | null } | null>(null);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [publishNow, setPublishNow] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<NativeCommunityUploadProgress | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [ownPosts, setOwnPosts] = useState<OwnCommunityPost[]>([]);
   const [showOwnPosts, setShowOwnPosts] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editVisibility, setEditVisibility] = useState<"private" | "public">("private");
   useEffect(() => {
+    if (!initialEditPost) return;
+    setEditingPostId(initialEditPost.id);
+    setContent(initialEditPost.content);
+    setRealm(initialEditPost.realm);
+    setEditVisibility(initialEditPost.visibility);
+    setShowOwnPosts(true);
+  }, [initialEditPost]);
+  useEffect(() => {
+    if (!postImage) { setEstimatedPostBytes(null); return; }
+    let active = true;
+    const maxDimension = 3200;
+    const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
+    const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
+    void ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.82), format: ImageManipulator.SaveFormat.JPEG, base64: true }).then(result => { if (active) setEstimatedPostBytes(result.base64 ? Math.floor(result.base64.length * 0.75) : null); }).catch(() => { if (active) setEstimatedPostBytes(null); });
+    return () => { active = false; };
+  }, [postImage, postQuality]);
+  useEffect(() => {
     if (!token || !showOwnPosts) return;
     void myCommunityPosts(token).then(setOwnPosts).catch(() => setOwnPosts([]));
   }, [token, showOwnPosts]);
 
-  const choosePostImage = async () => {
+  const pulseNativeTransferProgress = (start: number, ceiling = 86) => {
+    let percent = start;
+    const handle = setInterval(() => {
+      percent = Math.min(ceiling, percent + (percent < 76 ? 2 : 1));
+      setUploadProgress(current => current?.phase === "transfer" ? { ...current, percent } : current);
+    }, 700);
+    return () => clearInterval(handle);
+  };
+
+  const choosePostImage = async (requestedAspect = postAspect) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert("Fotozugriff erforderlich", "Ohne Freigabe kann kein Bild an deinen Community-Beitrag angehängt werden.");
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.72, allowsEditing: false });
+    const aspect = requestedAspect === "9:16" ? [9, 16] as [number, number] : requestedAspect === "4:5" ? [4, 5] as [number, number] : requestedAspect === "1:1" ? [1, 1] as [number, number] : requestedAspect === "16:9" ? [16, 9] as [number, number] : undefined;
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: requestedAspect === postAspect ? postQuality / 100 : 0.92, allowsEditing: true, aspect });
     if (result.canceled || !result.assets[0]) return;
     const asset = result.assets[0];
     const rawMimeType = asset.mimeType?.toLowerCase();
     const mimeType = rawMimeType === "image/png" || rawMimeType === "image/webp" ? rawMimeType : "image/jpeg";
     const fileSize = typeof asset.fileSize === "number" ? asset.fileSize : null;
-    if (fileSize !== null && fileSize > 8 * 1024 * 1024) {
-      Alert.alert("Bild zu groß", "Bitte wähle ein Bild mit maximal 8 MB. Fotos aus der Kamera werden beim Auswählen bereits komprimiert.");
+    if (fileSize !== null && fileSize > 32 * 1024 * 1024) {
+      Alert.alert("Bild zu groß", "Bitte wähle ein Bild mit maximal 32 MB. Du kannst das Bild vor dem Upload zuschneiden.");
       return;
     }
-    setPostImage({ uri: asset.uri, mimeType, fileSize });
+    setPostAspect(requestedAspect);
+    setPostQuality(requestedAspect === postAspect ? postQuality : 92);
+    setPostImage({ uri: asset.uri, mimeType, fileSize, width: asset.width, height: asset.height });
+    setMediaConsent(false);
+  };
+
+  const choosePostVideo = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) { Alert.alert("Videorechte erforderlich", "Ohne Freigabe kann kein Video an deinen Community-Beitrag angehängt werden."); return; }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], allowsEditing: false, videoMaxDuration: 120 });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    const rawMimeType = asset.mimeType?.toLowerCase();
+    const mimeType = rawMimeType === "video/webm" || asset.uri.toLowerCase().endsWith(".webm") ? "video/webm" : "video/mp4";
+    const fileSize = typeof asset.fileSize === "number" ? asset.fileSize : null;
+    if (fileSize !== null && fileSize > 16 * 1024 * 1024) { Alert.alert("Video zu groß", "Bitte wähle ein MP4- oder WebM-Video mit maximal 16 MB."); return; }
+    setPostVideo({ uri: asset.uri, mimeType, fileSize });
+    setPostImage(null);
     setMediaConsent(false);
   };
 
   const save = async () => {
     if (!token || !content.trim() || saving) return;
-    if (postImage && !mediaConsent) {
-      Alert.alert("Foto-Freigabe erforderlich", "Bitte bestätige zuerst die sichere Bildverarbeitung für diesen Beitrag.");
+    if ((postImage || postVideo) && !mediaConsent) {
+      Alert.alert("Medienfreigabe erforderlich", "Bitte bestätige zuerst die sichere Verarbeitung dieses Mediums.");
       return;
     }
+    let stopTransferPulse: (() => void) | null = null;
     setSaving(true);
+    setUploadProgress({ percent: 8, phase: "draft", label: "ENTWURF WIRD VORBEREITET", detail: postImage || postVideo ? "Sichere Upload-Reihenfolge wird angelegt." : "Beitrag wird sicher gespeichert." });
     setStatus(null);
     try {
+      let imageXpAwarded = 0;
       if (publishNow)
         await setProfileConsent(token, {
           purpose: "community_publishing",
           policyVersion: "native-1.0.8",
           granted: true,
         });
-      if (postImage)
+      if (postImage || postVideo)
         await setProfileConsent(token, {
           purpose: "media_processing",
           policyVersion: "native-1.0.4",
           granted: true,
         });
+      // Host media uses the same secure upload pipeline, then becomes public in
+      // the explicitly selected feed (or all feeds) just like the web app.
+      const shouldPublish = true;
+      if (shouldPublish)
+        await setProfileConsent(token, {
+          purpose: "community_publishing",
+          policyVersion: "native-1.0.8",
+          granted: true,
+        });
       const draft = await createCommunityDraft(token, {
         content: content.trim(),
-        realm,
+        realm: adminAllFeeds ? null : realm,
       });
       if (postImage) {
-        const base64 = await FileSystem.readAsStringAsync(postImage.uri, { encoding: FileSystem.EncodingType.Base64 });
-        await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64, mimeType: postImage.mimeType });
+        const isLargeImage = Boolean(postImage.fileSize && postImage.fileSize >= 5 * 1024 * 1024);
+        setUploadProgress({ percent: 32, phase: "processing", label: "BILD WIRD FÜR DEN UPLOAD AUFBEREITET", detail: isLargeImage ? "Großes Bild erkannt – Qualität und Format werden sicher optimiert." : "Format und Qualität werden für den sicheren Transport geprüft." });
+        const maxDimension = 3200;
+        const scale = Math.min(1, maxDimension / Math.max(postImage.width, postImage.height));
+        const actions = scale < 1 ? [{ resize: { width: Math.round(postImage.width * scale), height: Math.round(postImage.height * scale) } }] : [];
+        const prepared = await ImageManipulator.manipulateAsync(postImage.uri, actions, { compress: Math.min(postQuality / 100, 0.82), format: ImageManipulator.SaveFormat.JPEG, base64: true });
+        if (!prepared.base64) throw new Error("image_read_failed");
+        setUploadProgress({ percent: 65, phase: "transfer", label: "BILD WIRD SICHER HOCHGELADEN", detail: isLargeImage ? "Große Bilder können je nach Verbindung etwas länger übertragen werden. Bitte die App geöffnet lassen." : "Verschlüsselte Übertragung an den geschützten Medienserver läuft." });
+        stopTransferPulse = pulseNativeTransferProgress(65);
+        const uploadedImage = await uploadCommunityDraftImage(token, { postId: Number(draft.id), base64: prepared.base64, mimeType: "image/jpeg" });
+        stopTransferPulse(); stopTransferPulse = null;
+        imageXpAwarded = uploadedImage.xpAwarded;
       }
-      if (publishNow)
+      if (postVideo) {
+        setUploadProgress({ percent: 65, phase: "transfer", label: "VIDEO WIRD SICHER HOCHGELADEN", detail: "Verschlüsselte Übertragung an den geschützten Medienserver läuft." });
+        stopTransferPulse = pulseNativeTransferProgress(65);
+        const base64 = await FileSystem.readAsStringAsync(postVideo.uri, { encoding: FileSystem.EncodingType.Base64 });
+        await uploadCommunityDraftVideo(token, { postId: Number(draft.id), base64, mimeType: postVideo.mimeType });
+        stopTransferPulse(); stopTransferPulse = null;
+      }
+      if (shouldPublish) {
+        setUploadProgress({ percent: 90, phase: "publishing", label: "BEITRAG WIRD VERÖFFENTLICHT", detail: isAdmin ? `Admin-Beitrag wird ${adminAllFeeds ? "an alle Feeds" : "an den gewählten Feed"} veröffentlicht.` : "Sichtbarkeit und gewählter Ziel-Feed werden abschließend gesetzt." });
         await publishCommunityDraft(token, { postId: Number(draft.id) });
+      }
+      setUploadProgress({ percent: 100, phase: "complete", label: "UPLOAD ABGESCHLOSSEN", detail: "Bild und Beitrag wurden sicher gespeichert." });
       setContent("");
+      setRealm("botany");
+      setAdminAllFeeds(false);
       setPostImage(null);
+      setUploadProgress(null);
+      setPostAspect("original");
+      setPostQuality(92);
+      setEstimatedPostBytes(null);
+      setPostVideo(null);
       setMediaConsent(false);
       setPublishNow(false);
       if (showOwnPosts) setOwnPosts(await myCommunityPosts(token));
-      setStatus(
-        publishNow
-          ? "Beitrag öffentlich veröffentlicht."
-          : "Privater Entwurf gespeichert."
-      );
+      setStatus(`${isAdmin ? "Admin-Beitrag öffentlich veröffentlicht" : "Beitrag öffentlich veröffentlicht"}${imageXpAwarded ? ` · +${imageXpAwarded} XP für dein Naturbild` : ""}.`);
     } catch (cause) {
+      stopTransferPulse?.();
+      setUploadProgress(null);
       setStatus(
         cause instanceof Error
           ? cause.message
@@ -2370,7 +2995,7 @@ function PostScreen({
   const startPostEdit = (post: OwnCommunityPost) => {
     setEditingPostId(post.id);
     setContent(post.content);
-    setRealm(post.realm ?? "botany");
+    setRealm(post.realm ?? null);
     setPostImage(null);
     setMediaConsent(false);
     setEditVisibility(post.visibility);
@@ -2394,7 +3019,7 @@ function PostScreen({
   };
   return (
     <Page>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="COMMUNITY / BEITRAG"
         title="TEILE DEINEN MOMENT."
@@ -2416,15 +3041,14 @@ function PostScreen({
           ]}
         >
           <Text style={[styles.chip, { color: tone.accent }]}>
-            PRIVATE_DRAFT
+            BEITRAG ERSTELLEN
           </Text>
           <Text style={styles.cardTitle}>NATURMOMENT ERFASSEN</Text>
           <Text style={styles.copy}>
-            Es werden keine Beispielbeiträge erstellt. Dein Entwurf bleibt
-            privat, bis du die Veröffentlichung ausdrücklich aktivierst.
+            Teile einen echten Naturmoment. Beiträge werden erst nach deiner ausdrücklichen Freigabe veröffentlicht.
           </Text>
           {token ? <SecondaryButton tone={tone} label={showOwnPosts ? "EIGENE BEITRÄGE AUSBLENDEN" : "EIGENE BEITRÄGE VERWALTEN"} icon={showOwnPosts ? "chevron-up-outline" : "create-outline"} onPress={() => setShowOwnPosts(value => !value)} /> : null}
-          {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "ohne Bereich"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
+          {showOwnPosts && ownPosts.length ? <View style={styles.ownPosts}><Text style={[styles.chip, { color: tone.accent }]}>MEINE BEITRÄGE</Text>{ownPosts.slice(0, 8).map(post => <Pressable key={post.id} style={[styles.ownPost, { borderColor: `${tone.accent}55` }]} onPress={() => startPostEdit(post)}><View style={styles.flex}><Text style={[styles.ownPostStatus, { color: tone.accent }]}>{post.visibility === "public" ? "ÖFFENTLICH" : "PRIVAT"} · {post.realm ?? "alle Bereiche"}</Text><Text style={styles.ownPostText} numberOfLines={2}>{post.content}</Text></View><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable>)}</View> : null}
           {editingPostId !== null ? <Text style={[styles.chip, { color: tone.accent }]}>BEITRAG BEARBEITEN · {editVisibility === "public" ? "ÖFFENTLICH" : "PRIVAT"}</Text> : null}
           <LabeledInput
             tone={tone}
@@ -2435,17 +3059,17 @@ function PostScreen({
             multiline
           />
           <View style={styles.realmPicker}>
-            {(["botany", "aquarium", "terrarium"] as Realm[]).map(item => (
+            {(isAdmin ? (["botany", "aquarium", "terrarium", "all"] as const) : (["botany", "aquarium", "terrarium"] as const)).map(item => (
               <Pressable
-                key={item}
-                onPress={() => setRealm(item)}
+                key={item ?? "all"}
+                onPress={() => { if (item === "all") { setAdminAllFeeds(true); setRealm(null); } else { setAdminAllFeeds(false); setRealm(item); } }}
                 style={({ pressed }) => [
                   styles.realmButton,
                   {
                     borderColor:
-                      realm === item ? tone.accent : `${tone.accent}44`,
+                      ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? tone.accent : `${tone.accent}44`,
                     backgroundColor:
-                      realm === item ? `${tone.accent}24` : "rgba(0,0,0,.18)",
+                      ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? `${tone.accent}24` : "rgba(0,0,0,.18)",
                   },
                   pressed && styles.pressed,
                 ]}
@@ -2453,10 +3077,12 @@ function PostScreen({
                 <Text
                   style={[
                     styles.realmText,
-                    { color: realm === item ? c.text : c.muted },
+                    { color: ((item === "all" && adminAllFeeds) || (item !== "all" && realm === item)) ? c.text : c.muted },
                   ]}
                 >
-                  {item === "botany"
+                  {item === "all"
+                    ? "ALLE FEEDS · ADMIN"
+                    : item === "botany"
                     ? "BOTANIK"
                     : item === "aquarium"
                       ? "AQUARISTIK"
@@ -2467,10 +3093,10 @@ function PostScreen({
           </View>
           {editingPostId === null ? <View style={[styles.communityMediaPanel, { borderColor: `${tone.accent}55`, backgroundColor: "rgba(0,0,0,.16)" }]}>
             {postImage ? <>
-              <Image source={{ uri: postImage.uri }} style={styles.communityMediaPreview} />
+              <Image source={{ uri: postImage.uri }} style={[styles.communityMediaPreview, postAspect === "9:16" ? { aspectRatio: 9 / 16 } : postAspect === "4:5" ? { aspectRatio: 4 / 5 } : postAspect === "1:1" ? { aspectRatio: 1 } : postAspect === "16:9" ? { aspectRatio: 16 / 9 } : null]} />
               <View style={styles.communityMediaMeta}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>BILD BEREIT</Text><Text style={styles.miniCopy}>{postImage.fileSize ? `${Math.ceil(postImage.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Bild entfernen" onPress={() => { setPostImage(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View>
-              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>BILD SICHER VERARBEITEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB. Das Foto bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
-            </> : <Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO HINZUFÜGEN</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 8 MB</Text></View><Ionicons name="chevron-forward-outline" size={17} color={tone.accent} /></Pressable>}
+              <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><View style={styles.mediaAspectEditorNative}><Text style={[styles.chip, { color: tone.accent }]}>FORMAT VOR DEM UPLOAD</Text>{(["original", "9:16", "4:5", "1:1", "16:9"] as const).map(aspect => <Pressable key={aspect} onPress={() => { setPostAspect(aspect); void choosePostImage(aspect); }} style={[styles.mediaAspectOptionNative, { borderColor: postAspect === aspect ? tone.accent : `${tone.accent}55`, backgroundColor: postAspect === aspect ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: postAspect === aspect ? tone.accent : c.muted }]}>{aspect === "original" ? "Original" : aspect}</Text></Pressable>)}</View><View style={styles.mediaQualityNative}><View style={styles.careSectionHeader}><Text style={[styles.chip, { color: tone.accent }]}>BILDQUALITÄT {postQuality}%</Text><Text style={styles.miniCopy}>{estimatedPostBytes === null ? "Berechne …" : `ca. ${(estimatedPostBytes / 1024 / 1024).toFixed(2)} MB · Original ${postImage?.fileSize ? (postImage.fileSize / 1024 / 1024).toFixed(2) : "—"} MB`}</Text></View><Slider minimumValue={50} maximumValue={100} step={1} value={postQuality} onValueChange={value => setPostQuality(Math.round(value))} minimumTrackTintColor={tone.accent} maximumTrackTintColor={`${tone.accent}44`} thumbTintColor={tone.accent} accessibilityLabel="Bildqualität" /></View><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>Das Medium bleibt privat, bis du den Beitrag ausdrücklich veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View>
+            </> : postVideo ? <><View style={[styles.communityMediaMeta, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>VIDEO BEREIT</Text><Text style={styles.miniCopy}>{postVideo.fileSize ? `${Math.ceil(postVideo.fileSize / 1024)} KB · wird privat verarbeitet` : "wird privat verarbeitet"}</Text></View><Pressable accessibilityLabel="Ausgewähltes Video entfernen" onPress={() => { setPostVideo(null); setMediaConsent(false); }} style={[styles.communityMediaRemove, { borderColor: `${tone.accent}88` }]}><Ionicons name="close-outline" size={18} color={tone.accent} /></Pressable></View><View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}><View style={styles.flex}><Text style={styles.cardTitle}>MEDIUM SICHER VERARBEITEN</Text><Text style={styles.copy}>MP4 oder WebM bis 16 MB. Das Video bleibt privat, bis du veröffentlichst.</Text></View><Switch value={mediaConsent} onValueChange={setMediaConsent} trackColor={{ false: "#345440", true: tone.accent }} thumbColor={mediaConsent ? c.bg : c.muted} /></View></> : <View style={styles.communityMediaPickerRow}><Pressable accessibilityLabel="Bild für Community-Beitrag auswählen" onPress={() => void choosePostImage()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="images-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>FOTO</Text><Text style={styles.copy}>JPG, PNG oder WebP bis 32 MB · hohe Qualität · 9:16 möglich</Text></View></Pressable><Pressable accessibilityLabel="Video für Community-Beitrag auswählen" onPress={() => void choosePostVideo()} style={[styles.communityMediaPicker, { borderColor: `${tone.accent}66` }]}><Ionicons name="videocam-outline" size={20} color={tone.accent} /><View style={styles.flex}><Text style={[styles.cardTitle, { color: tone.accent }]}>VIDEO</Text><Text style={styles.copy}>MP4/WebM bis 16 MB</Text></View></Pressable></View>}
           </View> : null}
           <View style={[styles.switchRow, { borderColor: `${tone.accent}55` }]}>
             <View style={styles.flex}>
@@ -2488,11 +3114,12 @@ function PostScreen({
           </View>
           <PrimaryButton
             tone={tone}
-            label={saving ? "WIRD GESPEICHERT …" : editingPostId !== null ? "ÄNDERUNG SPEICHERN" : publishNow ? "BEITRAG VERÖFFENTLICHEN" : "PRIVATEN ENTWURF SPEICHERN"}
+            label={saving ? "WIRD HOCHGELADEN …" : editingPostId !== null ? "ÄNDERUNG SPEICHERN" : publishNow ? "BEITRAG VERÖFFENTLICHEN" : "SICHER HOCHLADEN"}
             icon="send-outline"
             disabled={saving || !content.trim()}
             onPress={() => void (editingPostId !== null ? savePostEdit() : save())}
           />
+          {uploadProgress ? <NativeUploadProgressCard tone={tone} progress={uploadProgress} /> : null}
           {status ? (
             <Text style={[styles.formMessage, { color: tone.accent }]}>
               {status}
@@ -2500,8 +3127,9 @@ function PostScreen({
           ) : null}
         </View>
       )}
-      <ActionGrid
+      <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Beitrag",
@@ -2563,7 +3191,7 @@ function KnowledgeScreen({
 }) {
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="WISSEN & EVIDENZ"
         title="WISSEN BRAUCHT QUELLEN."
@@ -2600,16 +3228,23 @@ function MarketplaceScreen({
   state,
   error,
   refresh,
+  token,
+  onSignIn,
 }: {
   tone: Tone;
   products: MarketplaceProduct[];
   state: State;
   error: string | null;
   refresh: () => Promise<void>;
+  token: string | null;
+  onSignIn: () => Promise<void>;
 }) {
   const [selectedPartnerId, setSelectedPartnerId] = useState<number | null>(null);
   const [category, setCategory] = useState("Alle");
   const [sort, setSort] = useState<"updated" | "name" | "price-low" | "price-high">("updated");
+  const [partnerMessage, setPartnerMessage] = useState("");
+  const [partnerNotice, setPartnerNotice] = useState<string | null>(null);
+  const [partnerSending, setPartnerSending] = useState(false);
   const shops = Array.from(new Map(products.map(product => [product.partnerId, { partnerId: product.partnerId, partnerName: product.partnerName, products: products.filter(item => item.partnerId === product.partnerId) }])).values());
   const recordProductEvent = async (product: MarketplaceProduct, eventType: "outbound_click" | "purchase_intent") => {
     try {
@@ -2619,6 +3254,17 @@ function MarketplaceScreen({
     }
   };
   const selectedShop = shops.find(shop => shop.partnerId === selectedPartnerId) ?? null;
+  const sendPartnerInquiry = async () => {
+    if (!token) return void onSignIn();
+    if (partnerMessage.trim().length < 3) { setPartnerNotice("Bitte beschreibe kurz dein Vorhaben."); return; }
+    setPartnerSending(true); setPartnerNotice(null);
+    try {
+      const result = await submitPartnerInquiry(token, partnerMessage.trim());
+      setPartnerMessage(""); setPartnerNotice(result.message);
+    } catch {
+      setPartnerNotice("Die Partneranfrage konnte nicht gespeichert werden. Bitte versuche es erneut.");
+    } finally { setPartnerSending(false); }
+  };
   const categories = selectedShop ? ["Alle", ...Array.from(new Set(selectedShop.products.map(product => product.marketplaceCategory).filter((value): value is string => Boolean(value))))] : [];
   const visibleProducts = selectedShop ? selectedShop.products.filter(product => category === "Alle" || product.marketplaceCategory === category).slice().sort((a, b) => {
     if (sort === "name") return a.title.localeCompare(b.title, "de");
@@ -2630,7 +3276,7 @@ function MarketplaceScreen({
   }) : [];
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="MARKTPLATZ"
         title={selectedShop ? selectedShop.partnerName.toUpperCase() : "DEIN WEG. DEIN SHOP."}
@@ -2651,6 +3297,17 @@ function MarketplaceScreen({
         <Text style={styles.copy}>
           {selectedShop ? "Dieser Bereich gehört ausschließlich zu diesem Händler. Preise, Verfügbarkeit und Versand stammen aus dessen veröffentlichtem Angebot." : "Keine vermischte Produktwand: Jeder Händler erhält seinen eigenen Shopbereich."}
         </Text>
+      </View>
+      <View style={[styles.infoCard, { borderColor: `${tone.accent}77`, backgroundColor: tone.panel }]}>
+        <Text style={[styles.chip, { color: tone.accent }]}>PARTNER WERDEN</Text>
+        <Text style={styles.cardTitle}>MIT BLACKWATERLEAF ZUSAMMENARBEITEN</Text>
+        <Text style={styles.copy}>Sende deine Anfrage direkt aus deinem Konto. Die Eingangsbestätigung erscheint anschließend in deinem Benachrichtigungscenter.</Text>
+        {token ? <TextInput value={partnerMessage} onChangeText={setPartnerMessage} placeholder="Womit möchtest du BlackWaterLeaf unterstützen?" placeholderTextColor={c.muted} multiline style={[styles.searchInput, { borderColor: `${tone.accent}66`, minHeight: 84, textAlignVertical: "top" }]} /> : null}
+        <Pressable style={[styles.secondaryButton, { borderColor: `${tone.accent}88` }]} onPress={() => void sendPartnerInquiry()} disabled={partnerSending}>
+          <Ionicons name={token ? "send-outline" : "log-in-outline"} size={16} color={tone.accent} />
+          <Text style={[styles.secondaryButtonText, { color: tone.accent }]}>{partnerSending ? "WIRD GESENDET …" : token ? "PARTNERANFRAGE SENDEN" : "ANMELDEN UND ANFRAGEN"}</Text>
+        </Pressable>
+        {partnerNotice ? <Text style={[styles.miniCopy, { color: tone.accent }]} accessibilityRole="text">{partnerNotice}</Text> : null}
       </View>
       {state === "loading" ? (
         <Loading tone={tone} />
@@ -2713,6 +3370,9 @@ function CommunityScreen({
   token,
   onSignIn,
   navigate,
+  onOpenDetail,
+  onOpenProfile,
+  onEdit,
 }: {
   tone: Tone;
   account: Account | null;
@@ -2723,18 +3383,48 @@ function CommunityScreen({
   token: string | null;
   onSignIn: () => Promise<void>;
   navigate: (screen: Screen) => void;
+  onOpenDetail: (id: string) => void;
+  onOpenProfile: (id: number) => void;
+  onEdit: (post: CommunityPost) => void;
 }) {
+  const [realmFilter, setRealmFilter] = useState<"all" | Realm>("all");
+  const [adminProfile, setAdminProfile] = useState<Awaited<ReturnType<typeof socialAdminProfile>> | null>(null);
+  const [subscriptionBusy, setSubscriptionBusy] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void socialAdminProfile(token).then(profile => { if (active) setAdminProfile(profile); }).catch(() => { if (active) setAdminProfile(null); });
+    return () => { active = false; };
+  }, [token]);
+  const toggleAdminSubscription = async () => {
+    if (!token || !adminProfile || subscriptionBusy) { if (!token) await onSignIn(); return; }
+    setSubscriptionBusy(true);
+    try {
+      if (adminProfile.isFollowing) await unfollowProfile(token, Number(adminProfile.id));
+      else await followProfile(token, Number(adminProfile.id));
+      setAdminProfile(await socialAdminProfile(token));
+    } catch (cause) {
+      Alert.alert("Abo nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen.");
+    } finally { setSubscriptionBusy(false); }
+  };
+  const uniquePosts = useMemo(() => Array.from(new Map(posts.map(post => [String(post.id), post])).values()), [posts]);
+  const visiblePosts = uniquePosts.filter(post => realmFilter === "all" || post.realm === realmFilter);
+  if (!token) return <Page>
+    <ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · GESCHÜTZT" title="MITGLIEDERBEREICH." subtitle="Beiträge, Diskussionen und Live-Austausch werden erst nach einer sicheren Anmeldung geladen." icon="people-outline" />
+    <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Der Community-Feed, einzelne Beiträge und Kommentare sind nur für angemeldete, aktive Konten sichtbar." onSignIn={onSignIn} />
+  </Page>;
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
-      <ReferenceHero
+      <ObservatoryContextHeader
         tone={tone}
         eyebrow="GEMEINSAM WACHSEN"
         title="COMMUNITY IN BEWEGUNG."
         subtitle="Echte Naturmomente von echten, aktiven Konten."
         icon="people-outline"
       />
-      <ActionGrid
+      {adminProfile ? <View style={[styles.communitySubscribeNative, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>OFFIZIELLES PROFIL</Text><Text style={styles.cardTitle}>BLACKWATERLEAF ABONNIEREN</Text><Text style={styles.miniCopy}>{adminProfile.followers} Follower · neue Naturbeiträge zuerst sehen</Text></View><PrimaryButton tone={tone} label={adminProfile.isFollowing ? "ABONNIERT" : "ABONNIEREN"} icon={adminProfile.isFollowing ? "checkmark-circle-outline" : "person-add-outline"} onPress={() => void toggleAdminSubscription()} disabled={subscriptionBusy} /></View> : null}
+      <ObservatoryActionCluster
         tone={tone}
+        visual
         actions={[
           {
             title: "Beobachten",
@@ -2752,29 +3442,35 @@ function CommunityScreen({
           },
         ]}
       />
+      <View style={[styles.communityFeedSelector, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+        <View style={styles.communityFeedSelectorHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>ÖFFENTLICHER FEED</Text><Text style={styles.cardTitle}>{realmFilter === "all" ? "ALLE BEREICHE" : realmFilter === "botany" ? "BOTANIK" : realmFilter === "aquarium" ? "AQUARISTIK" : "TERRARISTIK"}</Text></View><View style={[styles.communityFeedVerified, { borderColor: `${tone.accent}55` }]}><Ionicons name="shield-checkmark-outline" size={15} color={tone.accent} /><Text style={[styles.chip, { color: tone.accent }]}>MODERIERT</Text></View></View>
+        <Text style={styles.miniCopy}>Nur veröffentlichte Beiträge aktiver Konten. Private Entwürfe und blockierte Konten bleiben ausgeschlossen.</Text>
+        <View style={styles.communityFeedFilterRow}>{(["all", "botany", "aquarium", "terrarium"] as const).map(item => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: realmFilter === item }} onPress={() => setRealmFilter(item)} style={[styles.communityFeedFilter, { borderColor: realmFilter === item ? tone.accent : `${tone.accent}55`, backgroundColor: realmFilter === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, { color: realmFilter === item ? tone.accent : c.muted }]}>{item === "all" ? "Feed" : item === "botany" ? "Botanik" : item === "aquarium" ? "Aquaristik" : "Terraristik"}</Text></Pressable>)}</View>
+      </View>
       {state === "loading" ? (
         <Loading tone={tone} />
       ) : state === "error" ? (
         <ErrorNotice text={error ?? "Feed konnte nicht geladen werden."} />
-      ) : !posts.length ? (
+      ) : !visiblePosts.length ? (
         <StatusPanel
           tone={tone}
           icon="people-outline"
-          code="FEED / LEER"
-          title="NOCH KEINE ÖFFENTLICHEN BEITRÄGE"
-          text="Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen automatisch."
+          code={posts.length ? "FEED / BEREICH_LEER" : "FEED / LEER"}
+          title={posts.length ? "KEINE BEITRÄGE IN DIESEM BEREICH" : "NOCH KEINE ÖFFENTLICHEN BEITRÄGE"}
+          text={posts.length ? "Wähle einen anderen Bereich oder veröffentliche einen passenden Beitrag." : "Es werden keine Community-Daten erfunden. Neue veröffentlichte Beiträge erscheinen automatisch."}
           actionLabel={token ? "BEITRAG ERSTELLEN" : "SICHER ANMELDEN"}
           onAction={() => (token ? navigate("post") : void onSignIn())}
         />
       ) : (
         <View style={styles.stack}>
-          {posts.map(post => (
+          {visiblePosts.map(post => (
             <PostCard
               key={post.id}
               tone={tone}
               post={post}
               isOwner={Boolean(account?.id && String(account.id) === String(post.author.id))}
-              onEdit={() => navigate("post")}
+              accountId={account?.id ? Number(account.id) : null}
+              onEdit={() => onEdit(post)}
               onDelete={async () => {
                 if (!token) return;
                 await deleteCommunityPost(token, Number(post.id));
@@ -2795,6 +3491,8 @@ function CommunityScreen({
                 await blockCommunityUser(token, Number(post.author.id));
                 await refresh();
               }}
+              onOpenDetail={() => onOpenDetail(post.id)}
+              onOpenProfile={() => onOpenProfile(Number(post.author.id))}
               token={token}
             />
           ))}
@@ -2804,41 +3502,205 @@ function CommunityScreen({
   );
 }
 
-function CareScreen({ tone, token, tasks, plans, journal, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
+function CommunityPostDetailScreen({ tone, token, post, onBack, onSignIn, onRefresh, onOpenProfile, onLike, onReport, onBlock }: { tone: Tone; token: string | null; post: CommunityPost | null; onBack: () => void; onSignIn: () => Promise<void>; onRefresh: () => Promise<void>; onOpenProfile: (id: number) => void; onLike: (post: CommunityPost) => Promise<void>; onReport: (post: CommunityPost) => Promise<void>; onBlock: (post: CommunityPost) => Promise<void> }) {
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const loadComments = useCallback(async () => { if (token && post) setComments(await communityComments(token, Number(post.id))); }, [post, token]);
+  useEffect(() => { void loadComments(); }, [loadComments]);
+  const submit = async () => {
+    if (!token || !post || !commentText.trim() || busy) return;
+    setBusy(true);
+    try { await addCommunityComment(token, { postId: Number(post.id), parentId: replyTo, content: commentText.trim() }); setCommentText(""); setReplyTo(null); await loadComments(); await onRefresh(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setBusy(false); }
+  };
+  if (!post) return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><StatusPanel tone={tone} icon="people-outline" code="BEITRAG / NICHT_GEFUNDEN" title="BEITRAG NICHT VERFÜGBAR" text="Der Beitrag wurde entfernt oder ist für dieses Konto nicht sichtbar." /></Page>;
+  const detailDisplayName = [post.author.displayName, post.author.name, post.author.username].find(value => typeof value === "string" && value.trim().length > 0)?.trim() ?? "Verifiziertes Konto";
+  return <Page refresh={loadComments} refreshing={busy}><SecondaryButton tone={tone} label="ZURÜCK ZUR COMMUNITY" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · DETAILANSICHT" title="DISKUSSION." subtitle="Der vollständige Beitrag, Antworten und Moderationshinweise bleiben in einem geschützten Thread zusammen." icon="chatbubbles-outline" /><View style={[styles.infoCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.postHead}><View style={styles.postHeadCopy}><Pressable onPress={() => onOpenProfile(Number(post.author.id))} accessibilityRole="link" accessibilityLabel={`Profil von ${detailDisplayName}`}><Text style={styles.postAuthorName} numberOfLines={1} ellipsizeMode="tail">{detailDisplayName}</Text></Pressable><Text style={styles.date}>{new Date(post.createdAt).toLocaleString("de-DE")}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></View><Text style={styles.copy}>{post.content}</Text>{post.media[0] ? post.media[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={post.media[0].accessUrl} title="Community-Video" /> : <Image source={{ uri: post.media[0].accessUrl }} style={styles.postImage} /> : null}<View style={styles.postInteractionRow}><Pressable onPress={() => void onLike(post)} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport(post) }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable></View></View><View style={[styles.commentPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>DISKUSSION · {comments.length}</Text>{comments.length ? comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><View style={styles.liveMessageMeta}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.date}>{new Date(comment.createdAt).toLocaleString("de-DE")}</Text></View><Text style={styles.copy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>) : <Text style={styles.miniCopy}>Noch keine Kommentare. Starte die sachliche Diskussion.</Text>}{replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}{token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder={replyTo ? "Antwort schreiben …" : "Kommentar schreiben …"} placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} editable={!busy} /><Pressable style={[styles.commentSend, busy && { opacity: 0.45 }]} disabled={busy} onPress={() => void submit()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Pressable style={styles.secondaryButton} onPress={() => void onSignIn()}><Text style={styles.secondaryButtonText}>SICHER ANMELDEN, UM ZU ANTWORTEN</Text></Pressable>}</View></Page>;
+}
+
+function CareScreen({ tone, token, tasks, plans, journal, habitats, state, error, refresh, onSignIn }: { tone: Tone; token: string | null; tasks: CareTask[]; plans: CarePlan[]; journal: CareJournalEntry[]; habitats: Habitat[]; state: State; error: string | null; refresh: () => Promise<void>; onSignIn: () => Promise<void> }) {
   const [planTitle, setPlanTitle] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [journalText, setJournalText] = useState("");
   const [realm, setRealm] = useState<CarePlan["realm"]>("botany");
+  const [planHabitat, setPlanHabitat] = useState<number | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<number | null>(null);
+  const [repeatEveryDays, setRepeatEveryDays] = useState(0);
   const [busy, setBusy] = useState(false);
   const run = async (action: () => Promise<unknown>) => { setBusy(true); try { await action(); await refresh(); } catch (cause) { Alert.alert("Pflege konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
-  const addPlan = () => { if (!token || !planTitle.trim()) return; void run(async () => { const plan = await careCreatePlan(token, { realm, title: planTitle.trim() }); setPlanTitle(""); setSelectedPlan(plan.id); }); };
-  const addTask = () => { if (!token || !selectedPlan || !taskTitle.trim()) return; void run(async () => { await careCreateTask(token, { planId: selectedPlan, title: taskTitle.trim(), dueAt: new Date().toISOString() }); setTaskTitle(""); }); };
+  const addPlan = () => { if (!token || !planTitle.trim()) return; void run(async () => { const plan = await careCreatePlan(token, { realm, title: planTitle.trim(), habitatId: planHabitat }); setPlanTitle(""); setPlanHabitat(null); setSelectedPlan(plan.id); }); };
+  const addTask = () => { if (!token || !selectedPlan || !taskTitle.trim()) return; void run(async () => { await careCreateTask(token, { planId: selectedPlan, title: taskTitle.trim(), dueAt: new Date().toISOString(), repeatEveryDays: repeatEveryDays > 0 ? repeatEveryDays : null }); setTaskTitle(""); setRepeatEveryDays(0); }); };
   const addEntry = () => { if (!token || !journalText.trim()) return; void run(async () => { await careAddJournal(token, { note: journalText.trim() }); setJournalText(""); }); };
   return <Page refresh={refresh} refreshing={state === "loading"}>
-    <ReferenceHero tone={tone} eyebrow="PRIVATE CARE" title="HEUTE." subtitle="Eine klare Handlung nach der anderen. Pflege bleibt privat und nachvollziehbar." icon="leaf-outline" />
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVATE CARE" title="HEUTE." subtitle="Eine klare Handlung nach der anderen. Pflege bleibt privat und nachvollziehbar." icon="leaf-outline" />
     {!token ? <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Deine Pflegepläne und Notizen werden nur im eigenen Konto gespeichert." onSignIn={onSignIn} /> : null}
     {error ? <ErrorNotice text={error} /> : null}
     <View style={styles.careSectionHeader}><Text style={[styles.eyebrow, { color: tone.accent }]}>JETZT</Text><Text style={styles.sectionTitle}>OFFENE AUFGABEN</Text><Text style={styles.careCount}>{tasks.filter(task => task.status === "open" || task.status === "snoozed").length}</Text></View>
-    {tasks.filter(task => task.status === "open" || task.status === "snoozed").map(task => <View key={task.id} style={[styles.careTask, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="time-outline" size={19} color={tone.accent} /><View style={styles.careTaskCopy}><Text style={styles.cardTitle}>{task.title}</Text><Text style={styles.miniCopy}>{task.status === "snoozed" ? "verschoben" : "offen"}</Text></View><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "done" }))} style={styles.careIconButton}><Ionicons name="checkmark" size={17} color={tone.accent} /></Pressable><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "snoozed", reason: "Später" }))} style={styles.careIconButton}><Ionicons name="play-forward-outline" size={16} color={tone.accent} /></Pressable></View>)}
+    {tasks.filter(task => task.status === "open" || task.status === "snoozed").map(task => <View key={task.id} style={[styles.careTask, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="time-outline" size={19} color={tone.accent} /><View style={styles.careTaskCopy}><Text style={styles.cardTitle}>{task.title}</Text><Text style={styles.miniCopy}>{task.status === "snoozed" ? "verschoben" : "offen"}{task.repeatEveryDays ? ` · alle ${task.repeatEveryDays} Tage` : ""}</Text></View><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "done" }))} style={styles.careIconButton}><Ionicons name="checkmark" size={17} color={tone.accent} /></Pressable><Pressable disabled={busy} onPress={() => token && void run(() => careUpdateTask(token, { taskId: Number(task.id), status: "snoozed", reason: "Später" }))} style={styles.careIconButton}><Ionicons name="play-forward-outline" size={16} color={tone.accent} /></Pressable></View>)}
     {tasks.filter(task => task.status === "open" || task.status === "snoozed").length === 0 ? <Text style={styles.miniCopy}>Für heute ist nichts offen.</Text> : null}
-    <View style={[styles.carePanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>PLAN</Text><Text style={styles.cardTitle}>PFLEGE ANLEGEN</Text><View style={styles.careRealmRow}>{(["botany", "aquarium", "terrarium"] as const).map(item => <Pressable key={item} onPress={() => setRealm(item)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: realm === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, realm === item && { color: tone.accent }]}>{item === "botany" ? "Botanik" : item === "aquarium" ? "Aquaristik" : "Terraristik"}</Text></Pressable>)}</View><TextInput value={planTitle} onChangeText={setPlanTitle} placeholder="Planname, z. B. Morgenpflege" placeholderTextColor={c.muted} style={styles.careInput} /><PrimaryButton tone={tone} label={busy ? "SPEICHERN …" : "PLAN SPEICHERN"} icon="add" onPress={addPlan} />{plans.length ? <><Text style={[styles.eyebrow, { color: tone.accent }]}>AUFGABE FÜR PLAN</Text><View style={styles.careRealmRow}>{plans.map(plan => <Pressable key={plan.id} onPress={() => setSelectedPlan(plan.id)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: selectedPlan === plan.id ? `${tone.accent}22` : "transparent" }]}><Text style={styles.miniCopy}>{plan.title}</Text></Pressable>)}</View><TextInput value={taskTitle} onChangeText={setTaskTitle} placeholder="z. B. Feuchtigkeit prüfen" placeholderTextColor={c.muted} style={styles.careInput} /><SecondaryButton tone={tone} label={busy ? "SPEICHERN …" : "AUFGABE SPEICHERN"} icon="add" onPress={addTask} /></> : null}</View>
+    <View style={[styles.carePanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>PLAN</Text><Text style={styles.cardTitle}>PFLEGE ANLEGEN</Text><View style={styles.careRealmRow}>{(["botany", "aquarium", "terrarium"] as const).map(item => <Pressable key={item} onPress={() => setRealm(item)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: realm === item ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, realm === item && { color: tone.accent }]}>{item === "botany" ? "Botanik" : item === "aquarium" ? "Aquaristik" : "Terraristik"}</Text></Pressable>)}</View><TextInput value={planTitle} onChangeText={setPlanTitle} placeholder="Planname, z. B. Morgenpflege" placeholderTextColor={c.muted} style={styles.careInput} /><View style={styles.careRealmRow}>{habitats.map(habitat => <Pressable key={habitat.id} onPress={() => setPlanHabitat(Number(habitat.id))} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: planHabitat === Number(habitat.id) ? `${tone.accent}22` : "transparent" }]}><Text style={styles.miniCopy}>{habitat.name}</Text></Pressable>)}</View><PrimaryButton tone={tone} label={busy ? "SPEICHERN …" : "PLAN SPEICHERN"} icon="add" onPress={addPlan} />{plans.length ? <><Text style={[styles.eyebrow, { color: tone.accent }]}>AUFGABE FÜR PLAN</Text><View style={styles.careRealmRow}>{plans.map(plan => <Pressable key={plan.id} onPress={() => setSelectedPlan(plan.id)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: selectedPlan === plan.id ? `${tone.accent}22` : "transparent" }]}><Text style={styles.miniCopy}>{plan.title}</Text></Pressable>)}</View><TextInput value={taskTitle} onChangeText={setTaskTitle} placeholder="z. B. Feuchtigkeit prüfen" placeholderTextColor={c.muted} style={styles.careInput} /><View style={styles.careRealmRow}>{[0, 1, 7, 14, 30].map(days => <Pressable key={days} onPress={() => setRepeatEveryDays(days)} style={[styles.careRealmChip, { borderColor: `${tone.accent}55`, backgroundColor: repeatEveryDays === days ? `${tone.accent}22` : "transparent" }]}><Text style={[styles.miniCopy, repeatEveryDays === days && { color: tone.accent }]}>{days === 0 ? "Einmalig" : days === 1 ? "Täglich" : days === 7 ? "Wöchentlich" : days === 14 ? "14 Tage" : "Monatlich"}</Text></Pressable>)}</View><SecondaryButton tone={tone} label={busy ? "SPEICHERN …" : "AUFGABE SPEICHERN"} icon="add" onPress={addTask} /></> : null}</View>
     <View style={[styles.carePanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>JOURNAL · PRIVAT</Text><Text style={styles.cardTitle}>PFLEGEMOMENT FESTHALTEN</Text><TextInput value={journalText} onChangeText={setJournalText} placeholder="Was hast du beobachtet oder verändert?" placeholderTextColor={c.muted} multiline style={[styles.careInput, styles.careInputLarge]} /><PrimaryButton tone={tone} label={busy ? "SPEICHERN …" : "JOURNAL SPEICHERN"} icon="book-outline" onPress={addEntry} />{journal.slice(0, 3).map(entry => <View key={entry.id} style={styles.careJournal}><Text style={[styles.date, { color: tone.accent }]}>{new Date(entry.observedAt).toLocaleDateString("de-DE")}</Text><Text style={styles.miniCopy}>{entry.note}</Text></View>)}</View>
   </Page>;
 }
 
-function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void }) {
+function NotificationsScreen({ tone, token, notifications, state, error, refresh, navigate, onUnreadChange }: { tone: Tone; token: string | null; notifications: NativeNotification[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onUnreadChange: () => Promise<void> }) {
   const markAllRead = async () => {
     if (!token) return;
     await markNotificationsRead(token);
     await refresh();
+    await onUnreadChange();
   };
   return <Page refresh={refresh} refreshing={state === "loading"}>
-    <ReferenceHero tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · FEED" title="DEINE BENACHRICHTIGUNGEN." subtitle="Kommentare und wichtige Hinweise aus deinem BlackWaterLeaf-Konto." icon="notifications-outline" />
     <View style={styles.notificationActions}><SecondaryButton tone={tone} label="ALLE ALS GELESEN" icon="checkmark-done-outline" onPress={() => void markAllRead()} /></View>
-    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.postId) navigate("community"); await refresh(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "comment" ? "chatbubble-ellipses-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
+    {state === "error" ? <ErrorNotice text={error ?? "Benachrichtigungen konnten nicht geladen werden."} /> : notifications.length ? <View style={styles.stack}>{notifications.map(item => <Pressable key={item.id} accessibilityLabel="Benachrichtigung öffnen" onPress={async () => { if (token && !item.isRead) await markNotificationsRead(token, item.id); if (item.type === "message") navigate("messages"); else if (item.type === "feedback" || item.type === "partner_inquiry") navigate("dashboard"); else if (item.postId) navigate("community"); await refresh(); await onUnreadChange(); }} style={[styles.notificationRow, { borderColor: `${tone.accent}55`, backgroundColor: item.isRead ? tone.panel : `${tone.accent}14` }]}><Ionicons name={item.type === "message" ? "mail-outline" : item.type === "comment" ? "chatbubble-ellipses-outline" : item.type === "feedback" || item.type === "partner_inquiry" ? "bulb-outline" : "notifications-outline"} size={20} color={tone.accent} /><View style={styles.notificationCopy}><Text style={styles.cardTitle}>{item.actorName}</Text><Text style={styles.miniCopy}>{item.message}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>{!item.isRead ? <View style={[styles.unreadDot, { backgroundColor: tone.accent }]} /> : null}<Ionicons name="chevron-forward" size={17} color={c.muted} /></Pressable>)}</View> : <StatusPanel tone={tone} icon="notifications-outline" code="FEED / LEER" title="NOCH KEINE BENACHRICHTIGUNGEN" text="Neue Kommentare und Kontohinweise erscheinen hier." />}
   </Page>;
 }
+
+type DashboardErrorBoundaryProps = { children: ReactNode; onBack: () => void };
+type DashboardErrorBoundaryState = { failed: boolean };
+
+class DashboardErrorBoundary extends Component<DashboardErrorBoundaryProps, DashboardErrorBoundaryState> {
+  state: DashboardErrorBoundaryState = { failed: false };
+  static getDerivedStateFromError(): DashboardErrorBoundaryState { return { failed: true }; }
+  render() {
+    if (this.state.failed) {
+      return <Page><StatusPanel tone={TONES.dashboard} icon="warning-outline" code="DASHBOARD / UI_FEHLER" title="KONTROLLZENTRUM Konnte NICHT GEÖFFNET WERDEN" text="Ein einzelner Dashboard-Bereich hat ungültige Daten geliefert. Die App bleibt geöffnet; bitte zurückgehen und erneut laden." /><SecondaryButton tone={TONES.dashboard} label="ZURÜCK" icon="arrow-back-outline" onPress={this.props.onBack} /></Page>;
+    }
+    return this.props.children;
+  }
+}
+
+function NativeDashboardScreen({ tone, token, account, analytics, adminFeedback, adminPartnerInquiries, adminAccounts, adminPublicPosts, state, error, refresh, onBack, onSignIn }: { tone: Tone; token: string | null; account: Account | null; analytics: NativeAnalyticsOverview | null; adminFeedback: NativeAdminFeedback[]; adminPartnerInquiries: NativeAdminPartnerInquiry[]; adminAccounts: NativeAdminAccount[]; adminPublicPosts: NativeAdminPublicPost[]; state: State; error: string | null; refresh: () => Promise<void>; onBack: () => void; onSignIn: () => Promise<void> }) {
+  const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
+  if (!token) return <Page><PrivateFeature tone={tone} title="DASHBOARD GESCHÜTZT" text="Melde dich mit dem Eigentümerkonto an, um aggregierte Reichweitenzahlen zu sehen." onSignIn={onSignIn} /></Page>;
+  if (!isOwner) return <Page><StatusPanel tone={tone} icon="shield-checkmark-outline" code="OWNER_ONLY" title="KEIN ZUGRIFF" text="Dieses Dashboard ist ausschließlich für das serverseitig geprüfte BlackWaterLeaf-Eigentümerkonto freigegeben." /></Page>;
+  const metrics: Array<{ label: string; value: number; icon: IconName }> = analytics ? [
+    { label: "KONTEN", value: analytics.registeredAccounts, icon: "people-outline" },
+    { label: "SEITENAUFRUFE", value: analytics.pageViews, icon: "pulse-outline" },
+    { label: "BESUCHE", value: analytics.visitors, icon: "eye-outline" },
+    { label: "LOGINS", value: analytics.logins, icon: "log-in-outline" },
+  ] : [];
+  const maxPage = Math.max(1, ...(analytics?.popularPages ?? []).map(row => row.value));
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />
+    <ObservatoryContextHeader tone={tone} eyebrow="SERVER_VERIFIED · ADMIN" title="KONTROLLZENTRUM" subtitle="Echte, serverseitig aggregierte Nutzung. Keine IP-Adressen, Namen oder Kontoinhalte." icon="analytics-outline" />
+    {state === "loading" ? <Loading tone={tone} /> : state === "error" || !analytics ? <ErrorNotice text={error ?? "Analytics sind derzeit nicht verfügbar."} /> : <>
+      <View style={styles.dashboardGrid}>{metrics.map(metric => <View key={metric.label} style={[styles.dashboardMetric, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Ionicons name={metric.icon} size={22} color={tone.accent} /><Text style={[styles.eyebrow, { color: tone.accent }]}>{metric.label}</Text><Text style={styles.dashboardMetricValue}>{metric.value}</Text></View>)}</View>
+      <View style={[styles.dashboardSummary, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>NUTZUNG · LETZTE 7 TAGE</Text><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Ø Aufenthaltsdauer</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{Math.floor(analytics.averageDurationSec / 60)}m {analytics.averageDurationSec % 60}s</Text></View><View style={styles.dashboardSummaryRow}><Text style={styles.cardTitle}>Absprungrate</Text><Text style={[styles.cardTitle, { color: tone.accent }]}>{analytics.bounceRate}%</Text></View></View>
+      <View style={[styles.dashboardChart, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>TOP-SEITEN</Text>{analytics.popularPages.length ? analytics.popularPages.slice(0, 6).map(row => <View key={row.label} style={styles.dashboardChartRow}><View style={styles.dashboardChartLabel}><Text style={styles.miniCopy} numberOfLines={1}>{row.label}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{row.value}</Text></View><View style={styles.dashboardBarTrack}><View style={[styles.dashboardBar, { width: `${Math.max(4, Math.round((row.value / maxPage) * 100))}%`, backgroundColor: tone.accent }]} /></View></View>) : <Text style={styles.copy}>Noch keine Seitenwerte vorhanden.</Text>}</View>
+      <View style={[styles.dashboardPrivacy, { borderColor: `${tone.accent}55` }]}><Ionicons name="lock-closed-outline" size={18} color={tone.accent} /><Text style={styles.miniCopy}>Automatisch anonym und aggregiert. Live-Zuschauerzahlen bleiben getrennt und werden erst bei Freischaltung aktiviert.</Text></View>
+      <NativeAdminInbox tone={tone} token={token} feedback={adminFeedback} inquiries={adminPartnerInquiries} onRefresh={refresh} />
+      <NativeHostControls tone={tone} token={token} accounts={adminAccounts} posts={adminPublicPosts} onRefresh={refresh} />
+    </>}
+  </Page>;
+}
+
+function NativeHostControls({ tone, token, accounts, posts, onRefresh }: { tone: Tone; token: string; accounts: NativeAdminAccount[]; posts: NativeAdminPublicPost[]; onRefresh: () => Promise<void> }) {
+  const changePro = async (item: NativeAdminAccount) => { try { await adminSetAccountPro(token, { id: item.id, active: !item.proAccess.active }); await onRefresh(); } catch (e) { Alert.alert("Abo nicht geändert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  const changeStatus = async (item: NativeAdminAccount) => { const status = item.status === "active" ? "suspended" : "active"; try { await adminSetAccountStatus(token, { id: item.id, status }); await onRefresh(); } catch (e) { Alert.alert("Status nicht geändert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  const hidePost = async (item: NativeAdminPublicPost) => { try { await adminSetPublicPostStatus(token, { id: item.id, status: "hidden" }); await onRefresh(); } catch (e) { Alert.alert("Beitrag nicht moderiert", e instanceof Error ? e.message : "Bitte erneut versuchen."); } };
+  return <View style={{ gap: 12, marginTop: 12 }}>
+    <SectionLabel tone={tone} overline="HOST · KONTEN" title="ABO & FREIE RECHTE VERWALTEN" />
+    {accounts.slice(0, 100).map(item => {
+      const proAccess = item.proAccess ?? { active: false, manuallyGranted: false, forcedFree: false, source: "none" as const, expiresAt: null };
+      return <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.cardTitle}>{item.name ?? item.username ?? `Konto #${item.id}`}</Text><Text style={styles.miniCopy}>{item.email ?? "Keine E-Mail"} · {String(item.role ?? "user").toUpperCase()} · {String(item.status ?? "active").toUpperCase()}</Text><Text style={[styles.miniCopy, { color: proAccess.active ? tone.accent : c.muted }]}>{proAccess.active ? `FULL ABO · ${proAccess.source === "admin" ? "ADMIN" : "FREIGEGEBEN"}` : proAccess.forcedFree ? "FREE · ERZWUNGEN" : "FREE"}</Text><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label={proAccess.active ? "FREE SETZEN" : "FULL ABO"} icon={proAccess.active ? "remove-circle-outline" : "sparkles-outline"} onPress={() => void changePro({ ...item, proAccess })} />{item.id !== Number(item.id) ? null : <SecondaryButton tone={tone} label={item.status === "active" ? "PAUSIEREN" : "AKTIVIEREN"} icon={item.status === "active" ? "pause-outline" : "play-outline"} onPress={() => void changeStatus(item)} />}</View></View>;
+    })}
+    <SectionLabel tone={tone} overline="HOST · MODERATION" title="ÖFFENTLICHE BEITRÄGE" />
+    {posts.slice(0, 50).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.miniCopy}>#{item.id} · {item.realm?.toUpperCase() ?? "ALLE FEEDS"} · {item.status.toUpperCase()}</Text><Text style={styles.cardTitle} numberOfLines={3}>{item.content}</Text>{item.status === "published" ? <SecondaryButton tone={tone} label="AUSBLENDEN" icon="eye-off-outline" onPress={() => void hidePost(item)} /> : null}</View>)}
+  </View>;
+}
+function statusLabel(status: string) { return ({ received: "EINGEGANGEN", reviewing: "IN PRÜFUNG", resolved: "ERLEDIGT", accepted: "ANGENOMMEN", declined: "ABGELEHNT" } as Record<string, string>)[status] ?? status.toUpperCase(); }
+function nextFeedbackStatus(status: NativeAdminFeedback["status"]): NativeAdminFeedback["status"] { return ({ received: "reviewing", reviewing: "resolved", resolved: "received" } as const)[status]; }
+function nextPartnerStatus(status: NativeAdminPartnerInquiry["status"]): NativeAdminPartnerInquiry["status"] { return ({ received: "reviewing", reviewing: "accepted", accepted: "declined", declined: "received" } as const)[status]; }
+
+function NativeAdminInbox({ tone, token, feedback, inquiries, onRefresh }: { tone: Tone; token: string; feedback: NativeAdminFeedback[]; inquiries: NativeAdminPartnerInquiry[]; onRefresh: () => Promise<void> }) {
+  return <View style={{ gap: 12, marginTop: 8 }}>
+    <SectionLabel tone={tone} overline="HOST · EINGANG" title="FEEDBACK VERWALTEN" />
+    {feedback.length ? feedback.map(item => <NativeFeedbackAdminRow key={item.id} tone={tone} token={token} item={item} onRefresh={onRefresh} />) : <Text style={styles.miniCopy}>Keine offenen Feedback-Eingänge.</Text>}
+    <SectionLabel tone={tone} overline="HOST · PARTNER" title="PARTNERANFRAGEN" />
+    {inquiries.length ? inquiries.map(item => <NativePartnerAdminRow key={item.id} tone={tone} token={token} item={item} onRefresh={onRefresh} />) : <Text style={styles.miniCopy}>Keine Partneranfragen.</Text>}
+  </View>;
+}
+
+function NativeFeedbackAdminRow({ tone, token, item, onRefresh }: { tone: Tone; token: string; item: NativeAdminFeedback; onRefresh: () => Promise<void> }) {
+  const [status, setStatus] = useState(item.status); const [note, setNote] = useState(item.adminNote ?? ""); const [response, setResponse] = useState(item.responseMessage ?? ""); const [saving, setSaving] = useState(false);
+  const save = async () => { setSaving(true); try { await adminUpdateFeedback(token, { id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); await onRefresh(); } catch { Alert.alert("Nicht gespeichert", "Die Feedbackantwort konnte nicht gespeichert werden."); } finally { setSaving(false); } };
+  return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{item.id} · {item.kind === "problem" ? "PROBLEM" : item.kind === "wish" ? "WUNSCH" : "FEEDBACK"}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? item.userEmail ?? `Konto #${item.userId}`} · {new Date(item.createdAt).toLocaleString("de-DE")}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><Pressable accessibilityRole="button" accessibilityLabel="Feedbackstatus ändern" onPress={() => setStatus(nextFeedbackStatus(status))} style={styles.dashboardStatusPicker}><Text style={styles.dashboardStatusValue}>{statusLabel(status)}</Text><Ionicons name="chevron-down" size={15} color={tone.accent} /></Pressable></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
+}
+
+function NativePartnerAdminRow({ tone, token, item, onRefresh }: { tone: Tone; token: string; item: NativeAdminPartnerInquiry; onRefresh: () => Promise<void> }) {
+  const [status, setStatus] = useState(item.status); const [note, setNote] = useState(item.adminNote ?? ""); const [response, setResponse] = useState(item.responseMessage ?? ""); const [saving, setSaving] = useState(false);
+  const save = async () => { setSaving(true); try { await adminUpdatePartnerInquiry(token, { id: item.id, status, adminNote: note.trim() || null, responseMessage: response.trim() || null }); await onRefresh(); } catch { Alert.alert("Nicht gespeichert", "Die Partnerantwort konnte nicht gespeichert werden."); } finally { setSaving(false); } };
+  return <View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>PARTNERANFRAGE #{item.id}</Text><Text style={styles.cardTitle}>{item.message}</Text><Text style={styles.miniCopy}>{item.userName ?? "Partnerinteressent"} · {item.contactEmail}</Text><TextInput value={note} onChangeText={setNote} placeholder="Interne Notiz …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><TextInput value={response} onChangeText={setResponse} placeholder="Antwort an Absender …" placeholderTextColor={c.muted} multiline style={styles.dashboardInboxInput} /><View style={styles.dashboardInboxActions}><View style={{ flex: 1 }}><Text style={styles.miniCopy}>STATUS</Text><Pressable accessibilityRole="button" accessibilityLabel="Partnerstatus ändern" onPress={() => setStatus(nextPartnerStatus(status))} style={styles.dashboardStatusPicker}><Text style={styles.dashboardStatusValue}>{statusLabel(status)}</Text><Ionicons name="chevron-down" size={15} color={tone.accent} /></Pressable></View><SecondaryButton tone={tone} label={saving ? "SPEICHERT" : "SPEICHERN"} icon="send-outline" onPress={() => void save()} /></View></View>;
+}
+
+function NativeProScreen({ tone, token, onBack }: { tone: Tone; token: string | null; onBack: () => void }) {
+  const [status, setStatus] = useState<NativeBillingStatus | null>(null);
+  const [packs, setPacks] = useState<NativeCreditPack[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [customDonation, setCustomDonation] = useState("");
+  const features = [
+    ["UNBEGRENZTE PRIVATE ANLAGEN", "Pflanzen, Aquarien und Terrarien ohne Kontingent verwalten."],
+    ["VOLLSTÄNDIGE PFLEGEHISTORIE", "Verläufe, Messwerte, Bilder und Pflegezustände vergleichen."],
+    ["ERWEITERTE AUSWERTUNGEN", "Trends und exportierbare Pflegeübersichten."],
+    ["MEHR KI-BESTIMMUNGEN", "Erhöhtes monatliches Kontingent für Bestimmung und Diagnose."],
+    ["EXPORT & BACKUP", "Eigene Daten strukturiert sichern und geräteübergreifend nutzen."],
+    ["WERBEFREIE NUTZUNG", "Das Observatory ohne Werbeunterbrechungen erleben."],
+  ] as const;
+  useEffect(() => {
+    if (!token) return;
+    void Promise.all([billingMe(token), billingPlans(token)]).then(([nextStatus, nextPlans]) => { setStatus(nextStatus); setPacks(nextPlans.creditPacks); }).catch(() => Alert.alert("Pro-Status nicht verfügbar", "Bitte prüfe deine Verbindung und versuche es erneut."));
+  }, [token]);
+  const buy = async (kind: "credits" | "pro_monthly" | "pro_yearly" | "donation", packKey?: string, donationAmountEur?: number) => {
+    if (!token) return;
+    setBusy(true);
+    try { const session = await billingCheckout(token, { kind, packKey, donationAmountEur }); await Linking.openURL(session.url); } catch (error) { Alert.alert("Checkout nicht gestartet", error instanceof Error && error.message.includes("payments_not_configured") ? "Der Zahlungsanbieter wird noch eingerichtet." : "Bitte später erneut versuchen."); } finally { setBusy(false); }
+  };
+  if (!token) return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Abo-Status und Credits sind nur für angemeldete Konten verfügbar." onSignIn={async () => {}} /></Page>;
+  const customDonationValue = Number(customDonation.replace(",", "."));
+  const customDonationValid = Number.isFinite(customDonationValue) && customDonationValue >= 1 && customDonationValue <= 500;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. KI-Bestimmungen sind transparent begrenzt und können bei Bedarf ergänzt werden." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>{status?.active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</Text><Text style={styles.copy}>{status ? `${status.freeIdentificationsRemaining} kostenlose Bestimmungen heute · ${status.aiCredits} Credits verfügbar` : "Kontingent wird geladen …"}</Text><Text style={styles.miniCopy}>{status?.paymentReady ? "Sichere Zahlung verfügbar." : "Zahlung wird nach dem Anbieteranschluss aktiviert."}</Text></View></View><View style={[styles.stack, { marginBottom: 14 }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>KI-CREDITS NACH BEDARF</Text>{packs.map(pack => <View key={pack.key} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{pack.credits} BESTIMMUNGEN · €{pack.priceEur.toFixed(2).replace(".", ",")}</Text><Text style={styles.miniCopy}>Credits verfallen nicht.</Text></View><Pressable accessibilityRole="button" disabled={busy || status?.paymentReady === false} onPress={() => void buy("credits", pack.key)} style={[styles.secondaryButton, (busy || status?.paymentReady === false) && { opacity: 0.45 }]}><Text style={styles.secondaryButtonText}>KAUFEN</Text></Pressable></View>)}</View><View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label="PRO MONATLICH" icon="sparkles-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_monthly")} /><SecondaryButton tone={tone} label="PRO JÄHRLICH" icon="calendar-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_yearly")} /></View><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="heart-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>NATURPROJEKT UNTERSTÜTZEN</Text><Text style={styles.miniCopy}>Freier Betrag von 1 € bis 500 € möglich.</Text><TextInput value={customDonation} onChangeText={value => setCustomDonation(value.replace(/[^0-9,.]/g, ""))} placeholder="Eigener Betrag, z. B. 12,50 €" placeholderTextColor={c.muted} keyboardType="decimal-pad" style={styles.searchInput} /></View><SecondaryButton tone={tone} label={customDonationValid ? `${customDonationValue.toFixed(2).replace(".", ",")} € SPENDEN` : "EIGENEN BETRAG EINGEBEN"} icon="heart-outline" disabled={busy || status?.paymentReady === false || !customDonationValid} onPress={() => void buy("donation", undefined, Math.round(customDonationValue * 100) / 100)} /></View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
+}
+
+function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {
+  const isOwner = account?.email?.trim().toLowerCase() === "blackwaterleaf@gmail.com";
+  const groups = [
+    { label: "KONTO & ALLTAG", items: [
+      ["Konto & Profil", "Name, Bio, Bild und verknüpfte Profile", "person-outline", () => navigate("profile")],
+      ["Anlagen & Pflege", "Botanik, Aquaristik, Terraristik", "leaf-outline", () => navigate("collection")],
+      ["Kommunikation", "Postfach und Benachrichtigungen", "chatbubbles-outline", () => navigate("messages")],
+      ["Datenschutz & Sicherheit", "Freigaben und Kontoschutz", "shield-checkmark-outline", () => navigate("profile")],
+    ] as const },
+    { label: "WEITERE EINSTELLUNGEN", items: [
+      ["Sprache & Barrierefreiheit", "Sprache, Einheiten und Darstellung", "language-outline", () => navigate("profile")],
+      ["Fortschritt & Merkliste", "XP, Level und gespeicherte Inhalte", "trophy-outline", () => navigate("ranking")],
+      ...(isOwner ? [["Host-Dashboard", "Echte Reichweite und Konten · nur Eigentümer", "analytics-outline", () => navigate("dashboard")] as const] : []),
+      ["Hilfe, Daten & Werkzeuge", "Quellen und Smart-Werte", "link-outline", () => navigate("management")],
+      ["BlackWaterLeaf Pro", "Mehr Anlagen, Auswertungen und KI-Kontingent", "sparkles-outline", () => navigate("pro")],
+    ] as const },
+  ];
+  if (!token) return <Page><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Das Kontozentrum ist nur für angemeldete Konten verfügbar." onSignIn={onSignIn} /></Page>;
+  return <Page>
+    <ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · VERWALTEN" title="EINSTELLUNGEN & WERKZEUGE." subtitle="Ein zentraler Ort für Profil, Anlagen, Kommunikation und Datenschutz." icon="settings-outline" />
+    {groups.map(group => <View key={group.label} style={styles.managementGroup}><View style={styles.managementHeading}><Text style={[styles.eyebrow, { color: tone.accent }]}>{group.label}</Text><Text style={styles.miniCopy}>ALLES AN EINEM ORT</Text></View><View style={styles.managementGrid}>{group.items.map(([title, note, icon, onPress]) => <Pressable key={title} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.managementTile, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.managementTileIcon, { borderColor: `${tone.accent}55`, backgroundColor: `${tone.accent}14` }]}><Ionicons name={icon} size={20} color={tone.accent} /></View><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{note}</Text></View><Ionicons name="chevron-forward" size={18} color={tone.accent} /></Pressable>)}</View></View>)}
+    <View style={[styles.managementPrinciples, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Ionicons name="lock-closed-outline" size={19} color={tone.accent} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>PRIVAT BLEIBT PRIVAT.</Text><Text style={styles.miniCopy}>Private Anlagen, Nachrichten, genaue Standorte und nicht freigegebene Medien bleiben geschützt.</Text></View></View>
+  </Page>;
+}
+
+type NativeSocialAccountDraft = Pick<ProfileSocialAccount, "platform" | "label" | "url">;
+const SOCIAL_PLATFORM_ORDER: NativeSocialAccountDraft["platform"][] = ["instagram", "tiktok", "youtube", "facebook", "website"];
+const emptyNativeSocialAccount = (): NativeSocialAccountDraft => ({ platform: "instagram", label: "Instagram", url: "" });
+const socialDraftsForAccount = (account: Account | null): NativeSocialAccountDraft[] => {
+  if (account?.socialAccounts?.length) return account.socialAccounts.map(({ platform, label, url }) => ({ platform, label, url }));
+  return ([
+    ["instagram", "Instagram", account?.socialLinks?.instagram], ["tiktok", "TikTok", account?.socialLinks?.tiktok], ["youtube", "YouTube", account?.socialLinks?.youtube], ["facebook", "Facebook", account?.socialLinks?.facebook], ["website", "Website", account?.socialLinks?.website],
+  ] as const).filter(([, , url]) => Boolean(url)).map(([platform, label, url]) => ({ platform, label, url: url! }));
+};
+const nextSocialPlatform = (platform: NativeSocialAccountDraft["platform"]) => SOCIAL_PLATFORM_ORDER[(SOCIAL_PLATFORM_ORDER.indexOf(platform) + 1) % SOCIAL_PLATFORM_ORDER.length];
 
 function ProfileScreen({
   tone,
@@ -2854,7 +3716,9 @@ function ProfileScreen({
   error,
   onSignIn,
   onSignOut,
+  onExportData,
   onUpdateProfile,
+  onReplaceSocialAccounts,
   onSetConsent,
   onUploadAvatar,
   onCollection,
@@ -2873,7 +3737,9 @@ function ProfileScreen({
   error: string | null;
   onSignIn: () => Promise<void>;
   onSignOut: () => Promise<void>;
-  onUpdateProfile: (input: { name?: string | null; bio?: string | null; locale?: "de" | "en"; unitSystem?: "metric" | "imperial" }) => Promise<void>;
+  onExportData: () => Promise<void>;
+  onUpdateProfile: (input: { name?: string | null; bio?: string | null; locale?: "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk"; unitSystem?: "metric" | "imperial"; profileVisibility?: "private" | "unlisted" | "public" }) => Promise<void>;
+  onReplaceSocialAccounts: (accounts: NativeSocialAccountDraft[]) => Promise<void>;
   onSetConsent: (purpose: ProfileConsent["purpose"], granted: boolean) => Promise<void>;
   onUploadAvatar: (base64: string, mimeType: string) => Promise<void>;
   onCollection: (realm: Realm) => void;
@@ -2881,11 +3747,12 @@ function ProfileScreen({
 }) {
   const [draftName, setDraftName] = useState(account?.name ?? "");
   const [draftBio, setDraftBio] = useState(account?.bio ?? "");
+  const [socialDrafts, setSocialDrafts] = useState<NativeSocialAccountDraft[]>(() => socialDraftsForAccount(account));
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [publicPosts, setPublicPosts] = useState<PublicProfilePost[]>([]);
   const [publicPostsRefreshing, setPublicPostsRefreshing] = useState(false);
-  useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); }, [account?.name, account?.bio]);
+  useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); setSocialDrafts(socialDraftsForAccount(account)); }, [account]);
   useEffect(() => { if (token && account?.id) void publicProfilePosts(account.id).then(setPublicPosts).catch(() => setPublicPosts([])); }, [token, account?.id]);
   const refreshPublicPosts = async () => {
     if (!token || !account?.id) return;
@@ -2899,8 +3766,33 @@ function ProfileScreen({
     catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Profil konnte nicht gespeichert werden."); }
     finally { setProfileSaving(false); }
   };
+  const saveNativeSocialAccounts = async () => {
+    setProfileSaving(true); setProfileMessage(null);
+    try {
+      const accounts = socialDrafts.map(account => ({ ...account, label: account.label.trim(), url: account.url.trim() })).filter(account => account.url);
+      if (accounts.some(account => !account.label)) throw new Error("Bitte gib jedem verknüpften Profil eine Bezeichnung.");
+      await onReplaceSocialAccounts(accounts);
+      setProfileMessage("Verknüpfte Profile sicher gespeichert.");
+    } catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Verknüpfte Profile konnten nicht gespeichert werden."); }
+    finally { setProfileSaving(false); }
+  };
   const consentGranted = (purpose: ProfileConsent["purpose"]) => Boolean(consents.find(item => item.purpose === purpose)?.granted);
   const toggleConsent = (purpose: ProfileConsent["purpose"]) => { void onSetConsent(purpose, !consentGranted(purpose)); };
+  const setProfileVisibility = async (profileVisibility: "private" | "unlisted" | "public") => {
+    setProfileSaving(true);
+    setProfileMessage(null);
+    try {
+      if (profileVisibility === "public" && !consentGranted("profile_publication")) {
+        await onSetConsent("profile_publication", true);
+      }
+      await onUpdateProfile({ profileVisibility });
+      setProfileMessage(profileVisibility === "public" ? "Profil ist öffentlich sichtbar." : profileVisibility === "unlisted" ? "Profil ist nur über direkte Links sichtbar." : "Profil ist privat.");
+    } catch (cause) {
+      setProfileMessage(cause instanceof Error ? cause.message : "Profil-Sichtbarkeit konnte nicht gespeichert werden.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
   const chooseNativeAvatar = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) { setProfileMessage("Zugriff auf die Galerie wurde nicht freigegeben."); return; }
@@ -2929,32 +3821,46 @@ function ProfileScreen({
         <Text style={[styles.chip, { color: tone.accent }]}>PROFIL · ZIEL</Text>
         <Text style={styles.cardTitle}>{menuTarget === "edit" || menuTarget === "private" ? "NAME & PROFIL BEARBEITEN" : menuTarget === "avatar" ? "PROFILBILD BEARBEITEN" : menuTarget === "display" || menuTarget === "habitats" ? "ANLAGEN ANZEIGEN" : menuTarget === "privacy" ? "DATENSCHUTZ & FREIGABEN" : menuTarget === "preferences" ? "SPRACHE & EINHEITEN" : "WEITERE WERKZEUGE"}</Text>
         <Text style={styles.miniCopy}>{menuTarget === "display" || menuTarget === "habitats" ? "Die drei Anlagearten kannst du direkt darunter separat ein- oder ausblenden." : menuTarget === "privacy" ? "Jede Freigabe wird serverseitig im Konto gespeichert." : menuTarget === "preferences" ? "Diese Einstellungen gelten auf Web und Native für dein Konto." : menuTarget === "tools" ? "Builder und Smart-Geräte bleiben aus dem Kernprofil heraus erreichbar." : "Dieses Ziel wurde über das Drei-Punkte-Menü geöffnet."}</Text>
-        {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="HABITAT BUILDER" icon="construct-outline" onPress={() => navigate("builder")} /><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+        {menuTarget === "tools" ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="SMART-WERTE" icon="link-outline" onPress={() => Alert.alert("Smart-Werte verbinden", "Die Smart-Geräteauswahl wird in einem nächsten Native-Schritt ergänzt.")} /></View> : null}
+        {menuTarget === "privacy" ? <View style={styles.profileVisibilityNative}><Text style={[styles.eyebrow, { color: tone.accent }]}>PROFIL-SICHTBARKEIT</Text><Text style={styles.miniCopy}>{account?.profileVisibility === "public" ? "Öffentlich: Profil und freigegebene Beiträge sind sichtbar." : account?.profileVisibility === "unlisted" ? "Unlisted: nur direkte Links zeigen das Profil." : "Privat: andere sehen dein Profil nicht."}</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="PRIVAT" icon="lock-closed-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("private")} /><SecondaryButton tone={tone} label="UNLISTED" icon="link-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("unlisted")} /><PrimaryButton tone={tone} label="ÖFFENTLICH" icon="globe-outline" disabled={profileSaving} onPress={() => void setProfileVisibility("public")} /></View></View> : null}
         {menuTarget === "privacy" ? <View style={styles.profileConsentPanel}>{([['profile_publication', 'Profil veröffentlichen'], ['observation_publishing', 'Beobachtungen veröffentlichen'], ['media_processing', 'Bilder sicher verarbeiten'], ['community_publishing', 'Community-Beiträge veröffentlichen'], ['ai_processing', 'KI-Anfragen verarbeiten'], ['location_processing', 'Grobe Region für aktuelles Wetter verwenden']] as const).map(([purpose, label]) => <View key={purpose} style={styles.profileConsentRow}><Text style={styles.miniCopy}>{label}</Text><Switch value={consentGranted(purpose)} onValueChange={() => toggleConsent(purpose)} thumbColor={consentGranted(purpose) ? tone.accent : c.muted} trackColor={{ false: `${c.muted}55`, true: `${tone.accent}55` }} /></View>)}</View> : null}
-        {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
+        {menuTarget === "privacy" ? <SecondaryButton tone={tone} label="DATENEXPORT TEILEN" icon="download-outline" onPress={() => void onExportData().then(() => setProfileMessage("Datenexport erstellt.")).catch(cause => setProfileMessage(cause instanceof Error ? cause.message : "Export fehlgeschlagen."))} /> : null}
+        {menuTarget === "preferences" ? <View style={styles.profilePreferencesPanel}><Text style={[styles.eyebrow, { color: tone.accent }]}>SPRACHE</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="DEUTSCH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "de" })} /><SecondaryButton tone={tone} label="ENGLISH" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "en" })} /><SecondaryButton tone={tone} label="简体中文" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "zh-CN" })} /><SecondaryButton tone={tone} label="ESPAÑOL" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "es" })} /><SecondaryButton tone={tone} label="FRANÇAIS" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "fr" })} /><SecondaryButton tone={tone} label="ITALIANO" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "it" })} /><SecondaryButton tone={tone} label="PORTUGUÊS" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "pt-BR" })} /><SecondaryButton tone={tone} label="日本語" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "ja" })} /><SecondaryButton tone={tone} label="한국어" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "ko" })} /><SecondaryButton tone={tone} label="NEDERLANDS" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "nl" })} /><SecondaryButton tone={tone} label="TÜRKÇE" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "tr" })} /><SecondaryButton tone={tone} label="POLSKI" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "pl" })} /><SecondaryButton tone={tone} label="العربية" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "ar" })} /><SecondaryButton tone={tone} label="SVENSKA" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "sv" })} /><SecondaryButton tone={tone} label="DANSK" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "da" })} /><SecondaryButton tone={tone} label="हिन्दी" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "hi" })} /><SecondaryButton tone={tone} label="BAHASA" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "id" })} /><SecondaryButton tone={tone} label="TIẾNG VIỆT" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "vi" })} /><SecondaryButton tone={tone} label="УКРАЇНСЬКА" icon="language-outline" onPress={() => void onUpdateProfile({ locale: "uk" })} /></View><Text style={[styles.eyebrow, { color: tone.accent }]}>EINHEITEN</Text><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="METRISCH" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "metric" })} /><SecondaryButton tone={tone} label="IMPERIAL" icon="speedometer-outline" onPress={() => void onUpdateProfile({ unitSystem: "imperial" })} /></View></View> : null}
         {menuTarget === "edit" || menuTarget === "private" || menuTarget === "avatar" ? <View style={styles.profileEditPanel}>
           {menuTarget === "avatar" ? <SecondaryButton tone={tone} label="PROFILBILD AUS GALERIE WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /> : null}
           {menuTarget === "edit" ? <><TextInput value={draftName} onChangeText={setDraftName} placeholder="Anzeigename" placeholderTextColor={c.muted} style={styles.profileInput} maxLength={160} /><TextInput value={draftBio} onChangeText={setDraftBio} placeholder="Bio" placeholderTextColor={c.muted} style={[styles.profileInput, styles.profileBioInput]} multiline maxLength={2000} /><PrimaryButton tone={tone} label={profileSaving ? "SPEICHERN…" : "PROFIL SPEICHERN"} icon="save-outline" onPress={() => void saveNativeProfile()} disabled={profileSaving} /><SecondaryButton tone={tone} label="PROFILBILD WÄHLEN" icon="image-outline" onPress={() => void chooseNativeAvatar()} disabled={profileSaving} /></> : null}
+          {menuTarget === "edit" ? <View style={[styles.profileSocialEditorNative, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}08` }]}>
+            <Text style={[styles.eyebrow, { color: tone.accent }]}>VERKNÜPFTE PROFILE</Text>
+            <Text style={styles.miniCopy}>Füge Instagram, TikTok und weitere öffentliche Profilseiten ohne Zugangsdaten hinzu.</Text>
+            {socialDrafts.map((social, index) => <View key={`${social.platform}-${index}`} style={styles.profileSocialEditorRow}>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Plattform für Profil ${index + 1} wechseln`} onPress={() => setSocialDrafts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, platform: nextSocialPlatform(item.platform) } : item))} style={[styles.profileSocialPlatform, { borderColor: `${tone.accent}55` }]}><Ionicons name="link-outline" size={14} color={tone.accent} /><Text style={[styles.chip, { color: tone.accent }]}>{social.platform.toUpperCase()}</Text></Pressable>
+              <View style={styles.profileSocialFields}>
+                <TextInput value={social.label} onChangeText={value => setSocialDrafts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, label: value } : item))} placeholder="Bezeichnung" placeholderTextColor={c.muted} style={styles.profileSocialInput} maxLength={80} />
+                <TextInput value={social.url} onChangeText={value => setSocialDrafts(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, url: value } : item))} placeholder="https://…" placeholderTextColor={c.muted} style={styles.profileSocialInput} keyboardType="url" autoCapitalize="none" autoCorrect={false} />
+              </View>
+              <Pressable accessibilityRole="button" accessibilityLabel={`${social.label || "Profil"} entfernen`} onPress={() => setSocialDrafts(current => current.filter((_, itemIndex) => itemIndex !== index))} style={[styles.profileSocialRemove, { borderColor: `${tone.accent}55` }]}><Ionicons name="trash-outline" size={16} color={tone.accent} /></Pressable>
+            </View>)}
+            <SecondaryButton tone={tone} label="PROFIL HINZUFÜGEN" icon="add-outline" disabled={profileSaving || socialDrafts.length >= 12} onPress={() => setSocialDrafts(current => [...current, emptyNativeSocialAccount()])} />
+            <PrimaryButton tone={tone} label={profileSaving ? "WIRD GESPEICHERT…" : "PROFILE SPEICHERN"} icon="save-outline" disabled={profileSaving} onPress={() => void saveNativeSocialAccounts()} />
+          </View> : null}
           {profileMessage ? <Text style={styles.miniCopy}>{profileMessage}</Text> : null}
         </View> : null}
       </View> : null}
-      <View style={[styles.profileReferenceIdentity, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
-        <View style={[styles.profileReferenceAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}>
-          {account?.avatarUrl ? <Image source={{ uri: account.avatarUrl }} style={styles.profileReferenceAvatarImage} /> : <Ionicons name="person-outline" size={27} color={tone.accent} />}
+      <View style={[styles.profileCreatorCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>
+        <View style={styles.profileCreatorTop}>
+          <View style={[styles.profileCreatorAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}>{account?.avatarUrl ? <Image source={{ uri: account.avatarUrl }} style={styles.profileCreatorAvatarImage} accessibilityLabel={`${account.name ?? account.username ?? "Profil"} Profilbild`} /> : <Ionicons name="person-outline" size={42} color={tone.accent} />}</View>
+          <View style={styles.profileCreatorIdentity}><Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · PROFIL</Text><Text style={styles.profileCreatorName}>{account?.name ?? "Name nicht hinterlegt"}</Text><Text style={styles.profileCreatorHandle}>{account?.username ? `@${account.username}` : "Persönliches Fachprofil"}</Text></View>
         </View>
-        <View style={styles.profileReferenceIdentityCopy}>
-          <Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · PROFIL</Text>
-          <Text style={styles.profileReferenceName}>{account?.name ?? account?.username ?? "BlackWaterLeaf"}</Text>
-          <Text style={styles.miniCopy}>{account?.email ?? "@" + (account?.username ?? "blackwaterleaf")}</Text>
-        </View>
-        <Pressable accessibilityLabel="Profil bearbeiten" onPress={() => navigate("profile")} style={[styles.profileReferenceMore, { borderColor: `${tone.accent}55` }]}>
-          <Text style={[styles.profileReferenceMoreText, { color: tone.accent }]}>•••</Text>
-        </Pressable>
-        <View style={styles.profileReferenceStats}>
-          <View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View>
-          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View>
-          <View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View>
-        </View>
+        <Text style={styles.profileCreatorBio}>{account?.bio ?? "Dein Fachprofil für Pflanzen, Aquaristik und verantwortungsvolle Beobachtungen."}</Text>
+        <View style={styles.profileCreatorLinks}>{account?.email ? <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`mailto:${account.email}`)} style={styles.profileCreatorLink}><Ionicons name="mail-outline" size={15} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]} numberOfLines={1}>{account.email}</Text></Pressable> : null}{socialDraftsForAccount(account).map(social => <Pressable key={`${social.platform}-${social.url}`} accessibilityRole="link" onPress={() => void Linking.openURL(social.url)} style={styles.profileCreatorLink}><Ionicons name="link-outline" size={15} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>{social.label}</Text></Pressable>)}</View>
+        <View style={styles.profileCreatorStats}><View style={styles.profileReferenceStat}><Ionicons name="trophy-outline" size={15} color={tone.accent} /><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.totalXp : "—"}</Text><Text style={styles.profileReferenceStatLabel}>XP</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{experience?.status === "ready" ? experience.level : "—"}</Text><Text style={styles.profileReferenceStatLabel}>LEVEL</Text></View><View style={styles.profileReferenceStat}><Text style={styles.profileReferenceStatValue}>{habitats.length}</Text><Text style={styles.profileReferenceStatLabel}>ANLAGEN</Text></View></View>
+        <SecondaryButton tone={tone} label="VERWALTEN · PROFIL & EINSTELLUNGEN" icon="settings-outline" onPress={() => navigate("management")} />
+      </View>
+      <View style={[styles.profileSubscriptionCard, { borderColor: `${c.botany}88`, backgroundColor: tone.panel }]} accessibilityLabel="Abo-Status">
+        <View style={styles.profileSubscriptionHeading}><View><Text style={[styles.eyebrow, { color: c.botany }]}>BLACKWATERLEAF · ABO</Text><Text style={styles.sectionTitle}><Ionicons name="sparkles-outline" size={16} color={c.botany} /> FREE · AKTUELL</Text></View><Text style={[styles.chip, { color: c.botany }]}>ZAHLUNG VORBEREITET</Text></View>
+        <Text style={styles.miniCopy}>Dein aktueller Status und die Upgrade-Möglichkeiten bleiben auf Web und Native transparent.</Text>
+        <View style={styles.profileSubscriptionPlans}><View style={styles.profileSubscriptionPlan}><Text style={styles.cardTitle}>FREE</Text><Text style={styles.miniCopy}>Katalog, Community, Basis-Karte und eine private Anlage</Text></View><View style={[styles.profileSubscriptionPlan, { borderColor: `${c.botany}88` }]}><Text style={[styles.cardTitle, { color: c.botany }]}>PRO · €39,99 / JAHR</Text><Text style={styles.miniCopy}>Unbegrenzte Anlagen, Pflegehistorie, Auswertungen, mehr KI, Export und Backup</Text></View></View>
+        <PrimaryButton tone={tone} label="UPGRADE-OPTIONEN ANSEHEN" icon="sparkles-outline" onPress={() => navigate("pro")} />
       </View>
       <SectionLabel tone={tone} overline="PRIVATE SAMMLUNG" title="MEINE ANLAGEN & WERTE" />
       <Text style={styles.profileReferenceSubline}>Privat · Wähle direkt deinen Bereich</Text>
@@ -2968,8 +3874,8 @@ function ProfileScreen({
         ))}
       </View>
       {publicPosts.length ? <View style={[styles.profileReferencePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
-        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>FREIGEGEBEN</Text><Text style={styles.sectionTitle}>ÖFFENTLICHE BEITRÄGE</Text></View><View style={styles.inlineButtons}><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View></View>
-        <View style={styles.profilePublicPostGrid}>{publicPosts.slice(0, 4).map(post => <Pressable key={post.id} onPress={() => navigate("community")} style={({ pressed }) => [styles.profilePublicPostTile, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}><Text style={[styles.chip, { color: tone.accent }]}>VERÖFFENTLICHT</Text><Text style={styles.realmText} numberOfLines={3}>{post.content}</Text><Text style={styles.miniCopy} numberOfLines={1}>{post.realm ?? "COMMUNITY"} · {new Date(post.updatedAt).toLocaleDateString("de-DE")}</Text></Pressable>)}</View>
+        <View style={styles.profileReferencePostsHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>BEITRÄGE & BILDER</Text><Text style={styles.sectionTitle}>FREIGEGEBENE BEITRÄGE</Text></View><SecondaryButton tone={tone} label="POST" icon="camera-outline" onPress={() => navigate("post")} /></View>
+        <View style={styles.profilePublicPostGrid}>{publicPosts.slice(0, 9).map(post => { const media = post.media?.find(item => item.url); return <Pressable key={post.id} onPress={() => navigate("community")} style={({ pressed }) => [styles.profilePublicPostTile, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}>{media?.url && media.mimeType.startsWith("image/") ? <Image source={{ uri: media.url }} style={styles.profilePublicPostImage} accessibilityLabel={post.content.slice(0, 90)} /> : <View style={styles.profilePublicPostFallback}><Ionicons name={media?.mimeType.startsWith("video/") ? "play-circle-outline" : "camera-outline"} size={24} color={tone.accent} /><Text style={styles.profilePublicPostFallbackText} numberOfLines={3}>{post.content}</Text></View>}<Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"}</Text></Pressable>; })}</View>
       </View> : null}
       <SecondaryButton tone={tone} label="ABMELDEN" icon="log-out-outline" onPress={() => void onSignOut()} />
     </Page>
@@ -2981,6 +3887,7 @@ function CollectionScreen({
   token,
   habitats,
   initialRealm,
+  prefill,
   onSignIn,
   onSaved,
 }: {
@@ -2988,6 +3895,7 @@ function CollectionScreen({
   token: string | null;
   habitats: Habitat[];
   initialRealm: Realm;
+  prefill?: { kind: "plant" | "aquarium" | "terrarium"; name: string; scientificName?: string };
   onSignIn: () => Promise<void>;
   onSaved: () => Promise<void>;
 }) {
@@ -3025,82 +3933,14 @@ function CollectionScreen({
         token={token}
         habitats={habitats}
         initialKind={initialRealm === "botany" ? "plant" : initialRealm}
+        prefill={prefill}
         onSaved={onSaved}
       />
     </View>
   );
 }
 
-function BuilderScreen({
-  tone,
-  token,
-  account,
-  habitats,
-  onSignIn,
-  onSaved,
-}: {
-  tone: Tone;
-  token: string | null;
-  account: Account | null;
-  habitats: Habitat[];
-  onSignIn: () => Promise<void>;
-  onSaved: () => Promise<void>;
-}) {
-  if (!token)
-    return (
-      <Page>
-        <PrivateFeature
-          tone={tone}
-          title="HABITAT BUILDER GESCHÜTZT."
-          text="Der Builder ist ausschließlich für das serverseitig bestätigte Administratorkonto zugänglich."
-          onSignIn={onSignIn}
-        />
-      </Page>
-    );
-  if (account?.role !== "admin")
-    return (
-      <Page>
-        <StatusPanel
-          tone={tone}
-          icon="lock-closed-outline"
-          code="BUILDER / GESCHÜTZT"
-          title="KEINE ADMIN-FREIGABE"
-          text="Dieser Bereich ist nur für die serverseitig bestätigte Rolle Admin verfügbar."
-        />
-      </Page>
-    );
-  return (
-    <Page>
-      <ReferenceHero
-        tone={tone}
-        eyebrow="ADMIN / HABITAT BUILDER"
-        title="HABITAT PLANEN"
-        subtitle="Abstrakte lokale Planungsmarker — keine Arten-, Produkt-, Statik- oder Elektrofreigabe."
-        icon="construct-outline"
-      />
-      <NativePlanner tone={tone} />
-      <View
-        style={[
-          styles.builderData,
-          { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
-        ]}
-      >
-        <Text style={[styles.chip, { color: tone.accent }]}>
-          PRIVATE GRUNDLAGE
-        </Text>
-        <Text style={styles.cardTitle}>EIGENE ANLAGEN VERWALTEN</Text>
-        <Text style={styles.copy}>
-          Der Builder verwendet dieselben geschützten Anlagen wie die Web-App.
-          Änderungen am Datenbestand erfolgen nur über die unten stehende
-          private Anlagenverwaltung.
-        </Text>
-      </View>
-      <HabitatManager token={token} habitats={habitats} onSaved={onSaved} />
-    </Page>
-  );
-}
-
-function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
+function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon, onOpenTerrariumTaxon, onOpenCatalog }: { tone: Tone; products: MarketplaceProduct[]; articles: KnowledgeArticle[]; state: State; error: string | null; refresh: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void; onOpenTerrariumTaxon: (id: number) => void; onOpenCatalog: (realm: Realm) => void }) {
   const [term, setTerm] = useState("");
   const [results, setResults] = useState<UnifiedSearchResult | null>(null);
   const [remoteState, setRemoteState] = useState<State>("ready");
@@ -3114,33 +3954,130 @@ function SearchScreen({ tone, state, error, refresh, navigate, onOpenProfile, on
     return () => { active = false; clearTimeout(timer); };
   }, [normalized, cursor]);
   const total = results ? results.taxa.length + results.aquarium.length + results.knowledge.length + results.profiles.length + results.community.length + results.products.length : 0;
-  const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "aquarium") onOpenAquariumTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
+  const openTarget = (kind: string, id: string, destinationUrl?: string) => { if (kind === "profile") onOpenProfile(Number(id)); else if (kind === "plant") onOpenTaxon(Number(id)); else if (kind === "aquarium") onOpenAquariumTaxon(Number(id)); else if (kind === "terrarium") onOpenTerrariumTaxon(Number(id)); else if (kind === "community") navigate("community"); else if (kind === "knowledge") navigate("knowledge"); else if (destinationUrl) void Linking.openURL(destinationUrl); };
   const card = (kind: string, id: string, title: string, note: string, meta: string, destinationUrl?: string) => <Pressable key={`${kind}-${id}`} onPress={() => openTarget(kind, id, destinationUrl)} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.searchResultIcon, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}44` }]}><Ionicons name={kind === "plant" ? "leaf-outline" : kind === "aquarium" ? "fish-outline" : kind === "profile" ? "person-outline" : kind === "community" ? "chatbubble-ellipses-outline" : kind === "product" ? "bag-handle-outline" : "book-outline"} size={19} color={tone.accent} /></View><View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{title}</Text><Text style={styles.miniCopy} numberOfLines={2}>{note}</Text><Text style={[styles.chip, { color: tone.accent }]}>{meta}</Text></View><Ionicons name="chevron-forward" size={17} color={tone.accent} /></Pressable>;
-  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ReferenceHero tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
+  return <Page refresh={refresh} refreshing={state === "loading" || remoteState === "loading"}><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · KATALOG" title="SUCHEN & ENTDECKEN" subtitle="Validierte Pflanzen, Channa-Fische, Wissen, Profile, Community und freigegebene Händler in einer Suche." icon="search-outline" /><View style={styles.catalogRealmButtons}>{([ ["botany", "Botanik", "leaf-outline"], ["aquarium", "Aquaristik", "fish-outline"], ["terrarium", "Terraristik", "bug-outline"] ] as const).map(([realm, label, icon]) => <Pressable key={realm} onPress={() => onOpenCatalog(realm)} style={({ pressed }) => [styles.catalogRealmButton, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }, pressed && styles.pressed]}><Ionicons name={icon} size={17} color={tone.accent} /><Text style={styles.cardTitle}>{label}</Text><Ionicons name="chevron-forward" size={16} color={tone.accent} /></Pressable>)}</View><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={value => { setTerm(value); setCursor(undefined); }} placeholder="Pflanze, Fisch, Profil, Wissen oder Produkt suchen …" placeholderTextColor={c.muted} autoCapitalize="none" returnKeyType="search" />{remoteState === "loading" ? <Loading tone={tone} /> : remoteState === "error" ? <ErrorNotice text="Die Einheitssuche konnte nicht geladen werden." /> : normalized.length < 2 ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / BEREIT" title="WONACH SUCHST DU?" text="Gib mindestens zwei Zeichen ein. Es werden nur veröffentlichte und freigegebene Daten durchsucht." /> : !total || !results ? <StatusPanel tone={tone} icon="search-outline" code="SUCHE / LEER" title="KEINE PASSENDEN TREFFER" text="Für diesen Begriff gibt es aktuell keinen veröffentlichten Datensatz." /> : <View style={styles.stack}><Text style={[styles.chip, { color: tone.accent }]}>{total} TREFFER · ECHTE DATEN</Text>{results.aquarium.map(item => card("aquarium", item.id, item.scientificName, item.commonNames?.[0] ?? item.family ?? "Validierter Aquaristik-Datensatz", item.evidenceState))}{results.taxa.map(item => card("plant", item.id, item.scientificName, item.acceptedScientificName ?? item.family ?? "Validierter Taxon-Datensatz", item.evidenceState))}{results.knowledge.map(item => card("knowledge", item.id, item.title, item.excerpt, item.realm ?? "Wissen"))}{results.profiles.map(item => card("profile", item.id, item.name ?? item.username ?? "BlackWaterLeaf-Nutzer", item.username ? `@${item.username}` : "Öffentliches Profil", "Profil"))}{results.community.map(item => card("community", item.id, item.realm ?? "Community", item.content, "Öffentlicher Beitrag"))}{results.products.map(item => card("product", item.id, item.title, item.partnerName ?? "Freigegebener Händler", item.priceLabel ?? "Marktplatz", item.destinationUrl))}{results.nextCursor ? <SecondaryButton tone={tone} label="WEITERE TREFFER" icon="add-outline" onPress={() => setCursor(results.nextCursor ?? undefined)} /> : null}</View>}</Page>;
+}
+type PlantCatalogTag = "Aufsitzer" | "Bodendecker" | "Schnellwachsend";
+const plantCatalogTags: PlantCatalogTag[] = ["Aufsitzer", "Bodendecker", "Schnellwachsend"];
+function getPlantCatalogTags(item: PublicCatalogTaxon): PlantCatalogTag[] {
+  const profile = item.careProfile ? JSON.stringify(item.careProfile) : "";
+  const text = `${profile} ${item.scientificName} ${item.acceptedScientificName ?? ""} ${item.commonNames.join(" ")}`.toLocaleLowerCase();
+  return [
+    ...(/auf ?sitz|aufsitzer|epiphyt|rhizom auf|an holz|an stein/.test(text) ? ["Aufsitzer" as const] : []),
+    ...(/boden ?decker|bodendecker|groundcover|carpet|vordergrund/.test(text) ? ["Bodendecker" as const] : []),
+    ...(/schnellwach|rapid.?grow|fast.?grow|wächst schnell/.test(text) ? ["Schnellwachsend" as const] : []),
+  ];
+}
+function CatalogOverviewScreen({ tone, realm, onBack, onOpenTaxon, onOpenAquariumTaxon, onOpenTerrariumTaxon }: { tone: Tone; realm: Realm; onBack: () => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void; onOpenTerrariumTaxon: (id: number) => void }) {
+  const [items, setItems] = useState<PublicCatalogTaxon[]>([]);
+  const [state, setState] = useState<State>("loading");
+  const [term, setTerm] = useState("");
+  const [catalogLetter, setCatalogLetter] = useState("Alle");
+  const [familyFilter, setFamilyFilter] = useState("Alle");
+  const [genusFilter, setGenusFilter] = useState("Alle");
+  const [imageFilter, setImageFilter] = useState("Alle");
+  const [plantTagFilter, setPlantTagFilter] = useState<PlantCatalogTag | "Alle">("Alle");
+  useEffect(() => { let active = true; setState("loading"); void catalogByRealm(realm, 200).then(value => { if (active) { setItems(value); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [realm]);
+  const filtered = items.filter(item => { const name = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; const extended = item as PublicCatalogTaxon & { genus?: string | null }; const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); const tags = realm === "botany" ? getPlantCatalogTags(item) : []; return `${item.commonNames.join(" ")} ${item.scientificName} ${item.acceptedScientificName ?? ""}`.toLocaleLowerCase().includes(term.trim().toLocaleLowerCase()) && (catalogLetter === "Alle" || name.toLocaleUpperCase().startsWith(catalogLetter)) && (familyFilter === "Alle" || item.family === familyFilter) && (genusFilter === "Alle" || extended.genus === genusFilter) && (imageFilter === "Alle" || (imageFilter === "Verifiziert" ? verified : !verified)) && (plantTagFilter === "Alle" || tags.includes(plantTagFilter)); });
+  const families = Array.from(new Set(items.map(item => item.family).filter(Boolean))).sort();
+  const genera = Array.from(new Set(items.map(item => (item as PublicCatalogTaxon & { genus?: string | null }).genus).filter(Boolean))).sort();
+  const realmTitle = realm === "botany" ? "BOTANIK" : realm === "aquarium" ? "AQUARISTIK" : "TERRARISTIK";
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK ZUM KATALOG" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow={`ALPHABETISCH · ${realmTitle}`} title={realmTitle} subtitle={realm === "botany" ? "Pflanzenkarten zum Stöbern – öffne eine Karte für Bild, Quellen und ausführliche Pflegehinweise." : "Große Bilder, gebräuchlicher Name und wissenschaftlicher Name in einer klaren Fachbereichsliste."} icon={realm === "aquarium" ? "fish-outline" : realm === "terrarium" ? "bug-outline" : "leaf-outline"} /><TextInput style={[styles.searchInput, { borderColor: `${tone.accent}66` }]} value={term} onChangeText={setTerm} placeholder="Im Katalog filtern …" placeholderTextColor={c.muted} />{realm === "botany" ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catalogNativeFilterRow}>{["Alle", ...plantCatalogTags].map(tag => <Pressable key={`tag-${tag}`} accessibilityRole="button" accessibilityState={{ selected: plantTagFilter === tag }} onPress={() => setPlantTagFilter(tag as PlantCatalogTag | "Alle")} style={[styles.catalogNativeFilterChip, { borderColor: plantTagFilter === tag ? tone.accent : `${tone.accent}44`, backgroundColor: plantTagFilter === tag ? `${tone.accent}22` : tone.panel }]}><Text style={[styles.miniCopy, { color: plantTagFilter === tag ? tone.accent : c.muted }]}>{tag === "Alle" ? "ALLE MERKMALE" : tag.toUpperCase()}</Text></Pressable>)}</ScrollView> : null}<ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catalogNativeFilterRow}>{["Alle", ...Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index))].map(letter => <Pressable key={letter} onPress={() => setCatalogLetter(letter)} style={[styles.catalogNativeFilterChip, { borderColor: catalogLetter === letter ? tone.accent : `${tone.accent}44`, backgroundColor: catalogLetter === letter ? `${tone.accent}22` : tone.panel }]}><Text style={[styles.miniCopy, { color: tone.accent }]}>{letter}</Text></Pressable>)}</ScrollView><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catalogNativeFilterRow}>{["Alle", ...families].map(value => <Pressable key={`f-${value}`} onPress={() => setFamilyFilter(String(value))} style={[styles.catalogNativeFilterChip, { borderColor: familyFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}{["Alle", ...genera].map(value => <Pressable key={`g-${value}`} onPress={() => setGenusFilter(String(value))} style={[styles.catalogNativeFilterChip, { borderColor: genusFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}{["Alle", "Verifiziert", "Ohne Bild"].map(value => <Pressable key={`i-${value}`} onPress={() => setImageFilter(value)} style={[styles.catalogNativeFilterChip, { borderColor: imageFilter === value ? tone.accent : `${tone.accent}44` }]}><Text style={styles.miniCopy}>{value}</Text></Pressable>)}</ScrollView><Text style={[styles.chip, { color: tone.accent }]}>{state === "ready" ? `${filtered.length} EINTRÄGE · ALPHABETISCH` : "ECHTE KATALOGDATEN"}</Text>{state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Der Katalog konnte nicht geladen werden." /> : !filtered.length ? <StatusPanel tone={tone} icon="leaf-outline" code="KATALOG / LEER" title="KEINE VERÖFFENTLICHTEN TAXA" text="Es werden keine Beispiel-Datensätze angezeigt." /> : <View style={styles.catalogNativeGrid}>{filtered.map(item => { const verified = Boolean(item.imageUrl && item.imageSourceUrl && item.imageLicense && item.imageAttribution && item.imageVerifiedAt); const common = item.commonNames[0] ?? item.acceptedScientificName ?? item.scientificName; return <Pressable key={`${item.type}-${item.id}`} onPress={() => item.type === "aquarium" ? onOpenAquariumTaxon(item.id) : item.type === "terrarium" ? onOpenTerrariumTaxon(item.id) : onOpenTaxon(item.id)} style={({ pressed }) => [styles.catalogNativeCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }, pressed && styles.pressed]}><View style={[styles.catalogNativeImage, { backgroundColor: `${tone.accent}13` }]}>{verified ? <Image source={{ uri: item.imageUrl! }} style={styles.catalogNativeImageAsset} accessibilityLabel={`${common} – ${item.scientificName}`} /> : <Ionicons name={item.type === "aquarium" ? "fish-outline" : item.type === "terrarium" ? "bug-outline" : "leaf-outline"} size={30} color={tone.accent} />}</View><Text style={styles.catalogNativeName} numberOfLines={2}>{common}</Text><Text style={[styles.catalogNativeScientific, { color: tone.accent }]} numberOfLines={2}>{item.scientificName}</Text></Pressable>; })}</View>}</Page>;
+}
+function NativePublicExternalProfiles({ tone, accounts }: { tone: Tone; accounts: ProfileSocialAccount[] }) {
+  if (!accounts.length) return null;
+  return <View style={[styles.publicExternalProfiles, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><View style={styles.liveGroupHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>EXTERNE PROFILE</Text><Text style={styles.cardTitle}>VERKNÜPFTE KONTEN</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{accounts.length}</Text></View>{accounts.map(account => <Pressable key={account.id} accessibilityRole="link" onPress={() => void Linking.openURL(account.url)} style={({ pressed }) => [styles.publicExternalProfileRow, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}><View style={[styles.publicExternalProfileIcon, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}12` }]}><Ionicons name="link-outline" size={16} color={tone.accent} /></View><View style={styles.flex}><Text style={styles.cardTitle} numberOfLines={1}>{account.label}</Text><Text style={styles.miniCopy}>{account.platform.toUpperCase()}</Text></View><Ionicons name="open-outline" size={16} color={tone.accent} /></Pressable>)}</View>;
 }
 
-function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void> }) {
+function PublicProfileScreen({ tone, token, profileId, onBack, onSignIn, onOpenProfile, onMessage }: { tone: Tone; token: string | null; profileId: number; onBack: () => void; onSignIn: () => Promise<void>; onOpenProfile: (id: number) => void; onMessage: (profile: PublicProfile) => void }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [relationship, setRelationship] = useState<SocialRelationship | null>(null);
   const [posts, setPosts] = useState<PublicProfilePost[]>([]);
+  const [followers, setFollowers] = useState<SocialProfileListEntry[]>([]);
+  const [following, setFollowing] = useState<SocialProfileListEntry[]>([]);
+  const [activeList, setActiveList] = useState<"followers" | "following">("followers");
   const [state, setState] = useState<State>("loading");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { let active = true; setState("loading"); void Promise.all([publicProfile(profileId), socialRelationship(token, profileId), publicProfilePosts(profileId)]).then(([nextProfile, nextRelationship, nextPosts]) => { if (active) { setProfile(nextProfile); setRelationship(nextRelationship); setPosts(nextPosts); setState(nextProfile ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [profileId, token]);
+  const [blockBusy, setBlockBusy] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setState("loading");
+    void Promise.allSettled([
+      publicProfile(profileId),
+      socialRelationship(token, profileId),
+      publicProfilePosts(profileId),
+      socialFollowers(token, profileId),
+      socialFollowing(token, profileId),
+    ]).then(results => {
+      if (!active) return;
+      const [nextProfile, nextRelationship, nextPosts, nextFollowers, nextFollowing] = results;
+      if (nextProfile.status === "fulfilled") setProfile(nextProfile.value);
+      if (nextRelationship.status === "fulfilled") setRelationship(nextRelationship.value);
+      if (nextPosts.status === "fulfilled") setPosts(nextPosts.value);
+      if (nextFollowers.status === "fulfilled") setFollowers(nextFollowers.value);
+      if (nextFollowing.status === "fulfilled") setFollowing(nextFollowing.value);
+      // A temporary friends-list failure must not turn an otherwise public profile into "private".
+      setState(nextProfile.status === "fulfilled" && nextProfile.value ? "ready" : "error");
+    });
+    return () => { active = false; };
+  }, [profileId, token]);
   const toggleFollow = async () => { if (!token) { await onSignIn(); return; } setBusy(true); try { if (relationship?.isFollowing) await unfollowProfile(token, profileId); else await followProfile(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBusy(false); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.heroTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
+  const toggleBlock = async () => { if (!token) { await onSignIn(); return; } setBlockBusy(true); try { if (relationship?.isBlockedByMe) await unblockCommunityUser(token, profileId); else await blockCommunityUser(token, profileId); setRelationship(await socialRelationship(token, profileId)); } catch (cause) { Alert.alert("Profilaktion nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } finally { setBlockBusy(false); } };
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !profile ? <StatusPanel tone={tone} icon="person-outline" code="PROFIL / NICHT ÖFFENTLICH" title="PROFIL NICHT VERFÜGBAR" text="Dieses Profil ist nicht öffentlich oder wurde entfernt." /> : <><View style={[styles.publicProfileCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{profile.avatarUrl ? <Image source={{ uri: profile.avatarUrl }} style={styles.publicAvatar} /> : <View style={[styles.publicAvatar, { backgroundColor: `${tone.accent}18`, borderColor: `${tone.accent}66` }]}><Ionicons name="person-outline" size={35} color={tone.accent} /></View>}<View style={styles.publicProfileCopy}><Text style={[styles.chip, { color: tone.accent }]}>ÖFFENTLICHES PROFIL</Text><Text style={styles.observatoryContextTitle} numberOfLines={2}>{profile.name ?? profile.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy}>{profile.username ? `@${profile.username}` : ""}</Text>{profile.bio ? <Text style={styles.copy}>{profile.bio}</Text> : null}</View>{token ? <View style={styles.inlineButtons}><SecondaryButton tone={tone} label="NACHRICHT" icon="mail-outline" onPress={() => onMessage(profile)} /><PrimaryButton tone={tone} label={relationship?.isFollowing ? "NICHT MEHR FOLGEN" : "FOLGEN"} icon={relationship?.isFollowing ? "person-remove-outline" : "person-add-outline"} onPress={() => void toggleFollow()} disabled={busy} /><SecondaryButton tone={tone} label={relationship?.isBlockedByMe ? "ENTBLOCKEN" : "BLOCKIEREN"} icon={relationship?.isBlockedByMe ? "checkmark-circle-outline" : "ban-outline"} onPress={() => void toggleBlock()} disabled={busy || blockBusy} /></View> : <SecondaryButton tone={tone} label="ANMELDEN" icon="log-in-outline" onPress={() => void onSignIn()} />}</View><View style={[styles.publicStats, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Stat label="FOLLOWER" value={String(relationship?.followers ?? "—")} tone={tone} /><Stat label="FOLGT" value={String(relationship?.following ?? "—")} tone={tone} /><Stat label="STATUS" value="ÖFFENTLICH" tone={tone} /></View><NativePublicExternalProfiles tone={tone} accounts={profile.socialAccounts ?? []} /><View style={[styles.publicSocialLists, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><View style={styles.liveGroupHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>COMMUNITY · BEZIEHUNGEN</Text><Text style={styles.cardTitle}>FOLLOWER &amp; FOLGT</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{activeList === "followers" ? followers.length : following.length}</Text></View><View style={styles.publicSocialTabs}><Pressable accessibilityRole="tab" accessibilityState={{ selected: activeList === "followers" }} onPress={() => setActiveList("followers")} style={[styles.publicSocialTab, { borderColor: activeList === "followers" ? tone.accent : `${tone.accent}44`, backgroundColor: activeList === "followers" ? `${tone.accent}18` : "transparent" }]}><Text style={[styles.miniCopy, { color: activeList === "followers" ? tone.accent : c.muted }]}>FOLLOWER · {relationship?.followers ?? "—"}</Text></Pressable><Pressable accessibilityRole="tab" accessibilityState={{ selected: activeList === "following" }} onPress={() => setActiveList("following")} style={[styles.publicSocialTab, { borderColor: activeList === "following" ? tone.accent : `${tone.accent}44`, backgroundColor: activeList === "following" ? `${tone.accent}18` : "transparent" }]}><Text style={[styles.miniCopy, { color: activeList === "following" ? tone.accent : c.muted }]}>FOLGT · {relationship?.following ?? "—"}</Text></Pressable></View>{(activeList === "followers" ? followers : following).length ? <View style={styles.publicSocialList}>{(activeList === "followers" ? followers : following).map(person => <Pressable key={person.id} onPress={() => onOpenProfile(Number(person.id))} style={({ pressed }) => [styles.publicSocialPerson, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }, pressed && styles.pressed]}>{person.avatarUrl ? <Image source={{ uri: person.avatarUrl }} style={styles.publicSocialAvatar} /> : <View style={[styles.publicSocialAvatar, { borderColor: `${tone.accent}44`, backgroundColor: `${tone.accent}12` }]}><Ionicons name="person-outline" size={16} color={tone.accent} /></View>}<View style={styles.flex}><Text style={styles.cardTitle} numberOfLines={1}>{person.name ?? person.username ?? "BlackWaterLeaf-Nutzer"}</Text><Text style={styles.miniCopy} numberOfLines={1}>{person.username ? `@${person.username}` : "Öffentliches Profil"}</Text></View><Ionicons name="chevron-forward" size={16} color={tone.accent} /></Pressable>)}</View> : <Text style={styles.miniCopy}>NOCH KEINE ÖFFENTLICHEN KONTEN IN DIESER LISTE.</Text>}</View><SectionLabel tone={tone} overline="FREIGEGEBEN" title="ÖFFENTLICHE BEITRÄGE" />{posts.length ? <View style={styles.stack}>{posts.map(post => <View key={post.id} style={[styles.publicPostCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{post.realm ?? "COMMUNITY"}</Text><Text style={styles.copy}>{post.content}</Text><Text style={styles.miniCopy}>{new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>)}</View> : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTS / LEER" title="NOCH KEINE FREIGEGEBENEN BEITRÄGE" text="Dieser Nutzer hat noch keinen öffentlichen Beitrag veröffentlicht." />}<StatusPanel tone={tone} icon="shield-checkmark-outline" code="PRIVATSPHÄRE" title="ÖFFENTLICH, ABER KONTROLLIERT" text="Private Anlagen, Care-Daten und unveröffentlichte Beiträge bleiben geschützt." /></>}</Page>;
 }
 
-function TaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void }) {
+function TaxonMediaAttribution({ taxon, tone }: { taxon: PublicPlantTaxon | PublicAquariumTaxon | PublicTerrariumTaxon; tone: Tone }) {
+  if (!taxon.imageSourceUrl) return <Text style={styles.miniCopy}>BILDNACHWEIS OFFEN · Für dieses Taxon ist noch kein verifiziertes Katalogbild hinterlegt.</Text>;
+  return <Pressable style={({ pressed }) => [pressed && styles.pressed]} onPress={() => void Linking.openURL(taxon.imageSourceUrl!)}><Text style={[styles.chip, { color: tone.accent }]}>BILDQUELLE · {taxon.imageLicense ?? "LIZENZANGABE"}</Text><Text style={styles.miniCopy}>{taxon.imageAttribution ?? "Attribution hinterlegt"}</Text></Pressable>;
+}
+
+function NativeTaxonFactSheet({ tone, realm, profile }: { tone: Tone; realm: "botany" | "aquarium" | "terrarium"; profile: Record<string, unknown> | null }) {
+  const labels: Record<string, string> = { careLevel: "PFLEGEAUFWAND", light: "LICHT", water: "WASSER", temperature: "TEMPERATUR", humidity: "LUFTFEUCHTE", substrate: "SUBSTRAT", size: "GRÖSSE", feeding: "ERNÄHRUNG", behavior: "VERHALTEN", habitat: "LEBENSRAUM", nativeHabitat: "NATÜRLICHES HABITAT", nativeRange: "NATÜRLICHE VERBREITUNG", origin: "HERKUNFT", distribution: "VERBREITUNG" };
+  const entries = Object.entries(profile ?? {}).filter(([key, value]) => Boolean(labels[key]) && ((typeof value === "string" && value.trim()) || typeof value === "number"));
+  const title = realm === "botany" ? "BOTANIK" : realm === "aquarium" ? "AQUARISTIK" : "TERRARISTIK";
+  return <View style={[styles.nativeTaxonFacts, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.careSectionHeader}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>{title} · DATENBLATT</Text><Text style={styles.sectionTitle}>STECKBRIEF</Text></View><Ionicons name="leaf-outline" size={20} color={tone.accent} /></View>{entries.length ? <View style={styles.nativeTaxonFactsGrid}>{entries.map(([key, value]) => <View key={key} style={[styles.nativeTaxonFact, { borderColor: `${tone.accent}33` }]}><Ionicons name={key === "water" ? "water-outline" : key === "temperature" ? "thermometer-outline" : key === "light" ? "sunny-outline" : key === "humidity" ? "cloud-outline" : "leaf-outline"} size={16} color={tone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>{labels[key]}</Text><Text style={styles.copy}>{String(value)}</Text></View></View>)}</View> : <Text style={styles.copy}>Für diesen Datensatz sind noch keine geprüften Pflege- und Haltungsfelder veröffentlicht.</Text>}<Text style={styles.miniCopy}>Quellengebundener Katalogauszug. Pflege, Haltung und Tierwohl bitte mit den vollständigen Fachquellen abgleichen.</Text></View>;
+}
+
+function TaxonImageDetail({ taxon, tone, category }: { taxon: PublicPlantTaxon | PublicAquariumTaxon | PublicTerrariumTaxon; tone: Tone; category: "PFLANZE" | "FISCH" | "TERRARIUM" }) {
+  const [open, setOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  if (!taxon.imageUrl) return null;
+  const close = () => { setOpen(false); setImageLoaded(false); setImageFailed(false); };
+  return <>
+    <Pressable accessibilityRole="button" accessibilityLabel={`Detailansicht des Bildes von ${taxon.scientificName} öffnen`} onPress={() => { setImageFailed(false); setImageLoaded(false); setOpen(true); }} style={({ pressed }) => [styles.taxonImageButton, { borderColor: `${tone.accent}88` }, pressed && styles.pressed]}>
+      <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} onError={() => setImageFailed(true)} />
+      <View pointerEvents="none" style={styles.taxonImageDetailLabel}><Ionicons name="expand-outline" size={14} color="#effff0" /><Text style={styles.taxonImageDetailText}>DETAILANSICHT</Text></View>
+    </Pressable>
+    <Modal visible={open} animationType="fade" transparent statusBarTranslucent onRequestClose={close}>
+      <View style={styles.taxonImageModalScreen}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Bilddetailansicht schließen" style={StyleSheet.absoluteFill} onPress={close} />
+        <View style={[styles.taxonImageModalCard, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]} accessibilityViewIsModal>
+          <View style={styles.taxonImageModalHeader}><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>{category} · HOCHAUFLÖSENDES KATALOGBILD</Text><Text style={styles.taxonImageModalTitle}>{taxon.scientificName}</Text></View><Pressable accessibilityRole="button" accessibilityLabel="Bilddetailansicht schließen" onPress={close} style={[styles.taxonImageModalClose, { borderColor: `${tone.accent}66` }]}><Ionicons name="close-outline" size={23} color={tone.accent} /></Pressable></View>
+          <View style={styles.taxonImageModalStage}>
+            {!imageLoaded && !imageFailed ? <View style={styles.taxonImageModalLoading}><ActivityIndicator size="small" color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>HOCHAUFLÖSENDES BILD WIRD GELADEN …</Text></View> : null}
+            {imageFailed ? <View style={styles.taxonImageModalLoading}><Ionicons name="image-outline" size={34} color={tone.accent} /><Text style={styles.cardTitle}>BILD NICHT VERFÜGBAR</Text><Text style={styles.miniCopy}>Der Bildnachweis bleibt erhalten.</Text></View> : <Image source={{ uri: taxon.imageUrl }} style={[styles.taxonImageModalImage, !imageLoaded && { opacity: 0 }]} onLoad={() => setImageLoaded(true)} onError={() => { setImageFailed(true); setImageLoaded(false); }} resizeMode="contain" accessibilityLabel={`${taxon.scientificName} – verifiziertes Katalogbild in voller Ansicht`} />}
+          </View>
+          <View style={[styles.taxonImageModalEvidence, { borderColor: `${tone.accent}33` }]}><Text style={[styles.chip, { color: tone.accent }]}>BILDNACHWEIS</Text><Text style={styles.miniCopy}>{taxon.imageAttribution ?? "Attribution hinterlegt"}</Text>{taxon.imageSourceUrl ? <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(taxon.imageSourceUrl!)}><Text style={[styles.taxonImageSourceLink, { color: tone.accent }]}>QUELLBEOBACHTUNG ÖFFNEN · {taxon.imageLicense ?? "LIZENZANGABE"}</Text></Pressable> : null}</View>
+          <Text style={styles.taxonImageModalHint}>Originalbild lokal gespeichert · Zum Schließen außerhalb antippen oder X wählen.</Text>
+        </View>
+      </View>
+    </Modal>
+  </>;
+}
+
+function TaxonScreen({ tone, token, taxonId, onBack, onOpenCollection }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void; onOpenCollection: (realm: Realm, name: string, scientificName?: string) => void }) {
   const [taxon, setTaxon] = useState<PublicPlantTaxon | null>(null);
   const [saved, setSaved] = useState(false);
   const [state, setState] = useState<State>("loading");
   useEffect(() => { let active = true; void publicPlantTaxon(taxonId).then(next => { if (active) { setTaxon(next); setState(next ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [taxonId]);
   useEffect(() => { if (!token) return; void savedItems(token).then(rows => setSaved(rows.some(item => item.targetType === "plant_taxon" && item.targetId === taxonId))).catch(() => undefined); }, [token, taxonId]);
   const toggleSave = async () => { if (!token || !taxon) return; try { if (saved) await unsaveItem(token, { targetType: "plant_taxon", targetId: taxonId }); else await saveItem(token, { targetType: "plant_taxon", targetId: taxonId }); setSaved(current => !current); } catch (cause) { Alert.alert("Speichern nicht möglich", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text>{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="leaf-outline" code="TAXON / NICHT VERÖFFENTLICHT" title="PFLANZE NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="PFLANZE" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="leaf-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER PFLANZENKATALOG</Text><Text style={styles.observatoryContextTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Taxon-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} /><SecondaryButton tone={tone} label="IN ANLAGE ÜBERNEHMEN" icon="add-outline" onPress={() => token ? onOpenCollection("botany", taxon.scientificName, taxon.scientificName) : Alert.alert("Sichere Anmeldung erforderlich", "Melde dich an, um eine private Anlage zu übernehmen.")} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><NativeTaxonFactSheet tone={tone} realm="botany" profile={taxon.careProfile && typeof taxon.careProfile === "object" ? taxon.careProfile : null} /><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View></>}</Page>;
 }
 
-function AquariumTaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void }) {
+function AquariumTaxonScreen({ tone, token, taxonId, onBack, onOpenCollection }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void; onOpenCollection: (realm: Realm, name: string, scientificName?: string) => void }) {
   const [taxon, setTaxon] = useState<PublicAquariumTaxon | null>(null);
   const [saved, setSaved] = useState(false);
   const [state, setState] = useState<State>("loading");
@@ -3150,7 +4087,14 @@ function AquariumTaxonScreen({ tone, token, taxonId, onBack }: { tone: Tone; tok
   const profile = taxon?.careProfile && typeof taxon.careProfile === "object" ? taxon.careProfile : {};
   const careLevel = typeof profile.careLevel === "string" ? profile.careLevel : null;
   const water = typeof profile.water === "string" ? profile.water : null;
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="fish-outline" code="AQUARIUM / NICHT VERÖFFENTLICHT" title="FISCH NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <Image source={{ uri: taxon.imageUrl }} style={styles.taxonImage} /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="fish-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER AQUARISTIK-KATALOG · CHANNA</Text><Text style={styles.heroTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Aquaristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text>{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View>{careLevel || water ? <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>HALTUNGSHINWEISE</Text>{careLevel ? <Text style={styles.copy}>ANSPRUCH · {careLevel}</Text> : null}{water ? <Text style={styles.copy}>WASSER · {water}</Text> : null}<Text style={styles.miniCopy}>Katalogauszug – Haltung bitte individuell anhand von Größe, Herkunft und Verhalten prüfen.</Text></View> : null}</>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="fish-outline" code="AQUARIUM / NICHT VERÖFFENTLICHT" title="FISCH NICHT GEFUNDEN" text="Dieser Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="FISCH" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="fish-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER AQUARISTIK-KATALOG · CHANNA</Text><Text style={styles.observatoryContextTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Aquaristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} /><SecondaryButton tone={tone} label="IN ANLAGE ÜBERNEHMEN" icon="add-outline" onPress={() => token ? onOpenCollection("aquarium", taxon.scientificName, taxon.scientificName) : Alert.alert("Sichere Anmeldung erforderlich", "Melde dich an, um eine private Anlage zu übernehmen.")} />{token ? <SecondaryButton tone={tone} label={saved ? "GESPEICHERT" : "SPEICHERN"} icon="bookmark-outline" onPress={() => void toggleSave()} /> : null}</View><NativeTaxonFactSheet tone={tone} realm="aquarium" profile={profile} /><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}</View>{careLevel || water ? <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>HALTUNGSHINWEISE</Text>{careLevel ? <Text style={styles.copy}>ANSPRUCH · {careLevel}</Text> : null}{water ? <Text style={styles.copy}>WASSER · {water}</Text> : null}<Text style={styles.miniCopy}>Katalogauszug – Haltung bitte individuell anhand von Größe, Herkunft und Verhalten prüfen.</Text></View> : null}</>}</Page>;
+}
+
+function TerrariumTaxonScreen({ tone, token, taxonId, onBack, onOpenCollection }: { tone: Tone; token: string | null; taxonId: number; onBack: () => void; onOpenCollection: (realm: Realm, name: string, scientificName?: string) => void }) {
+  const [taxon, setTaxon] = useState<PublicTerrariumTaxon | null>(null);
+  const [state, setState] = useState<State>("loading");
+  useEffect(() => { let active = true; void publicTerrariumTaxon(taxonId).then(next => { if (active) { setTaxon(next); setState(next ? "ready" : "error"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [taxonId]);
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{state === "loading" ? <Loading tone={tone} /> : state === "error" || !taxon ? <StatusPanel tone={tone} icon="bug-outline" code="TERRARISTIK / NICHT VERÖFFENTLICHT" title="ART NICHT GEFUNDEN" text="Dieser Terrarium-Datensatz ist nicht veröffentlicht oder nicht vorhanden." /> : <><View style={[styles.taxonCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}>{taxon.imageUrl ? <TaxonImageDetail taxon={taxon} tone={tone} category="TERRARIUM" /> : <View style={[styles.taxonImage, { backgroundColor: `${tone.accent}18`, alignItems: "center", justifyContent: "center" }]}><Ionicons name="bug-outline" size={35} color={tone.accent} /></View>}<Text style={[styles.chip, { color: tone.accent }]}>VALIDIERTER TERRARISTIK-KATALOG</Text><Text style={styles.observatoryContextTitle}>{taxon.scientificName}</Text><Text style={styles.copy}>{taxon.acceptedScientificName && taxon.acceptedScientificName !== taxon.scientificName ? `Akzeptierter Name: ${taxon.acceptedScientificName}` : taxon.family ?? "Terraristik-Datensatz"}</Text><Text style={styles.miniCopy}>{taxon.evidenceState} · {taxon.rank ?? "ohne Rang"}</Text><TaxonMediaAttribution taxon={taxon} tone={tone} /><SecondaryButton tone={tone} label="IN ANLAGE ÜBERNEHMEN" icon="add-outline" onPress={() => token ? onOpenCollection("terrarium", taxon.scientificName, taxon.scientificName) : Alert.alert("Sichere Anmeldung erforderlich", "Melde dich an, um eine private Anlage zu übernehmen.")} /></View><NativeTaxonFactSheet tone={tone} realm="terrarium" profile={taxon.careProfile && typeof taxon.careProfile === "object" ? taxon.careProfile : null} /><View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.sectionTitle, { color: tone.accent }]}>KURZPROFIL</Text><Text style={styles.copy}>{taxon.summary ?? "Für diesen validierten Datensatz liegt noch keine Kurzbeschreibung vor."}</Text>{taxon.commonNames.length ? <Text style={styles.miniCopy}>GEBRÄUCHLICH: {taxon.commonNames.join(" · ")}</Text> : null}<Text style={styles.miniCopy}>HERKUNFT · Quellengebundene Verbreitungsangabe in der Fachquelle</Text></View></>}</Page>;
 }
 
 function SavedScreen({ tone, token, onBack, onSignIn, navigate, onOpenProfile, onOpenTaxon, onOpenAquariumTaxon }: { tone: Tone; token: string | null; onBack: () => void; onSignIn: () => Promise<void>; navigate: (screen: Screen) => void; onOpenProfile: (id: number) => void; onOpenTaxon: (id: number) => void; onOpenAquariumTaxon: (id: number) => void }) {
@@ -3170,14 +4114,14 @@ function RankingScreen({ tone, token, onBack, onSignIn }: { tone: Tone; token: s
   const [state, setState] = useState<State>(token ? "loading" : "ready");
   useEffect(() => { let active = true; if (!token) return; void Promise.all([gamificationSummary(token), gamificationLeaderboard(token), publishedChallenges(), myChallenges(token)]).then(([nextSummary, nextLeaderboard, nextChallenges, nextProgress]) => { if (active) { setSummary(nextSummary); setLeaderboard(nextLeaderboard); setChallenges(nextChallenges); setProgress(nextProgress); setState("ready"); } }).catch(() => { if (active) setState("error"); }); return () => { active = false; }; }, [token]);
   const join = async (id: number) => { if (!token) return; try { await joinChallenge(token, id); setProgress(await myChallenges(token)); } catch (cause) { Alert.alert("Challenge nicht verfügbar", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); } };
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="RANKING BLEIBT PRIVAT." text="Melde dich an, um deinen serverseitig berechneten Score und freigegebene Challenges zu sehen." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Rankingdaten konnten nicht geladen werden." /> : <><View style={[styles.rankingScoreCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>COMMUNITY · XP · FORTSCHRITT</Text><Text style={styles.heroTitle}>LEVEL {summary?.level ?? "—"}</Text><Text style={styles.copy}>{summary?.totalXp ?? "—"} XP GESAMT · SERVER-VERIFIZIERT</Text></View><SectionLabel tone={tone} overline="QUALITÄTSGEPRÜFTE EVENTS" title="CHALLENGES" />{!challenges.length ? <StatusPanel tone={tone} icon="trophy-outline" code="CHALLENGES / LEER" title="AKTUELL KEINE VERÖFFENTLICHT" text="Neue Challenges erscheinen erst nach Admin-Freigabe." /> : <View style={styles.stack}>{challenges.map(challenge => { const joined = progress.find(item => item.challengeId === challenge.id); return <View key={challenge.id} style={[styles.challengeCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{challenge.realm ?? "ALLE BEREICHE"}</Text><Text style={styles.cardTitle}>{challenge.title}</Text><Text style={styles.miniCopy}>{challenge.description}</Text>{joined ? <Text style={[styles.chip, { color: tone.accent }]}>{joined.progress}% · {joined.status === "completed" ? "ABGESCHLOSSEN" : "TEILGENOMMEN"}</Text> : <SecondaryButton tone={tone} label="TEILNEHMEN" icon="add-circle-outline" onPress={() => void join(challenge.id)} />}</View>; })}</View>}<SectionLabel tone={tone} overline="ÖFFENTLICH · XP" title="BESTENLISTE" />{leaderboard.length ? <View style={styles.stack}>{leaderboard.slice(0, 10).map(row => <View key={row.userId} style={[styles.leaderboardRow, { borderColor: `${tone.accent}33`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{row.rank}</Text><Text style={styles.cardTitle}>{row.name}</Text><Text style={styles.miniCopy}>{row.totalXp} XP</Text></View>)}</View> : <Text style={styles.miniCopy}>Noch keine öffentliche XP-Bestenliste vorhanden.</Text>}</>}</Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} />{!token ? <PrivateFeature tone={tone} title="RANKING BLEIBT PRIVAT." text="Melde dich an, um deinen serverseitig berechneten Score und freigegebene Challenges zu sehen." onSignIn={onSignIn} /> : state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text="Rankingdaten konnten nicht geladen werden." /> : <><View style={[styles.rankingScoreCard, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>COMMUNITY · XP · FORTSCHRITT</Text><Text style={styles.observatoryContextTitle}>LEVEL {summary?.level ?? "—"}</Text><Text style={styles.copy}>{summary?.totalXp ?? "—"} XP GESAMT · SERVER-VERIFIZIERT</Text></View><SectionLabel tone={tone} overline="QUALITÄTSGEPRÜFTE EVENTS" title="CHALLENGES" />{!challenges.length ? <StatusPanel tone={tone} icon="trophy-outline" code="CHALLENGES / LEER" title="AKTUELL KEINE VERÖFFENTLICHT" text="Neue Challenges erscheinen erst nach Admin-Freigabe." /> : <View style={styles.stack}>{challenges.map(challenge => { const joined = progress.find(item => item.challengeId === challenge.id); return <View key={challenge.id} style={[styles.challengeCard, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>{challenge.realm ?? "ALLE BEREICHE"}</Text><Text style={styles.cardTitle}>{challenge.title}</Text><Text style={styles.miniCopy}>{challenge.description}</Text>{joined ? <Text style={[styles.chip, { color: tone.accent }]}>{joined.progress}% · {joined.status === "completed" ? "ABGESCHLOSSEN" : "TEILGENOMMEN"}</Text> : <SecondaryButton tone={tone} label="TEILNEHMEN" icon="add-circle-outline" onPress={() => void join(challenge.id)} />}</View>; })}</View>}<SectionLabel tone={tone} overline="ÖFFENTLICH · XP" title="BESTENLISTE" />{leaderboard.length ? <View style={styles.stack}>{leaderboard.slice(0, 10).map(row => <View key={row.userId} style={[styles.leaderboardRow, { borderColor: `${tone.accent}33`, backgroundColor: tone.panel }]}><Text style={[styles.chip, { color: tone.accent }]}>#{row.rank}</Text><Text style={styles.cardTitle}>{row.name}</Text><Text style={styles.miniCopy}>{row.totalXp} XP</Text></View>)}</View> : <Text style={styles.miniCopy}>Noch keine öffentliche XP-Bestenliste vorhanden.</Text>}</>}</Page>;
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone: Tone }) {
   return <View style={styles.stat}><Text style={[styles.statValue, { color: tone.accent }]}>{value}</Text><Text style={styles.statLabel}>{label}</Text></View>;
 }
 
-function ReferenceHero({
+function ObservatoryContextHeader({
   tone,
   eyebrow,
   title,
@@ -3193,14 +4137,14 @@ function ReferenceHero({
   return (
     <ImageBackground
       source={tone.image}
-      style={[styles.hero, { borderColor: `${tone.accent}99` }]}
-      imageStyle={styles.heroImage}
+      style={[styles.observatoryContextHeader, { borderColor: `${tone.accent}99`, shadowColor: tone.accent, ...NATIVE_GLOW }]}
+      imageStyle={styles.observatoryContextImage}
     >
-      <View style={styles.heroShade} />
-      <View style={styles.heroCopy}>
+      <View style={styles.observatoryContextShade} />
+      <View style={styles.observatoryContextCopy}>
         <View
           style={[
-            styles.heroIcon,
+            styles.observatoryContextIcon,
             {
               borderColor: `${tone.accent}99`,
               backgroundColor: `${tone.accent}18`,
@@ -3210,8 +4154,8 @@ function ReferenceHero({
           <Ionicons name={icon} size={24} color={tone.accent} />
         </View>
         <Text style={[styles.eyebrow, { color: tone.accent }]}>{eyebrow}</Text>
-        <Text style={styles.heroTitle}>{title}</Text>
-        <Text style={styles.heroText}>{subtitle}</Text>
+        <Text style={styles.observatoryContextTitle}>{title}</Text>
+        <Text style={styles.observatoryContextText}>{subtitle}</Text>
       </View>
     </ImageBackground>
   );
@@ -3236,25 +4180,28 @@ function SectionLabel({
   );
 }
 
-function ActionGrid({
+function ObservatoryActionCluster({
   tone,
   actions,
   compact = false,
   activeTitle,
+  visual = false,
 }: {
   tone: Tone;
   actions: Action[];
   compact?: boolean;
   activeTitle?: string;
+  visual?: boolean;
 }) {
   return (
     <View style={[styles.grid, compact && styles.gridCompact]}>
       {actions.map(action => (
-        <ReferenceCard
+        <ObservatoryActionRow
           key={action.title}
           tone={tone}
           action={action}
           compact={compact}
+          visual={visual}
           active={activeTitle === action.title.toUpperCase()}
         />
       ))}
@@ -3262,16 +4209,20 @@ function ActionGrid({
   );
 }
 
-function ReferenceCard({
+function ObservatoryActionRow({
   tone,
   action,
   compact = false,
   active = false,
+  imageMode = false,
+  visual = false,
 }: {
   tone: Tone;
   action: Action;
   compact?: boolean;
   active?: boolean;
+  imageMode?: boolean;
+  visual?: boolean;
 }) {
   const cardTone = action.area ? TONES[action.area] : tone;
   return (
@@ -3280,9 +4231,10 @@ function ReferenceCard({
       accessibilityLabel={`${action.title}: ${action.note}`}
       accessibilityState={{ selected: active }}
       style={({ pressed }) => [
-        styles.referenceCard,
-        compact && styles.referenceCardCompact,
-        { borderColor: `${cardTone.accent}77`, backgroundColor: cardTone.panel },
+        styles.observatoryActionRow,
+        compact && styles.observatoryActionRowCompact,
+        visual && styles.observatoryActionRowVisual,
+        { borderColor: `${cardTone.accent}77`, backgroundColor: `${cardTone.panel}D9`, shadowColor: cardTone.accent, ...NATIVE_GLOW },
         active && { borderColor: cardTone.accent },
         pressed && styles.pressed,
       ]}
@@ -3291,22 +4243,13 @@ function ReferenceCard({
         action.onPress();
       }}
     >
-      <ImageBackground
-        source={action.image}
-        style={[styles.referenceImage, compact && styles.referenceImageCompact]}
-        imageStyle={styles.referenceImageInner}
-      >
-        <View style={styles.cardShade} />
-        <View
-          style={[
-            styles.referenceContent,
-            compact && styles.referenceContentCompact,
-          ]}
-        >
+      <View style={[styles.observatoryActionContent, compact && styles.observatoryActionContentCompact, visual && styles.observatoryActionContentVisual]}>
+          {imageMode || visual ? <Image source={action.image} style={[styles.observatoryActionMedia, compact && styles.observatoryActionMediaCompact, visual && styles.observatoryActionMediaVisual]} /> : null}
+          {visual ? <View pointerEvents="none" style={styles.observatoryActionMediaShade} /> : null}
           <View
             style={[
-              styles.cardIcon,
-              compact && styles.cardIconCompact,
+              styles.observatoryActionIcon,
+              compact && styles.observatoryActionIconCompact,
               {
                 borderColor: `${cardTone.accent}99`,
                 backgroundColor: `${cardTone.accent}16`,
@@ -3315,11 +4258,12 @@ function ReferenceCard({
           >
             <Ionicons name={action.icon} size={20} color={cardTone.accent} />
           </View>
-          <View style={styles.flex}>
+          <View style={[styles.flex, visual && styles.observatoryActionCopyVisual]}>
             <Text
               style={[
-                styles.referenceTitle,
-                compact && styles.referenceTitleCompact,
+                styles.observatoryActionTitle,
+                compact && styles.observatoryActionTitleCompact,
+                visual && styles.observatoryActionTitleVisual,
               ]}
               numberOfLines={2}
             >
@@ -3327,22 +4271,22 @@ function ReferenceCard({
             </Text>
             <Text
               style={[
-                styles.referenceNote,
-                compact && styles.referenceNoteCompact,
+                styles.observatoryActionNote,
+                compact && styles.observatoryActionNoteCompact,
+                visual && styles.observatoryActionNoteVisual,
               ]}
               numberOfLines={2}
             >
               {action.note}
             </Text>
             {action.unavailable ? (
-              <Text style={[styles.unavailableLabel, { color: cardTone.accent }]}>
+              <Text style={[styles.observatoryUnavailableLabel, { color: cardTone.accent }]}>
                 NOCH NICHT VERFÜGBAR
               </Text>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={21} color={cardTone.accent} />
-        </View>
-      </ImageBackground>
+          <Ionicons name="chevron-forward" size={21} color={cardTone.accent} style={visual ? styles.observatoryActionChevronVisual : undefined} />
+      </View>
     </Pressable>
   );
 }
@@ -3408,14 +4352,25 @@ function ProductCard({
   );
 }
 
-function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onBlock, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; token: string | null }) {
+function PostCard({ tone, post, isOwner, accountId, onEdit, onDelete, onLike, onReport, onBlock, onOpenDetail, onOpenProfile, token }: { tone: Tone; post: CommunityPost; isOwner: boolean; accountId: number | null; onEdit: () => void; onDelete: () => Promise<void>; onLike: () => Promise<void>; onReport: () => Promise<void>; onBlock: () => Promise<void>; onOpenDetail: () => void; onOpenProfile: () => void; token: string | null }) {
   const [actionPending, setActionPending] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [commentPending, setCommentPending] = useState(false);
-  const loadComments = async () => setComments(await communityComments(Number(post.id)));
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [postMediaRatio, setPostMediaRatio] = useState<number | null>(null);
+  const displayName = [post.author.displayName, post.author.name, post.author.username].find(value => typeof value === "string" && value.trim().length > 0)?.trim() ?? "Verifiziertes Konto";
+  const uniqueMedia = useMemo(() => post.media.filter((media, index, all) => all.findIndex(candidate => `${candidate.kind}:${candidate.accessUrl}` === `${media.kind}:${media.accessUrl}`) === index), [post.media]);
+  const loadComments = async () => { if (token) setComments(await communityComments(token, Number(post.id))); };
+  useEffect(() => {
+    const media = uniqueMedia[0];
+    if (!media || media.mimeType.startsWith("video/")) { setPostMediaRatio(null); return; }
+    Image.getSize(media.accessUrl, (width, height) => setPostMediaRatio(width && height ? width / height : null), () => setPostMediaRatio(null));
+  }, [uniqueMedia]);
   const submitComment = async () => {
     if (!token || !commentText.trim()) return;
     setCommentPending(true);
@@ -3426,6 +4381,20 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
       await loadComments();
     } finally { setCommentPending(false); }
   };
+  const saveComment = async () => {
+    if (!token || !editingCommentId || !editingCommentText.trim()) return;
+    setCommentPending(true);
+    try { await updateCommunityComment(token, { commentId: editingCommentId, content: editingCommentText.trim() }); setEditingCommentId(null); setEditingCommentText(""); await loadComments(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gespeichert werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setCommentPending(false); }
+  };
+  const removeComment = async (commentId: number) => {
+    if (!token) return;
+    setCommentPending(true);
+    try { await deleteCommunityComment(token, commentId); await loadComments(); }
+    catch (cause) { Alert.alert("Kommentar konnte nicht gelöscht werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen."); }
+    finally { setCommentPending(false); }
+  };
   return (
     <View
       style={[
@@ -3435,9 +4404,9 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
     >
       <View style={styles.postHead}>
         <View style={styles.postHeadCopy}>
-          <Text style={styles.cardTitle}>
-            {post.author.name ?? post.author.username ?? "Verifiziertes Konto"}
-          </Text>
+          <Pressable onPress={onOpenProfile} accessibilityRole="link" accessibilityLabel={`Profil von ${displayName}`}><Text style={styles.postAuthorName} numberOfLines={1} ellipsizeMode="tail">
+            {displayName}
+          </Text></Pressable>
           <Text style={styles.date}>
             {new Date(post.createdAt).toLocaleDateString("de-DE")}
           </Text>
@@ -3447,23 +4416,24 @@ function PostCard({ tone, post, isOwner, onEdit, onDelete, onLike, onReport, onB
           <Pressable accessibilityLabel="Beitrag löschen" style={[styles.postOwnerButton, styles.postOwnerDelete]} disabled={actionPending} onPress={() => { Alert.alert("Beitrag löschen", "Diesen eigenen Beitrag wirklich löschen?", [{ text: "Abbrechen", style: "cancel" }, { text: "Löschen", style: "destructive", onPress: () => { setActionPending(true); void onDelete().finally(() => setActionPending(false)); } }]); }}><Ionicons name="trash-outline" size={18} color="#ffabb0" /></Pressable>
         </View> : null}
       </View>
-      <Text style={styles.copy}>{post.content}</Text>
-      {post.media[0] ? (
-        <Image
-          source={{ uri: post.media[0].accessUrl }}
-          style={styles.postImage}
-        />
-      ) : null}
-      <View style={styles.postInteractionRow}><Pressable onPress={() => void onLike()} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport() }])} style={styles.commentToggle}><Ionicons name="flag-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>MELDEN</Text></Pressable>{!isOwner ? <Pressable onPress={() => Alert.alert("Konto blockieren", "Beiträge dieses Kontos aus deinem Feed ausblenden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Blockieren", style: "destructive", onPress: () => void onBlock() }])} style={styles.commentToggle}><Ionicons name="ban-outline" size={16} color={c.muted} /><Text style={styles.miniCopy}>BLOCKIEREN</Text></Pressable> : null}</View>
-      <Text style={styles.date}>
-        {post.likesCount} Likes · {post.commentsCount} Kommentare
-      </Text>
-      <Pressable style={styles.commentToggle} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}>
-        <Ionicons name="chatbubble-outline" size={16} color={tone.accent} />
-        <Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text>
-      </Pressable>
+      {uniqueMedia[0] ? <View style={styles.postSocialStage}>
+        {uniqueMedia[0].mimeType.startsWith("video/") ? <NativeCommunityVideo uri={uniqueMedia[0].accessUrl} title="Community-Video" /> : <Pressable accessibilityRole="button" accessibilityLabel="Bild vergrößern" onPress={() => setZoomedImage(uniqueMedia[0].accessUrl)}><Image source={{ uri: uniqueMedia[0].accessUrl }} style={[styles.postSocialMedia, postMediaRatio ? { aspectRatio: postMediaRatio, height: undefined } : null]} resizeMode="cover" /></Pressable>}
+        <View style={styles.postSocialShade} pointerEvents="none" />
+        <View style={styles.postSocialRail}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Beitrag liken" style={styles.postSocialAction} onPress={() => void onLike()}><Ionicons name="heart-outline" size={24} color={c.text} /><Text style={styles.postSocialActionCount}>{post.likesCount}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Kommentare öffnen" style={styles.postSocialAction} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}><Ionicons name="chatbubble-ellipses-outline" size={23} color={c.text} /><Text style={styles.postSocialActionCount}>{post.commentsCount}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Beitrag teilen" style={styles.postSocialAction} onPress={() => void Share.share({ message: `${displayName}: ${post.content}` })}><Ionicons name="share-social-outline" size={23} color={c.text} /><Text style={styles.postSocialActionLabel}>TEILEN</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Beitragsdetail öffnen" style={styles.postSocialAction} onPress={onOpenDetail}><Ionicons name="open-outline" size={22} color={c.text} /><Text style={styles.postSocialActionLabel}>DETAIL</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Beitrag melden" style={styles.postSocialAction} onPress={() => Alert.alert("Beitrag melden", "Warum möchtest du diesen Beitrag melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => void onReport() }])}><Ionicons name="flag-outline" size={21} color={c.text} /><Text style={styles.postSocialActionLabel}>MELDEN</Text></Pressable>
+        </View>
+        <View style={styles.postSocialCaption}><Text style={styles.postSocialCaptionText}>{post.content}</Text><Text style={styles.postSocialCaptionMeta}>{displayName} · {new Date(post.createdAt).toLocaleDateString("de-DE")}</Text></View>
+      </View> : <><Text style={styles.copy}>{post.content}</Text><View style={styles.postInteractionRow}><Pressable onPress={() => void onLike()} style={styles.commentToggle}><Ionicons name="heart-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>GEFÄLLT MIR</Text></Pressable><Pressable onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }} style={styles.commentToggle}><Ionicons name="chatbubble-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>KOMMENTARE</Text></Pressable><Pressable onPress={() => void Share.share({ message: `${displayName}: ${post.content}` })} style={styles.commentToggle}><Ionicons name="share-social-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>TEILEN</Text></Pressable></View></>}
+      {uniqueMedia.length > 1 ? <View style={styles.mediaScrollHintNative}><View style={styles.mediaScrollLineNative} /><Text style={styles.miniCopy}>WEITERE MEDIEN · WISCHEN / SCROLLEN</Text><View style={styles.mediaScrollLineNative} /></View> : null}
+      <Modal visible={Boolean(zoomedImage)} transparent animationType="fade" onRequestClose={() => setZoomedImage(null)}><Pressable style={styles.mediaLightboxNative} onPress={() => setZoomedImage(null)}><Pressable onPress={() => undefined}><Image source={zoomedImage ? { uri: zoomedImage } : undefined} style={styles.mediaLightboxImageNative} resizeMode="contain" /></Pressable><Pressable accessibilityLabel="Zoom schließen" style={styles.mediaLightboxCloseNative} onPress={() => setZoomedImage(null)}><Ionicons name="close" size={20} color={c.text} /></Pressable></Pressable></Modal>
+      <Text style={styles.date}>{post.likesCount} Likes · {post.commentsCount} Kommentare</Text>
+      <View style={styles.commentActionRow}><Pressable style={styles.commentToggle} onPress={onOpenDetail}><Ionicons name="open-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>DETAILANSICHT</Text></Pressable><Pressable style={styles.commentToggle} onPress={() => { setCommentsOpen(value => !value); if (!commentsOpen) void loadComments(); }}><Ionicons name="chatbubble-outline" size={16} color={tone.accent} /><Text style={[styles.miniCopy, { color: tone.accent }]}>{post.commentsCount} KOMMENTARE</Text></Pressable></View>
       {commentsOpen ? <View style={styles.commentPanel}>
-        {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text><Text style={styles.miniCopy}>{comment.content}</Text>{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
+        {comments.map(comment => <View key={comment.id} style={[styles.commentRow, comment.parentId ? styles.commentReplyRow : null]}><Text style={styles.commentAuthor}>{comment.authorName ?? comment.authorUsername ?? "Nutzer"}</Text>{editingCommentId === comment.id ? <><TextInput value={editingCommentText} onChangeText={setEditingCommentText} style={styles.commentInput} multiline maxLength={2000} /><View style={styles.commentActionRow}><Pressable disabled={commentPending || !editingCommentText.trim()} onPress={() => void saveComment()}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>SPEICHERN</Text></Pressable><Pressable onPress={() => { setEditingCommentId(null); setEditingCommentText(""); }}><Text style={styles.commentReplyAction}>ABBRECHEN</Text></Pressable></View></> : <Text style={styles.miniCopy}>{comment.content}</Text>}{comment.authorId === accountId ? <View style={styles.commentActionRow}><Pressable accessibilityRole="button" accessibilityLabel="Kommentar bearbeiten" onPress={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); }}><Ionicons name="create-outline" size={18} color={tone.accent} /></Pressable><Pressable accessibilityRole="button" accessibilityLabel="Kommentar löschen" disabled={commentPending} onPress={() => Alert.alert("Kommentar löschen", "Diesen eigenen Kommentar wirklich löschen?", [{ text: "Abbrechen", style: "cancel" }, { text: "Löschen", style: "destructive", onPress: () => void removeComment(comment.id) }])}><Ionicons name="trash-outline" size={18} color={c.danger} /></Pressable></View> : <Pressable onPress={() => Alert.alert("Kommentar melden", "Warum möchtest du diesen Kommentar melden?", [{ text: "Abbrechen", style: "cancel" }, { text: "Melden", onPress: () => token ? void reportCommunityComment(token, { commentId: comment.id, reason: "other" }).then(() => Alert.alert("Meldung gespeichert", "Der Kommentar wurde zur Prüfung weitergeleitet.")) : undefined }])}><Text style={styles.commentReplyAction}>MELDEN</Text></Pressable>}{!comment.parentId ? <Pressable onPress={() => setReplyTo(comment.id)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORTEN</Text></Pressable> : null}</View>)}
         {replyTo ? <Pressable onPress={() => setReplyTo(null)}><Text style={[styles.commentReplyAction, { color: tone.accent }]}>ANTWORT AUFHEBEN</Text></Pressable> : null}
         {token ? <View style={styles.commentComposer}><TextInput value={commentText} onChangeText={setCommentText} placeholder="Kommentar schreiben…" placeholderTextColor={c.muted} style={styles.commentInput} multiline maxLength={2000} /><Pressable style={[styles.commentSend, commentPending && { opacity: 0.55 }]} disabled={commentPending} onPress={() => void submitComment()}><Ionicons name="send" size={16} color={c.bg} /></Pressable></View> : <Text style={styles.miniCopy}>Zum Kommentieren bitte sicher anmelden.</Text>}
       </View> : null}
@@ -3566,98 +4536,6 @@ function Truth({ tone }: { tone: Tone }) {
   );
 }
 
-function NativePlanner({ tone }: { tone: Tone }) {
-  const tools: Array<{ id: string; title: string; icon: IconName }> = [
-    { id: "plant", title: "Pflanze", icon: "leaf-outline" },
-    { id: "stone", title: "Struktur", icon: "layers-outline" },
-    { id: "water", title: "Wasser", icon: "water-outline" },
-    { id: "light", title: "Licht", icon: "bulb-outline" },
-  ];
-  const [selected, setSelected] = useState(tools[0].id);
-  const [markers, setMarkers] = useState<Array<{ id: string; tool: string }>>(
-    []
-  );
-  const insert = () =>
-    setMarkers(current => [
-      ...current,
-      { id: Crypto.randomUUID(), tool: selected },
-    ]);
-  return (
-    <View
-      style={[
-        styles.planner,
-        { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
-      ]}
-    >
-      <Text style={[styles.chip, { color: tone.accent }]}>LOKALE PLANUNG</Text>
-      <Text style={styles.cardTitle}>OBJEKTWERKZEUG WÄHLEN</Text>
-      <View style={styles.plannerTools}>
-        {tools.map(tool => (
-          <Pressable
-            key={tool.id}
-            onPress={() => setSelected(tool.id)}
-            style={({ pressed }) => [
-              styles.plannerTool,
-              {
-                borderColor:
-                  selected === tool.id ? tone.accent : `${tone.accent}44`,
-                backgroundColor:
-                  selected === tool.id ? `${tone.accent}23` : "rgba(0,0,0,.18)",
-              },
-              pressed && styles.pressed,
-            ]}
-          >
-            <Ionicons name={tool.icon} size={18} color={tone.accent} />
-            <Text style={styles.realmText}>{tool.title}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <View style={[styles.planCanvas, { borderColor: `${tone.accent}66` }]}>
-        <Text style={[styles.planCaption, { color: tone.accent }]}>
-          BODENFLÄCHE · LOKALE PLANUNG
-        </Text>
-        <View style={styles.markerLine}>
-          {markers.length ? (
-            markers.map(marker => (
-              <Pressable
-                key={marker.id}
-                onPress={() =>
-                  setMarkers(current =>
-                    current.filter(item => item.id !== marker.id)
-                  )
-                }
-                style={[styles.marker, { borderColor: tone.accent }]}
-              >
-                <Ionicons name="close" size={14} color={tone.accent} />
-              </Pressable>
-            ))
-          ) : (
-            <Text style={styles.copy}>Noch keine Marker platziert.</Text>
-          )}
-        </View>
-      </View>
-      <View style={styles.inlineButtons}>
-        <PrimaryButton
-          tone={tone}
-          label="ZENTRIERT EINFÜGEN"
-          icon="add-outline"
-          onPress={insert}
-        />
-        <SecondaryButton
-          tone={tone}
-          label="ALLES LÖSCHEN"
-          icon="trash-outline"
-          onPress={() => setMarkers([])}
-        />
-      </View>
-      <Text style={styles.miniCopy}>
-        Marker werden nur lokal für diesen Plan verwaltet. Antippen löscht einen
-        Marker. Es handelt sich nicht um Arten-, Kauf- oder Bauvorgaben.
-      </Text>
-    </View>
-  );
-}
-
 function Page({
   children,
   refresh,
@@ -3668,22 +4546,26 @@ function Page({
   refreshing?: boolean;
 }) {
   return (
-    <FlatList
-      data={["content"]}
-      keyExtractor={item => item}
-      contentContainerStyle={styles.page}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={
-        refresh ? (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refresh}
-            tintColor={c.botany}
-          />
-        ) : undefined
-      }
-      renderItem={() => <View style={styles.stack}>{children}</View>}
-    />
+    <ImageBackground source={ASSETS.home} style={styles.pageBackdrop} imageStyle={[styles.pageBackdropImage, Platform.OS === "android" && styles.pageBackdropImageAndroid]}>
+      <View style={[styles.pageBackdropShade, Platform.OS === "android" && styles.pageBackdropShadeAndroid]} />
+      {USE_BACKGROUND_BLUR ? <BlurView intensity={16} tint="dark" style={styles.pageBackdropBlur} /> : null}
+      <FlatList
+        data={["content"]}
+        keyExtractor={item => item}
+        contentContainerStyle={styles.page}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          refresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor={c.botany}
+            />
+          ) : undefined
+        }
+        renderItem={() => <View style={styles.stack}>{children}</View>}
+      />
+    </ImageBackground>
   );
 }
 
@@ -3696,50 +4578,13 @@ function BottomNavigation({
   inset: number;
   onSelect: (screen: Screen) => void;
 }) {
-  const tabs: Array<{
-    id: BottomTab;
-    screen: Screen;
-    label: string;
-    icon: IconName;
-    color: string;
-  }> = [
-    {
-      id: "discover",
-      screen: "home",
-      label: "Entdecken",
-      icon: "compass-outline",
-      color: c.botany,
-    },
-    {
-      id: "map",
-      screen: "explore",
-      label: "Karte",
-      icon: "map-outline",
-      color: c.botany,
-    },
-    {
-      id: "capture",
-      screen: "photo",
-      label: "Erfassen",
-      icon: "camera-outline",
-      color: c.botany,
-    },
-    {
-      id: "catalog",
-      screen: "search",
-      label: "Katalog",
-      icon: "book-outline",
-      color: c.botany,
-    },
-    {
-      id: "profile",
-      screen: "profile",
-      label: "Profil",
-      icon: "person-outline",
-      color: c.botany,
-    },
+  const tabs: Array<{ id: BottomTab; screen: Screen; label: string; icon: IconName; color: string }> = [
+    { id: "home", screen: "home", label: "Home", icon: "home-outline", color: c.botany },
+    { id: "discover", screen: "explore", label: "Entdecken", icon: "compass-outline", color: c.botany },
+    { id: "community", screen: "community", label: "Community", icon: "people-outline", color: c.botany },
+    { id: "profile", screen: "profile", label: "Profil", icon: "person-outline", color: c.botany },
   ];
-  const activeId: BottomTab = active === "home" ? "discover" : active === "explore" ? "map" : active === "marketplace" ? "discover" : active === "community" ? "discover" : active === "builder" ? "profile" : active;
+  const activeId: BottomTab = active === "home" ? "home" : active === "community" ? "community" : active === "profile" || active === "marketplace" ? "profile" : "discover";
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
@@ -3984,6 +4829,8 @@ function realmAccent(realm: Realm) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  dayPhaseRail: { minHeight: 24, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderBottomWidth: 1 },
+  dayPhaseRailText: { fontSize: 9, fontWeight: "900", letterSpacing: 1.15 },
   body: { flex: 1, position: "relative" },
   header: {
     minHeight: 70,
@@ -4012,10 +4859,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
     paddingLeft: 1,
   },
-  headerActions: { flexDirection: "row", gap: 4 },
+  headerActions: { flexDirection: "row", gap: 2 },
   nativeProfileMenu: { position: "absolute", top: 58, right: 12, zIndex: 30, width: 260, padding: 10, borderRadius: 14, borderWidth: 1, gap: 6, shadowColor: "#000", shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 12 },
-  nativeProfileMenuItem: { minHeight: 42, paddingHorizontal: 12, justifyContent: "center", borderRadius: 9, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
-  nativeProfileMenuText: { color: c.text, fontSize: 12, lineHeight: 16, fontWeight: "800" },
+  nativeProfileMenuItem: { minHeight: 56, paddingHorizontal: 13, flexDirection: "row", alignItems: "center", gap: 11, borderRadius: 11, backgroundColor: "#0d2617", borderWidth: 1, borderColor: "rgba(199,243,91,.16)" },
+  nativeProfileMenuText: { color: c.text, fontSize: 14, lineHeight: 18, fontWeight: "800" },
   headerAction: {
     width: 40,
     height: 40,
@@ -4026,41 +4873,53 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(0,0,0,.18)",
   },
-  page: { padding: 16, paddingBottom: 118 },
+  headerActionIconWrap: { position: "relative" },
+  headerUnreadBadge: { position: "absolute", top: -8, right: -11, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, color: c.bg, fontSize: 8, lineHeight: 15, textAlign: "center", fontWeight: "900" },
+  pageBackdrop: { flex: 1, backgroundColor: c.bg },
+  pageBackdropImage: { opacity: 0.42 },
+  pageBackdropImageAndroid: { opacity: 0.26 },
+  pageBackdropShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.58)" },
+  pageBackdropShadeAndroid: { backgroundColor: "rgba(1,10,5,.72)" },
+  pageBackdropBlur: { ...StyleSheet.absoluteFill, opacity: 0.5 },
+  page: { padding: 16, paddingBottom: 196 },
   stack: { gap: 13 },
   flex: { flex: 1 },
-  hero: {
-    minHeight: 238,
+  observatoryContextHeader: {
+    minHeight: 148,
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: 16,
     overflow: "hidden",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    shadowColor: c.botany,
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    elevation: 5,
   },
-  homeHero: { minHeight: 250 },
-  heroImage: { borderRadius: 21 },
-  heroShade: {
+  homeContextHeader: { minHeight: 326 },
+  observatoryContextImage: { borderRadius: 15 },
+  observatoryContextShade: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 10, 5, .52)",
+    backgroundColor: "rgba(2, 12, 6, .68)",
   },
-  heroCopy: { padding: 19, gap: 7 },
-  heroIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  observatoryContextCopy: { padding: 16, gap: 6 },
+  observatoryContextIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 2,
   },
   eyebrow: { fontSize: 9, letterSpacing: 1.45, fontWeight: "900" },
-  heroTitle: {
+  observatoryContextTitle: {
     color: c.text,
-    fontSize: 34,
-    lineHeight: 39,
+    fontSize: 24,
+    lineHeight: 28,
     fontWeight: "900",
-    letterSpacing: -0.8,
+    letterSpacing: -0.45,
   },
-  heroText: { color: c.text, fontSize: 14, lineHeight: 20, maxWidth: 330 },
+  observatoryContextText: { color: "#C3D5C5", fontSize: 12, lineHeight: 17, maxWidth: 330 },
   sectionLabel: { marginTop: 7, gap: 5 },
   sectionLabelCompact: { marginTop: 0 },
   homeAllAreas: {
@@ -4074,9 +4933,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   homeAllAreasText: { fontSize: 8, fontWeight: "900", letterSpacing: 0.8 },
-  homeHeroActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  homeContextActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 5 },
+  homeStatusStrip: { minHeight: 72, borderRadius: 16, borderWidth: 1, paddingVertical: 10, paddingHorizontal: 6, flexDirection: "row", justifyContent: "space-around", gap: 2 },
+  homeStatusItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 2, borderRightWidth: 1, borderRightColor: "rgba(199,243,91,.12)" },
+  homeStatusLabel: { fontSize: 7, fontWeight: "900", letterSpacing: 0.7 },
+  homeStatusValue: { color: c.muted, fontSize: 8, fontWeight: "800" },
   liveWorlds: { gap: 10 },
-  inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9 },
+  liveTrackPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 8 },
+  liveTrackButtons: { flexDirection: "row", gap: 8, marginTop: 4 },
+  liveTrackButton: { flex: 1, minHeight: 42, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center", gap: 4 },
+  liveGroup: { gap: 8 },
+  liveGroupHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 },
+  liveSessionCard: { position: "relative", padding: 13, borderRadius: 14, borderWidth: 1, gap: 6, paddingRight: 34 },
+  liveSessionBadge: { flexDirection: "row", alignItems: "center", gap: 6 },
+  liveSessionArrow: { position: "absolute", top: 15, right: 13 },
+  liveEmpty: { minHeight: 54, padding: 13, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", flexDirection: "row", alignItems: "center", gap: 8 },
+  liveControlPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 9 },
+  liveMetricRow: { flexDirection: "row", gap: 7 },
+  liveStage: { padding: 13, borderRadius: 16, borderWidth: 1, gap: 10 },
+  liveStageMeta: { gap: 5 },
+  nativeLiveVideo: { width: "100%", height: 220, borderRadius: 12, backgroundColor: "#000" },
+  liveExternalPlayer: { minHeight: 200, padding: 18, borderRadius: 12, borderWidth: 1, borderColor: "rgba(199,243,91,.24)", backgroundColor: "rgba(0,0,0,.18)", alignItems: "center", justifyContent: "center", gap: 9 },
+  livePresenter: { paddingTop: 4, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)", gap: 3 },
+  liveChatPanel: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 9 },
+  liveChatHeading: { gap: 4 },
+  liveMessage: { padding: 10, borderRadius: 10, backgroundColor: "rgba(0,0,0,.16)", gap: 5 },
+  liveMessageMeta: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  commentActionRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignItems: "center" },
+  inlineChoice: { padding: 11, borderRadius: 16, borderWidth: 1, gap: 9, backgroundColor: "rgba(8,20,14,.78)", shadowColor: c.aqua, shadowOpacity: 0.28, shadowRadius: 18, elevation: 8 },
   inlineChoiceHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   analysisLoading: {
     minHeight: 66,
@@ -4086,6 +4970,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
+    backgroundColor: "rgba(23,12,42,.72)",
+    shadowColor: c.ai,
+    ...NATIVE_SOFT_SHADOW,
   },
   analysisLoadingCopy: { flex: 1, gap: 4 },
   headingTitle: {
@@ -4097,70 +4984,87 @@ const styles = StyleSheet.create({
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   gridCompact: { gap: 7 },
-  referenceCard: {
-    width: "48.5%",
-    minHeight: 176,
-    borderRadius: 18,
+  observatoryActionRow: {
+    width: "100%",
+    minHeight: 66,
+    borderRadius: 10,
     borderWidth: 1,
     overflow: "hidden",
     backgroundColor: c.surface,
+    shadowColor: c.botany,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  referenceCardCompact: {
-    minHeight: 84,
-    borderRadius: 13,
+  observatoryActionRowCompact: {
+    minHeight: 58,
+    borderRadius: 9,
   },
-  referenceImage: { flex: 1, minHeight: 174, justifyContent: "flex-end" },
-  referenceImageCompact: { minHeight: 82 },
-  referenceImageInner: { borderRadius: 17 },
-  cardShade: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, .48)",
+  observatoryActionRowVisual: {
+    width: "47.8%",
+    minHeight: 188,
+    borderRadius: 16,
   },
-  referenceContent: {
-    minHeight: 174,
-    padding: 13,
-    justifyContent: "flex-end",
-    gap: 7,
-  },
-  referenceContentCompact: {
-    minHeight: 82,
-    padding: 9,
+  observatoryActionContent: {
+    minHeight: 64,
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    gap: 9,
+  },
+  observatoryActionContentCompact: {
+    minHeight: 56,
+    padding: 8,
     gap: 7,
   },
-  cardIcon: {
-    width: 39,
-    height: 39,
-    borderRadius: 20,
+  observatoryActionContentVisual: {
+    minHeight: 186,
+    padding: 11,
+    width: "100%",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "flex-end",
+    position: "relative",
+  },
+  observatoryActionMedia: { width: 72, height: 72, borderRadius: 9, backgroundColor: "rgba(0,0,0,.28)" },
+  observatoryActionMediaCompact: { width: 54, height: 54, borderRadius: 7 },
+  observatoryActionMediaVisual: { ...StyleSheet.absoluteFill, borderRadius: 0, opacity: 0.92 },
+  observatoryActionMediaShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,10,5,.42)" },
+  observatoryActionCopyVisual: { width: "100%", justifyContent: "flex-end" },
+  observatoryActionChevronVisual: { position: "absolute", right: 11, bottom: 11 },
+  observatoryActionIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 3,
-  },
-  cardIconCompact: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
     marginBottom: 0,
   },
-  referenceTitle: {
+  observatoryActionIconCompact: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    marginBottom: 0,
+  },
+  observatoryActionTitle: {
     color: c.text,
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 15,
     fontWeight: "900",
-    paddingRight: 8,
+    paddingRight: 2,
   },
-  referenceTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
-  referenceNote: {
+  observatoryActionTitleCompact: { fontSize: 11, lineHeight: 13, paddingRight: 2 },
+  observatoryActionTitleVisual: { fontSize: 15, lineHeight: 19, textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 8, textShadowOffset: { width: 0, height: 2 } },
+  observatoryActionNote: {
     color: "#D4E1D6",
-    fontSize: 10,
-    lineHeight: 14,
-    paddingRight: 4,
+    fontSize: 9,
+    lineHeight: 12,
+    paddingRight: 2,
   },
-  referenceNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
-  unavailableLabel: {
+  observatoryActionNoteCompact: { fontSize: 8, lineHeight: 10, paddingRight: 0 },
+  observatoryActionNoteVisual: { fontSize: 10, lineHeight: 13, color: "#E7F5EA", textShadowColor: "rgba(0,0,0,.8)", textShadowRadius: 6, textShadowOffset: { width: 0, height: 1 } },
+  observatoryUnavailableLabel: {
     fontSize: 7,
     fontWeight: "900",
     letterSpacing: 0.65,
@@ -4238,6 +5142,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     textAlign: "center",
+    backgroundColor: "rgba(8,22,14,.72)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.22,
+    shadowRadius: 16,
+    elevation: 6,
   },
   emptyTitle: {
     color: c.text,
@@ -4327,7 +5236,15 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0.5,
   },
-  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1 },
+  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, ...NATIVE_SOFT_SHADOW },
+  plantQuotaCard: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
+  plantQuotaHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  plantQuotaTitle: { color: c.text, fontSize: 12, lineHeight: 17, fontWeight: "900", marginTop: 3 },
+  plantQuotaValue: { fontSize: 15, fontWeight: "900", letterSpacing: 0.3 },
+  plantQuotaTrack: { height: 9, overflow: "hidden", borderRadius: 99, backgroundColor: "rgba(0,0,0,.32)", borderWidth: 1, borderColor: "rgba(191,245,129,.22)" },
+  plantQuotaFill: { height: "100%", borderRadius: 99 },
+  plantQuotaFooter: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  plantQuotaNotice: { color: "#ffd0ad", fontSize: 10, lineHeight: 14 },
   toolTabs: { flexDirection: "row", gap: 7 },
   toolTab: {
     flex: 1,
@@ -4497,13 +5414,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   price: { fontSize: 13, fontWeight: "900", flex: 1 },
-  postHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
-  postHeadCopy: { flex: 1, gap: 3 },
-  postOwnerActions: { flexDirection: "row", alignItems: "center", gap: 6 },
-  postOwnerButton: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
+  postHead: { width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 },
+  postHeadCopy: { flex: 1, minWidth: 0, gap: 3 },
+  postAuthorName: { color: c.text, fontSize: 14, lineHeight: 19, fontWeight: "900", flexShrink: 1 },
+  postOwnerActions: { flexShrink: 0, flexDirection: "row", alignItems: "center", gap: 6 },
+  postSocialStage: { minHeight: 520, marginHorizontal: -14, marginBottom: -2, position: "relative", overflow: "hidden", backgroundColor: "#020804" },
+  postSocialMedia: { width: "100%", height: 560, backgroundColor: "#020804" },
+  postSocialShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,.12)" },
+  postSocialRail: { position: "absolute", right: 10, bottom: 76, alignItems: "center", gap: 13 },
+  postSocialAction: { minWidth: 42, alignItems: "center", gap: 3, paddingVertical: 4, borderRadius: 20, backgroundColor: "rgba(0,0,0,.34)" },
+  postSocialActionCount: { color: c.text, fontSize: 10, fontWeight: "900" },
+  postSocialActionLabel: { color: c.text, fontSize: 7, fontWeight: "900", letterSpacing: .4 },
+  postSocialCaption: { position: "absolute", left: 12, right: 72, bottom: 13, gap: 4 },
+  postSocialCaptionText: { color: c.text, fontSize: 14, lineHeight: 20, fontWeight: "800", textShadowColor: "rgba(0,0,0,.75)", textShadowRadius: 5 },
+  postSocialCaptionMeta: { color: "rgba(238,255,236,.78)", fontSize: 10, fontWeight: "700" },
+  postOwnerButton: { width: 27, height: 27, borderRadius: 6, borderWidth: 1, borderColor: "rgba(199,243,91,.42)", backgroundColor: "rgba(8,37,20,.78)", alignItems: "center", justifyContent: "center" },
   postOwnerDelete: { borderColor: "rgba(255,171,176,.42)" },
-  postInteractionRow: { flexDirection: "row", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 8, borderTopWidth: 1, borderTopColor: `${c.muted}22` },
-  commentToggle: { flexDirection: "row", alignItems: "center", gap: 7, marginTop: 10, paddingVertical: 7 },
+  postInteractionRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 6, borderTopWidth: 1, borderTopColor: `${c.muted}22` },
+  commentToggle: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 7, paddingVertical: 5 },
   commentPanel: { gap: 8, paddingTop: 7, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.16)" },
   commentRow: { padding: 8, borderRadius: 9, backgroundColor: "rgba(0,0,0,.16)", gap: 3 },
   commentReplyRow: { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: "rgba(94,213,255,.42)" },
@@ -4516,6 +5444,40 @@ const styles = StyleSheet.create({
   notificationRow: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
   notificationCopy: { flex: 1, gap: 3 },
   unreadDot: { width: 8, height: 8, borderRadius: 4 },
+  messageTargetPanel: { gap: 7, padding: 13, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
+  messageConversationPanel: { gap: 9, padding: 13, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
+  messageConversationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 11, borderWidth: 1 },
+  messageAvatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  messageConversationCopy: { flex: 1, gap: 2 },
+  messageUnread: { minWidth: 21, paddingHorizontal: 6, paddingVertical: 4, textAlign: "center", borderRadius: 10, fontSize: 10, fontWeight: "900" },
+  messageThreadPanel: { gap: 8, padding: 13, borderRadius: 14, borderWidth: 1 },
+  messageThreadBody: { gap: 8, minHeight: 150, maxHeight: 330 },
+  messageBubble: { alignSelf: "flex-start", maxWidth: "82%", padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(12,45,23,.62)", gap: 4 },
+  messageBubbleOwn: { alignSelf: "flex-end", backgroundColor: "rgba(199,243,91,.12)" },
+  catalogRealmButtons: { flexDirection: "row", gap: 7, marginBottom: 10 },
+  catalogRealmButton: { flex: 1, minHeight: 48, paddingHorizontal: 8, borderWidth: 1, borderRadius: 11, flexDirection: "row", alignItems: "center", gap: 6 },
+  catalogNativeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  catalogNativeFilterRow: { gap: 6, paddingVertical: 6 },
+  catalogNativeFilterChip: { minHeight: 30, paddingHorizontal: 9, borderWidth: 1, borderRadius: 7, justifyContent: "center" },
+  catalogNativeCard: { width: "48%", borderWidth: 1, borderRadius: 13, overflow: "hidden", paddingBottom: 10 },
+  catalogNativeImage: { width: "100%", aspectRatio: 1.05, alignItems: "center", justifyContent: "center" },
+  catalogNativeImageAsset: { width: "100%", height: "100%" },
+  catalogNativeName: { color: c.text, fontSize: 15, fontWeight: "700", lineHeight: 19, marginHorizontal: 10, marginTop: 9 },
+  catalogNativeScientific: { fontSize: 12, fontStyle: "italic", lineHeight: 16, marginHorizontal: 10, marginTop: 4 },
+  mediaAspectEditorNative: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 7, paddingVertical: 8 },
+  mediaAspectOptionNative: { minHeight: 34, paddingHorizontal: 10, borderWidth: 1, borderRadius: 8, justifyContent: "center" },
+  mediaQualityNative: { gap: 4, paddingVertical: 7 },
+  nativeUploadProgress: { gap: 9, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "rgba(185,251,127,.28)", backgroundColor: "rgba(2,16,8,.62)" },
+  nativeUploadProgressTop: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  nativeUploadPercent: { minWidth: 41, paddingVertical: 5, paddingHorizontal: 6, borderRadius: 7, backgroundColor: "rgba(185,251,127,.12)", fontSize: 12, fontWeight: "800", textAlign: "center" },
+  uploadProgressHeading: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  nativeUploadTrack: { height: 8, overflow: "hidden", borderRadius: 99, borderWidth: 1, borderColor: "rgba(185,251,127,.2)", backgroundColor: "rgba(0,8,4,.65)" },
+  nativeUploadFill: { height: "100%", borderRadius: 99 },
+  nativeUploadStages: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  nativeUploadStage: { flexDirection: "row", alignItems: "center", gap: 4 },
+  nativeUploadStageText: { fontSize: 10, fontWeight: "700", lineHeight: 13 },
+  messageComposer: { flexDirection: "row", alignItems: "flex-end", gap: 7, borderTopWidth: 1, borderTopColor: `${c.muted}22`, paddingTop: 9 },
+  messageInput: { flex: 1, minHeight: 42, maxHeight: 110, borderWidth: 1, borderColor: "rgba(199,243,91,.32)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   date: { color: c.muted, fontSize: 9 },
   postImage: {
     width: "100%",
@@ -4523,16 +5485,28 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: c.raised,
   },
+  mediaScrollHintNative: { flexDirection: "row", alignItems: "center", gap: 7, paddingVertical: 4 },
+  mediaScrollLineNative: { height: 1, flex: 1, backgroundColor: "rgba(185,251,127,.42)" },
+  mediaLightboxNative: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor: "rgba(0,8,4,.96)" },
+  mediaLightboxImageNative: { width: "100%", height: "82%" },
+  mediaLightboxCloseNative: { position: "absolute", top: 48, right: 18, width: 36, height: 36, borderRadius: 9, borderWidth: 1, borderColor: "rgba(185,251,127,.45)", backgroundColor: "rgba(7,28,13,.92)", alignItems: "center", justifyContent: "center" },
   profileFocus: { padding: 18, borderRadius: 18, borderWidth: 1, gap: 7 },
   profilePostsPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
   profilePostRow: { padding: 10, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.16)", backgroundColor: "rgba(0,0,0,.14)", gap: 4 },
   profileTargetPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 7 },
   profileEditPanel: { gap: 8 },
+  profileVisibilityNative: { gap: 8, marginTop: 8, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: `${c.botany}33`, backgroundColor: `${c.botany}08` },
   profileConsentPanel: { gap: 4, marginTop: 4 },
   profileConsentRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, paddingVertical: 6 },
   profilePreferencesPanel: { gap: 8, marginTop: 4 },
   profileInput: { minHeight: 42, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", borderRadius: 9, paddingHorizontal: 11, color: c.text, backgroundColor: "rgba(0,0,0,.18)" },
   profileBioInput: { minHeight: 86, paddingTop: 10, textAlignVertical: "top" },
+  profileSocialEditorNative: { gap: 9, marginTop: 4, padding: 11, borderRadius: 12, borderWidth: 1 },
+  profileSocialEditorRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  profileSocialPlatform: { width: 88, minHeight: 38, paddingHorizontal: 7, borderWidth: 1, borderRadius: 9, alignItems: "center", justifyContent: "center", gap: 3 },
+  profileSocialFields: { flex: 1, gap: 6 },
+  profileSocialInput: { minHeight: 36, borderWidth: 1, borderColor: "rgba(199,243,91,.28)", borderRadius: 8, paddingHorizontal: 9, color: c.text, backgroundColor: "rgba(0,0,0,.16)", fontSize: 12 },
+  profileSocialRemove: { width: 36, height: 36, borderWidth: 1, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   profileDisplayPanel: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 6 },
   profileDisplayRow: { gap: 6 },
   profileDisplayChoice: { minHeight: 38, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 7 },
@@ -4545,6 +5519,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,
+    backgroundColor: "rgba(8,20,14,.62)",
+    shadowColor: c.botany,
+    shadowOpacity: 0.24,
+    shadowRadius: 12,
+    elevation: 5,
   },
   realmText: { color: c.text, fontSize: 8, fontWeight: "900", textAlign: "center" },
   switchRow: {
@@ -4558,9 +5537,6 @@ const styles = StyleSheet.create({
   },
   collectionShell: { flex: 1 },
   collectionIntro: { paddingHorizontal: 16, paddingTop: 16, gap: 6 },
-  builderData: { padding: 14, gap: 7, borderRadius: 15, borderWidth: 1 },
-  planner: { padding: 14, gap: 10, borderRadius: 16, borderWidth: 1 },
-  plannerTools: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   plannerTool: {
     width: "48.5%",
     minHeight: 56,
@@ -4579,7 +5555,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "rgba(0,0,0,.2)",
   },
-  planCaption: { fontSize: 8, fontWeight: "900", letterSpacing: 0.75 },
   markerLine: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -4604,7 +5579,9 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 1,
     color: c.text,
-    backgroundColor: "rgba(0,0,0,.2)",
+    backgroundColor: "rgba(12,25,17,.58)",
+    shadowColor: c.botany,
+    ...NATIVE_SOFT_SHADOW,
     fontSize: 13,
   },
   tabs: {
@@ -4619,6 +5596,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(199,243,91,.24)",
     backgroundColor: "rgba(2,12,6,.96)",
+    shadowColor: c.botany,
+    ...NATIVE_SOFT_SHADOW,
   },
   tab: {
     flex: 1,
@@ -4629,6 +5608,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  communitySubscribeNative: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 14, borderWidth: 1, marginBottom: 9 },
+  communityFeedSelector: { gap: 8, padding: 11, borderRadius: 14, borderWidth: 1 },
+  communityFeedSelectorHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
+  communityFeedVerified: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
+  communityFeedFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  communityFeedFilter: { minWidth: "46%", flexGrow: 1, minHeight: 39, paddingHorizontal: 9, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   careSectionHeader: { flexDirection: "row", alignItems: "center", gap: 9, marginTop: 16, marginBottom: 8 },
   sectionTitle: { flex: 1, color: c.text, fontSize: 20, fontWeight: "900", letterSpacing: 0.6 },
   careCount: { color: c.botany, fontSize: 18, fontWeight: "900" },
@@ -4645,19 +5630,81 @@ const styles = StyleSheet.create({
   searchResultCard: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
   searchResultIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   searchResultCopy: { flex: 1, gap: 3 },
-  publicProfileCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 8 },
+  publicProfileCard: { padding: 13, borderRadius: 15, borderWidth: 1, gap: 7 },
   publicProfileCopy: { gap: 4 },
   publicAvatar: { width: 82, height: 82, borderRadius: 41, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   publicStats: { flexDirection: "row", justifyContent: "space-around", padding: 14, borderRadius: 14, borderWidth: 1 },
+  publicExternalProfiles: { padding: 13, borderRadius: 14, borderWidth: 1, gap: 8 },
+  publicExternalProfileRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 9, borderRadius: 11, borderWidth: 1 },
+  publicExternalProfileIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  publicSocialLists: { padding: 13, borderRadius: 14, borderWidth: 1, gap: 10 },
+  publicSocialTabs: { flexDirection: "row", gap: 8 },
+  publicSocialTab: { flex: 1, minHeight: 40, paddingHorizontal: 10, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  publicSocialList: { gap: 7 },
+  publicSocialPerson: { flexDirection: "row", alignItems: "center", gap: 9, padding: 9, borderRadius: 11, borderWidth: 1 },
+  publicSocialAvatar: { width: 34, height: 34, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   publicPostCard: { padding: 13, borderRadius: 14, borderWidth: 1, gap: 6 },
   stat: { alignItems: "center", gap: 4 },
   statValue: { fontSize: 16, fontWeight: "900" },
   statLabel: { color: c.muted, fontSize: 8, fontWeight: "800" },
+  dashboardGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  dashboardMetric: { width: "48%", minHeight: 112, padding: 13, borderRadius: 16, borderWidth: 1, gap: 7 },
+  dashboardMetricValue: { color: c.text, fontSize: 28, lineHeight: 32, fontWeight: "900" },
+  dashboardSummary: { padding: 15, borderRadius: 16, borderWidth: 1, gap: 12 },
+  dashboardSummaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
+  dashboardChart: { padding: 15, borderRadius: 16, borderWidth: 1, gap: 12 },
+  dashboardChartRow: { gap: 5 },
+  dashboardChartLabel: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  dashboardBarTrack: { height: 8, borderRadius: 99, overflow: "hidden", backgroundColor: "rgba(199,243,91,.12)" },
+  dashboardBar: { height: "100%", borderRadius: 99 },
+  dashboardPrivacy: { flexDirection: "row", gap: 9, padding: 13, borderRadius: 14, borderWidth: 1, backgroundColor: "rgba(2,12,6,.55)" },
   taxonCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 8 },
+  nativeTaxonFacts: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 12 },
+  nativeTaxonFactsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  nativeTaxonFact: { width: "48%", minHeight: 62, padding: 10, borderRadius: 12, borderWidth: 1, flexDirection: "row", gap: 8 },
+  taxonImageButton: { position: "relative", overflow: "hidden", borderRadius: 13, borderWidth: 1 },
   taxonImage: { width: "100%", height: 180, borderRadius: 13, borderWidth: 1, borderColor: "rgba(199,243,91,.3)" },
+  taxonImageDetailLabel: { position: "absolute", left: 0, right: 0, bottom: 0, minHeight: 31, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "rgba(1,18,8,.82)" },
+  taxonImageDetailText: { color: "#effff0", fontSize: 8, fontWeight: "900", letterSpacing: 1 },
+  taxonImageModalScreen: { flex: 1, padding: 14, justifyContent: "center", backgroundColor: "rgba(0,9,4,.9)" },
+  taxonImageModalCard: { maxHeight: "94%", padding: 14, borderRadius: 18, borderWidth: 1, gap: 11 },
+  taxonImageModalHeader: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  taxonImageModalTitle: { color: c.text, fontSize: 25, lineHeight: 29, fontWeight: "900", letterSpacing: 0.3 },
+  taxonImageModalClose: { width: 42, height: 42, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: 1 },
+  taxonImageModalStage: { minHeight: 300, width: "100%", borderRadius: 13, overflow: "hidden", backgroundColor: "#021008", alignItems: "center", justifyContent: "center" },
+  taxonImageModalLoading: { minHeight: 220, width: "100%", alignItems: "center", justifyContent: "center", gap: 9, padding: 20 },
+  taxonImageModalImage: { width: "100%", height: 390, borderRadius: 13, backgroundColor: "#021008" },
+  taxonImageModalEvidence: { gap: 6, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.16)" },
+  taxonImageSourceLink: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
+  taxonImageModalHint: { color: c.muted, fontSize: 9, lineHeight: 13, textAlign: "center" },
   rankingScoreCard: { padding: 16, borderRadius: 18, borderWidth: 1, gap: 6 },
   challengeCard: { padding: 14, borderRadius: 15, borderWidth: 1, gap: 7 },
   leaderboardRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 11, borderRadius: 12, borderWidth: 1 },
+  profileSubscriptionCard: { gap: 11, padding: 14, borderWidth: 1, borderRadius: 16, backgroundColor: c.surface },
+  profileSubscriptionHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
+  profileSubscriptionPlans: { flexDirection: "row", gap: 8 },
+  profileSubscriptionPlan: { flex: 1, gap: 5, padding: 10, borderWidth: 1, borderColor: c.raised, borderRadius: 11, backgroundColor: c.bg },
+  profileCreatorCard: { padding: 15, borderRadius: 18, borderWidth: 1, gap: 13 },
+  profileCreatorTop: { flexDirection: "row", alignItems: "center", gap: 13 },
+  profileCreatorAvatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  profileCreatorAvatarImage: { width: "100%", height: "100%" },
+  profileCreatorIdentity: { flex: 1, gap: 4 },
+  profileCreatorName: { color: c.text, fontSize: 23, lineHeight: 28, fontWeight: "900" },
+  profileCreatorHandle: { color: c.muted, fontSize: 12, lineHeight: 17 },
+  profileCreatorBio: { color: c.text, fontSize: 13, lineHeight: 19 },
+  profileCreatorLinks: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  profileCreatorLink: { maxWidth: "100%", minHeight: 31, paddingHorizontal: 9, borderRadius: 9, borderWidth: 1, borderColor: "rgba(199,243,91,.35)", flexDirection: "row", alignItems: "center", gap: 6 },
+  profileCreatorStats: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1, borderColor: "rgba(199,243,91,.2)", paddingVertical: 10, justifyContent: "space-around" },
+  profilePublicPostImage: { width: "100%", height: "100%", position: "absolute" },
+  profilePublicPostFallback: { flex: 1, padding: 10, alignItems: "center", justifyContent: "center", gap: 6 },
+  profilePublicPostFallbackText: { color: c.text, fontSize: 10, lineHeight: 14, textAlign: "center" },
+  managementGroup: { gap: 8, marginBottom: 14 },
+  managementHeading: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 2 },
+  managementGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9 },
+  managementTile: { width: "48.5%", minHeight: 128, padding: 12, borderRadius: 15, borderWidth: 1, gap: 9 },
+  managementTileIcon: { width: 36, height: 36, borderRadius: 11, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  managementTileCopy: { flex: 1, gap: 4 },
+  managementPrinciples: { padding: 14, borderRadius: 15, borderWidth: 1, flexDirection: "row", gap: 10, marginTop: 2 },
   profileReferenceIdentity: { position: "relative", minHeight: 132, padding: 14, borderRadius: 18, borderWidth: 1, flexDirection: "row", alignItems: "flex-start", gap: 10 },
   profileReferenceAvatar: { width: 54, height: 54, borderRadius: 27, borderWidth: 1, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   profileReferenceAvatarImage: { width: "100%", height: "100%" },
@@ -4679,6 +5726,11 @@ const styles = StyleSheet.create({
   profilePublicPostGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   profilePublicPostTile: { width: "48.5%", minHeight: 132, padding: 10, borderRadius: 12, borderWidth: 1, justifyContent: "space-between", gap: 5 },
   photoObservationPanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 9, marginTop: 2 },
+  nativeResponsePanel: { marginTop: 6, gap: 5 },
+  nativeCandidateBox: { marginTop: 5, padding: 6, gap: 2, borderLeftWidth: 2, backgroundColor: "rgba(157,235,198,.06)" },
+  nativeResponseActions: { flexDirection: "row", alignItems: "center", gap: 5 },
+  nativeResponseButton: { width: 30, height: 30, borderRadius: 8, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  nativeResponseInput: { flex: 1, minHeight: 30, paddingHorizontal: 8, borderRadius: 8, borderWidth: 1, borderColor: "rgba(199,243,91,.25)", color: c.text, fontSize: 11 },
   photoObservationRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, borderTopWidth: 1 },
   explorePortalRow: { flexDirection: "row", gap: 8 },
   explorePortalCard: { flex: 1, minWidth: 0, height: 92, overflow: "hidden", borderRadius: 15, borderWidth: 1 },
@@ -4686,15 +5738,40 @@ const styles = StyleSheet.create({
   explorePortalImageStyle: { borderRadius: 14 },
   explorePortalShade: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(1,16,8,.52)" },
   explorePortalLabel: { color: c.text, fontSize: 10, fontWeight: "900" },
+  exploreInspirationSection: { gap: 9, marginTop: 4 },
+  exploreInspirationHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  explorePlantFilters: { gap: 6, paddingVertical: 2 },
+  explorePlantFilter: { borderWidth: 1, borderRadius: 99, paddingVertical: 7, paddingHorizontal: 10 },
+  exploreInspirationPager: { gap: 8 },
+  exploreInspirationPage: { width: 332, flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  exploreInspirationGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  exploreInspirationCard: { width: 162, minHeight: 190, padding: 9, borderRadius: 14, borderWidth: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: 6 },
+  exploreInspirationGallery: { width: 142, flexDirection: "row", gap: 4 },
+  exploreInspirationImage: { width: 69, height: 78, borderRadius: 9 },
+  exploreInspirationCredit: { marginTop: 4, color: c.muted, fontSize: 7, lineHeight: 9 },
+  exploreInspirationCare: { flexDirection: "row", flexWrap: "wrap", gap: 3, marginTop: 4, paddingTop: 4, borderTopWidth: 1, borderTopColor: "rgba(185,251,127,.16)" },
+  exploreInspirationCareText: { color: "#d0e7d0", fontSize: 7, lineHeight: 9 },
+  discoverGalleryModal: { flex: 1, backgroundColor: "rgba(0,0,0,.94)", alignItems: "center", justifyContent: "center" },
+  discoverGalleryBackdrop: { ...StyleSheet.absoluteFill },
+  discoverGalleryClose: { position: "absolute", top: 46, right: 20, zIndex: 2, padding: 8 },
+  discoverGalleryPrev: { position: "absolute", left: 12, top: "48%", zIndex: 2, padding: 8 },
+  discoverGalleryNext: { position: "absolute", right: 12, top: "48%", zIndex: 2, padding: 8 },
+  discoverGalleryImage: { width: "92%", height: "70%" },
+  discoverGalleryCaption: { color: "#fff", marginTop: 12, fontSize: 13, fontWeight: "800" },
+  exploreInspirationImageStyle: { borderRadius: 9 },
+  exploreInspirationNumber: { width: 17, paddingTop: 2 },
+  exploreInspirationName: { color: c.text, fontSize: 12, lineHeight: 15, fontWeight: "900" },
+  exploreInspirationHook: { marginTop: 5, fontSize: 9, lineHeight: 12, fontWeight: "800" },
+  exploreInspirationNote: { marginTop: 5, color: c.muted, fontSize: 8, lineHeight: 11 },
   explorePanel: { padding: 13, borderRadius: 17, borderWidth: 1, gap: 10 },
   explorePanelHeader: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   exploreStatus: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 9, borderWidth: 1 },
-  exploreStatusDot: { width: 7, height: 7, borderRadius: 4 },
+  exploreStatusDot: { width: 8, height: 8, borderRadius: 4, shadowColor: c.gold, ...NATIVE_SOFT_SHADOW },
   exploreFilterRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   exploreFilter: { paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
   exploreFilterText: { fontSize: 9, fontWeight: "900" },
   exploreViewRow: { flexDirection: "row", gap: 6 },
-  exploreViewButton: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 7, borderRadius: 9, borderWidth: 1 },
+  exploreViewButton: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11, borderWidth: 1, backgroundColor: "rgba(8,20,14,.62)" },
   exploreMap: { height: 248, overflow: "hidden", borderRadius: 14, borderWidth: 1 },
   exploreMapImage: { flex: 1 },
   exploreMapImageStyle: { borderRadius: 13 },
@@ -4706,9 +5783,43 @@ const styles = StyleSheet.create({
   exploreObservationRow: { flexDirection: "row", alignItems: "center", gap: 9, padding: 10, borderRadius: 12, borderWidth: 1, backgroundColor: "rgba(0,0,0,.14)" },
   exploreObservationIcon: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: 1 },
   communityMediaPanel: { gap: 9, padding: 10, borderRadius: 14, borderWidth: 1 },
+  communityMediaPickerRow: { gap: 8 },
   communityMediaPicker: { minHeight: 62, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 9 },
   communityMediaPreview: { width: "100%", height: 170, borderRadius: 11, borderWidth: 1, borderColor: "rgba(199,243,91,.28)", resizeMode: "cover" },
   communityMediaMeta: { flexDirection: "row", alignItems: "center", gap: 8 },
   communityMediaRemove: { width: 34, height: 34, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
+  dashboardInboxCard: { padding: 14, borderRadius: 16, borderWidth: 1, gap: 8 },
+  dashboardInboxInput: { minHeight: 48, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, color: c.text, backgroundColor: "rgba(2,12,6,.66)", textAlignVertical: "top" },
+  dashboardInboxInputCompact: { minHeight: 38, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 8, color: c.text, backgroundColor: "rgba(2,12,6,.66)" },
+  dashboardInboxActions: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
+  dashboardStatusPicker: { minHeight: 38, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(2,12,6,.66)" },
+  dashboardStatusValue: { color: c.text, fontSize: 10, fontWeight: "900" },
+
 });
+
+function MessagesScreen({ tone, token, account, conversations, selectedConversationId, thread, targetProfile, state, error, refresh, onSelect, onStart, onSend, onSignIn }: { tone: Tone; token: string | null; account: Account | null; conversations: DirectConversation[]; selectedConversationId: string | null; thread: DirectMessage[]; targetProfile: PublicProfile | null; state: State; error: string | null; refresh: () => Promise<void>; onSelect: (conversation: DirectConversation) => Promise<void>; onStart: (content: string) => Promise<void>; onSend: (content: string) => Promise<void>; onSignIn: () => Promise<void> }) {
+  const [draft, setDraft] = useState("");
+  const selected = conversations.find(item => item.id === selectedConversationId) ?? null;
+  const recipientName = targetProfile?.name ?? targetProfile?.username ?? "BlackWaterLeaf-Nutzer";
+  const submit = async () => {
+    const content = draft.trim();
+    if (!content) return;
+    try {
+      if (selected) await onSend(content);
+      else if (targetProfile) await onStart(content);
+      setDraft("");
+    } catch (cause) {
+      Alert.alert("Nachricht konnte nicht gesendet werden", cause instanceof Error ? cause.message : "Bitte später erneut versuchen.");
+    }
+  };
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <ObservatoryContextHeader tone={tone} eyebrow="PRIVAT · POSTFACH" title="DEINE NACHRICHTEN." subtitle={account ? "Geschützte 1:1-Unterhaltungen. Nur aktive Mitglieder können dir schreiben." : "Private Nachrichten bleiben nach der sicheren Anmeldung geschützt."} icon="mail-outline" />
+    {!token ? <PrivateFeature tone={tone} title="POSTFACH FÜR MITGLIEDER" text="Private Nachrichten und Gesprächsverläufe werden nur nach einer sicheren Anmeldung geladen." onSignIn={onSignIn} /> : <>
+      {error ? <ErrorNotice text={error} /> : null}
+      {targetProfile && !selected ? <View style={[styles.messageTargetPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>NEUE UNTERHALTUNG</Text><Text style={styles.cardTitle}>{recipientName}</Text><Text style={styles.miniCopy}>Keine privaten Daten oder exakten Standorte automatisch teilen.</Text></View> : null}
+      <View style={[styles.messageConversationPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><View style={styles.careSectionHeader}><Text style={[styles.eyebrow, { color: tone.accent }]}>UNTERHALTUNGEN</Text><Text style={styles.careCount}>{conversations.length}</Text></View>{conversations.length ? conversations.map(item => <Pressable key={item.id} onPress={() => void onSelect(item)} style={[styles.messageConversationRow, { borderColor: `${tone.accent}44`, backgroundColor: item.id === selectedConversationId ? `${tone.accent}18` : "transparent" }]}><View style={[styles.messageAvatar, { borderColor: `${tone.accent}88`, backgroundColor: `${tone.accent}16` }]}><Ionicons name="person-outline" size={17} color={tone.accent} /></View><View style={styles.messageConversationCopy}><Text style={styles.cardTitle}>{item.member.name}</Text><Text style={styles.miniCopy} numberOfLines={1}>{item.lastMessage?.content ?? "Noch keine Nachricht"}</Text></View>{item.unreadCount > 0 ? <Text style={[styles.messageUnread, { backgroundColor: tone.accent, color: c.bg }]}>{item.unreadCount > 9 ? "9+" : item.unreadCount}</Text> : null}</Pressable>) : <StatusPanel tone={tone} icon="mail-outline" code="POSTFACH / LEER" title="NOCH KEINE UNTERHALTUNG" text="Öffne ein öffentliches Profil, um eine private Nachricht zu starten." />}</View>
+      {selected || (targetProfile && !selected) ? <View style={[styles.messageThreadPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>{selected ? `GESPRÄCH · ${selected.member.name}` : `AN ${recipientName.toUpperCase()}`}</Text><Text style={styles.miniCopy}>Privat · serverseitig geprüft · blockierte Konten bleiben ausgeschlossen</Text><View style={styles.messageThreadBody}>{thread.length ? thread.map(item => <View key={item.id} style={[styles.messageBubble, item.senderId === String(account?.id) ? styles.messageBubbleOwn : null, { borderColor: `${tone.accent}55` }]}><Text style={styles.copy}>{item.content}</Text><Text style={styles.date}>{new Date(item.createdAt).toLocaleString("de-DE")}</Text></View>) : <StatusPanel tone={tone} icon="chatbubble-ellipses-outline" code="POSTFACH / NEU" title="NOCH KEINE NACHRICHT" text="Schreibe eine respektvolle erste Nachricht." />}</View><View style={styles.messageComposer}><TextInput value={draft} onChangeText={setDraft} placeholder="Nachricht schreiben …" placeholderTextColor={c.muted} multiline maxLength={2000} style={styles.messageInput} /><PrimaryButton tone={tone} label="SENDEN" icon="send-outline" onPress={() => void submit()} disabled={!draft.trim()} /></View></View> : <StatusPanel tone={tone} icon="mail-outline" code="POSTFACH / AUSWAHL" title="UNTERHALTUNG AUSWÄHLEN" text="Wähle links eine Unterhaltung oder öffne ein öffentliches Profil." />}
+    </>}
+  </Page>;
+}

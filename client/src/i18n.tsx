@@ -1,7 +1,29 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 
-export type AppLocale = "de" | "en";
+export type AppLocale = "de" | "en" | "zh-CN" | "es" | "fr" | "it" | "pt-BR" | "ja" | "ko" | "nl" | "tr" | "pl" | "ar" | "sv" | "da" | "hi" | "id" | "vi" | "uk";
 export type UnitSystem = "metric" | "imperial";
+
+export const APP_LOCALES: ReadonlyArray<{ value: AppLocale; label: string; nativeLabel: string }> = [
+  { value: "de", label: "Deutsch", nativeLabel: "DE" },
+  { value: "en", label: "English", nativeLabel: "EN" },
+  { value: "zh-CN", label: "Chinesisch", nativeLabel: "中文" },
+  { value: "es", label: "Spanisch", nativeLabel: "ES" },
+  { value: "fr", label: "Französisch", nativeLabel: "FR" },
+  { value: "it", label: "Italiano", nativeLabel: "IT" },
+  { value: "pt-BR", label: "Português (Brasil)", nativeLabel: "PT" },
+  { value: "ja", label: "日本語", nativeLabel: "日本語" },
+  { value: "ko", label: "한국어", nativeLabel: "한국어" },
+  { value: "nl", label: "Nederlands", nativeLabel: "NL" },
+  { value: "tr", label: "Türkçe", nativeLabel: "TR" },
+  { value: "pl", label: "Polski", nativeLabel: "PL" },
+  { value: "ar", label: "العربية", nativeLabel: "العربية" },
+  { value: "sv", label: "Svenska", nativeLabel: "SV" },
+  { value: "da", label: "Dansk", nativeLabel: "DA" },
+  { value: "hi", label: "हिन्दी", nativeLabel: "हिन्दी" },
+  { value: "id", label: "Bahasa Indonesia", nativeLabel: "ID" },
+  { value: "vi", label: "Tiếng Việt", nativeLabel: "VI" },
+  { value: "uk", label: "Українська", nativeLabel: "UK" },
+];
 
 const de = {
   "tabs.home": "Home",
@@ -181,8 +203,28 @@ const en: Record<TranslationKey, string> = {
   "system.code": "SYSTEM STATUS",
 };
 
-export function resolveLocale(stored: string | null, _browserLanguage: string): AppLocale {
-  if (stored === "de" || stored === "en") return stored;
+export function resolveLocale(stored: string | null, browserLanguage: string): AppLocale {
+  const supported: AppLocale[] = ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"];
+  if (supported.includes(stored as AppLocale)) return stored as AppLocale;
+  const language = browserLanguage.toLowerCase();
+  if (language.startsWith("zh")) return "zh-CN";
+  if (language.startsWith("pt")) return "pt-BR";
+  if (language.startsWith("sv")) return "sv";
+  if (language.startsWith("da")) return "da";
+  if (language.startsWith("hi")) return "hi";
+  if (language.startsWith("id")) return "id";
+  if (language.startsWith("vi")) return "vi";
+  if (language.startsWith("uk")) return "uk";
+  if (language.startsWith("es")) return "es";
+  if (language.startsWith("fr")) return "fr";
+  if (language.startsWith("it")) return "it";
+  if (language.startsWith("ja")) return "ja";
+  if (language.startsWith("ko")) return "ko";
+  if (language.startsWith("nl")) return "nl";
+  if (language.startsWith("tr")) return "tr";
+  if (language.startsWith("pl")) return "pl";
+  if (language.startsWith("ar")) return "ar";
+  void browserLanguage;
   return "de";
 }
 
@@ -333,6 +375,8 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 function detectLocale(): AppLocale {
   if (typeof window === "undefined") return "de";
+  const queryLocale = new URLSearchParams(window.location.search).get("lang");
+  if (queryLocale && ["de", "en", "zh-CN", "es", "fr", "it", "pt-BR", "ja", "ko", "nl", "tr", "pl", "ar", "sv", "da", "hi", "id", "vi", "uk"].includes(queryLocale)) return queryLocale as AppLocale;
   return resolveLocale(window.localStorage.getItem("blackwaterleaf.locale.v1"), window.navigator.language);
 }
 
@@ -344,10 +388,15 @@ function detectUnits(): UnitSystem {
 export function I18nProvider({ children }: PropsWithChildren) {
   const [locale, setLocale] = useState<AppLocale>(detectLocale);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>(detectUnits);
+  const chooseLocale = (nextLocale: AppLocale) => {
+    window.localStorage.setItem("blackwaterleaf.locale.manual.v1", "1");
+    setLocale(nextLocale);
+  };
 
   useEffect(() => {
     window.localStorage.setItem("blackwaterleaf.locale.v1", locale);
     document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
   }, [locale]);
 
   useEffect(() => {
@@ -355,7 +404,7 @@ export function I18nProvider({ children }: PropsWithChildren) {
   }, [unitSystem]);
 
   const value = useMemo<I18nContextValue>(
-    () => ({ locale, unitSystem, setLocale, setUnitSystem, t: key => translate(locale, key) }),
+    () => ({ locale, unitSystem, setLocale: chooseLocale, setUnitSystem, t: key => translate(locale, key) }),
     [locale, unitSystem],
   );
 

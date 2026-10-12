@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.blackwaterleaf.com/</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/explore</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/knowledge</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/marketplace</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/botanik</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/aquaristik</loc></url>
-  <url><loc>https://www.blackwaterleaf.com/terraristik</loc></url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-de.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-en.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-zh-CN.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-es.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-fr.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-it.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-pt-BR.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-ja.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-ko.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-nl.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-tr.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-pl.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-ar.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-sv.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-da.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-hi.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-id.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-vi.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+  <sitemap><loc>https://www.blackwaterleaf.com/sitemap-uk.xml</loc><lastmod>2026-09-27</lastmod></sitemap>
+</sitemapindex>

@@ -10,20 +10,20 @@ const api = readFileSync(resolve(root, "mobile-natur/src/api.ts"), "utf8");
 
 describe("AP-14 observation map/list contract", () => {
   it("uses the published observation feed rather than simulated catalog pins", () => {
-    expect(webExplore).toContain("trpc.observations.publicFeed.useQuery");
-    expect(webExplore).toContain("Keine Kartenpunkte freigegeben");
-    expect(webExplore).toContain("Private Daten bleiben geschützt");
-    expect(webExplore).toContain("aria-pressed");
+    for (const token of ["trpc.observations.publicFeed.useQuery", "MapView", "Noch keine öffentlichen Kartenpunkte", "Private Daten bleiben geschützt", "aria-pressed"]) expect(webExplore).toContain(token);
     expect(observations).toContain("publicFeed: publicProcedure");
     expect(observations).toContain('eq(observations.visibility, "public")');
   });
 
-  it("keeps native on the same publicFeed and truthful empty/error states", () => {
+  it("renders a real interactive map basis with an explicit retry state", () => {
+    const map = readFileSync(resolve(root, "client/src/components/Map.tsx"), "utf8");
+    for (const token of ["onMapError", "Kartenbasis konnte nicht geladen werden", "mapScriptPromise", "fullscreenControl: true"]) expect(map).toContain(token);
+    expect(webExplore).toContain("KARTE ERNEUT LADEN");
+  });
+
+  it("keeps native on the same public feed and truthful empty/error states", () => {
     expect(api).toContain('"observations.publicFeed"');
-    expect(nativeApp).toContain("publicObservationRows");
-    expect(nativeApp).toContain("Keine Kartenpunkte freigegeben");
-    expect(nativeApp).toContain("Keine öffentlich zulässige Ortsangabe – es werden keine Pins simuliert.");
-    expect(nativeApp).toContain('setView("map")');
-    expect(nativeApp).toContain('setView("list")');
+    for (const token of ["publicObservationRows", "Keine Kartenpunkte freigegeben", "keine ausdrücklich zulässigen generalisierten Ortsdaten", 'setView("map")', 'setView("list")']) expect(nativeApp).toContain(token);
+    expect(nativeApp).not.toContain("es werden keine Pins simuliert");
   });
 });

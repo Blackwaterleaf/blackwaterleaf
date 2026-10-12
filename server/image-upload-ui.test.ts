@@ -10,7 +10,8 @@ const realm = readFileSync(resolve(root, "client/src/pages/Realm.tsx"), "utf8");
 
 describe("mobile image upload contract", () => {
   it("resizes oversized phone photos before enforcing the server upload limit", () => {
-    expect(files).toContain("MAX_IMAGE_DIMENSION = 2400");
+    expect(files).toContain("CLIENT_IMAGE_LIMIT_BYTES = 32 * 1024 * 1024");
+    expect(files).toContain("MAX_IMAGE_DIMENSION = 3200");
     expect(files).toContain("ANALYSIS_IMAGE_DIMENSION = 1800");
     expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", quality)');
     expect(files).toContain("image_too_large_after_resize");
@@ -33,6 +34,28 @@ describe("mobile image upload contract", () => {
     expect(files).toContain('if (declared === "image/jpg") return "image/jpeg";');
     expect(files).toContain('if (extension === "jpg" || extension === "jpeg") return "image/jpeg";');
     expect(community).toContain("composeRef.current?.scrollIntoView");
-    expect(community).toContain("Android-Dateien mit fehlender Typkennung");
+    expect(community).toContain("Bild optional auswählen");
+  });
+
+  it("has an HTMLImageElement fallback when createImageBitmap is unavailable", () => {
+    expect(files).toContain('typeof createImageBitmap === "function"');
+    expect(files).toContain("URL.createObjectURL(file)");
+    expect(files).toContain("next.onerror = () => resolve(null)");
+    expect(files).toContain('context.drawImage(source');
+  });
+
+  it("normalizes original WebP uploads before sending them to the server", () => {
+    expect(files).toContain('mimeType === "image/webp"');
+    expect(community).toContain("SICHER HOCHLADEN");
+  });
+
+  it("uses a bounded original-file fallback when Samsung canvas processing fails", () => {
+    for (const token of ["originalFallback", "image_decode_failed", "image_resize_failed", "context.imageSmoothingQuality = \"high\""]) expect(files).toContain(token);
+  });
+
+  it("shows a persistent animated phase progress card for large community image uploads", () => {
+    for (const token of ["CommunityUploadProgressCard", "pulseTransferProgress", "upload-progress__steps", "BILD WIRD SICHER HOCHGELADEN", "Große Bilder können je nach Verbindung etwas länger übertragen werden.", 'phase: "transfer"']) expect(community).toContain(token);
+    const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
+    for (const token of [".upload-progress", "upload-progress-sheen", ".upload-progress__track", "prefers-reduced-motion"]) expect(css).toContain(token);
   });
 });

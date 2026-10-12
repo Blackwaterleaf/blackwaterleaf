@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -10,43 +10,32 @@ const profile = source("client/src/pages/Profile.tsx");
 const marketplace = source("client/src/pages/Marketplace.tsx");
 const detail = source("client/src/pages/MarketplaceProduct.tsx");
 const notFound = source("client/src/pages/NotFound.tsx");
-const overlay = source("client/src/components/ReferenceOverlay.tsx");
 const styles = source("client/src/index.css");
 const worlds = source("client/src/lib/worlds.ts");
 
-describe("remaining reference-overlay parity", () => {
-  it("replaces the generic 404 page with a dark botanical recovery route", () => {
-    for (const token of ["ReferenceHero", "ReferenceEmptyState", "ROUTE / 404", "SEITE NICHT GEFUNDEN", "ZUR STARTSEITE", "reference-page--botany"]) {
-      expect(notFound).toContain(token);
-    }
-    expect(notFound).not.toContain("LiveSensorStrip");
-    for (const prohibited of ["bg-gradient-to-br", "text-red-500", "Page Not Found", "Go Home", "animate-pulse"]) expect(notFound).not.toContain(prohibited);
+describe("Observatory retirement and state parity", () => {
+  it("uses an Observatory recovery route for unknown addresses", () => {
+    for (const token of ["ObservatoryContextHeader", "ObservatoryStateSurface", "SEITE NICHT GEFUNDEN", "ZUR STARTSEITE", "observatory-route"]) expect(notFound).toContain(token);
+    expect(app).toContain('path={"/404"} component={NotFound}');
+    expect(app).toContain("<Route component={NotFound} />");
   });
 
-  it("makes signed-out profile access an explicit server-gated auth overlay", () => {
-    for (const token of ["ProfileAuthOverlay", "data-state=\"server-auth-required\"", "[AUTH / REQUIRED]", "href=\"/login\"", "href=\"/register\""]) {
-      expect(profile).toContain(token);
-    }
-    expect(profile).toContain("profile-page-only");
+  it("keeps signed-out profile access explicitly server-gated", () => {
+    for (const token of ["ProfileAuthOverlay", 'data-state="server-auth-required"', "href=\"/login\"", "href=\"/register\""]) expect(profile).toContain(token);
+    expect(profile).toContain("observatory-route");
     expect(profile).not.toContain("<LiveSensorStrip");
-    expect(profile).not.toContain("<ReferenceHero");
-    expect(profile).not.toContain("ReferenceEmptyState");
   });
 
-  it("keeps catalogue and every product state truthful without duplicating Home-only sensors", () => {
-    for (const token of ["marketplace-hub__intro", "MARKET/HUB_ERROR", "MARKET/HUB_EMPTY"]) expect(marketplace).toContain(token);
-    for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero", "StatePanel"]) expect(detail).toContain(token);
+  it("keeps catalogue and product states truthful without Home-only sensors", () => {
+    for (const token of ["marketplace-hub__intro", "MARKET/HUB_ERROR", "MARKET/HUB_EMPTY", "ObservatoryContextHeader"]) expect(marketplace).toContain(token);
+    for (const token of ["MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "StatePanel"]) expect(detail).toContain(token);
     expect(marketplace).not.toContain("LiveSensorStrip");
     expect(detail).not.toContain("LiveSensorStrip");
   });
 
-  it("keeps recovery navigation and reference error semantics accessible", () => {
-    expect(app).toContain('<Route component={Home} />');
-    expect(app).toContain('path={"/404"} component={Home}');
-    expect(overlay).toContain('state?: "empty" | "error"');
-    expect(overlay).toContain('reference-empty-state--${state}');
-    expect(styles).toContain(".profile-auth-overlay");
-    expect(styles).toContain(".reference-not-found");
+  it("removes retired overlay files and selectors", () => {
+    expect(existsSync(resolve(root, "client/src/components/ReferenceOverlay.tsx"))).toBe(false);
+    for (const retired of [".reference-page", ".reference-hero", ".reference-action-grid", "glitch-title"]) expect(styles).not.toContain(retired);
     expect(styles).toContain(".marketplace-hub__intro");
   });
 

@@ -17,6 +17,15 @@ describe("AP-17 community parity contract", () => {
     expect(community).toContain("deleteComment: protectedProcedure");
     expect(community).toContain("community_report_submitted");
     expect(community).toContain("community_user_blocked");
+    expect(community).toContain("assertNoBlockingRelationship");
+    expect(community).toContain('return { liked: false } as const');
+  });
+
+  it("keeps feed author labels and media identity stable", () => {
+    expect(community).toContain("displayName: author.name?.trim() || author.username?.trim()");
+    expect(community).toContain("const uniqueRows = rows.filter");
+    expect(readFileSync(resolve(root, "client/src/pages/Community.tsx"), "utf8")).toContain("const uniquePosts = useMemo");
+    expect(readFileSync(resolve(root, "mobile-natur/App.tsx"), "utf8")).toContain("const uniqueMedia = useMemo");
   });
 
   it("uses cursor pagination and count(*) for notification state", () => {

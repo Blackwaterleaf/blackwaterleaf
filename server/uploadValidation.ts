@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 export const ALLOWED_IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type AllowedImageMimeType = (typeof ALLOWED_IMAGE_MIME_TYPES)[number];
 
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 32 * 1024 * 1024;
 
 const signatures: Record<AllowedImageMimeType, (buffer: Buffer) => boolean> = {
   "image/jpeg": buffer => buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff,
@@ -22,8 +22,10 @@ const extensions: Record<AllowedImageMimeType, "jpg" | "png" | "webp"> = {
   "image/webp": "webp",
 };
 
-function isAllowedImageMimeType(value: string): value is AllowedImageMimeType {
-  return ALLOWED_IMAGE_MIME_TYPES.includes(value as AllowedImageMimeType);
+function normalizeImageMimeType(value: string): AllowedImageMimeType | null {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "image/jpg" || normalized === "image/pjpeg" || normalized === "image/jfif") return "image/jpeg";
+  return ALLOWED_IMAGE_MIME_TYPES.includes(normalized as AllowedImageMimeType) ? normalized as AllowedImageMimeType : null;
 }
 
 function stripJpegMetadata(buffer: Buffer): Buffer {
@@ -45,9 +47,11 @@ function stripJpegMetadata(buffer: Buffer): Buffer {
     const segmentLength = buffer.readUInt16BE(offset + 2);
     const segmentEnd = offset + 2 + segmentLength;
     if (segmentEnd > buffer.length) return buffer;
-    // Keep JFIF/JFXX application headers; remove EXIF, XMP, ICC and comments.
-    const keep = marker === 0xe0;
-    if (keep) output.push(buffer.subarray(offset, segmentEnd));
+    // Retain all image-bearing JPEG segments (DQT, DHT, SOF, SOS, etc.) and
+    // discard only application metadata plus comments. Earlier logic kept only
+    // APP0, which also removed indispensable frame/quantization segments.
+    const removableMetadata = (marker >= 0xe1 && marker <= 0xef) || marker === 0xfe;
+    if (!removableMetadata) output.push(buffer.subarray(offset, segmentEnd));
     offset = segmentEnd;
   }
   return Buffer.concat(output);
@@ -91,7 +95,8 @@ export function stripImageMetadata(buffer: Buffer, mimeType: AllowedImageMimeTyp
 }
 
 export function validateImageUpload(base64: string, mimeType: string) {
-  if (!isAllowedImageMimeType(mimeType)) {
+  const normalizedMimeType = normalizeImageMimeType(mimeType);
+  if (!normalizedMimeType) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "unsupported_image_type" });
   }
 
@@ -105,15 +110,15 @@ export function validateImageUpload(base64: string, mimeType: string) {
     throw new TRPCError({ code: "PAYLOAD_TOO_LARGE", message: "invalid_image_size" });
   }
 
-  if (!signatures[mimeType](buffer)) {
+  if (!signatures[normalizedMimeType](buffer)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "image_signature_mismatch" });
   }
 
-  const sanitizedBuffer = stripImageMetadata(buffer, mimeType);
+  const sanitizedBuffer = stripImageMetadata(buffer, normalizedMimeType);
   return {
     buffer: sanitizedBuffer,
     byteSize: sanitizedBuffer.length,
-    extension: extensions[mimeType],
-    mimeType,
+    extension: extensions[normalizedMimeType],
+    mimeType: normalizedMimeType,
   } as const;
 }

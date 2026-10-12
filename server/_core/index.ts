@@ -8,6 +8,8 @@ import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { getDb } from "../db";
+import { acceptMediaState, authorizeMediaTransport, redirectMemberToMediaPlayer } from "../selfHostedLiveMedia";
+import { registerStripeWebhook } from "../stripe";
 import { serveStatic, setupVite } from "./vite";
 import {
   aiRateLimiter,
@@ -26,6 +28,23 @@ async function startServer() {
   const server = createServer(app);
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+  app.use((req, res, next) => {
+    const origin = req.header("origin");
+    const trusted = origin && [
+      "https://blackwaterleaf.com",
+      "https://www.blackwaterleaf.com",
+      "https://bwlparity-nearrhpw.manus.space",
+    ].includes(origin);
+    if (trusted) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Vary", "Origin");
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type");
+      res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(trusted ? 204 : 403);
+    next();
+  });
   app.get("/healthz", (_req, res) => res.status(200).json({ status: "ok", releaseId: process.env.RELEASE_ID ?? "development" }));
   app.get("/livez", (_req, res) => res.status(200).json({ status: "ok" }));
   app.get("/readyz", async (_req, res) => {
@@ -47,11 +66,19 @@ async function startServer() {
     return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage } });
   });
   app.use(securityHeaders);
-  // 12 MB request limit allows an 8 MB image plus base64 overhead while
-  // preventing the previous unrestricted 50 MB API payload surface.
-  app.use(express.json({ limit: "12mb" }));
-  app.use(express.urlencoded({ limit: "12mb", extended: true }));
+  // Stripe requires the untouched request bytes for signature verification.
+  app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+  registerStripeWebhook(app);
+  // Base64 adds roughly one third overhead to native and mobile-browser media
+  // uploads. The upload validators still enforce a 32 MB binary image limit.
+  app.use(express.json({ limit: "48mb" }));
+  app.use(express.urlencoded({ limit: "48mb", extended: true }));
   registerStorageProxy(app);
+  // Called only by the separately deployed IONOS media stack. Both routes require
+  // the server-side media-control secret and never expose ingest credentials.
+  app.post("/api/live-media/auth", authorizeMediaTransport);
+  app.post("/api/live-media/session/:sessionId/state", acceptMediaState);
+  app.get("/api/live-media/session/:sessionId/watch", redirectMemberToMediaPlayer);
   app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
   app.use([

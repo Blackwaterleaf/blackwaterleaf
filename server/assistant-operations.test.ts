@@ -25,8 +25,13 @@ describe("assistant operations", () => {
     expect(context).not.toContain("undefined");
   });
 
-  it("keeps IONOS plant analysis within the structured JSON token budget", () => {
-    expect(assistantSource).toContain("model: ENV.ionosAiVisionModel, maxTokens: 5_000");
+  it("uses the configured IONOS multimodal model with bounded triage", () => {
+    expect(assistantSource).toContain("const PLANT_TRIAGE_MODEL = ENV.ionosModel");
+    expect(assistantSource).toContain("const PLANT_ESCALATION_MODEL = ENV.ionosModel");
+    expect(assistantSource).toContain("plantResultNeedsEscalation");
+    expect(assistantSource).toContain('detail: model === PLANT_TRIAGE_MODEL ? "low"');
+    expect(assistantSource).toContain('model === PLANT_TRIAGE_MODEL ? 1_800 : 5_000');
+    expect(assistantSource).toContain("usageTotals(triageUsage, response.usage)");
     expect(assistantSource).toContain('"assistant_response_truncated"');
     expect(assistantSource).toContain('"assistant_empty_response"');
   });

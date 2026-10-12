@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { userConsentCurrent, userConsentEvents, userConsents, users } from "../drizzle/schema";
+import { communityPosts, mediaAssets, observations, userConsentCurrent, userConsentEvents, userConsents, users } from "../drizzle/schema";
 import type { z } from "zod";
 import { consentPurposeSchema } from "../shared/blackwaterleaf-contract-v1";
 import { getDb } from "./db";
@@ -93,6 +93,19 @@ export async function recordCurrentConsent(
 
     if (input.purpose === "profile_publication" && !input.granted) {
       await tx.update(users).set({ profileVisibility: "private" }).where(eq(users.id, input.userId));
+    }
+    if (!input.granted && (input.purpose === "observation_publishing" || input.purpose === "community_publishing")) {
+      if (input.purpose === "observation_publishing") {
+        await tx.update(observations).set({ visibility: "private" }).where(eq(observations.userId, input.userId));
+        await tx.update(mediaAssets).set({ visibility: "private" }).where(eq(mediaAssets.userId, input.userId));
+      }
+      if (input.purpose === "community_publishing") {
+        await tx.update(communityPosts).set({ visibility: "private", status: "draft" }).where(eq(communityPosts.userId, input.userId));
+        await tx.update(mediaAssets).set({ visibility: "private" }).where(eq(mediaAssets.userId, input.userId));
+      }
+    }
+    if (!input.granted && input.purpose === "media_processing") {
+      await tx.update(mediaAssets).set({ visibility: "private" }).where(eq(mediaAssets.userId, input.userId));
     }
   });
 }
