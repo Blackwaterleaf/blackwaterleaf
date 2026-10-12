@@ -12,4 +12,9 @@ export const ENV = {
   kimiModel: process.env.KIMI_MODEL ?? "kimi-k2.5",
   kimiEnabled: process.env.KIMI_ENABLED === "true",
   agentProvider: process.env.AGENT_PROVIDER === "kimi" && process.env.KIMI_ENABLED === "true" ? "kimi" : "builtin",
+  ionosApiToken: process.env.IONOS_API_TOKEN ?? "",
+  ionosApiBaseUrl: process.env.IONOS_API_BASE_URL ?? "https://api.ionos.com/cloudapi/v6",
+  ionosEnabled: process.env.IONOS_ENABLED === "true",
+  ionosDatacenterId: process.env.IONOS_DATACENTER_ID ?? "",
+  ionosExecutionServerId: process.env.IONOS_EXECUTION_SERVER_ID ?? "",
 };

@@ -9,6 +9,7 @@ import { abortActiveRun } from "./runWorker";
 import { assertTaskTransition, createRunGuard } from "./safety";
 import { CAPABILITY_REGISTRY, evaluatePolicy, hashArtifactBytes, sanitizeResourceScope } from "./policy";
 import { getKimiProviderStatus } from "./kimiGateway";
+import { getIonosReadiness } from "./ionosGateway";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
 import { storagePut } from "./storage";
 import * as db from "./db";
@@ -62,7 +63,7 @@ export const appRouter = router({
           tasks: [],
           approvals: [],
           audit: [],
-          execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason },
+          execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason, ionos: getIonosReadiness() },
         } as const;
       }
       const tasks = await db.listWorkspaceTasks(membership.workspace.id);
@@ -73,7 +74,7 @@ export const appRouter = router({
         tasks,
         approvals: await db.listWorkspaceApprovals(taskIds),
         audit: await db.listWorkspaceAudit(membership.workspace.id),
-        execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason },
+        execution: { agentControlPlane: "available", isolatedWorker: SANDBOX_PHASE_STATUS.executionPlane, kimi: getKimiProviderStatus().reason, ionos: getIonosReadiness() },
       } as const;
     }),
 
