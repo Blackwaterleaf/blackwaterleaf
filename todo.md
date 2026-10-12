@@ -19,7 +19,8 @@
 
 ## Noch erforderlich für echten Produktivbetrieb
 
-- [ ] Öffentliche IPv4-Adresse im IONOS-VDC zuweisen (aktuell 0/5 IPs; IPv6-DHCP ist vorhanden)
+- [x] Eine öffentliche IPv4-Adresse im IONOS-VDC reserviert (Ressourcenzähler jetzt 1/5; IPv6-DHCP ist vorhanden)
+- [ ] Reservierte IPv4 dem Internet-Access/Server zuordnen und externe Erreichbarkeit prüfen
 - [ ] SSH-Preflight mit dem neuen Server ausführen
 - [ ] Firewall/Security-Group aktivieren; danach Nicht-root-Admin, UFW, Systemd und TLS einrichten
 - [ ] Studio als unabhängigen Node-Dienst auf IONOS deployen

@@ -25,7 +25,7 @@
 
 - Resend-Liveversand: ein neuer minimaler Sending-Key wurde im Dashboard erstellt und sicher hinterlegt. Der lokale Domain-Endpunkt antwortet mit HTTP 403 (`error code: 1010`); das beweist keinen funktionierenden Versand und wird deshalb nicht als live bereit markiert. Ein echter Versandtest bleibt aus Sicherheitsgründen offen.
 - IONOS-Runtime: Datacenter-ID und Execution-Server-ID sind bekannt; der lokal validierte Token erreichte die IONOS-API erfolgreich. Der aktuell injizierte Sandbox-Runtimewert ist jedoch maskiert/ungültig und wurde deshalb nicht als „bereit“ akzeptiert. Ein Runtime-Secret-Reload ohne Override bleibt offen.
-- IONOS-Netzwerk: Der Cube läuft mit 2 vCPU, 4 GB RAM und einer verbundenen NIC. Im VDC sind aktuell 0 von 5 IPv4-Adressen zugewiesen; IPv6-DHCP ist vorhanden. Die NIC-Firewall steht derzeit auf `Disabled`. Deshalb bleiben SSH, TLS und unabhängiges Deployment bewusst gesperrt.
+- IONOS-Netzwerk: Der Cube läuft mit 2 vCPU, 4 GB RAM und einer verbundenen NIC. IPv6 ist im LAN mit `2a01:239:501:b400::/56` aktiviert. Eine öffentliche IPv4 wurde im VDC reserviert (Ressourcenzähler 1/5), ist aber noch nicht dem Internet-Access/Server zugeordnet. Die NIC-Firewall steht derzeit auf `Disabled`; deshalb bleiben SSH, TLS und unabhängiges Deployment bewusst gesperrt.
 - Isolierte Sandbox: bleibt bis zur geprüften IONOS-Worker-, Firewall-, Ressourcen- und Kill-Switch-Abnahme deaktiviert.
 - Video-Produktion: der Kalkulator ist aktiv; ein konkreter Video-Provider muss separat mit Quote, Limits und Kostenkontrolle verbunden werden.
 - Abrechnung: die Preislogik ist ein Produkt-Richtwert, keine Zahlungs- oder Rechnungsintegration.
