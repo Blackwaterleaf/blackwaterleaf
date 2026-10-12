@@ -27,7 +27,7 @@ describe("AI cost optimization and verified learning", () => {
   });
 
   it("keeps a plant image request to one bounded IONOS model call", () => {
-    expect(assistant).toContain("const PLANT_TRIAGE_MAX_TOKENS = 1_200");
+    expect(assistant).toContain("const PLANT_TRIAGE_MAX_TOKENS = 800");
     expect(assistant).toContain("eine zweite Modellanfrage auszulösen");
     expect(assistant).not.toContain("PLANT_ESCALATION_MODEL");
     expect(assistant).not.toContain("plantResultNeedsEscalation");

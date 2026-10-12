@@ -435,6 +435,13 @@
       "when": 1791800694387,
       "tag": "0061_spooky_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "5",
+      "when": 1791807628042,
+      "tag": "0062_lethal_yellowjacket",
+      "breakpoints": true
     }
   ]
 }

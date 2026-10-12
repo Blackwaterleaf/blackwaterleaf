@@ -117,7 +117,7 @@ export default function Assistant() {
   const sendMessage = (message: string) => {
     if (!available || chat.isPending) return;
     setError(null);
-    const history = messages.slice(-6).map(item => ({ role: item.role === "assistant" ? "assistant" as const : "user" as const, content: item.content }));
+    const history = messages.slice(-2).map(item => ({ role: item.role === "assistant" ? "assistant" as const : "user" as const, content: item.content.slice(0, 500) }));
     setMessages(current => [...current, { role: "user", content: message }]);
     chat.mutate({ clientRequestId: requestId(), message, history });
   };

@@ -501,6 +501,27 @@ export const assistantUsage = mysqlTable(
   ],
 );
 
+/**
+ * Privacy-preserving cache for repeated plant-image analyses.
+ * Stores structured output only; image bytes and prompts are never persisted.
+ */
+export const assistantResultCache = mysqlTable(
+  "assistant_result_cache",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    fingerprint: varchar("fingerprint", { length: 64 }).notNull(),
+    model: varchar("model", { length: 96 }).notNull(),
+    identification: json("identification").notNull(),
+    plantnetValidation: json("plantnetValidation"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+  },
+  table => [
+    uniqueIndex("assistant_result_cache_fingerprint_unique").on(table.fingerprint),
+    index("assistant_result_cache_expiry_idx").on(table.expiresAt),
+  ],
+);
+
 /** Host-controlled policy for free, Pro and global plant-identification budgets. */
 export const aiUsagePolicies = mysqlTable("ai_usage_policies", {
   id: int("id").primaryKey(),

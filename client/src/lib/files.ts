@@ -1,7 +1,9 @@
 const CLIENT_IMAGE_LIMIT_BYTES = 32 * 1024 * 1024;
 const CLIENT_VIDEO_LIMIT_BYTES = 16 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 3200;
-const ANALYSIS_IMAGE_DIMENSION = 1800;
+// 1280px keeps leaf structure readable while avoiding the large visual-token
+// payload produced by modern phone photos. Original media is never modified.
+const ANALYSIS_IMAGE_DIMENSION = 1280;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 type AllowedImageType = "image/jpeg" | "image/png" | "image/webp";
 

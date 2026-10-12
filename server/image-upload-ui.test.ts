@@ -12,7 +12,7 @@ describe("mobile image upload contract", () => {
   it("resizes oversized phone photos before enforcing the server upload limit", () => {
     expect(files).toContain("CLIENT_IMAGE_LIMIT_BYTES = 32 * 1024 * 1024");
     expect(files).toContain("MAX_IMAGE_DIMENSION = 3200");
-    expect(files).toContain("ANALYSIS_IMAGE_DIMENSION = 1800");
+    expect(files).toContain("ANALYSIS_IMAGE_DIMENSION = 1280");
     expect(files).toContain('canvas.toBlob(resolve, "image/jpeg", quality)');
     expect(files).toContain("image_too_large_after_resize");
   });

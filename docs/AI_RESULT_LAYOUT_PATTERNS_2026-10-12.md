@@ -43,5 +43,5 @@ Muster B eignet sich besonders für die Native-App auf kleinen Geräten. Es wird
 - Kein KI-Ergebnis darf als sichere Artbestimmung dargestellt werden.
 - Kandidaten, Merkmale und unabhängige Prüfung kommen vor dem langen Antworttext.
 - Es werden keine Scheinquellen, Fundorte oder Messwerte ergänzt.
-- Bilder bleiben nur für die einzelne Bestimmungsanfrage im Verarbeitungspfad; die Oberfläche nennt weiterhin **keine Speicherung**.
+- Bilder bleiben nur für die einzelne Bestimmungsanfrage im Verarbeitungspfad; die Oberfläche nennt weiterhin **keine Bildspeicherung**. Ein sieben Tage gültiger, datensparsamer Resultatcache darf ausschließlich Fingerabdruck, strukturierte Ausgabe und Prüfstatus ohne Bildbytes enthalten.
 - Die KI-Schnellroute bleibt `/assistant#plant` im Web und `assistant` mit Pflanzenwerkzeug in Native.

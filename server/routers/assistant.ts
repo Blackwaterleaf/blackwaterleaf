@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
+import { createHash } from "node:crypto";
 import { and, eq, gt, inArray, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantUsage, notifications, plantTaxa, privateHabitats, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantResultCache, assistantUsage, notifications, plantTaxa, privateHabitats, terrariumTaxa, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
@@ -21,7 +22,7 @@ const chatInput = z.object({
   clientRequestId: requestIdSchema,
   realm: z.enum(["botany", "aquarium", "terrarium"]).optional(),
   message: z.string().trim().min(2).max(1_200),
-  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(1_200) })).max(6).default([]),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(800) })).max(4).default([]),
 });
 const plantIdentifyInput = z.object({
   clientRequestId: requestIdSchema,
@@ -73,6 +74,14 @@ function responseText(content: string | unknown[]) {
     .trim();
 }
 
+const CATALOG_CONTEXT_CACHE_TTL_MS = 5 * 60_000;
+const catalogContextCache = new Map<string, { expiresAt: number; references: CatalogReference[] }>();
+
+function compactText(value: string | null | undefined, maxLength: number) {
+  const normalized = value?.replace(/\s+/g, " ").trim() ?? "";
+  return normalized.length > maxLength ? `${normalized.slice(0, maxLength - 1).trim()}…` : normalized;
+}
+
 function catalogReferenceFrom(row: CatalogReference): CatalogReference {
   return {
     scientificName: row.scientificName,
@@ -93,27 +102,27 @@ function catalogReferenceFrom(row: CatalogReference): CatalogReference {
 
 export function formatCatalogReferences(references: CatalogReference[]) {
   if (!references.length) return "Kein exakter, veröffentlichter Katalogeintrag wurde zu dieser Anfrage gefunden.";
-  return references.map(reference => {
+  return references.slice(0, 2).map(reference => {
     const accepted = reference.acceptedScientificName && reference.acceptedScientificName !== reference.scientificName
       ? `; akzeptierter Name: ${reference.acceptedScientificName}`
       : "";
     const confidence = reference.matchConfidence === null ? "" : `; Abgleich: ${reference.matchConfidence} %`;
     const source = reference.sourceRecordUrl ? `; Fachquelle: ${reference.sourceRecordUrl}` : `; Fachquelle: ${reference.source}`;
     const names = [...(Array.isArray(reference.commonNames) ? reference.commonNames : []), ...(Array.isArray(reference.synonyms) ? reference.synonyms : [])].filter((name): name is string => typeof name === "string" && Boolean(name.trim())).slice(0, 3);
-    const habitat = reference.summary?.match(/(?:Lebensraum|Fundort|Verbreitung|Habitat)\s*:\s*([^\n]+)/i)?.[1]?.trim();
+    const habitat = compactText(reference.summary?.match(/(?:Lebensraum|Fundort|Verbreitung|Habitat)\s*:\s*([^\n]+)/i)?.[1], 120);
     const profile = reference.careProfile && typeof reference.careProfile === "object" ? reference.careProfile as Record<string, unknown> : {};
     const care = [
-      typeof profile.water === "string" ? `Wasser: ${profile.water}` : null,
-      typeof profile.temperature === "string" ? `Temperatur: ${profile.temperature}` : null,
-      typeof profile.careLevel === "string" ? `Anspruch: ${profile.careLevel}` : null,
-    ].filter(Boolean).slice(0, 2).join(", ");
-    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${reference.genus ? `; Gattung: ${reference.genus}` : ""}${names.length ? `; Namen: ${names.join(", ")}` : ""}${habitat ? `; Habitat: ${habitat}` : ""}${care ? `; ${care}` : ""}${accepted}${confidence}${source}`;
+      typeof profile.water === "string" ? `Wasser: ${compactText(profile.water, 80)}` : null,
+      typeof profile.temperature === "string" ? `Temperatur: ${compactText(profile.temperature, 50)}` : null,
+      typeof profile.careLevel === "string" ? `Anspruch: ${compactText(profile.careLevel, 50)}` : null,
+    ].filter(Boolean).slice(0, 1).join(", ");
+    return `- ${reference.scientificName}${reference.family ? ` (${reference.family})` : ""}${names.length ? `; Namen: ${names.join(", ")}` : ""}${habitat ? `; Habitat: ${habitat}` : ""}${care ? `; ${care}` : ""}${accepted}${confidence}${source}`;
   }).join("\n");
 }
 
 function queryTerms(query: string) {
   const stopWords = new Set(["bitte", "kann", "können", "dieser", "dieses", "einer", "einem", "eine", "einen", "über", "mehr", "mein", "meine", "hilfe", "welche", "welcher", "welches", "wurde", "werden", "haben", "brauche"]);
-  return Array.from(new Set((query.toLocaleLowerCase("de").match(/[A-Za-zÀ-ÖØ-öø-ÿ]{3,}/g) ?? []).filter(term => !stopWords.has(term)))).slice(0, 6);
+  return Array.from(new Set((query.toLocaleLowerCase("de").match(/[A-Za-zÀ-ÖØ-öø-ÿ]{3,}/g) ?? []).filter(term => !stopWords.has(term)))).slice(0, 4);
 }
 
 function normalizeTaxonText(value: string) {
@@ -153,13 +162,16 @@ function formatCatalogFastPath(reference: CatalogReference) {
     "**Katalog-Schnellantwort · keine KI-Anfrage erforderlich**",
     `**${reference.scientificName}**${reference.family ? ` · ${reference.family}` : ""}`,
     commonNames.length ? `**Gebräuchliche Namen:** ${commonNames.join(", ")}` : null,
-    reference.summary ? `**Verifizierte Katalognotiz:** ${reference.summary}` : null,
+    reference.summary ? `**Verifizierte Katalognotiz:** ${compactText(reference.summary, 220)}` : null,
     care.length ? `**Hinterlegte Fachangaben:** ${care.join(" · ")}` : null,
     `**Fachquelle:** ${source}`,
   ].filter(Boolean).join("\n\n");
 }
 
 async function catalogReferencesForQuery(db: Database, query: string): Promise<CatalogReference[]> {
+  const cacheKey = normalizeTaxonText(query).slice(0, 180);
+  const cached = catalogContextCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.references;
   const terms = queryTerms(query);
   if (!terms.length) return [];
   const plantConditions = terms.flatMap(term => [
@@ -180,7 +192,16 @@ async function catalogReferencesForQuery(db: Database, query: string): Promise<C
     sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
     sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
   ]);
-  const [plants, aquarium] = await Promise.all([
+  const terrariumConditions = terms.flatMap(term => [
+    like(terrariumTaxa.scientificName, `%${term}%`),
+    like(terrariumTaxa.acceptedScientificName, `%${term}%`),
+    like(terrariumTaxa.family, `%${term}%`),
+    like(terrariumTaxa.genus, `%${term}%`),
+    like(terrariumTaxa.summary, `%${term}%`),
+    sql`JSON_SEARCH(${terrariumTaxa.commonNames}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+    sql`JSON_SEARCH(${terrariumTaxa.synonyms}, 'one', ${`%${term}%`}, NULL, '$[*]') IS NOT NULL`,
+  ]);
+  const [plants, aquarium, terrarium] = await Promise.all([
     db.select({
       scientificName: plantTaxa.scientificName,
       acceptedScientificName: plantTaxa.acceptedScientificName,
@@ -195,7 +216,7 @@ async function catalogReferencesForQuery(db: Database, query: string): Promise<C
       sourceCitation: plantTaxa.sourceCitation,
       taxonomicStatus: plantTaxa.taxonomicStatus,
       matchConfidence: plantTaxa.matchConfidence,
-    }).from(plantTaxa).where(and(eq(plantTaxa.status, "published"), or(...plantConditions))).limit(4),
+    }).from(plantTaxa).where(and(eq(plantTaxa.status, "published"), or(...plantConditions))).limit(2),
     db.select({
       scientificName: aquariumTaxa.scientificName,
       acceptedScientificName: aquariumTaxa.acceptedScientificName,
@@ -210,9 +231,26 @@ async function catalogReferencesForQuery(db: Database, query: string): Promise<C
       sourceCitation: aquariumTaxa.sourceCitation,
       taxonomicStatus: aquariumTaxa.taxonomicStatus,
       matchConfidence: aquariumTaxa.matchConfidence,
-    }).from(aquariumTaxa).where(and(eq(aquariumTaxa.status, "published"), or(...aquariumConditions))).limit(4),
+    }).from(aquariumTaxa).where(and(eq(aquariumTaxa.status, "published"), or(...aquariumConditions))).limit(2),
+    db.select({
+      scientificName: terrariumTaxa.scientificName,
+      acceptedScientificName: terrariumTaxa.acceptedScientificName,
+      family: terrariumTaxa.family,
+      genus: terrariumTaxa.genus,
+      commonNames: terrariumTaxa.commonNames,
+      synonyms: terrariumTaxa.synonyms,
+      summary: terrariumTaxa.summary,
+      careProfile: terrariumTaxa.careProfile,
+      source: terrariumTaxa.source,
+      sourceRecordUrl: terrariumTaxa.sourceRecordUrl,
+      sourceCitation: terrariumTaxa.sourceCitation,
+      taxonomicStatus: terrariumTaxa.taxonomicStatus,
+      matchConfidence: terrariumTaxa.matchConfidence,
+    }).from(terrariumTaxa).where(and(eq(terrariumTaxa.status, "published"), or(...terrariumConditions))).limit(2),
   ]);
-  return [...plants, ...aquarium].map(catalogReferenceFrom).slice(0, 6);
+  const references = [...plants, ...aquarium, ...terrarium].map(catalogReferenceFrom).slice(0, 4);
+  catalogContextCache.set(cacheKey, { expiresAt: Date.now() + CATALOG_CONTEXT_CACHE_TTL_MS, references });
+  return references;
 }
 
 function catalogContextForReferences(references: CatalogReference[]) {
@@ -387,7 +425,7 @@ async function completeRequest(reservation: RequestReservation, userId: number, 
 }
 
 async function generateAnswer(reservation: RequestReservation, userId: number, messages: Message[]) {
-  const response = await invokeLLM({ model: ENV.ionosModel, maxTokens: 700, messages });
+  const response = await invokeLLM({ model: ENV.ionosModel, maxTokens: 420, messages });
   const answer = responseText(response.choices[0]?.message.content ?? "").slice(0, 6_000);
   if (!answer) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
   const xpAwarded = await completeRequest(reservation, userId, answer, response.usage, ENV.ionosModel);
@@ -408,7 +446,7 @@ const plantIdentificationSchema = {
 type PlantIdentificationResult = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
 
 const PLANT_TRIAGE_MODEL = ENV.ionosModel;
-const PLANT_TRIAGE_MAX_TOKENS = 1_200;
+const PLANT_TRIAGE_MAX_TOKENS = 800;
 
 function parsePlantResult(raw: string): PlantIdentificationResult {
   try {
@@ -416,6 +454,24 @@ function parsePlantResult(raw: string): PlantIdentificationResult {
   } catch {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_invalid_structured_response" });
   }
+}
+
+type CachedPlantNetValidation = NonNullable<Awaited<ReturnType<typeof validateWithPlantNetImages>>>;
+
+function plantImageFingerprint(images: Array<{ buffer: Buffer; mimeType: string }>, model: string) {
+  const hash = createHash("sha256").update(model);
+  for (const image of images) hash.update(image.mimeType).update(String(image.buffer.length)).update(image.buffer);
+  return hash.digest("hex");
+}
+
+function cachedPlantAnswer(result: PlantIdentificationResult, catalogReferences: CatalogReference[], plantNetValidation: CachedPlantNetValidation | null) {
+  return [
+    formatPlantIdentification(result),
+    `**BlackWaterLeaf-Katalogabgleich**\n${formatCatalogReferences(catalogReferences)}`,
+    plantNetValidation
+      ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
+      : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
+  ].join("\n\n");
 }
 
 function usageTotals(...usages: Array<{ prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | undefined>) {
@@ -431,8 +487,8 @@ function usageTotals(...usages: Array<{ prompt_tokens?: number; completion_token
 async function invokePlantModel(images: Array<{ buffer: Buffer; mimeType: string }>, note?: string) {
   const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "low" as const } }));
   return invokeLLM({ model: PLANT_TRIAGE_MODEL, maxTokens: PLANT_TRIAGE_MAX_TOKENS, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
-    { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Dies ist eine einmalige, effiziente Vorprüfung. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn die Einordnung unsicher ist, fordere lieber gezielt bessere Einzelbilder an, statt eine zweite Modellanfrage auszulösen. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
-    { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${note ? ` Zusatzinformation: ${note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
+    { role: "system", content: `${safetySystemPrompt} Bildprüfung, einmalig und knapp. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Nur sichtbare Merkmale verwenden; keine Quellen, Fundorte oder Messwerte erfinden. Vorläufige Kandidaten statt sicherer Artbestätigung. Bei fehlender Diagnose needsMoreImages=true und höchstens zwei gezielte Einzelbilder nennen. Fordere niemals nach einem 4er-Raster; fordere bei drei Bildern keine weiteren Bilder an, sondern senke die Sicherheit und nenne Fachverifikation. Fordere bessere Einzelbilder an, statt eine zweite Modellanfrage auszulösen. Ausschließlich das definierte JSON zurückgeben.` },
+    { role: "user", content: [{ type: "text", text: `Prüfe ${images.length} Bild(er) gemeinsam.${note ? ` Hinweis: ${compactText(note, 220)}` : ""} Nur definiertes JSON.` }, ...imageParts] },
   ] });
 }
 
@@ -494,13 +550,25 @@ export const assistantRouter = router({
       { role: "system", content: safetySystemPrompt },
       { role: "system", content: contextLabel },
       ...(catalogContext ? [{ role: "system" as const, content: catalogContext }] : []),
-      ...input.history.slice(-6).map(message => ({ role: message.role, content: message.content })),
+      ...input.history.slice(-2).map(message => ({ role: message.role, content: compactText(message.content, 500) })),
       { role: "user", content: input.message },
     ]);
   }),
 
   plantIdentify: protectedProcedure.input(plantIdentifyInput).mutation(async ({ ctx, input }) => {
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
+    const db = await requireDatabase();
+    const fingerprint = plantImageFingerprint(images, PLANT_TRIAGE_MODEL);
+    const [cached] = await db.select().from(assistantResultCache).where(and(eq(assistantResultCache.fingerprint, fingerprint), gt(assistantResultCache.expiresAt, new Date()))).limit(1);
+    if (cached) {
+      if (ctx.user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
+      const identification = cached.identification as PlantIdentificationResult;
+      const plantNetValidation = (cached.plantnetValidation as CachedPlantNetValidation | null) ?? null;
+      const catalogReferences = await catalogReferencesForCandidates(db, identification.candidates);
+      const answer = cachedPlantAnswer(identification, catalogReferences, plantNetValidation);
+      const inserted = await db.insert(assistantUsage).values({ userId: ctx.user.id, clientRequestId: input.clientRequestId, realm: "botany", model: cached.model, promptChars: input.note?.length ?? 0, completionChars: answer.length, promptTokens: 0, completionTokens: 0, totalTokens: 0, creditsConsumed: 0, provider: "ai-result-cache", tariffVersion: "plant-result-cache-v1", estimatedInputCostUsd: "0.00000000", estimatedOutputCostUsd: "0.00000000", estimatedTotalCostUsd: "0.00000000", costCurrency: "USD", requestOutcome: "completed" });
+      return { answer, model: cached.model, assistantUsageId: Number(inserted[0].insertId), xpAwarded: 0, plantNetValidation, catalogReferences, identification, disclaimer: "Hinweis: Dieses Ergebnis stammt aus einem kurzzeitig gespeicherten, bildbasierten Ergebnis-Cache. Die Bilddatei selbst wurde nicht gespeichert. Vorläufige KI-Einschätzung – bitte fachlich abgleichen.", needsMoreImages: identification.needsMoreImages && images.length < 3, requestedAdditionalImages: identification.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, identification.requestedAdditionalImages)) : 0 };
+    }
     const reservation = await reservePlantRequest(ctx.user, input.clientRequestId, (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
     try {
     const model = PLANT_TRIAGE_MODEL;
@@ -516,15 +584,14 @@ export const assistantRouter = router({
       images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
       result.candidates[0]?.scientificName ?? "",
     );
-    const answer = [
-      formatPlantIdentification(result),
-      `**BlackWaterLeaf-Katalogabgleich**\n${formatCatalogReferences(catalogReferences)}`,
-      plantNetValidation
-        ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
-        : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
-    ].join("\n\n");
+    const answer = cachedPlantAnswer(result, catalogReferences, plantNetValidation);
     const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage, model);
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
+    try {
+      await reservation.db.insert(assistantResultCache).values({ fingerprint, model, identification: result, plantnetValidation: plantNetValidation ?? null, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60_000) });
+    } catch (cacheError) {
+      if (!/duplicate|ER_DUP_ENTRY/i.test(cacheError instanceof Error ? cacheError.message : String(cacheError))) console.warn("assistant_result_cache_write_failed", cacheError);
+    }
     return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
     } catch (error) {
       await reservation.db.update(assistantUsage).set({ requestOutcome: "failed" }).where(eq(assistantUsage.id, reservation.usageId));

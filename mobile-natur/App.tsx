@@ -1916,16 +1916,20 @@ function AssistantScreen({
     }
     try {
       const asset = result.assets[0];
-      const mime =
-        asset.mimeType === "image/png" || asset.mimeType === "image/webp"
-          ? asset.mimeType
-          : "image/jpeg";
-      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
-        encoding: FileSystem.EncodingType.Base64,
+      const width = asset.width ?? 1280;
+      const height = asset.height ?? 1280;
+      const scale = Math.min(1, 1280 / Math.max(width, height));
+      const actions = scale < 1 ? [{ resize: { width: Math.round(width * scale), height: Math.round(height * scale) } }] : [];
+      const prepared = await ImageManipulator.manipulateAsync(asset.uri, actions, {
+        compress: 0.72,
+        format: ImageManipulator.SaveFormat.JPEG,
+        base64: true,
       });
+      if (!prepared.base64) throw new Error("image_prepare_failed");
+      const base64 = prepared.base64;
       setPhotos(current => [
         ...current,
-        { uri: asset.uri, base64, mimeType: mime },
+        { uri: asset.uri, base64, mimeType: "image/jpeg" },
       ]);
       setPlantAnswer(null);
       setPlantUsageId(null);
@@ -1949,7 +1953,7 @@ function AssistantScreen({
       const response = await assistantChat(token, {
         clientRequestId: Crypto.randomUUID(),
         message: text,
-        history: messages.slice(-6),
+        history: messages.slice(-2).map(item => ({ ...item, content: item.content.slice(0, 500) })),
       });
       setMessages(current => [
         ...current,

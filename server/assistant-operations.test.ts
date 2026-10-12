@@ -27,7 +27,7 @@ describe("assistant operations", () => {
 
   it("uses the configured IONOS multimodal model with one bounded image-analysis pass", () => {
     expect(assistantSource).toContain("const PLANT_TRIAGE_MODEL = ENV.ionosModel");
-    expect(assistantSource).toContain("const PLANT_TRIAGE_MAX_TOKENS = 1_200");
+    expect(assistantSource).toContain("const PLANT_TRIAGE_MAX_TOKENS = 800");
     expect(assistantSource).toContain('detail: "low" as const');
     expect(assistantSource).toContain("eine zweite Modellanfrage auszulösen");
     expect(assistantSource).not.toContain("PLANT_ESCALATION_MODEL");

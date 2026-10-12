@@ -24,7 +24,7 @@ describe("assistant operation interface", () => {
     expect(assistantRouter).toContain("additionalImages");
     expect(assistantRouter).toContain("max(2)");
     expect(assistantRouter).toContain("requestedAdditionalImages");
-    expect(assistantRouter).toContain("const PLANT_TRIAGE_MAX_TOKENS = 1_200");
+    expect(assistantRouter).toContain("const PLANT_TRIAGE_MAX_TOKENS = 800");
     expect(assistantRouter).toContain("eine zweite Modellanfrage auszulösen");
     expect(assistantRouter).not.toContain("PLANT_ESCALATION_MODEL");
     expect(assistantPage).toContain("niemals nach einem 4er-Raster");
