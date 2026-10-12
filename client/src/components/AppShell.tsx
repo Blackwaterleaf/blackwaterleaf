@@ -16,7 +16,7 @@ const portalNavigation = [
   { href: "/flow/foto", label: "Erfassen", icon: Camera },
   { href: "/assistant#plant", label: "KI", icon: Bot },
   { href: "/search", label: "Katalog", icon: BookOpen },
-  { href: "/community", label: "Community", icon: UsersRound },
+  { href: "/community", label: "Feed", icon: UsersRound },
   { href: "/profile", label: "Profil", icon: UserRound },
 ] as const;
 

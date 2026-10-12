@@ -163,3 +163,9 @@ Die Ergebnisfläche führt ausdrücklich mit **Analyse abgeschlossen · vorläuf
 - Beide Auswahlwege verwenden denselben tokenarmen Bild-, Kontingent- und Fortschrittspfad. Der Auswahlwert wird im Serververtrag, im Usage-Ledger und im Cache-Fingerprint geführt; ein Pflanzenbild und ein Fischbild können daher niemals denselben fachlichen Cacheeintrag teilen.
 - Pflanzenbestimmungen verwenden den Botanik-Katalog und optional die unabhängige Pl@ntNet-Prüfung. Fischbestimmungen verwenden ausschließlich den veröffentlichten Aquaristik-Katalog und zeigen keine botanische Prüfquelle an. Wikimedia/Wikipedia bleiben ausgeschlossen.
 - Ergebnisstatus, Kandidaten, Merkmale, Quellenabgleich und vorläufige Sicherheit sind in beiden Clients strukturell gleich. Nur Fachsprache, Icon, Akzent und Katalogbereich wechseln zu Botanik beziehungsweise Aquaristik.
+
+
+## 15.51 Primärnavigation · Feed-Bezeichnung und Marketplace-Aktivzustand (2026-10-12)
+- Web und Native verwenden für das direkte Community-Ziel einheitlich die sichtbare Bezeichnung **Feed**. Die Route `/community` und ihre fachliche Community-Funktion bleiben unverändert; angepasst wird ausschließlich die globale Navigationssprache.
+- Der Marketplace bleibt ein kontextuelles Ziel außerhalb der sieben Primärziele. Beim Öffnen darf in Native kein anderes Primärziel, insbesondere **Profil**, als aktiv markiert werden. Es wird entweder kein Primär-Tab markiert oder der kontextuelle Marketplace-Zustand separat dargestellt.
+- Navigationslabels und Aktivzustände werden in beiden Clients durch Vertragsprüfungen abgesichert, damit sprachliche oder visuelle Rückfälle nicht unbemerkt in einen Release gelangen.

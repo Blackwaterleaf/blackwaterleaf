@@ -4688,7 +4688,7 @@ function BottomNavigation({
     { id: "community", screen: "community", label: "Feed", icon: "people-outline", color: c.botany },
     { id: "profile", screen: "profile", label: "Profil", icon: "person-outline", color: c.botany },
   ];
-  const activeId: BottomTab = active === "home" || active === "explore" ? "discover" : active === "marketplace" ? "profile" : active;
+  const activeId: BottomTab = active === "home" || active === "explore" ? "discover" : active;
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (

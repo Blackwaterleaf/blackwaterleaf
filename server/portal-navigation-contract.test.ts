@@ -6,9 +6,9 @@ const root = resolve(import.meta.dirname, "..");
 const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 
 describe("AP-13 Observatory primary navigation", () => {
-  it("defines seven current Web portal destinations including KI and Community", () => {
+  it("defines seven current Web portal destinations including KI and Feed", () => {
     const shell = read("client/src/components/AppShell.tsx");
-    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Feed", "Profil"]) expect(shell).toContain(`label: "${label}"`);
     expect(shell).toContain("const bottomNavigation = portalNavigation");
     expect(shell).not.toContain("desktop-navigation");
     expect(shell).not.toContain("adminBuilderNavigation");
@@ -21,13 +21,16 @@ describe("AP-13 Observatory primary navigation", () => {
     expect(app).not.toContain("HABITAT BUILDER");
   });
 
-  it("keeps Marketplace contextual while Community is a direct route", () => {
+  it("keeps Marketplace contextual while Feed is a direct route", () => {
     const shell = read("client/src/components/AppShell.tsx");
     const app = read("client/src/App.tsx");
+    const native = read("mobile-natur/App.tsx");
     expect(shell).toContain('href="/marketplace"');
     expect(shell).toContain('href: "/community"');
     expect(app).toContain('path={"/community"}');
     expect(app).not.toContain('path={"/habitat-builder"}');
+    expect(native).toContain('active === "home" || active === "explore" ? "discover" : active;');
+    expect(native).not.toContain('active === "marketplace" ? "profile"');
   });
 
   it("groups profile-menu destinations instead of presenting a flat settings list", () => {

@@ -76,11 +76,11 @@ describe("Observatory community feed interface", () => {
     expect(composerEffect).toBeLessThan(authGuard);
   });
 
-  it("exposes Community as a direct destination alongside the KI fast path", () => {
+  it("exposes Feed as a direct destination alongside the KI fast path", () => {
     const shell = read("client/src/components/AppShell.tsx");
     const css = read("client/src/index.css");
     const native = read("mobile-natur/App.tsx");
-    expect(shell).toContain('{ href: "/community", label: "Community", icon: UsersRound }');
+    expect(shell).toContain('{ href: "/community", label: "Feed", icon: UsersRound }');
     expect(css).toContain("repeat(7, minmax(0, 1fr))");
     expect(native).toContain('id: "community"');
     expect(native).toContain('screen: "community"');
