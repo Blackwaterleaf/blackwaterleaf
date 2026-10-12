@@ -57,6 +57,13 @@
       "when": 1789807684355,
       "tag": "0007_clammy_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1791832223988,
+      "tag": "0008_silent_robbie_robertson",
+      "breakpoints": true
     }
   ]
 }

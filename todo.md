@@ -9,10 +9,11 @@
 - [x] Webhosting-/Cloud-Server-Trennung dokumentiert
 - [x] Admin-Konsole mit Status- und Sicherheits-Gates eingebaut
 - [x] Resend-Gateway und sichere Konfigurationsanzeige eingebaut
-- [x] Preispläne und Credit-Richtwerte eingebaut
-- [x] Video-Kostenkalkulator eingebaut
+- [x] Manus-Built-in-KI-Readiness separat sichtbar
+- [x] Preispläne, Credit-Richtwerte und Nutzungsledger eingebaut
+- [x] Video-Kostenkalkulator und persistente Video-Jobs mit Approval-Gate eingebaut
 - [x] Runtime-Readiness für IONOS, Resend und Sandbox sichtbar
-- [x] Typecheck, 21 Tests und Produktionsbuild bestanden
+- [x] Typecheck, 22 Tests und Produktionsbuild bestanden
 
 ## Noch erforderlich für echten Produktivbetrieb
 
@@ -24,7 +25,7 @@
 - [ ] IONOS-API-Token, Datacenter-ID und Execution-Server-ID sicher hinterlegen
 - [ ] Gültigen Resend-Sending-Key hinterlegen und Liveversand testen
 - [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen
-- [ ] Echten Video-Provider mit Provider-Quote, Nutzungsledger und Budgetstop integrieren
+- [ ] Echten Video-Provider mit Provider-Quote und aktivem Render-Worker integrieren
 - [ ] Zahlungsanbieter und Rechnungslogik nach rechtlicher Prüfung integrieren
 
 ## Sicherheitsgrenze

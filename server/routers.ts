@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
+import { ENV } from "./_core/env";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { runControlledAgent } from "./agentRunner";
 import { abortActiveRun } from "./runWorker";
@@ -314,7 +315,7 @@ export const appRouter = router({
 
     runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
       await requireWorkspace(ctx.user.id);
-      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), capabilities: CAPABILITY_REGISTRY };
+      return { sandbox: SANDBOX_PHASE_STATUS, builtin: { configured: Boolean(ENV.forgeApiUrl && ENV.forgeApiKey), provider: "manus_builtin" as const, reason: ENV.forgeApiUrl && ENV.forgeApiKey ? "ready_for_server_side_use" as const : "missing_builtin_configuration" as const }, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), capabilities: CAPABILITY_REGISTRY };
     }),
 
     pricing: protectedProcedure.query(async ({ ctx }) => {
@@ -328,6 +329,27 @@ export const appRouter = router({
         await requireWorkspace(ctx.user.id);
         return estimateVideoCost(input);
       }),
+
+    createVideoJob: protectedProcedure
+      .input(z.object({ durationSeconds: z.number().int().min(1).max(1800), quality: z.enum(["draft", "standard", "high"]), voice: z.enum(["none", "synthetic", "premium"]), music: z.boolean(), clips: z.number().int().min(1).max(30).default(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const membership = await requireWorkspace(ctx.user.id);
+        requireRole(membership.membership.role, operatorRoles);
+        const estimate = estimateVideoCost(input);
+        const jobId = await db.createVideoJob({ workspaceId: membership.workspace.id, createdBy: ctx.user.id, ...input, estimatedCredits: estimate.credits, estimatedCostCents: estimate.estimatedEurCents });
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "video.job.estimated", metadata: { jobId, credits: estimate.credits, costCents: estimate.estimatedEurCents, provider: "not_configured" } });
+        return { jobId, status: "awaiting_approval" as const, estimate, provider: "not_configured" as const };
+      }),
+
+    videoJobs: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      return db.listWorkspaceVideoJobs(membership.workspace.id);
+    }),
+
+    usage: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      return db.listWorkspaceUsage(membership.workspace.id);
+    }),
 
     uploadArtifact: protectedProcedure
       .input(z.object({ taskId: z.number().int().positive().optional(), fileName: z.string().trim().min(1).max(255), mediaType: z.enum(["text/plain", "text/markdown", "application/json", "application/pdf", "image/png", "image/jpeg", "audio/mpeg", "video/mp4"]), dataBase64: z.string().max(15_000_000), sha256: z.string().regex(/^[a-f0-9]{64}$/i).optional(), purpose: z.enum(["input", "output", "intermediate"]).default("input") }))

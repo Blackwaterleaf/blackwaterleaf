@@ -4,10 +4,13 @@
 
 - Serverseitige Studio-Preispläne: Free, Creator, Studio und Enterprise.
 - Deterministisches Credit-Modell für Video-Richtwerte.
+- Persistenter, workspace-isolierter Nutzungsledger für Video-, LLM-, Worker- und Storage-Einheiten.
+- Persistente Video-Jobs mit Status `awaiting_approval` und Provider-Gate.
 - Video-Kostenkalkulator für Dauer, Qualität, Sprecher und Musik.
 - Geschützte tRPC-Routen `pricing` und `videoEstimate`.
 - Resend-Gateway mit sicherem Konfigurationsstatus und Versandvertrag.
-- Readiness-Anzeige für Resend, IONOS und isolierte Sandbox.
+- Runtime-Readiness-Anzeige für Resend, IONOS und isolierte Sandbox.
+- Separater Status für die serverseitig verfügbare Manus-Built-in-KI und den optionalen Kimi-Provider.
 - Kosten & Video als eigener Studio-Navigationsbereich.
 - Stabiler Resend-Konfigurationstest ohne externe Live-Abhängigkeit.
 

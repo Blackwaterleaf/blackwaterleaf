@@ -12,6 +12,7 @@ export default function AdminPanel({ role }: Props) {
   const isAdmin = role === "owner" || role === "admin";
   const ionos = runtime.data?.ionos;
   const sandbox = runtime.data?.sandbox;
+  const builtin = runtime.data?.builtin;
   const kimi = runtime.data?.kimi;
 
   const gated = (label: string) => toast.info(`${label} bleibt gesperrt, bis SSH-Preflight und IONOS-Readiness erfolgreich sind.`);
@@ -27,6 +28,7 @@ export default function AdminPanel({ role }: Props) {
         <AdminStatusCard icon={CloudCog} label="IONOS Cloud" value={ionos?.executionServerConfigured ? "Bereit" : "Noch nicht verbunden"} detail={ionos?.reason ?? "Provisionierung oder API-Verbindung ausstehend."} tone={ionos?.executionServerConfigured ? "good" : "warn"} />
         <AdminStatusCard icon={KeyRound} label="SSH-Preflight" value="Noch nicht ausgeführt" detail="Benötigt öffentliche Server-IP und Admin-Schlüssel." tone="warn" />
         <AdminStatusCard icon={TerminalSquare} label="Execution Plane" value={sandbox?.executionPlane ?? "not_configured"} detail="Eine VM ist noch keine isolierte Agenten-Sandbox." tone={sandbox?.executionPlane !== "not_configured" ? "good" : "neutral"} />
+        <AdminStatusCard icon={CloudCog} label="Manus Built-in-KI" value={builtin?.configured ? "Serverseitig bereit" : "Nicht konfiguriert"} detail={builtin?.reason ?? "Serverstatus wird geprüft."} tone={builtin?.configured ? "good" : "warn"} />
         <AdminStatusCard icon={GitBranch} label="Kimi-Provider" value={kimi?.enabled ? "Aktiv" : "Deaktiviert"} detail={kimi?.reason ?? "Serverseitiger Opt-in erforderlich."} tone={kimi?.enabled ? "good" : "neutral"} />
       </div>
       <div className="admin-section-grid">

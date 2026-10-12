@@ -295,6 +295,39 @@ export const contextGrants = mysqlTable("studio_context_grants", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const usageLedger = mysqlTable("studio_usage_ledger", {
+  id: int("id").autoincrement().primaryKey(),
+  workspaceId: int("workspaceId").notNull(),
+  userId: int("userId").notNull(),
+  kind: mysqlEnum("kind", ["llm", "video", "worker", "storage", "adjustment"]).notNull(),
+  provider: varchar("provider", { length: 120 }).notNull(),
+  units: int("units").notNull(),
+  unitCostCents: int("unitCostCents").notNull(),
+  totalCostCents: int("totalCostCents").notNull(),
+  status: mysqlEnum("status", ["estimated", "reserved", "settled", "voided"]).default("estimated").notNull(),
+  metadata: text("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const videoJobs = mysqlTable("studio_video_jobs", {
+  id: int("id").autoincrement().primaryKey(),
+  workspaceId: int("workspaceId").notNull(),
+  createdBy: int("createdBy").notNull(),
+  status: mysqlEnum("status", ["estimated", "awaiting_approval", "queued", "running", "succeeded", "failed", "cancelled"]).default("estimated").notNull(),
+  durationSeconds: int("durationSeconds").notNull(),
+  quality: mysqlEnum("quality", ["draft", "standard", "high"]).notNull(),
+  voice: mysqlEnum("voice", ["none", "synthetic", "premium"]).notNull(),
+  music: boolean("music").default(false).notNull(),
+  clips: int("clips").default(1).notNull(),
+  provider: varchar("provider", { length: 120 }).default("not_configured").notNull(),
+  estimatedCredits: int("estimatedCredits").notNull(),
+  estimatedCostCents: int("estimatedCostCents").notNull(),
+  artifactId: int("artifactId"),
+  errorCode: varchar("errorCode", { length: 160 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Workspace = typeof workspaces.$inferSelect;
@@ -312,3 +345,5 @@ export type AuditEvent = typeof auditEvents.$inferSelect;
 export type ApprovalRequest = typeof approvalRequests.$inferSelect;
 export type SandboxSession = typeof sandboxSessions.$inferSelect;
 export type MobileDevice = typeof mobileDevices.$inferSelect;
+export type UsageLedgerEntry = typeof usageLedger.$inferSelect;
+export type VideoJob = typeof videoJobs.$inferSelect;

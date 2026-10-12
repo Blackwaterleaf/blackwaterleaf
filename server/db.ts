@@ -23,6 +23,8 @@ import {
   users,
   workspaceMemberships,
   workspaces,
+  usageLedger,
+  videoJobs,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { hashEvidence } from "./safety";
@@ -505,4 +507,22 @@ export async function decideApproval(input: { approvalId: number; userId: number
     decision: input.decision,
     reason: input.reason,
   });
+}
+
+export async function createVideoJob(input: { workspaceId: number; createdBy: number; durationSeconds: number; quality: "draft" | "standard" | "high"; voice: "none" | "synthetic" | "premium"; music: boolean; clips: number; estimatedCredits: number; estimatedCostCents: number }) {
+  const db = await requireDb();
+  const result = await db.insert(videoJobs).values({ ...input, status: "awaiting_approval", provider: "not_configured" });
+  const jobId = Number(result[0].insertId);
+  await db.insert(usageLedger).values({ workspaceId: input.workspaceId, userId: input.createdBy, kind: "video", provider: "not_configured", units: input.estimatedCredits, unitCostCents: 2, totalCostCents: input.estimatedCostCents, status: "estimated", metadata: JSON.stringify({ videoJobId: jobId, durationSeconds: input.durationSeconds, quality: input.quality }) });
+  return jobId;
+}
+
+export async function listWorkspaceVideoJobs(workspaceId: number) {
+  const db = await requireDb();
+  return db.select().from(videoJobs).where(eq(videoJobs.workspaceId, workspaceId)).orderBy(desc(videoJobs.createdAt)).limit(25);
+}
+
+export async function listWorkspaceUsage(workspaceId: number) {
+  const db = await requireDb();
+  return db.select().from(usageLedger).where(eq(usageLedger.workspaceId, workspaceId)).orderBy(desc(usageLedger.createdAt)).limit(100);
 }
