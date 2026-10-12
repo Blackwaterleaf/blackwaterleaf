@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { accountEntitlements, billingAccounts } from "../drizzle/schema";
 
-type EntitlementUser = { id: number; role: "user" | "moderator" | "admin" };
+type EntitlementUser = { id: number; role: "user" | "moderator" | "admin"; status?: "active" | "suspended" | "banned" };
 
 export type ProAccessSource = "admin" | "admin_grant" | "stripe" | "none";
 
@@ -12,11 +12,13 @@ export type ProAccess = {
 };
 
 /**
- * Returns the effective Pro access. Admins are always fully entitled; all
- * other accounts need either an active Stripe subscription or an active,
- * explicitly recorded host grant.
+ * Returns the effective Pro access. Active admins are fully entitled; all
+ * other active accounts need either an active Stripe subscription or an
+ * active, explicitly recorded host grant. Suspended/banned accounts cannot
+ * use Pro even if an old entitlement row remains in the database.
  */
 export async function getProAccess(db: any, user: EntitlementUser): Promise<ProAccess> {
+  if (user.status && user.status !== "active") return { active: false, source: "none", expiresAt: null };
   if (user.role === "admin") return { active: true, source: "admin", expiresAt: null };
 
   const [[account], [grant], [override]] = await Promise.all([

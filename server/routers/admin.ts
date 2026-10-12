@@ -291,7 +291,7 @@ export const adminRouter = router({
         const manuallyGranted = grant?.status === "active" && (!grant.expiresAt || grant.expiresAt > new Date());
         const forcedFree = grant?.featureKey === "pro_override" && grant.status === "revoked";
         const stripeActive = stripeAccountByUser.get(account.id)?.plan === "pro" && stripeAccountByUser.get(account.id)?.status === "active";
-        const source: "admin" | "admin_grant" | "stripe" | "none" = account.role === "admin" ? "admin" : forcedFree ? "none" : manuallyGranted ? "admin_grant" : stripeActive ? "stripe" : "none";
+        const source: "admin" | "admin_grant" | "stripe" | "none" = account.status !== "active" ? "none" : account.role === "admin" ? "admin" : forcedFree ? "none" : manuallyGranted ? "admin_grant" : stripeActive ? "stripe" : "none";
         return { active: source !== "none", manuallyGranted, forcedFree, source, expiresAt: grant?.expiresAt ?? null };
       })(),
       roles: Array.from(new Set([
