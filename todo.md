@@ -19,9 +19,9 @@
 
 ## Noch erforderlich für echten Produktivbetrieb
 
-- [ ] Öffentliche Cloud-Server-IP ermitteln bzw. öffentliche IPv4/Internet-Anbindung freigeben
+- [ ] Öffentliche IPv4-Adresse im IONOS-VDC zuweisen (aktuell 0/5 IPs; IPv6-DHCP ist vorhanden)
 - [ ] SSH-Preflight mit dem neuen Server ausführen
-- [ ] Nicht-root-Admin, UFW, Systemd und TLS einrichten
+- [ ] Firewall/Security-Group aktivieren; danach Nicht-root-Admin, UFW, Systemd und TLS einrichten
 - [ ] Studio als unabhängigen Node-Dienst auf IONOS deployen
 - [ ] API-Subdomain auf den Cloud Server zeigen lassen
 - [ ] Runtime-Secret-Reload ohne Maskierungs-Override verifizieren
