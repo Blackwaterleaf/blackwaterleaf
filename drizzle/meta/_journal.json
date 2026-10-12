@@ -428,6 +428,13 @@
       "when": 1790613020480,
       "tag": "0060_fantastic_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "5",
+      "when": 1791800694387,
+      "tag": "0061_spooky_centennial",
+      "breakpoints": true
     }
   ]
 }

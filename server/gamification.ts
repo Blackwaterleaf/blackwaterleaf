@@ -1,5 +1,5 @@
 import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
-import { assistantUsage, xpEvents } from "../drizzle/schema";
+import { aiIdentificationCorrections, assistantUsage, xpEvents } from "../drizzle/schema";
 import { getDb } from "./db";
 
 export const XP_REWARDS = {
@@ -7,6 +7,7 @@ export const XP_REWARDS = {
   observationPhoto: 10,
   communityPhoto: 10,
   assistantResponse: 3,
+  verifiedPlantCorrection: 25,
 } as const;
 
 export const XP_POLICY_VERSION = "xp-2026-09-16-v1";
@@ -90,11 +91,22 @@ export async function getExperienceSummary(db: Database, userId: number) {
     .where(eq(xpEvents.userId, userId))
     .orderBy(desc(xpEvents.createdAt))
     .limit(8);
+  const correctionRows = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(aiIdentificationCorrections)
+    .where(and(eq(aiIdentificationCorrections.userId, userId), eq(aiIdentificationCorrections.status, "approved")));
+  const verifiedPlantCorrections = Number(correctionRows[0]?.total ?? 0);
+  const qualityAchievements = [
+    { key: "first_verified_correction", title: "ERSTE FACHKORREKTUR", description: "Eine Pflanzenkorrektur wurde vom Team bestätigt.", threshold: 1 },
+    { key: "taxonomy_contributor", title: "TAXONOMIE-BEITRAG", description: "Drei Pflanzenkorrekturen wurden vom Team bestätigt.", threshold: 3 },
+    { key: "evidence_steward", title: "EVIDENZ-HÜTER", description: "Zehn Pflanzenkorrekturen wurden vom Team bestätigt.", threshold: 10 },
+  ].map(achievement => ({ ...achievement, progress: Math.min(verifiedPlantCorrections, achievement.threshold), achieved: verifiedPlantCorrections >= achievement.threshold }));
 
   return {
     totalXp,
     level,
     nextLevelXp: level * 100,
+    qualityAchievements,
     recentEvents: recentEvents.map(event => ({
       id: String(event.id),
       eventType: event.eventType === "daily_login" ? "daily_check_in" : event.eventType === "photo_upload" ? "observation_photo" : event.eventType === "donation_support" ? "donation_support" : "assistant_response",
@@ -112,6 +124,7 @@ export async function hasAssistantCallsToday(db: Database, userId: number, maxCa
     .where(
       and(
         eq(assistantUsage.userId, userId),
+        eq(assistantUsage.provider, "ionos-ai-model-hub"),
         gte(assistantUsage.createdAt, startOfToday),
         gt(assistantUsage.completionChars, 0),
       ),

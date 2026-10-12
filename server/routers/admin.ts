@@ -4,6 +4,7 @@ import { z } from "zod";
 import { accountEntitlements, aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, assistantUsage, billingAccounts, communityPosts, communityReports, mediaAssets, notifications, observations, userRoles, users } from "../../drizzle/schema";
 import { appendAuditEntry, getRecentAuditEntries } from "../auditLedger";
 import { getDb } from "../db";
+import { awardXpIfReady, XP_REWARDS } from "../gamification";
 import { adminProcedure, router, staffProcedure } from "../_core/trpc";
 
 const accountRole = z.enum(["user", "moderator", "admin"]);
@@ -41,12 +42,30 @@ export const adminRouter = router({
     const [policy] = await db.select().from(aiUsagePolicies).where(eq(aiUsagePolicies.id, 1)).limit(1);
     const [global] = await db.select({ plantIdentifications: aiGlobalUsageDays.plantIdentifications }).from(aiGlobalUsageDays).where(eq(aiGlobalUsageDays.dayKey, dayKey)).limit(1);
     const todayRows = await db.select({ userId: assistantUsage.userId, identifications: count() }).from(assistantUsage).where(and(eq(assistantUsage.realm, "botany"), eq(assistantUsage.requestOutcome, "completed"), gte(assistantUsage.createdAt, new Date(`${dayKey}T00:00:00.000Z`)))).groupBy(assistantUsage.userId);
+    const [costs] = await db.select({
+      measuredRequests: sql<number>`COALESCE(SUM(CASE WHEN ${assistantUsage.estimatedTotalCostUsd} IS NOT NULL THEN 1 ELSE 0 END), 0)`,
+      catalogFastPaths: sql<number>`COALESCE(SUM(CASE WHEN ${assistantUsage.provider} = 'catalog-local' THEN 1 ELSE 0 END), 0)`,
+      completedIonosRequests: sql<number>`COALESCE(SUM(CASE WHEN ${assistantUsage.provider} = 'ionos-ai-model-hub' AND ${assistantUsage.requestOutcome} = 'completed' THEN 1 ELSE 0 END), 0)`,
+      inputTokens: sql<number>`COALESCE(SUM(${assistantUsage.promptTokens}), 0)`,
+      outputTokens: sql<number>`COALESCE(SUM(${assistantUsage.completionTokens}), 0)`,
+      estimatedTotalUsd: sql<string>`COALESCE(SUM(${assistantUsage.estimatedTotalCostUsd}), 0)`,
+    }).from(assistantUsage);
     const todayByUser = new Map(todayRows.map(row => [row.userId, Number(row.identifications)]));
     const accounts = await db.select({ id: users.id, name: users.name, email: users.email, credits: aiCreditWallets.credits }).from(users).leftJoin(aiCreditWallets, eq(aiCreditWallets.userId, users.id)).orderBy(desc(users.lastSignedIn)).limit(100);
     return {
       todayKey: dayKey,
       policy: policy ?? { id: 1, freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100, updatedByUserId: null, updatedAt: new Date() },
       globalUsed: global?.plantIdentifications ?? 0,
+      costs: {
+        currency: "USD" as const,
+        tariffVersion: "ionos-price-list-2026-10-12",
+        measuredRequests: Number(costs?.measuredRequests ?? 0),
+        completedIonosRequests: Number(costs?.completedIonosRequests ?? 0),
+        catalogFastPaths: Number(costs?.catalogFastPaths ?? 0),
+        inputTokens: Number(costs?.inputTokens ?? 0),
+        outputTokens: Number(costs?.outputTokens ?? 0),
+        estimatedTotalUsd: Number(costs?.estimatedTotalUsd ?? 0),
+      },
       accounts: accounts.map(account => ({ ...account, credits: account.credits ?? 0, todayIdentifications: todayByUser.get(account.id) ?? 0 })),
     };
   }),
@@ -194,6 +213,16 @@ export const adminRouter = router({
       if (!correction) throw new TRPCError({ code: "NOT_FOUND", message: "plant_correction_not_found" });
       if (correction.status !== "pending") throw new TRPCError({ code: "CONFLICT", message: "plant_correction_already_reviewed" });
       await db.update(aiIdentificationCorrections).set({ status: input.status, reviewNote: input.note?.trim() || null, reviewedByUserId: ctx.user.id, reviewedAt: new Date() }).where(eq(aiIdentificationCorrections.id, input.id));
+      if (input.status === "approved") {
+        await awardXpIfReady(db, {
+          userId: correction.userId,
+          eventType: "ai_use",
+          eventKey: `xp:${correction.userId}:verified-plant-correction:${correction.id}`,
+          points: XP_REWARDS.verifiedPlantCorrection,
+          sourceType: "ai_request",
+          sourceId: `verified-plant-correction:${correction.id}`,
+        });
+      }
       await db.insert(notifications).values({ recipientId: correction.userId, actorId: ctx.user.id, type: "moderation", message: `Deine Pflanzenkorrektur #${input.id} wurde ${input.status === "approved" ? "bestätigt" : "abgelehnt"}.` });
       await appendAuditEntry({ actorId: ctx.user.id, action: "ai_identification_correction_reviewed", targetType: "ai_identification_correction", targetId: input.id, payload: { after: input.status, correctedName: correction.correctedName, noteProvided: Boolean(input.note?.trim()) } });
       return { id: input.id, status: input.status } as const;

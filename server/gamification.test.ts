@@ -3,7 +3,7 @@ import { dayKey, levelForXp, XP_REWARDS } from "./gamification";
 
 describe("BlackWaterLeaf XP rules", () => {
   it("uses fixed server-owned reward values", () => {
-    expect(XP_REWARDS).toEqual({ dailyCheckIn: 5, observationPhoto: 10, communityPhoto: 10, assistantResponse: 3 });
+    expect(XP_REWARDS).toEqual({ dailyCheckIn: 5, observationPhoto: 10, communityPhoto: 10, assistantResponse: 3, verifiedPlantCorrection: 25 });
   });
 
   it("creates stable UTC day keys", () => {

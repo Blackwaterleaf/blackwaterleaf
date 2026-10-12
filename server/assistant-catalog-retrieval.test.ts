@@ -31,8 +31,11 @@ describe("assistant catalog retrieval", () => {
     }])).toContain("Fachquelle: https://www.gbif.org/species/2872501");
   });
 
-  it("adds retrieved catalog evidence to chat and image-identification outputs without treating it as a diagnosis", () => {
-    expect(assistant).toContain("catalogContextForQuery(reservation.db, input.message)");
+  it("uses exact catalog facts before a model request and keeps retrieved evidence non-diagnostic", () => {
+    expect(assistant).toContain("catalogReferencesForQuery(db, input.message)");
+    expect(assistant).toContain("formatCatalogFastPath(exactReference)");
+    expect(assistant).toContain('model: "catalog-fast-path"');
+    expect(assistant).toContain('provider: "catalog-local"');
     expect(assistant).toContain("catalogReferencesForCandidates(reservation.db, result.candidates)");
     expect(assistant).toContain("**BlackWaterLeaf-Katalogabgleich**");
     expect(assistant).toContain("nutze sie nur als Abgleich und behaupte keine darüber hinausgehenden Details");

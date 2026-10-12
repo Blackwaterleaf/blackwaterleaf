@@ -47,6 +47,7 @@ type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status:
 
 type CreditSource = "free" | "pro" | "purchased";
 type RequestReservation = { db: Database; usageId: number; creditSource: CreditSource };
+type TokenUsage = { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
 type CatalogReference = {
   scientificName: string;
   acceptedScientificName: string | null;
@@ -115,9 +116,52 @@ function queryTerms(query: string) {
   return Array.from(new Set((query.toLocaleLowerCase("de").match(/[A-Za-zÀ-ÖØ-öø-ÿ]{3,}/g) ?? []).filter(term => !stopWords.has(term)))).slice(0, 6);
 }
 
-async function catalogContextForQuery(db: Database, query: string) {
+function normalizeTaxonText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("de")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function queryMentionsScientificName(query: string, reference: CatalogReference) {
+  const normalizedQuery = ` ${normalizeTaxonText(query)} `;
+  return [reference.scientificName, reference.acceptedScientificName]
+    .filter((name): name is string => Boolean(name?.trim()))
+    .some(name => normalizedQuery.includes(` ${normalizeTaxonText(name)} `));
+}
+
+function requestsCatalogFacts(query: string) {
+  return /\b(katalog|daten|infos?|information|was ist|wissenschaftlich|familie|gattung|lebensraum|habitat|fundort|verbreitung|pflege)\b/i.test(query);
+}
+
+function formatCatalogFastPath(reference: CatalogReference) {
+  const commonNames = Array.isArray(reference.commonNames)
+    ? reference.commonNames.filter((name): name is string => typeof name === "string" && Boolean(name.trim())).slice(0, 3)
+    : [];
+  const profile = reference.careProfile && typeof reference.careProfile === "object"
+    ? reference.careProfile as Record<string, unknown>
+    : {};
+  const care = [
+    typeof profile.water === "string" ? `Wasser: ${profile.water}` : null,
+    typeof profile.temperature === "string" ? `Temperatur: ${profile.temperature}` : null,
+    typeof profile.careLevel === "string" ? `Anspruch: ${profile.careLevel}` : null,
+  ].filter(Boolean);
+  const source = reference.sourceRecordUrl ?? reference.source;
+  return [
+    "**Katalog-Schnellantwort · keine KI-Anfrage erforderlich**",
+    `**${reference.scientificName}**${reference.family ? ` · ${reference.family}` : ""}`,
+    commonNames.length ? `**Gebräuchliche Namen:** ${commonNames.join(", ")}` : null,
+    reference.summary ? `**Verifizierte Katalognotiz:** ${reference.summary}` : null,
+    care.length ? `**Hinterlegte Fachangaben:** ${care.join(" · ")}` : null,
+    `**Fachquelle:** ${source}`,
+  ].filter(Boolean).join("\n\n");
+}
+
+async function catalogReferencesForQuery(db: Database, query: string): Promise<CatalogReference[]> {
   const terms = queryTerms(query);
-  if (!terms.length) return null;
+  if (!terms.length) return [];
   const plantConditions = terms.flatMap(term => [
     like(plantTaxa.scientificName, `%${term}%`),
     like(plantTaxa.acceptedScientificName, `%${term}%`),
@@ -168,7 +212,10 @@ async function catalogContextForQuery(db: Database, query: string) {
       matchConfidence: aquariumTaxa.matchConfidence,
     }).from(aquariumTaxa).where(and(eq(aquariumTaxa.status, "published"), or(...aquariumConditions))).limit(4),
   ]);
-  const references = [...plants, ...aquarium].map(catalogReferenceFrom).slice(0, 6);
+  return [...plants, ...aquarium].map(catalogReferenceFrom).slice(0, 6);
+}
+
+function catalogContextForReferences(references: CatalogReference[]) {
   return references.length
     ? `Veröffentlichter BlackWaterLeaf-Katalogabgleich. Diese Zeilen sind quellengebundene Fachdaten; nutze sie nur als Abgleich und behaupte keine darüber hinausgehenden Details:\n${formatCatalogReferences(references)}`
     : null;
@@ -303,8 +350,31 @@ async function reservePlantRequest(user: AssistantUser, clientRequestId: string,
   }
 }
 
-async function completeRequest(reservation: RequestReservation, userId: number, answer: string, usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }) {
-  await reservation.db.update(assistantUsage).set({ completionChars: answer.length, promptTokens: usage?.prompt_tokens ?? null, completionTokens: usage?.completion_tokens ?? null, totalTokens: usage?.total_tokens ?? null, requestOutcome: "completed" }).where(eq(assistantUsage.id, reservation.usageId));
+const IONOS_TARIFF_VERSION = "ionos-price-list-2026-10-12";
+const IONOS_QWEN_35_9B_INPUT_USD_PER_MILLION = 0.11;
+const IONOS_QWEN_35_9B_OUTPUT_USD_PER_MILLION = 0.17;
+
+function measuredIonosCost(model: string, usage?: TokenUsage) {
+  if (model !== "Qwen/Qwen3.5-9B" || !usage) return null;
+  const input = (usage.prompt_tokens ?? 0) * IONOS_QWEN_35_9B_INPUT_USD_PER_MILLION / 1_000_000;
+  const output = (usage.completion_tokens ?? 0) * IONOS_QWEN_35_9B_OUTPUT_USD_PER_MILLION / 1_000_000;
+  return { input, output, total: input + output };
+}
+
+async function completeRequest(reservation: RequestReservation, userId: number, answer: string, usage?: TokenUsage, model = ENV.ionosModel) {
+  const cost = measuredIonosCost(model, usage);
+  await reservation.db.update(assistantUsage).set({
+    completionChars: answer.length,
+    promptTokens: usage?.prompt_tokens ?? null,
+    completionTokens: usage?.completion_tokens ?? null,
+    totalTokens: usage?.total_tokens ?? null,
+    estimatedInputCostUsd: cost?.input.toFixed(8) ?? null,
+    estimatedOutputCostUsd: cost?.output.toFixed(8) ?? null,
+    estimatedTotalCostUsd: cost?.total.toFixed(8) ?? null,
+    costCurrency: cost ? "USD" : null,
+    tariffVersion: cost ? IONOS_TARIFF_VERSION : "server-reported",
+    requestOutcome: "completed",
+  }).where(eq(assistantUsage.id, reservation.usageId));
   const reward = await awardXpIfReady(reservation.db, {
     userId,
     eventType: "ai_use",
@@ -320,7 +390,7 @@ async function generateAnswer(reservation: RequestReservation, userId: number, m
   const response = await invokeLLM({ model: ENV.ionosModel, maxTokens: 700, messages });
   const answer = responseText(response.choices[0]?.message.content ?? "").slice(0, 6_000);
   if (!answer) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
-  const xpAwarded = await completeRequest(reservation, userId, answer, response.usage);
+  const xpAwarded = await completeRequest(reservation, userId, answer, response.usage, ENV.ionosModel);
   return { answer, model: ENV.ionosModel, xpAwarded, disclaimer: "Hinweis: Die Antwort ist allgemeine Information und keine fachliche Diagnose oder Notfallberatung." };
 }
 
@@ -338,15 +408,7 @@ const plantIdentificationSchema = {
 type PlantIdentificationResult = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
 
 const PLANT_TRIAGE_MODEL = ENV.ionosModel;
-const PLANT_ESCALATION_MODEL = ENV.ionosModel;
-
-function plantResultNeedsEscalation(result: PlantIdentificationResult) {
-  // A request for more diagnostic views is already a useful, cheap outcome. Do
-  // not spend a second premium call unless the triage result is actually weak.
-  return result.candidates.length === 0
-    || result.summary.trim().length < 20
-    || (result.confidence === "low" && !result.needsMoreImages);
-}
+const PLANT_TRIAGE_MAX_TOKENS = 1_200;
 
 function parsePlantResult(raw: string): PlantIdentificationResult {
   try {
@@ -366,10 +428,10 @@ function usageTotals(...usages: Array<{ prompt_tokens?: number; completion_token
   };
 }
 
-async function invokePlantModel(model: string, images: Array<{ buffer: Buffer; mimeType: string }>, note?: string) {
-  const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: model === PLANT_TRIAGE_MODEL ? "low" as const : "high" as const } }));
-  return invokeLLM({ model, maxTokens: model === PLANT_TRIAGE_MODEL ? 1_800 : 5_000, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
-    { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Dies ist ${model === PLANT_TRIAGE_MODEL ? "eine günstige Vorprüfung. Arbeite effizient und eskaliere nicht selbst; wenn diagnostische Merkmale fehlen, fordere gezielt ein weiteres Einzelbild an." : "die vertiefte Prüfung eines unklaren Vorprüfungsergebnisses."} Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
+async function invokePlantModel(images: Array<{ buffer: Buffer; mimeType: string }>, note?: string) {
+  const imageParts = images.map(image => ({ type: "image_url" as const, image_url: { url: `data:${image.mimeType};base64,${image.buffer.toString("base64")}`, detail: "low" as const } }));
+  return invokeLLM({ model: PLANT_TRIAGE_MODEL, maxTokens: PLANT_TRIAGE_MAX_TOKENS, responseFormat: { type: "json_schema", json_schema: { name: "plant_identification", strict: true, schema: plantIdentificationSchema } }, messages: [
+    { role: "system", content: `${safetySystemPrompt} Du bist ein vorsichtiger botanischer Bildprüfer. Dies ist eine einmalige, effiziente Vorprüfung. Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert. Deine Ausgabe ist eine vorläufige Bestimmung, niemals eine gesicherte Artbestätigung. Arbeite weltweit taxonomisch, aber nenne nur Kandidaten, deren Merkmale du tatsächlich im Bild erkennst. Erfinde keine Quellen, Fundorte, Messwerte oder Merkmale. Bei fehlenden diagnostischen Ansichten setze needsMoreImages=true und requestedAdditionalImages auf 1 oder 2. Frage nach Einzelbildern, niemals nach einem 4er-Raster: Gesamtansicht, Blattunterseite, Blüte/Frucht, Stängel, Ansatz oder andere relevante Details. Wenn die Einordnung unsicher ist, fordere lieber gezielt bessere Einzelbilder an, statt eine zweite Modellanfrage auszulösen. Wenn giftige Verwechslungen möglich sind, erwähne das ausdrücklich. Bei drei Bildern darfst du keine weiteren Bilder verlangen; senke stattdessen die Sicherheit und nenne die nötige fachliche Verifikation.` },
     { role: "user", content: [{ type: "text", text: `Es liegen ${images.length} Einzelbild(er) vor.${note ? ` Zusatzinformation: ${note}` : ""} Prüfe jedes Bild gemeinsam und gib ausschließlich das definierte JSON zurück.` }, ...imageParts] },
   ] });
 }
@@ -393,9 +455,41 @@ export function aquariumContext(name: string, rawDetails: unknown) {
 
 export const assistantRouter = router({
   chat: protectedProcedure.input(chatInput).mutation(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const catalogReferences = await catalogReferencesForQuery(db, input.message);
+    const exactReference = catalogReferences.find(reference => queryMentionsScientificName(input.message, reference));
+    if (exactReference && requestsCatalogFacts(input.message) && input.history.length === 0) {
+      if (ctx.user.status !== "active") throw new TRPCError({ code: "FORBIDDEN", message: "active_account_required" });
+      const answer = formatCatalogFastPath(exactReference);
+      try {
+        await db.insert(assistantUsage).values({
+          userId: ctx.user.id,
+          clientRequestId: input.clientRequestId,
+          realm: input.realm ?? null,
+          model: "catalog-fast-path",
+          promptChars: input.message.length,
+          completionChars: answer.length,
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+          creditsConsumed: 0,
+          provider: "catalog-local",
+          tariffVersion: "catalog-fast-path-v1",
+          estimatedInputCostUsd: "0.00000000",
+          estimatedOutputCostUsd: "0.00000000",
+          estimatedTotalCostUsd: "0.00000000",
+          costCurrency: "USD",
+          requestOutcome: "completed",
+        });
+      } catch (error) {
+        if (/duplicate|ER_DUP_ENTRY/i.test(error instanceof Error ? error.message : String(error))) throw new TRPCError({ code: "CONFLICT", message: "assistant_request_replayed" });
+        throw error;
+      }
+      return { answer, model: "catalog-fast-path", xpAwarded: 0, disclaimer: "Diese Antwort stammt direkt aus einem veröffentlichten, quellengebundenen BlackWaterLeaf-Katalogeintrag. Sie ersetzt keine individuelle Fachberatung." };
+    }
     const reservation = await reserveRequest(ctx.user, input.clientRequestId, input.realm, input.message.length + input.history.reduce((sum, item) => sum + item.content.length, 0));
     const contextLabel = input.realm ? `Der Kontextbereich ist ${input.realm}.` : "Kein Bereich wurde ausgewählt.";
-    const catalogContext = await catalogContextForQuery(reservation.db, input.message);
+    const catalogContext = catalogContextForReferences(catalogReferences);
     return generateAnswer(reservation, ctx.user.id, [
       { role: "system", content: safetySystemPrompt },
       { role: "system", content: contextLabel },
@@ -409,34 +503,14 @@ export const assistantRouter = router({
     const images = [validateImageUpload(input.imageBase64, input.mimeType), ...input.additionalImages.map(item => validateImageUpload(item.imageBase64, item.mimeType))];
     const reservation = await reservePlantRequest(ctx.user, input.clientRequestId, (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL);
     try {
-    let model = PLANT_TRIAGE_MODEL;
-    let response = await invokePlantModel(PLANT_TRIAGE_MODEL, images, input.note);
-    const triageUsage = response.usage;
-    let raw = responseText(response.choices[0]?.message.content ?? "");
+    const model = PLANT_TRIAGE_MODEL;
+    const response = await invokePlantModel(images, input.note);
+    const raw = responseText(response.choices[0]?.message.content ?? "");
     if (!raw) {
       if (response.choices[0]?.finish_reason === "length") throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_response_truncated" });
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
     }
-    let result: PlantIdentificationResult;
-    try {
-      result = parsePlantResult(raw);
-    } catch {
-      model = PLANT_ESCALATION_MODEL;
-      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
-      raw = responseText(response.choices[0]?.message.content ?? "");
-      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
-      result = parsePlantResult(raw);
-    }
-    if (plantResultNeedsEscalation(result)) {
-      model = PLANT_ESCALATION_MODEL;
-      response = await invokePlantModel(PLANT_ESCALATION_MODEL, images, input.note);
-      raw = responseText(response.choices[0]?.message.content ?? "");
-      if (!raw) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "assistant_empty_response" });
-      result = parsePlantResult(raw);
-    }
-    if (model !== PLANT_TRIAGE_MODEL) {
-      await reservation.db.update(assistantUsage).set({ model }).where(eq(assistantUsage.id, reservation.usageId));
-    }
+    const result = parsePlantResult(raw);
     const catalogReferences = await catalogReferencesForCandidates(reservation.db, result.candidates);
     const plantNetValidation = await validateWithPlantNetImages(
       images.map(image => ({ imageBuffer: image.buffer, mimeType: image.mimeType, organ: "auto" })),
@@ -449,7 +523,7 @@ export const assistantRouter = router({
         ? `**Unabhängige Pl@ntNet-Prüfung**\n${plantNetValidation.exactMatch ? "Pl@ntNet bestätigt den wissenschaftlichen Namen." : plantNetValidation.sameGenus ? `Pl@ntNet bestätigt die Gattung und schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor.` : `Pl@ntNet schlägt ${plantNetValidation.topSpecies} (${plantNetValidation.topScore} %) vor. Das Ergebnis weicht von der ersten KI-Einschätzung ab; bitte fachlich verifizieren.`}`
         : "**Unabhängige Pl@ntNet-Prüfung**\nFür dieses Bild war keine zweite API-Prüfung verfügbar. Die Einschätzung bleibt vorläufig.",
     ].join("\n\n");
-    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, usageTotals(triageUsage, response.usage));
+    const xpAwarded = await completeRequest(reservation, ctx.user.id, answer, response.usage, model);
     await reservation.db.update(assistantUsage).set({ plantnetEngineVersion: plantNetValidation?.engineVersion ?? null }).where(eq(assistantUsage.id, reservation.usageId));
     return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: "Hinweis: Die Pflanzenbestimmung ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Vor Kauf, Verzehr oder Umgang mit potenziell giftigen Pflanzen bitte mit seriösen botanischen Quellen oder einer Fachperson abgleichen.", needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
     } catch (error) {
