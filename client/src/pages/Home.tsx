@@ -158,6 +158,10 @@ export default function Home() {
     approvals: pendingApprovals.length,
   }), [tasks, pendingApprovals]);
 
+  useEffect(() => {
+    document.title = "BlackWaterLeaf Studio – KI-Agenten & App Builder";
+  }, []);
+
   if (loading) return <div className="min-h-screen bg-[#07100f]" />;
   if (!user) {
     return (
@@ -168,6 +172,7 @@ export default function Home() {
           <div className="studio-mark"><Sparkles size={18} /></div>
           <p className="eyebrow">BLACKWATERLEAF / STUDIO</p>
           <h1>Arbeite klar.<br /><span>Führe kontrolliert aus.</span></h1>
+          <h2 className="sr-only">KI-Agenten, App Builder und sichere Sandbox</h2>
           <p className="studio-auth-copy">Ein fokussierter Arbeitsraum für Ziele, Agentenarbeit, Freigaben und nachvollziehbare Ergebnisse.</p>
           <Button className="studio-primary-button w-full" size="lg" onClick={() => startLogin()}>Studio öffnen <ArrowUpRight size={16} /></Button>
           <div className="studio-auth-note"><LockKeyhole size={14} /> Authentifizierung und Rollenprüfung sind serverseitig.</div>
