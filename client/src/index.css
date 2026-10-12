@@ -2071,8 +2071,13 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 .pro-plan-card li small { display:block; color:var(--obs-muted); margin-top:2px; line-height:1.35; }
 .pro-plan-card__price { display:flex; align-items:baseline; gap:8px; color:var(--obs-muted); }
 .pro-plan-card__price strong { color:var(--obs-text); font-size:2rem; }
+.pro-page__welcome { display:flex; align-items:center; justify-content:space-between; gap:18px; border-color:rgba(198,247,86,.48); background:linear-gradient(110deg,rgba(25,64,29,.92),rgba(4,24,15,.92)); }
+.pro-page__welcome h2 { margin:5px 0 7px; font-size:1.28rem; }
+.pro-page__welcome p { max-width:760px; margin:0; color:var(--obs-muted); line-height:1.5; }
+.pro-page__welcome p strong { color:var(--obs-text); }
+.pro-page__welcome a { flex:0 0 auto; text-decoration:none; }
 .pro-page__note { margin:0; color:var(--obs-muted); font-size:.8rem; text-align:center; }
-@media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } .pro-credit-grid,.ai-policy-grid { grid-template-columns:1fr; } .pro-purchase-history__row { align-items:flex-start; flex-direction:column; } .pro-purchase-history__meta { justify-content:flex-start; } .pro-checkout-success { flex-wrap:wrap; } .pro-checkout-success > .system-chip { margin-left:55px; } }
+@media (max-width: 860px) { .pro-page__plans { grid-template-columns:1fr; } .pro-page__status { align-items:flex-start; flex-direction:column; } .pro-page__welcome { align-items:flex-start; flex-direction:column; } .pro-page__welcome a { width:100%; justify-content:center; } .pro-credit-grid,.ai-policy-grid { grid-template-columns:1fr; } .pro-purchase-history__row { align-items:flex-start; flex-direction:column; } .pro-purchase-history__meta { justify-content:flex-start; } .pro-checkout-success { flex-wrap:wrap; } .pro-checkout-success > .system-chip { margin-left:55px; } }
 
 .profile-subscription-card { display:grid; gap:14px; border-color:rgba(198,247,86,.42); background:linear-gradient(145deg,rgba(12,38,20,.94),rgba(3,15,9,.92)); }
 .profile-subscription-card__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }

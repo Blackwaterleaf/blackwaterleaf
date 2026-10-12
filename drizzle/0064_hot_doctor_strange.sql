@@ -1,0 +1,2 @@
+ALTER TABLE `ai_usage_policies` MODIFY COLUMN `freeDailyIdentifications` int NOT NULL DEFAULT 10;--> statement-breakpoint
+ALTER TABLE `ai_usage_policies` MODIFY COLUMN `proMonthlyIdentifications` int NOT NULL DEFAULT 300;

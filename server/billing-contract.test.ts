@@ -5,9 +5,9 @@ import { resolve } from "node:path";
 
 describe("Free / Pro monetization contract", () => {
   it("keeps the approved price points and core Pro value", () => {
-    expect(PRO_MONTHLY_PRICE_EUR).toBe(4.99);
-    expect(PRO_YEARLY_PRICE_EUR).toBe(39.99);
-    expect(DEFAULT_FREE_DAILY_IDENTIFICATIONS).toBe(2);
+    expect(PRO_MONTHLY_PRICE_EUR).toBe(9.99);
+    expect(PRO_YEARLY_PRICE_EUR).toBe(54.99);
+    expect(DEFAULT_FREE_DAILY_IDENTIFICATIONS).toBe(10);
     expect(AI_CREDIT_PACKS.map(pack => pack.credits)).toEqual([10, 50, 120]);
     for (const key of ["unlimited_habitats", "care_history", "advanced_charts", "ai_allowance", "secure_export"]) {
       expect(PRO_FEATURES.some(feature => feature.key === key)).toBe(true);

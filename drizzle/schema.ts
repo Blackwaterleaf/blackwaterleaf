@@ -525,8 +525,8 @@ export const assistantResultCache = mysqlTable(
 /** Host-controlled policy for free, Pro and global plant-identification budgets. */
 export const aiUsagePolicies = mysqlTable("ai_usage_policies", {
   id: int("id").primaryKey(),
-  freeDailyIdentifications: int("freeDailyIdentifications").default(2).notNull(),
-  proMonthlyIdentifications: int("proMonthlyIdentifications").default(60).notNull(),
+  freeDailyIdentifications: int("freeDailyIdentifications").default(10).notNull(),
+  proMonthlyIdentifications: int("proMonthlyIdentifications").default(300).notNull(),
   globalDailyIdentifications: int("globalDailyIdentifications").default(100).notNull(),
   updatedByUserId: int("updatedByUserId").references(() => users.id),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

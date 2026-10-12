@@ -1,8 +1,8 @@
-export const PRO_MONTHLY_PRICE_EUR = 4.99;
-export const PRO_YEARLY_PRICE_EUR = 39.99;
+export const PRO_MONTHLY_PRICE_EUR = 9.99;
+export const PRO_YEARLY_PRICE_EUR = 54.99;
 
-export const DEFAULT_FREE_DAILY_IDENTIFICATIONS = 2;
-export const DEFAULT_PRO_MONTHLY_IDENTIFICATIONS = 60;
+export const DEFAULT_FREE_DAILY_IDENTIFICATIONS = 10;
+export const DEFAULT_PRO_MONTHLY_IDENTIFICATIONS = 300;
 export const DEFAULT_GLOBAL_DAILY_IDENTIFICATIONS = 100;
 
 export const AI_CREDIT_PACKS = [
@@ -20,7 +20,7 @@ export const PRO_FEATURES = [
   { key: "unlimited_habitats", label: "Unbegrenzte private Anlagen", description: "Pflanzen, Aquarien und Terrarien ohne Kontingent verwalten." },
   { key: "care_history", label: "Vollständige Pflegehistorie", description: "Verläufe, Messwerte, Bilder und Pflegezustände langfristig vergleichen." },
   { key: "advanced_charts", label: "Erweiterte Auswertungen", description: "Messwert-Charts, Trends und exportierbare Pflegeübersichten." },
-  { key: "ai_allowance", label: "60 monatliche KI-Bestimmungen", description: "Ein festes, transparentes Monatskontingent für Pflanzenbestimmungen." },
+  { key: "ai_allowance", label: "300 monatliche KI-Bestimmungen", description: "Ein festes, transparentes Monatskontingent für Pflanzenbestimmungen." },
   { key: "secure_export", label: "Export & Backup", description: "Eigene Daten strukturiert exportieren und geräteübergreifend sichern." },
   { key: "source_maps", label: "Erweiterte Herkunftskarten", description: "Quellen, Habitate und geschützte Standortkontexte vertieft auswerten." },
   { key: "ad_free", label: "Werbefreie Nutzung", description: "Das Observatory ohne Werbeunterbrechungen erleben." },
@@ -31,6 +31,6 @@ export const FREE_FEATURES = [
   "Community und öffentliche Beobachtungen",
   "Basis-Karte mit geschützten Standorten",
   "Eine private Anlage",
-  "2 kostenlose Pflanzenbestimmungen pro UTC-Tag",
+  "10 kostenlose Pflanzenbestimmungen pro UTC-Tag",
   "Zusätzliche KI-Bestimmungen als Credit-Paket kaufbar",
 ] as const;

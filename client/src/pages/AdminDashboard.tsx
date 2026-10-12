@@ -141,7 +141,7 @@ function AiUsagePanel() {
   const utils = trpc.useUtils();
   const updatePolicy = trpc.admin.updateAiPolicy.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
   const adjustCredits = trpc.admin.adjustAiCredits.useMutation({ onSuccess: () => void utils.admin.aiUsage.invalidate() });
-  const [policy, setPolicy] = useState({ freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100 });
+  const [policy, setPolicy] = useState({ freeDailyIdentifications: 10, proMonthlyIdentifications: 300, globalDailyIdentifications: 100 });
   const [delta, setDelta] = useState<Record<number, string>>({});
   useEffect(() => { if (usage.data) setPolicy({ freeDailyIdentifications: usage.data.policy.freeDailyIdentifications, proMonthlyIdentifications: usage.data.policy.proMonthlyIdentifications, globalDailyIdentifications: usage.data.policy.globalDailyIdentifications }); }, [usage.data]);
   if (usage.isLoading) return <StatePanel code="AI_USAGE/LOAD" state="loading" title="KI-KONTINGENTE WERDEN GELADEN" body="Nutzung, Limits und Credit-Guthaben werden serverseitig geprüft." />;

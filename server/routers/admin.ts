@@ -54,7 +54,7 @@ export const adminRouter = router({
     const accounts = await db.select({ id: users.id, name: users.name, email: users.email, credits: aiCreditWallets.credits }).from(users).leftJoin(aiCreditWallets, eq(aiCreditWallets.userId, users.id)).orderBy(desc(users.lastSignedIn)).limit(100);
     return {
       todayKey: dayKey,
-      policy: policy ?? { id: 1, freeDailyIdentifications: 2, proMonthlyIdentifications: 60, globalDailyIdentifications: 100, updatedByUserId: null, updatedAt: new Date() },
+      policy: policy ?? { id: 1, freeDailyIdentifications: 10, proMonthlyIdentifications: 300, globalDailyIdentifications: 100, updatedByUserId: null, updatedAt: new Date() },
       globalUsed: global?.plantIdentifications ?? 0,
       costs: {
         currency: "USD" as const,

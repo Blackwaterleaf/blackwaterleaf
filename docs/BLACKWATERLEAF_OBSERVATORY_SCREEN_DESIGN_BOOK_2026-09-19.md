@@ -101,11 +101,11 @@ Der Web-Header führt den Sprachwähler als native, tastatur- und Samsung-Browse
 
 ## 15.41 Monetarisierung · Free / Pro (2026-09-27)
 
-- **Free bleibt offen:** Katalog, Basis-Suche, Community, öffentliche Beobachtungen, Basis-Karte, eine private Anlage und begrenzte KI-Bestimmungen.
+- **Free bleibt offen:** Katalog, Basis-Suche, Community, öffentliche Beobachtungen, Basis-Karte, eine private Anlage und **10 kostenlose KI-Bestimmungen pro UTC-Tag**.
 - **Pro-Kennzeichnung:** Pro erscheint immer mit sichtbarem `PRO`-/Sparkles-Symbol, Preis und konkreter Leistungsbeschreibung. Keine versteckten oder irreführenden Sperren.
-- **BlackWaterLeaf Pro:** 4,99 € monatlich oder 39,99 € jährlich. Kernnutzen sind unbegrenzte private Anlagen, Pflegehistorie, Auswertungen, erweitertes KI-Kontingent, Export/Backup, Herkunftskarten und werbefreie Nutzung.
+- **BlackWaterLeaf Pro:** **9,99 € monatlich oder 54,99 € jährlich**. Kernnutzen sind unbegrenzte private Anlagen, Pflegehistorie, Auswertungen, **300 monatliche KI-Bestimmungen**, Export/Backup, Herkunftskarten und werbefreie Nutzung.
 - **Creator / Expert:** bleibt bis zur Aktivierung der LIVE-Funktionen als späteres Paket sichtbar, aber nicht buchbar. Geplante Leistungen: Fach-LIVEs, exklusive Videos, Creator-Statistiken und Community-Badges.
-- Web und Native verwenden dieselben Begriffe, Preise und Free-/Pro-Grenzen. Zahlung wird erst nach Anschluss und Prüfung eines Zahlungsanbieters aktiviert.
+- Web und Native verwenden dieselben Begriffe, Preise und Free-/Pro-Grenzen. Zahlung wird erst nach Anschluss und Prüfung eines Zahlungsanbieters aktiviert. Die Abo-Seite erklärt transparent, dass Pro den Betrieb der IONOS-KI, Server- und Speicherinfrastruktur mitträgt; Free-Nutzer sehen eine klare In-App-Mitteilung und einen Upgrade-CTA.
 - Kleine Android-Geräte erhalten eine einspaltige Pro-Kartenansicht; keine Blur-/Glow-Pflicht für Pro-Flächen.
 
 
