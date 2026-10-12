@@ -10,6 +10,8 @@ import { assertTaskTransition, createRunGuard } from "./safety";
 import { CAPABILITY_REGISTRY, evaluatePolicy, hashArtifactBytes, sanitizeResourceScope } from "./policy";
 import { getKimiProviderStatus } from "./kimiGateway";
 import { getIonosReadiness } from "./ionosGateway";
+import { getResendStatus } from "./resendGateway";
+import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
 import { storagePut } from "./storage";
 import * as db from "./db";
@@ -312,8 +314,20 @@ export const appRouter = router({
 
     runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
       await requireWorkspace(ctx.user.id);
-      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), capabilities: CAPABILITY_REGISTRY };
+      return { sandbox: SANDBOX_PHASE_STATUS, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), capabilities: CAPABILITY_REGISTRY };
     }),
+
+    pricing: protectedProcedure.query(async ({ ctx }) => {
+      await requireWorkspace(ctx.user.id);
+      return STUDIO_PRICING;
+    }),
+
+    videoEstimate: protectedProcedure
+      .input(z.object({ durationSeconds: z.number().int().min(1).max(1800), quality: z.enum(["draft", "standard", "high"]), voice: z.enum(["none", "synthetic", "premium"]), music: z.boolean(), clips: z.number().int().min(1).max(30).optional() }))
+      .query(async ({ ctx, input }) => {
+        await requireWorkspace(ctx.user.id);
+        return estimateVideoCost(input);
+      }),
 
     uploadArtifact: protectedProcedure
       .input(z.object({ taskId: z.number().int().positive().optional(), fileName: z.string().trim().min(1).max(255), mediaType: z.enum(["text/plain", "text/markdown", "application/json", "application/pdf", "image/png", "image/jpeg", "audio/mpeg", "video/mp4"]), dataBase64: z.string().max(15_000_000), sha256: z.string().regex(/^[a-f0-9]{64}$/i).optional(), purpose: z.enum(["input", "output", "intermediate"]).default("input") }))

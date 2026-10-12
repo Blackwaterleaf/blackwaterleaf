@@ -17,4 +17,7 @@ export const ENV = {
   ionosEnabled: process.env.IONOS_ENABLED === "true",
   ionosDatacenterId: process.env.IONOS_DATACENTER_ID ?? "",
   ionosExecutionServerId: process.env.IONOS_EXECUTION_SERVER_ID ?? "",
+  resendApiKey: process.env.RESEND_API_KEY ?? "",
+  resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
+  studioPublicUrl: process.env.STUDIO_PUBLIC_URL ?? "",
 };
