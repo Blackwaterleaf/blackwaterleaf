@@ -149,3 +149,10 @@ Die Ergebnisfläche führt ausdrücklich mit **Analyse abgeschlossen · vorläuf
 - Pflanzenbilder werden vor dem Modellaufruf in Web und Native auf maximal 1280 px Kantenlänge normalisiert. Das Original bleibt unverändert im Gerät und wird nicht in der KI-Datenbank gespeichert.
 - Wiederholte Analysen desselben normalisierten Bildsets werden bis zu sieben Tage aus `assistant_result_cache` beantwortet. Gespeichert werden ausschließlich SHA-256-Fingerabdruck, Modellname, strukturierte Bestimmung, Prüfstatus und Ablaufzeit; keine Bildbytes, EXIF-Daten, Notizen oder Prompts. Cache-Treffer verbrauchen keine neuen KI-Tokens und keine neue Pflanzenbestimmung.
 - Jeder Modell- und Cache-Aufruf bleibt im Usage-Ledger mit Provider, Tokenwerten und geschätzten USD-Kosten nachvollziehbar. Der Cache ist kein wissenschaftlicher Konsens und ändert keine Katalogdaten.
+
+## 15.49 Premium-Codes und Punktebonus (2026-10-12)
+
+- Admins können zeitlich begrenzte Premium-Codes mit 1 Woche, 2 Wochen, 1 Monat oder 2 Monaten Laufzeit erstellen. Optional wird ein serverseitiger Punktebonus und eine maximale Einlösezahl festgelegt; eine zusätzliche Code-Frist kann den Code vor Ablauf der Premium-Laufzeit schließen.
+- Der Klartext wird nur bei der Erstellung angezeigt. Persistiert wird ausschließlich ein SHA-256-Digest; Web und Native verwenden denselben `promoCodes.redeem`-Vertrag. Ein Code kann pro Konto nur einmal eingelöst werden, Einlösungen und Punktebonus sind im unveränderlichen Ledger nachvollziehbar.
+- Eine Einlösung verlängert den persönlichen `pro_override`-Anspruch sicher bis zum späteren Ablaufzeitpunkt, verbraucht keinen KI-Token und aktiviert keine Zahlung. Widerruf stoppt weitere Einlösungen, verändert aber keine bereits gewährte Laufzeit.
+- Profil und Native-App zeigen Status, Ablaufdatum und Einlösungshistorie. Admin zeigt Code-Label, Laufzeit, Bonus, Einlösungszähler und Status, aber niemals den gespeicherten Codewert. Fehlerzustände werden als verständliche serverseitige Rückmeldung angezeigt; es gibt keine simulierten Premium- oder XP-Werte.

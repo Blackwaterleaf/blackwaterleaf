@@ -76,6 +76,12 @@ import {
   billingCheckout,
   billingMe,
   billingPlans,
+  promoCodeStatus,
+  promoCodeRedemptions,
+  redeemPromoCode,
+  adminPromoCodes,
+  adminCreatePromoCode,
+  adminRevokePromoCode,
   careAddJournal,
   careCreatePlan,
   careCreateTask,
@@ -197,6 +203,9 @@ import {
   type DirectMessage,
   type NativeBillingStatus,
   type NativeCreditPack,
+  type NativePromoStatus,
+  type NativePromoRedemption,
+  type NativeAdminPromoCode,
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
@@ -3637,9 +3646,31 @@ function NativeHostControls({ tone, token, accounts, posts, onRefresh }: { tone:
       const proAccess = item.proAccess ?? { active: false, manuallyGranted: false, forcedFree: false, source: "none" as const, expiresAt: null };
       return <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.cardTitle}>{item.name ?? item.username ?? `Konto #${item.id}`}</Text><Text style={styles.miniCopy}>{item.email ?? "Keine E-Mail"} · {String(item.role ?? "user").toUpperCase()} · {String(item.status ?? "active").toUpperCase()}</Text><Text style={[styles.miniCopy, { color: proAccess.active ? tone.accent : c.muted }]}>{proAccess.active ? `FULL ABO · ${proAccess.source === "admin" ? "ADMIN" : "FREIGEGEBEN"}` : proAccess.forcedFree ? "FREE · ERZWUNGEN" : "FREE"}</Text><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label={proAccess.active ? "FREE SETZEN" : "FULL ABO"} icon={proAccess.active ? "remove-circle-outline" : "sparkles-outline"} onPress={() => void changePro({ ...item, proAccess })} />{item.id !== Number(item.id) ? null : <SecondaryButton tone={tone} label={item.status === "active" ? "PAUSIEREN" : "AKTIVIEREN"} icon={item.status === "active" ? "pause-outline" : "play-outline"} onPress={() => void changeStatus(item)} />}</View></View>;
     })}
+    <NativePromoCodesPanel tone={tone} token={token} />
     <SectionLabel tone={tone} overline="HOST · MODERATION" title="ÖFFENTLICHE BEITRÄGE" />
     {posts.slice(0, 50).map(item => <View key={item.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.miniCopy}>#{item.id} · {item.realm?.toUpperCase() ?? "ALLE FEEDS"} · {item.status.toUpperCase()}</Text><Text style={styles.cardTitle} numberOfLines={3}>{item.content}</Text>{item.status === "published" ? <SecondaryButton tone={tone} label="AUSBLENDEN" icon="eye-off-outline" onPress={() => void hidePost(item)} /> : null}</View>)}
   </View>;
+}
+
+function NativePromoCodesPanel({ tone, token }: { tone: Tone; token: string }) {
+  const [codes, setCodes] = useState<NativeAdminPromoCode[]>([]);
+  const [duration, setDuration] = useState<"week_1" | "week_2" | "month_1" | "month_2">("month_1");
+  const [bonusPoints, setBonusPoints] = useState("0");
+  const [maxRedemptions, setMaxRedemptions] = useState("1");
+  const [label, setLabel] = useState("AKTION");
+  const [newCode, setNewCode] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const load = async () => { try { setCodes(await adminPromoCodes(token)); } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Codes konnten nicht geladen werden."); } };
+  useEffect(() => { void load(); }, [token]);
+  const create = async () => {
+    setBusy(true); setMessage(null); setNewCode(null);
+    try { const result = await adminCreatePromoCode(token, { duration, bonusPoints: Math.max(0, Number(bonusPoints) || 0), maxRedemptions: Math.max(1, Number(maxRedemptions) || 1), label: label.trim() || "AKTION" }); setNewCode(result.code); setMessage("Code erstellt. Der Klartext ist nur jetzt sichtbar."); setBonusPoints("0"); setMaxRedemptions("1"); await load(); }
+    catch (cause) { setMessage(cause instanceof Error ? cause.message : "Code konnte nicht erstellt werden."); }
+    finally { setBusy(false); }
+  };
+  const revoke = async (id: number) => { setBusy(true); try { await adminRevokePromoCode(token, id); await load(); } catch (cause) { setMessage(cause instanceof Error ? cause.message : "Code konnte nicht widerrufen werden."); } finally { setBusy(false); } };
+  return <View style={{ gap: 9 }}><SectionLabel tone={tone} overline="HOST · PROMO" title="PREMIUM-CODES & PUNKTE" /><View style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}><Text style={styles.miniCopy}>Codes werden serverseitig gehasht. Pro-Konto nur einmal einlösbar; Punkte werden idempotent gutgeschrieben.</Text><View style={styles.promoDurationRow}>{([['week_1', '1 WOCHE'], ['week_2', '2 WOCHEN'], ['month_1', '1 MONAT'], ['month_2', '2 MONATE']] as const).map(([value, text]) => <Pressable key={value} onPress={() => setDuration(value)} style={[styles.promoDurationChoice, { borderColor: duration === value ? tone.accent : `${tone.accent}44`, backgroundColor: duration === value ? `${tone.accent}18` : "transparent" }]}><Text style={[styles.miniCopy, { color: duration === value ? tone.accent : c.muted }]}>{text}</Text></Pressable>)}</View><View style={styles.nativeAdminInputRow}><TextInput value={label} onChangeText={setLabel} placeholder="Bezeichnung" placeholderTextColor={c.muted} style={styles.dashboardInboxInput} maxLength={32} /><TextInput value={bonusPoints} onChangeText={setBonusPoints} placeholder="XP" placeholderTextColor={c.muted} keyboardType="number-pad" style={styles.dashboardInboxInput} /><TextInput value={maxRedemptions} onChangeText={setMaxRedemptions} placeholder="Anzahl" placeholderTextColor={c.muted} keyboardType="number-pad" style={styles.dashboardInboxInput} /></View><PrimaryButton tone={tone} label={busy ? "ARBEITET…" : "CODE ERSTELLEN"} icon="gift-outline" onPress={() => void create()} disabled={busy} />{newCode ? <View style={[styles.promoCreatedCode, { borderColor: `${tone.accent}66` }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>NEUER CODE · EINMAL ANZEIGEN</Text><Text style={[styles.promoCreatedCodeText, { color: tone.accent }]}>{newCode}</Text></View> : null}{message ? <Text style={[styles.miniCopy, { color: tone.accent }]}>{message}</Text> : null}</View>{codes.map(code => { const closed = Boolean(code.revokedAt) || code.redemptionCount >= code.maxRedemptions || Boolean(code.expiresAt && new Date(code.expiresAt).getTime() <= Date.now()); return <View key={code.id} style={[styles.dashboardInboxCard, { borderColor: `${tone.accent}33`, backgroundColor: `${tone.accent}08` }]}><Text style={styles.cardTitle}>{code.label} · {code.premiumDays} TAGE · +{code.bonusPoints} XP</Text><Text style={styles.miniCopy}>{code.redemptionCount}/{code.maxRedemptions} Einlösungen · {code.revokedAt ? "WIDERRUFEN" : closed ? "AUSGESCHÖPFT" : "AKTIV"}</Text>{!closed ? <SecondaryButton tone={tone} label="WIDERRUFEN" icon="ban-outline" onPress={() => void revoke(code.id)} disabled={busy} /> : null}</View>; })}</View>;
 }
 function statusLabel(status: string) { return ({ received: "EINGEGANGEN", reviewing: "IN PRÜFUNG", resolved: "ERLEDIGT", accepted: "ANGENOMMEN", declined: "ABGELEHNT" } as Record<string, string>)[status] ?? status.toUpperCase(); }
 function nextFeedbackStatus(status: NativeAdminFeedback["status"]): NativeAdminFeedback["status"] { return ({ received: "reviewing", reviewing: "resolved", resolved: "received" } as const)[status]; }
@@ -3780,8 +3811,14 @@ function ProfileScreen({
   const [profileMessage, setProfileMessage] = useState<string | null>(null);
   const [publicPosts, setPublicPosts] = useState<PublicProfilePost[]>([]);
   const [publicPostsRefreshing, setPublicPostsRefreshing] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<NativePromoStatus | null>(null);
+  const [promoRedemptions, setPromoRedemptions] = useState<NativePromoRedemption[]>([]);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoMessage, setPromoMessage] = useState<string | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
   useEffect(() => { setDraftName(account?.name ?? ""); setDraftBio(account?.bio ?? ""); setSocialDrafts(socialDraftsForAccount(account)); }, [account]);
   useEffect(() => { if (token && account?.id) void publicProfilePosts(account.id).then(setPublicPosts).catch(() => setPublicPosts([])); }, [token, account?.id]);
+  useEffect(() => { if (!token) { setPromoStatus(null); setPromoRedemptions([]); return; } void Promise.all([promoCodeStatus(token), promoCodeRedemptions(token)]).then(([status, redemptions]) => { setPromoStatus(status); setPromoRedemptions(redemptions); }).catch(() => { setPromoStatus(null); setPromoRedemptions([]); }); }, [token]);
   const refreshPublicPosts = async () => {
     if (!token || !account?.id) return;
     setPublicPostsRefreshing(true);
@@ -3831,6 +3868,18 @@ function ProfileScreen({
     try { const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 }); await onUploadAvatar(base64, asset.mimeType ?? "image/jpeg"); setProfileMessage("Profilbild sicher gespeichert."); }
     catch (cause) { setProfileMessage(cause instanceof Error ? cause.message : "Profilbild konnte nicht gespeichert werden."); }
     finally { setProfileSaving(false); }
+  };
+  const submitPromoCode = async () => {
+    if (!token || !promoCode.trim()) return;
+    setPromoBusy(true); setPromoMessage(null);
+    try {
+      const result = await redeemPromoCode(token, promoCode.trim());
+      setPromoCode("");
+      setPromoMessage(`Code eingelöst: ${result.premiumDays} Tage Pro${result.bonusPoints ? ` und +${result.bonusPoints} XP` : ""}.`);
+      const [status, redemptions] = await Promise.all([promoCodeStatus(token), promoCodeRedemptions(token)]);
+      setPromoStatus(status); setPromoRedemptions(redemptions);
+    } catch (cause) { setPromoMessage(cause instanceof Error ? cause.message : "Code konnte nicht eingelöst werden."); }
+    finally { setPromoBusy(false); }
   };
   if (!token)
     return (
@@ -3889,6 +3938,13 @@ function ProfileScreen({
         <Text style={styles.miniCopy}>Dein aktueller Status und die Upgrade-Möglichkeiten bleiben auf Web und Native transparent.</Text>
         <View style={styles.profileSubscriptionPlans}><View style={styles.profileSubscriptionPlan}><Text style={styles.cardTitle}>FREE</Text><Text style={styles.miniCopy}>Katalog, Community, Basis-Karte und eine private Anlage</Text></View><View style={[styles.profileSubscriptionPlan, { borderColor: `${c.botany}88` }]}><Text style={[styles.cardTitle, { color: c.botany }]}>PRO · €39,99 / JAHR</Text><Text style={styles.miniCopy}>Unbegrenzte Anlagen, Pflegehistorie, Auswertungen, mehr KI, Export und Backup</Text></View></View>
         <PrimaryButton tone={tone} label="UPGRADE-OPTIONEN ANSEHEN" icon="sparkles-outline" onPress={() => navigate("pro")} />
+      </View>
+      <View style={[styles.profilePromoCardNative, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]} accessibilityLabel="Premium-Code">
+        <View style={styles.profileSubscriptionHeading}><View><Text style={[styles.eyebrow, { color: tone.accent }]}>BLACKWATERLEAF · VORTEILSCODE</Text><Text style={styles.sectionTitle}><Ionicons name="gift-outline" size={16} color={tone.accent} /> PREMIUM AKTIVIEREN</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{promoStatus?.active ? "PRO AKTIV" : "CODE EINLÖSEN"}</Text></View>
+        <Text style={styles.miniCopy}>{promoStatus?.active && promoStatus.expiresAt ? `Pro ist bis ${new Date(promoStatus.expiresAt).toLocaleDateString("de-DE")} aktiv.` : "Aktiviere einen BlackWaterLeaf-Code für Pro-Zeit und einen möglichen Punktebonus."}</Text>
+        <View style={styles.profilePromoFormNative}><TextInput value={promoCode} onChangeText={value => setPromoCode(value.toUpperCase())} placeholder="BWL-XXXX-XXXX-XXXX" placeholderTextColor={c.muted} style={styles.profilePromoInputNative} autoCapitalize="characters" autoCorrect={false} maxLength={24} /><PrimaryButton tone={tone} label={promoBusy ? "PRÜFE…" : "EINLÖSEN"} icon="gift-outline" onPress={() => void submitPromoCode()} disabled={promoBusy || !promoCode.trim()} /></View>
+        {promoMessage ? <Text style={[styles.miniCopy, { color: tone.accent }]}>{promoMessage}</Text> : null}
+        {promoRedemptions.length ? <View style={styles.profilePromoHistoryNative}><Text style={[styles.eyebrow, { color: tone.accent }]}>EINLÖSUNGEN</Text>{promoRedemptions.slice(0, 3).map(item => <Text key={item.id} style={styles.miniCopy}>{item.label} · {item.premiumDays} Tage Pro{item.bonusPoints ? ` · +${item.bonusPoints} XP` : ""}</Text>)}</View> : null}
       </View>
       <SectionLabel tone={tone} overline="PRIVATE SAMMLUNG" title="MEINE ANLAGEN & WERTE" />
       <Text style={styles.profileReferenceSubline}>Privat · Wähle direkt deinen Bereich</Text>
@@ -5720,6 +5776,10 @@ const styles = StyleSheet.create({
   profileSubscriptionHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
   profileSubscriptionPlans: { flexDirection: "row", gap: 8 },
   profileSubscriptionPlan: { flex: 1, gap: 5, padding: 10, borderWidth: 1, borderColor: c.raised, borderRadius: 11, backgroundColor: c.bg },
+  profilePromoCardNative: { gap: 10, padding: 14, borderWidth: 1, borderRadius: 16 },
+  profilePromoFormNative: { flexDirection: "row", alignItems: "stretch", gap: 8 },
+  profilePromoInputNative: { flex: 1, minHeight: 44, paddingHorizontal: 11, color: c.text, borderWidth: 1, borderColor: "rgba(199,243,91,.34)", borderRadius: 10, backgroundColor: c.bg, fontSize: 12, fontWeight: "800", letterSpacing: 1 },
+  profilePromoHistoryNative: { gap: 5, paddingTop: 9, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.18)" },
   profileCreatorCard: { padding: 15, borderRadius: 18, borderWidth: 1, gap: 13 },
   profileCreatorTop: { flexDirection: "row", alignItems: "center", gap: 13 },
   profileCreatorAvatar: { width: 86, height: 86, borderRadius: 43, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },
@@ -5829,6 +5889,11 @@ const styles = StyleSheet.create({
   dashboardInboxInput: { minHeight: 48, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 9, color: c.text, backgroundColor: "rgba(2,12,6,.66)", textAlignVertical: "top" },
   dashboardInboxInputCompact: { minHeight: 38, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 8, color: c.text, backgroundColor: "rgba(2,12,6,.66)" },
   dashboardInboxActions: { flexDirection: "row", alignItems: "flex-end", gap: 10 },
+  promoDurationRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  promoDurationChoice: { minHeight: 34, paddingHorizontal: 8, borderRadius: 9, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  nativeAdminInputRow: { flexDirection: "row", gap: 6 },
+  promoCreatedCode: { gap: 5, padding: 10, borderRadius: 10, borderWidth: 1, backgroundColor: "rgba(199,243,91,.07)" },
+  promoCreatedCodeText: { fontSize: 16, fontWeight: "900", letterSpacing: 1.1 },
   dashboardStatusPicker: { minHeight: 38, borderWidth: 1, borderColor: "rgba(199,243,91,.22)", borderRadius: 10, paddingHorizontal: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "rgba(2,12,6,.66)" },
   dashboardStatusValue: { color: c.text, fontSize: 10, fontWeight: "900" },
 

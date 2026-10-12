@@ -4,7 +4,7 @@ import { startLogin } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { readImageAsBase64 } from "@/lib/files";
 import { trpc } from "@/lib/trpc";
-import { Activity, BadgeCheck, Check, Coins, Edit3, EyeOff, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, SlidersHorizontal, UsersRound, Send, Save } from "lucide-react";
+import { Activity, BadgeCheck, Check, Coins, Edit3, EyeOff, Gift, ImagePlus, LayoutDashboard, Megaphone, MessageSquareHeart, Plus, RotateCcw, Shield, ShieldAlert, SlidersHorizontal, UsersRound, Send, Save } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation } from "wouter";
 import { AdminAnalyticsPanel } from "@/components/AdminAnalyticsPanel";
@@ -16,6 +16,7 @@ const menuItems: DashboardMenuItem[] = [
   { icon: Megaphone, label: "Händlerfreigaben", path: "/admin/merchant-approvals" },
   { icon: Activity, label: "Analytics", path: "/admin/analytics" },
   { icon: Coins, label: "KI-Kontingente", path: "/admin/ai-usage" },
+  { icon: Gift, label: "Premium-Codes", path: "/admin/promo-codes" },
 ];
 
 function roleLabel(role: "user" | "moderator" | "admin" | "merchant") {
@@ -66,7 +67,7 @@ export default function AdminDashboard() {
           <div><p className="eyebrow">[SERVER_VERIFIED / {roleLabel(auth.user!.role)}]</p><h1>Kontrollzentrum</h1></div>
           <button className="secondary-action" type="button" onClick={() => setLocation("/profile")}><Shield size={16} />ZUM PROFIL</button>
         </header>
-        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : section === "ai-usage" ? <AiUsagePanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
+        {section === "moderation" ? <ModerationPanel /> : section === "accounts" ? <AccountsPanel /> : section === "partners" ? <><PartnersPanel /><PartnerInquiryInbox /></> : section === "merchant-approvals" ? <PartnersPanel /> : section === "analytics" ? <AdminAnalyticsPanel /> : section === "ai-usage" ? <AiUsagePanel /> : section === "promo-codes" ? <PromoCodePanel /> : <OverviewPanel onOpenModeration={() => setLocation("/admin/moderation")} onOpenAccounts={() => setLocation("/admin/accounts")} onOpenPartners={() => setLocation("/admin/merchant-approvals")} />}
       </div>
     </DashboardLayout>
   );
@@ -98,6 +99,41 @@ function OverviewPanel({ onOpenModeration, onOpenAccounts, onOpenPartners }: { o
     <PartnerInquiryInbox />
     <section className="admin-panel"><p className="eyebrow">[AUDIT_LEDGER]</p><h2>Letzte nachvollziehbare Aktionen</h2>{audit.data.length === 0 ? <p>Es liegen noch keine signierten Verwaltungsaktionen vor.</p> : <ul className="audit-list">{audit.data.map(entry => <li key={entry.id}><span>{entry.action}</span><small>{entry.targetType} #{entry.targetId} · {new Date(entry.createdAt).toLocaleString("de-DE")}</small></li>)}</ul>}</section>
   </>;
+}
+
+function PromoCodePanel() {
+  const utils = trpc.useUtils();
+  const codes = trpc.promoCodes.list.useQuery();
+  const create = trpc.promoCodes.create.useMutation({ onSuccess: () => void utils.promoCodes.list.invalidate() });
+  const revoke = trpc.promoCodes.revoke.useMutation({ onSuccess: () => void utils.promoCodes.list.invalidate() });
+  const [form, setForm] = useState({ duration: "month_1" as "week_1" | "week_2" | "month_1" | "month_2", bonusPoints: "0", maxRedemptions: "1", label: "AKTION", expiresAt: "" });
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    setStatus(null);
+    try {
+      const result = await create.mutateAsync({ duration: form.duration, bonusPoints: Number(form.bonusPoints), maxRedemptions: Number(form.maxRedemptions), label: form.label, expiresAt: form.expiresAt ? new Date(form.expiresAt) : undefined });
+      setCreatedCode(result.code);
+      setStatus("Code erstellt. Er wird aus Sicherheitsgründen nur jetzt im Klartext angezeigt.");
+      setForm(current => ({ ...current, bonusPoints: "0", maxRedemptions: "1", expiresAt: "" }));
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "promo_code_creation_failed");
+    }
+  };
+  if (codes.isLoading) return <StatePanel code="PROMO/LOAD" state="loading" title="PREMIUM-CODES WERDEN GELADEN" body="Codebestand und Einlösungsstatus werden serverseitig geprüft." />;
+  if (codes.isError || !codes.data) return <StatePanel code="PROMO/ERROR" state="error" title="PREMIUM-CODES NICHT VERFÜGBAR" body="Die geschützte Codeverwaltung konnte nicht geladen werden." />;
+  return <div className="admin-grid admin-grid--single">
+    <form className="admin-panel" onSubmit={submit}>
+      <p className="eyebrow">[PROMO_CODES / ADMIN_ONLY]</p><h2><Gift size={18} /> Premium- und Punkte-Codes</h2>
+      <p>Erstelle teilbare Codes für zeitlich begrenztes Pro. Der Server speichert nur den Hash; der Klartext erscheint ausschließlich einmal nach der Erstellung.</p>
+      <div className="form-grid"><label className="field"><span>Premium-Laufzeit</span><select value={form.duration} onChange={event => setForm(current => ({ ...current, duration: event.target.value as typeof current.duration }))}><option value="week_1">1 Woche</option><option value="week_2">2 Wochen</option><option value="month_1">1 Monat</option><option value="month_2">2 Monate</option></select></label><label className="field"><span>Punktebonus</span><input type="number" min={0} max={5000} value={form.bonusPoints} onChange={event => setForm(current => ({ ...current, bonusPoints: event.target.value }))} /></label><label className="field"><span>Maximale Einlösungen</span><input type="number" min={1} max={100000} value={form.maxRedemptions} onChange={event => setForm(current => ({ ...current, maxRedemptions: event.target.value }))} /></label><label className="field"><span>Interne Bezeichnung</span><input required maxLength={32} value={form.label} onChange={event => setForm(current => ({ ...current, label: event.target.value }))} /></label><label className="field"><span>Code verfällt am (optional)</span><input type="datetime-local" value={form.expiresAt} onChange={event => setForm(current => ({ ...current, expiresAt: event.target.value }))} /></label></div>
+      <button className="primary-action" type="submit" disabled={create.isPending}><Gift size={16} />{create.isPending ? "CODE WIRD ERSTELLT …" : "CODE ERSTELLEN"}</button>
+      {createdCode ? <div className="form-status" role="status"><strong>NEUER CODE: {createdCode}</strong><small>Jetzt sicher kopieren und teilen. Dieser Klartext wird nicht erneut abrufbar sein.</small></div> : null}
+      {status ? <p className="form-status" role="status">{status}</p> : null}
+    </form>
+    <section className="admin-panel"><p className="eyebrow">[CODE_LEDGER / HASH_ONLY]</p><h2>Erstellte Codes</h2><p>Der Klartext ist absichtlich nicht in der Liste enthalten. Widerruf stoppt weitere Einlösungen, bereits aktivierte Laufzeiten bleiben bis zum Ablauf nachvollziehbar.</p>{codes.data.length === 0 ? <p>Noch keine Codes erstellt.</p> : <div className="admin-list">{codes.data.map(code => { const expired = Boolean(code.expiresAt && new Date(code.expiresAt).getTime() <= Date.now()); const closed = Boolean(code.revokedAt) || expired || code.redemptionCount >= code.maxRedemptions; return <article className="admin-row" key={code.id}><div><strong>{code.label} · {code.premiumDays} Tage · +{code.bonusPoints} XP</strong><small>{code.redemptionCount}/{code.maxRedemptions} Einlösungen{code.expiresAt ? ` · Code-Frist ${new Date(code.expiresAt).toLocaleString("de-DE")}` : " · ohne Code-Frist"} · erstellt {new Date(code.createdAt).toLocaleString("de-DE")}</small></div><div className="admin-row__actions"><span className={`system-chip ${closed ? "system-chip--pending" : ""}`}>{code.revokedAt ? "WIDERRUFEN" : expired ? "ABGELAUFEN" : code.redemptionCount >= code.maxRedemptions ? "AUSGESCHÖPFT" : "AKTIV"}</span>{!closed ? <button type="button" className="secondary-action danger-action" disabled={revoke.isPending} onClick={() => { if (window.confirm("Diesen Code wirklich widerrufen?")) void revoke.mutate({ id: code.id }); }}>WIDERRUFEN</button> : null}</div></article>; })}</div>}</section>
+  </div>;
 }
 
 function AiUsagePanel() {

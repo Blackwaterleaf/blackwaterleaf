@@ -25,6 +25,7 @@ import { liveRouter } from "./routers/live";
 import { messagesRouter } from "./routers/messages";
 import { feedbackRouter } from "./routers/feedback";
 import { billingRouter } from "./routers/billing";
+import { promoCodesRouter } from "./routers/promoCodes";
 import { listActiveSessions, revokeAllSessions, revokeSessionForRequest } from "./sessionRegistry";
 
 export const appRouter = router({
@@ -52,6 +53,7 @@ export const appRouter = router({
   messages: messagesRouter,
   feedback: feedbackRouter,
   billing: billingRouter,
+  promoCodes: promoCodesRouter,
   auth: router({
     ...localAuthRouter._def.record,
     me: publicProcedure.query(opts => opts.ctx.user),

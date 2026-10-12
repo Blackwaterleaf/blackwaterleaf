@@ -430,6 +430,15 @@ export const trpcPost = <T>(procedure: string, input: unknown, token: string) =>
 export const billingMe = (token: string) => trpcGet<NativeBillingStatus>("billing.me", undefined, token);
 export const billingPlans = (token?: string | null) => trpcGet<{ creditPacks: NativeCreditPack[] }>("billing.plans", undefined, token);
 export const billingCheckout = (token: string, input: { kind: "credits" | "pro_monthly" | "pro_yearly" | "donation"; packKey?: string; donationAmountEur?: number }) => trpcPost<{ id: string; url: string }>("billing.createCheckout", input, token);
+export type NativePromoStatus = { active: boolean; source: "admin" | "admin_grant" | "stripe" | "none"; expiresAt: string | null };
+export type NativePromoRedemption = { id: number; label: string; premiumDays: number; bonusPoints: number; entitlementExpiresAt: string | null; createdAt: string };
+export type NativeAdminPromoCode = { id: number; label: string; premiumDays: number; bonusPoints: number; maxRedemptions: number; redemptionCount: number; expiresAt: string | null; revokedAt: string | null; createdAt: string };
+export const promoCodeStatus = (token: string) => trpcGet<NativePromoStatus>("promoCodes.status", undefined, token);
+export const promoCodeRedemptions = (token: string) => trpcGet<NativePromoRedemption[]>("promoCodes.myRedemptions", undefined, token);
+export const redeemPromoCode = (token: string, code: string) => trpcPost<{ success: true; label: string; premiumDays: number; bonusPoints: number; expiresAt: string }>("promoCodes.redeem", { code }, token);
+export const adminPromoCodes = (token: string) => trpcGet<NativeAdminPromoCode[]>("promoCodes.list", undefined, token);
+export const adminCreatePromoCode = (token: string, input: { duration: "week_1" | "week_2" | "month_1" | "month_2"; bonusPoints: number; maxRedemptions: number; label: string; expiresAt?: string }) => trpcPost<{ id: number; code: string; label: string; premiumDays: number; bonusPoints: number; maxRedemptions: number; expiresAt: string | null }>("promoCodes.create", input, token);
+export const adminRevokePromoCode = (token: string, id: number) => trpcPost<{ revoked: true; id: number }>("promoCodes.revoke", { id }, token);
 export const readToken = () => SecureStore.getItemAsync(NATIVE_TOKEN_KEY);
 export const writeToken = (token: string) =>
   SecureStore.setItemAsync(NATIVE_TOKEN_KEY, token, {

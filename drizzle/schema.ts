@@ -449,10 +449,10 @@ export const xpEvents = mysqlTable(
     userId: int("userId")
       .notNull()
       .references(() => users.id),
-    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use", "donation_support"]).notNull(),
+    eventType: mysqlEnum("eventType", ["daily_login", "photo_upload", "ai_use", "donation_support", "promo_code"]).notNull(),
     points: int("points").notNull(),
     eventKey: varchar("eventKey", { length: 191 }).notNull(),
-    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request", "stripe_donation"]).notNull(),
+    sourceType: mysqlEnum("sourceType", ["session", "media_asset", "ai_request", "stripe_donation", "promo_code"]).notNull(),
     sourceId: varchar("sourceId", { length: 191 }).notNull(),
     dayKey: varchar("dayKey", { length: 10 }).notNull(),
     policyVersion: varchar("policyVersion", { length: 32 }).notNull(),
@@ -597,6 +597,46 @@ export const accountEntitlements = mysqlTable(
   table => [
     uniqueIndex("account_entitlements_user_feature_unique").on(table.userId, table.featureKey),
     index("account_entitlements_user_status_idx").on(table.userId, table.status),
+  ],
+);
+
+/** Admin-created, server-redeemable access codes. Only a SHA-256 digest is stored. */
+export const promoCodes = mysqlTable(
+  "promo_codes",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    codeDigest: varchar("codeDigest", { length: 64 }).notNull(),
+    codeLabel: varchar("codeLabel", { length: 32 }).notNull(),
+    premiumDays: int("premiumDays").notNull(),
+    bonusPoints: int("bonusPoints").default(0).notNull(),
+    maxRedemptions: int("maxRedemptions").default(1).notNull(),
+    redemptionCount: int("redemptionCount").default(0).notNull(),
+    createdByUserId: int("createdByUserId").notNull().references(() => users.id),
+    expiresAt: timestamp("expiresAt"),
+    revokedAt: timestamp("revokedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("promo_codes_digest_unique").on(table.codeDigest),
+    index("promo_codes_active_idx").on(table.revokedAt, table.expiresAt),
+  ],
+);
+
+/** Immutable redemption ledger; one member can redeem a specific code only once. */
+export const promoCodeRedemptions = mysqlTable(
+  "promo_code_redemptions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    promoCodeId: int("promoCodeId").notNull().references(() => promoCodes.id),
+    userId: int("userId").notNull().references(() => users.id),
+    premiumDays: int("premiumDays").notNull(),
+    bonusPoints: int("bonusPoints").notNull(),
+    entitlementExpiresAt: timestamp("entitlementExpiresAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("promo_code_redemptions_code_user_unique").on(table.promoCodeId, table.userId),
+    index("promo_code_redemptions_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
 
