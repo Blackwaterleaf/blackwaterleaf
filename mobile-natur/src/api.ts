@@ -660,6 +660,7 @@ export const assistantPlantIdentify = (
       mimeType: "image/jpeg" | "image/png" | "image/webp";
     }>;
     note?: string;
+    subject?: "plant" | "fish";
   }
 ) =>
   trpcPost<PlantIdentificationReply>("assistant.plantIdentify", input, token);

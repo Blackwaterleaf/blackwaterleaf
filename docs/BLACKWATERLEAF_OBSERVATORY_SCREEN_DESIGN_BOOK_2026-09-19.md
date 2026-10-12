@@ -156,3 +156,10 @@ Die Ergebnisfläche führt ausdrücklich mit **Analyse abgeschlossen · vorläuf
 - Der Klartext wird nur bei der Erstellung angezeigt. Persistiert wird ausschließlich ein SHA-256-Digest; Web und Native verwenden denselben `promoCodes.redeem`-Vertrag. Ein Code kann pro Konto nur einmal eingelöst werden, Einlösungen und Punktebonus sind im unveränderlichen Ledger nachvollziehbar.
 - Eine Einlösung verlängert den persönlichen `pro_override`-Anspruch sicher bis zum späteren Ablaufzeitpunkt, verbraucht keinen KI-Token und aktiviert keine Zahlung. Widerruf stoppt weitere Einlösungen, verändert aber keine bereits gewährte Laufzeit.
 - Profil und Native-App zeigen Status, Ablaufdatum und Einlösungshistorie. Admin zeigt Code-Label, Laufzeit, Bonus, Einlösungszähler und Status, aber niemals den gespeicherten Codewert. Fehlerzustände werden als verständliche serverseitige Rückmeldung angezeigt; es gibt keine simulierten Premium- oder XP-Werte.
+
+## 15.50 KI-Bestimmung · Pflanzen-/Fisch-Auswahl (2026-10-12)
+
+- Die Bild-KI bietet in Web und Native vor der Analyse eine eindeutige Auswahl **Pflanze bestimmen** oder **Fisch bestimmen**. **Aquarium verstehen** bleibt davon getrennt und analysiert ausschließlich das private Beckenprofil.
+- Beide Auswahlwege verwenden denselben tokenarmen Bild-, Kontingent- und Fortschrittspfad. Der Auswahlwert wird im Serververtrag, im Usage-Ledger und im Cache-Fingerprint geführt; ein Pflanzenbild und ein Fischbild können daher niemals denselben fachlichen Cacheeintrag teilen.
+- Pflanzenbestimmungen verwenden den Botanik-Katalog und optional die unabhängige Pl@ntNet-Prüfung. Fischbestimmungen verwenden ausschließlich den veröffentlichten Aquaristik-Katalog und zeigen keine botanische Prüfquelle an. Wikimedia/Wikipedia bleiben ausgeschlossen.
+- Ergebnisstatus, Kandidaten, Merkmale, Quellenabgleich und vorläufige Sicherheit sind in beiden Clients strukturell gleich. Nur Fachsprache, Icon, Akzent und Katalogbereich wechseln zu Botanik beziehungsweise Aquaristik.

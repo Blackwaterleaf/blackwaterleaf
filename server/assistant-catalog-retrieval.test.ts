@@ -36,7 +36,9 @@ describe("assistant catalog retrieval", () => {
     expect(assistant).toContain("formatCatalogFastPath(exactReference)");
     expect(assistant).toContain('model: "catalog-fast-path"');
     expect(assistant).toContain('provider: "catalog-local"');
-    expect(assistant).toContain("catalogReferencesForCandidates(reservation.db, result.candidates)");
+    expect(assistant).toContain("catalogReferencesForCandidates(reservation.db, result.candidates, input.subject)");
+    expect(assistant).toContain('subject === "fish"');
+    expect(assistant).toContain("aquariumTaxa");
     expect(assistant).toContain("**BlackWaterLeaf-Katalogabgleich**");
     expect(assistant).toContain("nutze sie nur als Abgleich und behaupte keine darüber hinausgehenden Details");
   });

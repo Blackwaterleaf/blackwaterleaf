@@ -1793,7 +1793,7 @@ function AssistantScreen({
   tone: Tone;
   navigate: (screen: Screen) => void;
 }) {
-  const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("plant");
+  const [tool, setTool] = useState<"chat" | "plant" | "fish" | "aquarium">("plant");
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
@@ -1822,11 +1822,13 @@ function AssistantScreen({
   const activeToolLabel =
     tool === "plant"
       ? "PFLANZE BESTIMMEN"
+      : tool === "fish"
+        ? "FISCH BESTIMMEN"
       : tool === "aquarium"
         ? "AQUARIUM VERSTEHEN"
         : "FRAGE STELLEN";
 
-  const chooseTool = (nextTool: "chat" | "plant" | "aquarium") => {
+  const chooseTool = (nextTool: "chat" | "plant" | "fish" | "aquarium") => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setTool(nextTool);
@@ -1947,7 +1949,7 @@ function AssistantScreen({
       setMessage(null);
     } catch {
       setMessage(
-        "Das Pflanzenfoto konnte nicht vorbereitet werden. Bitte wähle ein kleineres JPG, PNG oder WebP."
+        "Das Bild konnte nicht vorbereitet werden. Bitte wähle ein kleineres JPG, PNG oder WebP."
       );
     }
   };
@@ -1998,6 +2000,7 @@ function AssistantScreen({
           mimeType: image.mimeType,
         })),
         note: plantNote.trim() || undefined,
+        subject: tool === "fish" ? "fish" : "plant",
       });
       setPlantAnswer(`${response.answer}\n\n${response.disclaimer}`);
       setPlantCandidates(response.identification?.candidates ?? []);
@@ -2012,7 +2015,7 @@ function AssistantScreen({
           ? "Die KI-Antwort wurde wegen des internen Denkbudgets abgeschnitten. Bitte erneut versuchen."
           : errorMessage === "assistant_empty_response"
             ? "Die KI hat keine auswertbare Antwort geliefert. Bitte ein schärferes Foto oder ein weiteres Einzelbild verwenden."
-            : errorMessage || "Die Pflanzenbestimmung konnte nicht durchgeführt werden."
+            : errorMessage || "Die Bestimmung konnte nicht durchgeführt werden."
       );
     } finally {
       setBusy(false);
@@ -2157,6 +2160,13 @@ function AssistantScreen({
             onPress: () => chooseTool("plant"),
           },
           {
+            title: "Fisch bestimmen",
+            note: "Aquaristik-Foto sicher prüfen",
+            icon: "fish-outline",
+            image: ASSETS.aquarium,
+            onPress: () => chooseTool("fish"),
+          },
+          {
             title: "Aquarium verstehen",
             note: "Eigenes Becken analysieren",
             icon: "fish-outline",
@@ -2221,6 +2231,13 @@ function AssistantScreen({
               icon="leaf-outline"
               label="Pflanze"
               onPress={() => setTool("plant")}
+            />
+            <ToolTab
+              active={tool === "fish"}
+              tone={tone}
+              icon="fish-outline"
+              label="Fisch"
+              onPress={() => setTool("fish")}
             />
             <ToolTab
               active={tool === "aquarium"}
@@ -2293,12 +2310,12 @@ function AssistantScreen({
                 disabled={busy || !question.trim()}
               />
             </>
-          ) : tool === "plant" ? (
+          ) : tool === "plant" || tool === "fish" ? (
             <>
               <SectionLabel
                 tone={tone}
                 overline="BILDPRÜFUNG / 1–3 EINZELBILDER"
-                title="PFLANZE BESTIMMEN"
+                title={tool === "fish" ? "FISCH BESTIMMEN" : "PFLANZE BESTIMMEN"}
                 compact
               />
               <PlantQuotaCard tone={tone} status={billingStatus} />
@@ -2352,7 +2369,7 @@ function AssistantScreen({
                   <Ionicons name="leaf-outline" color={tone.accent} size={31} />
                   <Text style={styles.cardTitle}>FOTO 1 AUSWÄHLEN</Text>
                   <Text style={styles.copy}>
-                    Zeige möglichst Blatt, Stängel und die gesamte Pflanze.
+                    Zeige möglichst den ganzen Fisch, Körperform, Flossen und Zeichnung.
                   </Text>
                   <View style={styles.inlineButtons}>
                     <SecondaryButton
@@ -2410,8 +2427,8 @@ function AssistantScreen({
                   busy
                     ? "BILD WIRD GEPRÜFT …"
                     : photos.length > 1
-                      ? "PFLANZE MIT BILDERN PRÜFEN"
-                      : "PFLANZE MIT KI ANALYSIEREN"
+                      ? tool === "fish" ? "FISCH MIT BILDERN PRÜFEN" : "PFLANZE MIT BILDERN PRÜFEN"
+                      : tool === "fish" ? "FISCH MIT KI ANALYSIEREN" : "PFLANZE MIT KI ANALYSIEREN"
                 }
                 icon="scan-outline"
                 disabled={busy || !photos.length}
@@ -2420,7 +2437,7 @@ function AssistantScreen({
               {busy ? (
                 <View
                   accessibilityRole="progressbar"
-                  accessibilityLabel="Pflanzenbild wird von der KI analysiert"
+                  accessibilityLabel={tool === "fish" ? "Fischbild wird von der KI analysiert" : "Pflanzenbild wird von der KI analysiert"}
                   style={[styles.analysisLoading, { borderColor: `${tone.accent}66`, backgroundColor: `${tone.accent}12` }]}
                 >
                   <ActivityIndicator color={tone.accent} size="small" />
