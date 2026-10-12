@@ -1,0 +1,83 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
+import { StatePanel } from "@/components/StatePanel";
+import { startLogin } from "@/const";
+import { trpc } from "@/lib/trpc";
+import { liveStreamEmbedSrc } from "@shared/live-stream-embed";
+import { Activity, ArrowLeft, Eye, ExternalLink, KeyRound, MessageCircle, Play, Radio, RefreshCw, Send, ShieldCheck, Square, UsersRound } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useRoute } from "wouter";
+
+type IngestReceipt = { path: string; key: string; keyVersion: number };
+
+function providerLabel(provider: "youtube" | "twitch" | "self_hosted") {
+  if (provider === "self_hosted") return "BLACKWATERLEAF / IONOS";
+  return provider === "youtube" ? "YOUTUBE LIVE" : "TWITCH";
+}
+
+export default function LiveSession() {
+  const [, params] = useRoute("/live/:id");
+  const id = Number(params?.id);
+  const auth = useAuth();
+  const utils = trpc.useUtils();
+  const [content, setContent] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const [ingest, setIngest] = useState<IngestReceipt | null>(null);
+  const session = trpc.live.byId.useQuery({ id }, { enabled: auth.isAuthenticated && Number.isSafeInteger(id) && id > 0, retry: false, refetchInterval: auth.isAuthenticated ? 15_000 : false });
+  const messages = trpc.live.messages.useQuery({ sessionId: id, limit: 100 }, { enabled: auth.isAuthenticated && session.isSuccess, retry: false, refetchInterval: auth.isAuthenticated && session.data?.status === "live" ? 6_000 : false });
+  const ownPlayer = trpc.live.viewerTicket.useQuery({ sessionId: id }, { enabled: auth.isAuthenticated && session.data?.stream?.provider === "self_hosted" && session.data.status === "live", retry: false, refetchInterval: 8 * 60_000 });
+  const capabilities = trpc.live.capabilities.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
+  const viewerPresence = trpc.live.viewerPresence.useMutation();
+  const send = trpc.live.sendMessage.useMutation({ onSuccess: async () => { setContent(""); await messages.refetch(); }, onError: error => setStatus(error.message) });
+  const update = trpc.live.update.useMutation({ onSuccess: async () => { setStatus("Sitzungsstatus wurde aktualisiert."); await Promise.all([session.refetch(), utils.live.list.invalidate()]); }, onError: error => setStatus(error.message) });
+  const rotate = trpc.live.rotateSelfHostedKey.useMutation({ onSuccess: result => { setIngest(result); setStatus("Der vorherige Einspielschlüssel wurde sofort ungültig. Kopiere den neuen Schlüssel jetzt in OBS oder dein Stream Deck."); }, onError: error => setStatus(error.message) });
+  const canManage = auth.user?.role === "admin" || auth.user?.role === "moderator";
+  const submit = (event: FormEvent) => { event.preventDefault(); const value = content.trim(); if (value) send.mutate({ sessionId: id, content: value }); };
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || !Number.isSafeInteger(id) || id <= 0 || session.data?.status !== "live") return;
+    let cancelled = false;
+    const heartbeat = async () => {
+      if (document.visibilityState !== "visible") return;
+      await viewerPresence.mutateAsync({ sessionId: id }).catch(() => undefined);
+      if (!cancelled) void session.refetch();
+    };
+    const interval = window.setInterval(() => { void heartbeat(); }, 20_000);
+    const onVisibilityChange = () => { if (document.visibilityState === "visible") void heartbeat(); };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    void heartbeat();
+    return () => { cancelled = true; window.clearInterval(interval); document.removeEventListener("visibilitychange", onVisibilityChange); };
+  }, [auth.isAuthenticated, id, session.data?.status, session.refetch, viewerPresence.mutateAsync]);
+
+  if (!auth.isAuthenticated) return <div className="observatory-route observatory-route--botany live-session-page"><StatePanel code="LIVE_SESSION/AUTH_REQUIRED" state="locked" title="ANMELDUNG ERFORDERLICH" body="Live-Sitzungen und der Chat sind nur für angemeldete, aktive Konten sichtbar." action={<button type="button" className="primary-action" onClick={startLogin}>SICHER ANMELDEN</button>} /></div>;
+  if (session.isLoading) return <div className="observatory-route observatory-route--botany live-session-page"><StatePanel code="LIVE_SESSION/LOAD" state="loading" title="LIVE-SITZUNG WIRD GELADEN" body="Der geschützte Sitzungsdatensatz wird abgerufen." /></div>;
+  if (session.isError || !session.data) return <div className="observatory-route observatory-route--botany live-session-page"><StatePanel code="LIVE_SESSION/UNAVAILABLE" state="empty" title="SITZUNG NICHT VERFÜGBAR" body="Sie wurde entfernt oder der Host ist in deiner Blockliste." action={<Link href="/live" className="secondary-action">ZUM LIVE-HUB</Link>} /></div>;
+
+  const item = session.data;
+  const isSelfHosted = item.stream?.provider === "self_hosted";
+  const externalEmbedSrc = item.stream && !isSelfHosted ? liveStreamEmbedSrc(item.stream, window.location.hostname) : null;
+  const showExternalPlayer = item.status === "live" && item.stream && externalEmbedSrc;
+  const showOwnPlayer = item.status === "live" && isSelfHosted && Boolean(ownPlayer.data?.url);
+  const streamStatus = item.status === "live" ? showOwnPlayer || showExternalPlayer ? "WIEDERGABE AKTIV" : "LIVE OHNE PLAYER" : item.status === "scheduled" ? "BEREIT ZUR SENDUNG" : item.status === "ended" ? "SENDUNG BEENDET" : "NICHT VERFÜGBAR";
+  const sourceStatus = item.stream ? isSelfHosted ? "IONOS-EINSPIELUNG" : providerLabel(item.stream.provider) : "QUELLE AUSSTEHEND";
+
+  return <div className="observatory-route observatory-route--botany live-session-page">
+    <Link href="/live" className="page-back-link"><ArrowLeft size={16} />ZUM LIVE-HUB</Link>
+    <ObservatoryContextHeader tone="botany" eyebrow={item.track === "expert" ? "FACHVORTRAG · STAFF-ANGELEGT" : "COMMUNITY LIVE · MODERIERT"} title={item.title} subtitle={item.description} icon={Radio} badge={item.status === "live" ? "LIVE" : item.status === "scheduled" ? "GEPLANT" : "BEENDET"} />
+    {canManage ? <section className="live-control-telemetry observatory-data-panel" aria-label="Live-Control-Deck Status">
+      <div className="live-control-telemetry__heading"><div><span className="eyebrow">CONTROL DECK · ECHTZEIT</span><h2>ÜBERTRAGUNGSSTATUS</h2></div><span className={`live-control-telemetry__state is-${item.status}`}><i />{streamStatus}</span></div>
+      <div className="live-control-telemetry__metrics"><div><Activity size={18} /><span>LIVE-STATUS</span><strong>{item.status === "live" ? "ONLINE" : item.status === "scheduled" ? "GEPLANT" : "OFFLINE"}</strong><small>{sourceStatus}</small></div><div><Eye size={18} /><span>ZUSCHAUENDE</span><strong aria-live="polite">{item.viewerCount}</strong><small>aktive Mitglieder · 45 Sek.</small></div><div><Radio size={18} /><span>CHAT</span><strong>{item.status === "live" ? "GEÖFFNET" : "GESCHLOSSEN"}</strong><small>moderiert · Mitglieder</small></div></div>
+      <div className="live-control-telemetry__actions" aria-label="Stream-Steuerung"><div><span className="eyebrow">SENDUNG STEUERN</span><p>Änderungen werden serverseitig protokolliert und sofort im Mitglieder-Hub aktualisiert.</p></div><div className="live-control-telemetry__buttons"><button type="button" className="primary-action" disabled={update.isPending || item.status === "live" || item.status === "ended" || item.status === "cancelled" || !item.stream} onClick={() => update.mutate({ id, status: "live" })}><Play size={15} />{update.isPending ? "WIRD GESTARTET …" : "STREAM STARTEN"}</button><button type="button" className="secondary-action live-control-telemetry__stop" disabled={update.isPending || item.status !== "live"} onClick={() => update.mutate({ id, status: "ended", endsAt: new Date() })}><Square size={15} />{update.isPending ? "WIRD BEENDET …" : "STREAM BEENDEN"}</button>{isSelfHosted ? <button type="button" className="secondary-action" disabled={rotate.isPending || item.status === "ended" || item.status === "cancelled"} onClick={() => rotate.mutate({ sessionId: id })}><RefreshCw size={15} className={rotate.isPending ? "is-spinning" : undefined} />{rotate.isPending ? "SCHLÜSSEL WIRD ERNEUERT …" : "SCHLÜSSEL ROTIEREN"}</button> : null}</div></div>
+    </section> : null}
+    <section className="live-session-layout">
+      <article className="live-session-stage observatory-data-panel">
+        <div className="live-session-stage__top"><span className={`live-session-stage__status is-${item.status}`}><i />{item.status === "live" ? "LIVE-ÜBERTRAGUNG" : item.status === "scheduled" ? "BEGINN GEPLANT" : "ÜBERTRAGUNG BEENDET"}</span><span className="live-session-stage__viewers"><Eye size={15} /> <strong aria-live="polite">{item.viewerCount}</strong> ZUSCHAUENDE</span><span>{new Date(item.startsAt).toLocaleString("de-DE")}</span></div>
+        {showOwnPlayer ? <div className="live-session-player live-session-player--self-hosted"><iframe title={`${item.title} – BlackWaterLeaf Live`} src={ownPlayer.data!.url} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" /><div className="live-session-player__meta"><span className="system-chip">BLACKWATERLEAF / IONOS · GESCHÜTZTE WIEDERGABE</span><span>Nur angemeldete Mitglieder</span></div></div> : showExternalPlayer ? <div className="live-session-player"><iframe title={`${item.title} – ${providerLabel(item.stream!.provider)}`} src={externalEmbedSrc!} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /><div className="live-session-player__meta"><span className="system-chip">{providerLabel(item.stream!.provider)} · DIREKT IM HUB</span><a href={item.stream!.canonicalUrl} target="_blank" rel="noopener noreferrer">BEIM ANBIETER ÖFFNEN <ExternalLink size={14} /></a></div></div> : isSelfHosted && item.status === "live" ? <div className="live-session-stage__source"><Radio size={30} /><div><strong>{ownPlayer.isError ? "IONOS-PLAYER NOCH NICHT VERBUNDEN" : "EIGENER STREAM WIRD VERBUNDEN"}</strong><p>{ownPlayer.isError ? "Die geschützte IONOS-Auslieferung muss vor dem ersten Stream bereitgestellt werden. Es wird kein Platzhaltervideo angezeigt." : "Die geschützte Wiedergabe wird vorbereitet. Bitte einen Moment warten."}</p></div></div> : item.stream && item.status === "live" ? <div className="live-session-stage__source"><Radio size={30} /><div><strong>PLAYER KANN NICHT INITIALISIERT WERDEN</strong><p>Die geprüfte Anbieterquelle bleibt verfügbar, konnte für diese Domain aber nicht als Direktplayer erstellt werden.</p><a className="primary-action" href={item.stream.canonicalUrl} target="_blank" rel="noopener noreferrer">BEIM ANBIETER ÖFFNEN <ExternalLink size={15} /></a></div></div> : <div className="live-session-stage__unavailable"><Radio size={28} /><h2>{item.status === "live" ? "STREAMQUELLE NOCH NICHT VERBUNDEN" : item.status === "scheduled" ? "ÜBERTRAGUNG BEGINNT ZUM ANGEZEIGTEN TERMIN" : "KEINE AKTIVE ÜBERTRAGUNG"}</h2><p>Es wird kein Videobild simuliert. Verantwortlicher Staff kann eine eigene IONOS-Quelle, YouTube Live oder Twitch hinterlegen.</p></div>}
+        <footer><span><UsersRound size={15} /> {item.presenterName}</span>{item.presenterCredential ? <span><ShieldCheck size={15} /> {item.presenterCredential}</span> : <span>Community-Host</span>}</footer>
+      </article>
+      <aside className="live-session-chat observatory-data-panel"><div className="live-session-chat__heading"><div><span className="eyebrow">MEMBER-CHAT</span><h2><MessageCircle size={18} />DISKUSSION</h2></div><span className={item.status === "live" ? "is-live" : ""}>{item.status === "live" ? "AKTIV" : "GESCHLOSSEN"}</span></div><p className="live-session-chat__notice"><ShieldCheck size={14} /> Nur angemeldete Konten. Maximal sechs Nachrichten pro Minute; blockierte Konten werden ausgeblendet.</p>{messages.isLoading ? <p className="observatory-inline-state">Chat wird geladen …</p> : messages.isError ? <p className="form-status" role="alert">Chat ist gerade nicht verfügbar.</p> : <div className="live-session-chat__messages" aria-live="polite">{messages.data?.length ? messages.data.map(message => <article key={message.id}><strong>{message.authorName ?? message.authorUsername ?? "Konto"}</strong><small>{new Date(message.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</small><p>{message.content}</p></article>) : <p className="observatory-inline-state">Noch keine Nachricht in dieser Sitzung.</p>}</div>}<form className="live-session-chat__form" onSubmit={submit}><textarea required disabled={item.status !== "live" || send.isPending} maxLength={2000} rows={3} value={content} onChange={event => setContent(event.target.value)} placeholder={item.status === "live" ? "Sachliche Nachricht schreiben …" : "Der Chat ist nur während einer Live-Sitzung offen."} /><button type="submit" className="primary-action" disabled={item.status !== "live" || send.isPending}><Send size={15} />{send.isPending ? "SENDET …" : "SENDEN"}</button></form></aside>
+    </section>
+    {ingest ? <section className="live-ingest-receipt observatory-data-panel" aria-live="assertive"><div><span className="eyebrow">CONTROL DECK · VORHERIGER SCHLÜSSEL UNGÜLTIG</span><h2>NEUEN EINPIEL-SCHLÜSSEL SICHERN</h2><p>Dieser Schlüssel ist nur einmal sichtbar und wird nicht im Klartext gespeichert.</p></div><dl>{capabilities.data?.ingestServer ? <><div><dt>OBS-Server (Custom)</dt><dd>{`${capabilities.data.ingestServer}/${ingest.path}?user=studio&pass=${ingest.key}`}</dd></div><div><dt>OBS-Stream-Key</dt><dd>leer lassen</dd></div></> : <><div><dt>Pfad</dt><dd>{ingest.path}</dd></div><div><dt>Einspielschlüssel</dt><dd>{ingest.key}</dd></div></>}</dl><button type="button" className="secondary-action" onClick={() => { const value = capabilities.data?.ingestServer ? `${capabilities.data.ingestServer}/${ingest.path}?user=studio&pass=${ingest.key}` : ingest.key; void navigator.clipboard?.writeText(value); setStatus(capabilities.data?.ingestServer ? "Vollständige OBS-Serveradresse in die Zwischenablage kopiert." : "Einspielschlüssel in die Zwischenablage kopiert."); }}>{capabilities.data?.ingestServer ? "OBS-ZIEL KOPIEREN" : "SCHLÜSSEL KOPIEREN"}</button></section> : null}
+    {status ? <p className="form-status" role="status">{status}</p> : null}
+  </div>;
+}

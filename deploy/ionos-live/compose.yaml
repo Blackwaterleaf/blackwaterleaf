@@ -1,0 +1,68 @@
+services:
+  caddy:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    environment:
+      BWL_MEDIA_DOMAIN: ${BWL_MEDIA_DOMAIN:?set stream.blackwaterleaf.com}
+      BWL_TLS_EMAIL: ${BWL_TLS_EMAIL:?set a certificate contact email}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - gateway
+
+  certificate-sync:
+    image: alpine:3.20
+    restart: unless-stopped
+    environment:
+      BWL_MEDIA_DOMAIN: ${BWL_MEDIA_DOMAIN:?set stream.blackwaterleaf.com}
+    volumes:
+      - caddy_data:/caddy-data:ro
+      - media_tls:/tls
+    command: >-
+      /bin/sh -c 'while true; do
+      cert=$$(find /caddy-data/caddy/certificates -type f -name "$$BWL_MEDIA_DOMAIN.crt" 2>/dev/null | head -n 1 || true);
+      key=$$(find /caddy-data/caddy/certificates -type f -name "$$BWL_MEDIA_DOMAIN.key" 2>/dev/null | head -n 1 || true);
+      if [ -n "$$cert" ] && [ -n "$$key" ]; then cp "$$cert" /tls/fullchain.pem && cp "$$key" /tls/privkey.pem && chmod 600 /tls/privkey.pem; fi;
+      sleep 300; done'
+  mediamtx:
+    build:
+      context: .
+      dockerfile: mediamtx.Dockerfile
+    restart: unless-stopped
+    environment:
+      BWL_APP_ORIGIN: ${BWL_APP_ORIGIN:?set https://www.blackwaterleaf.com}
+      BWL_MEDIA_CONTROL_SECRET: ${BWL_MEDIA_CONTROL_SECRET:?set a 32+ character random secret}
+      BWL_TLS_DIR: /tls
+    ports:
+      - "1936:1936"
+    expose:
+      - "8888"
+    volumes:
+      - media_tls:/tls:ro
+    depends_on:
+      - certificate-sync
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway.Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      BWL_MEDIA_ORIGIN: ${BWL_MEDIA_ORIGIN:?set https://stream.blackwaterleaf.com}
+      BWL_MEDIA_CONTROL_SECRET: ${BWL_MEDIA_CONTROL_SECRET:?set the same 32+ character random secret}
+      MEDIA_HLS_UPSTREAM: http://mediamtx:8888
+    expose:
+      - "8080"
+    depends_on:
+      - mediamtx
+
+volumes:
+  caddy_data:
+  caddy_config:
+  media_tls:

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>BlackWaterLeaf Live</title>
+  <style>
+    :root { color-scheme: dark; background: #010b06; }
+    html, body, main { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #010b06; }
+    main { display: grid; place-items: center; }
+    video { width: 100%; height: 100%; object-fit: contain; background: #010b06; }
+    .status { position: fixed; left: 12px; bottom: 10px; margin: 0; padding: 6px 8px; color: #dffff1; border: 1px solid rgba(143,246,236,.38); border-radius: 999px; background: rgba(1,15,8,.82); font: 700 11px/1 system-ui, sans-serif; letter-spacing: .04em; }
+  </style>
+  <script defer src="/assets/hls.min.js"></script>
+</head>
+<body>
+  <main>
+    <video id="player" controls autoplay muted playsinline></video>
+    <p id="status" class="status">VERBINDUNG WIRD HERGESTELLT …</p>
+  </main>
+  <script>
+    window.addEventListener("load", () => {
+      const path = "__STREAM_PATH__";
+      const source = `/hls/${path}/index.m3u8`;
+      const video = document.getElementById("player");
+      const status = document.getElementById("status");
+      const ready = () => { status.textContent = "LIVE · BLACKWATERLEAF"; };
+      const failed = () => { status.textContent = "LIVE-QUELLE IST NOCH NICHT VERFÜGBAR"; };
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = source;
+        video.addEventListener("loadeddata", ready, { once: true });
+        video.addEventListener("error", failed, { once: true });
+        return;
+      }
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls({ lowLatencyMode: true, backBufferLength: 30 });
+        hls.loadSource(source);
+        hls.attachMedia(video);
+        hls.on(window.Hls.Events.MANIFEST_PARSED, ready);
+        hls.on(window.Hls.Events.ERROR, (_event, data) => { if (data.fatal) failed(); });
+        return;
+      }
+      failed();
+    });
+  </script>
+</body>
+</html>

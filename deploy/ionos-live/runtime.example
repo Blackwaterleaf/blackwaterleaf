@@ -1,0 +1,10 @@
+# Copy this file to a protected local file named runtime.env on the IONOS server.
+# Never commit runtime.env and never put real values into the source repository.
+BWL_APP_ORIGIN=https://www.blackwaterleaf.com
+BWL_MEDIA_ORIGIN=https://stream.blackwaterleaf.com
+BWL_MEDIA_DOMAIN=stream.blackwaterleaf.com
+BWL_TLS_EMAIL=operations@example.com
+
+# Generate once with: openssl rand -base64 48
+# Use exactly the same value in the IONOS runtime.env and in the WebDev secret BWL_MEDIA_CONTROL_SECRET.
+BWL_MEDIA_CONTROL_SECRET=REPLACE_WITH_48_OR_MORE_RANDOM_CHARACTERS

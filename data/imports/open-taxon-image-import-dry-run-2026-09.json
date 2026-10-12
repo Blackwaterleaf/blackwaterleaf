@@ -1,0 +1,48 @@
+{
+  "mode": "dry-run",
+  "startedAt": "2026-09-19T17:35:00.712Z",
+  "requested": 3,
+  "imported": 3,
+  "skippedExisting": 0,
+  "failed": [],
+  "files": [
+    {
+      "kind": "aquarium",
+      "id": 30035,
+      "scientificName": "Betta splendens",
+      "observationUrl": "https://www.inaturalist.org/observations/399090452",
+      "photoId": 732172305,
+      "license": "CC BY",
+      "attribution": "(c) Marcello Mastroianni Albuquerque Araújo, some rights reserved (CC BY) · iNaturalist photo #732172305 · Research Grade",
+      "width": 1536,
+      "height": 2048,
+      "imageUrl": "dry-run"
+    },
+    {
+      "kind": "aquarium",
+      "id": 30045,
+      "scientificName": "Trichopodus trichopterus",
+      "observationUrl": "https://www.inaturalist.org/observations/212789092",
+      "photoId": 371607483,
+      "license": "CC BY",
+      "attribution": "(c) Utain Pummarin, some rights reserved (CC BY) · iNaturalist photo #371607483 · Research Grade",
+      "width": 2048,
+      "height": 2043,
+      "imageUrl": "dry-run"
+    },
+    {
+      "kind": "plant",
+      "id": 4,
+      "scientificName": "Vallisneria spiralis",
+      "observationUrl": "https://www.inaturalist.org/observations/100399851",
+      "photoId": 167562447,
+      "license": "CC BY",
+      "attribution": "(c) Юрий Данилевский (Yuriy Danilevsky), some rights reserved (CC BY) · iNaturalist photo #167562447 · Research Grade",
+      "width": 2048,
+      "height": 1725,
+      "imageUrl": "dry-run"
+    }
+  ],
+  "completedAt": "2026-09-19T17:35:10.078Z",
+  "policy": "Only exact-species, Research-Grade iNaturalist photos with CC0 or CC BY, attribution, >=1.2MP and >=900px shortest side were accepted. Imported images are stored locally; source observation and attribution remain public in the catalogue."
+}

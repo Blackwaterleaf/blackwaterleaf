@@ -1,0 +1,2 @@
+ALTER TABLE `knowledge_articles` MODIFY COLUMN `locale` enum('de','en','zh-CN','es','fr') NOT NULL;--> statement-breakpoint
+ALTER TABLE `users` MODIFY COLUMN `locale` enum('de','en','zh-CN','es','fr') NOT NULL DEFAULT 'de';

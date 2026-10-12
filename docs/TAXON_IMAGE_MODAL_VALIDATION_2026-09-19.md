@@ -1,0 +1,9 @@
+# Taxon Image Modal – Visual and Interaction Validation
+
+The plant detail page for *Pogostemon helferi* exposes an explicit `DETAILANSICHT` trigger on the verified catalogue image. Opening it displays the local high-resolution asset in a modal dialog with a category label, scientific name, a close control, attribution, license and a direct link to the source observation. Browser inspection confirmed `role="dialog"`, `aria-modal="true"`, a labelled and described dialog, the local image URL, the close control and scroll locking on the document body. The source remains visibly available inside the detail view rather than being implied.
+
+Escape closes the plant image dialog, restores the document scroll state, and returns focus to the `DETAILANSICHT` trigger. The aquarium detail page for *Trigonostigma heteromorpha* renders the same visible trigger and source provenance. A console verification command for the aquarium dialog contained an invalid expression and was rejected before any page state changed; it did not indicate an application error and is retried with a corrected expression.
+
+The corrected aquarium modal verification confirms that the dialog opens for *Trigonostigma heteromorpha*, exposes the correct scientific-name heading, retains the `Quellbeobachtung öffnen · CC BY` link and locks background scrolling. Thus both plant and aquarium taxon page types use the same source-visible full-image experience.
+
+Responsive web inspection at 390 × 844 pixels confirms that the taxon image trigger remains prominent, has the visible `DETAILANSICHT` label, and preserves enough room for the scientific name, evidence metadata and source link. Native implementation mirrors the interaction with a touch trigger, full-screen native modal, the same category terminology, full image, attribution, license and source-observation action. Both Web and Native TypeScript checks pass.

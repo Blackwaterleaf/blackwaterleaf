@@ -1,0 +1,2 @@
+ALTER TABLE `media_assets` MODIFY COLUMN `kind` enum('avatar','observation_image','post_image','post_video','habitat_image') NOT NULL;--> statement-breakpoint
+ALTER TABLE `media_assets` MODIFY COLUMN `mimeType` enum('image/jpeg','image/png','image/webp','video/mp4','video/webm') NOT NULL;

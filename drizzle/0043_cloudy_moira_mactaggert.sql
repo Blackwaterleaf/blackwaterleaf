@@ -1,0 +1,1 @@
+ALTER TABLE `ai_identification_corrections` ADD `review_note` text;
