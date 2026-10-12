@@ -26,7 +26,8 @@
 - [ ] API-Subdomain auf den Cloud Server zeigen lassen
 - [ ] Runtime-Secret-Reload ohne Maskierungs-Override verifizieren
 - [ ] Schreibgeschützten IONOS-Preflight aus der laufenden Studio-Runtime bestätigen
-- [ ] Gültigen Resend-Sending-Key hinterlegen und Liveversand testen
+- [x] Neuen Resend-Sending-Key mit minimaler Sending-Berechtigung sicher hinterlegen
+- [ ] Resend-Liveversand mit bestätigter Domain und Testmail verifizieren
 - [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen
 - [ ] Echten Video-Provider mit Provider-Quote und aktivem Render-Worker integrieren
 - [ ] Zahlungsanbieter und Rechnungslogik nach rechtlicher Prüfung integrieren

@@ -24,10 +24,10 @@ export default function AdminPanel({ role }: Props) {
         <div><div className="studio-small-label">UNABHÄNGIGER BETRIEB</div><h1>Admin-Konsole</h1><p>BlackWaterLeaf Studio wird später unabhängig von Manus auf IONOS betrieben.</p></div>
         <Button variant="outline" className="studio-outline-button" onClick={() => void runtime.refetch()}><RefreshCw size={14} /> Status prüfen</Button>
       </div>
-      <div className="admin-banner"><ShieldCheck size={18} /><div><strong>Safety-Gate aktiv</strong><p>Keine freie Shell-Ausführung und kein Deployment, solange Server-IP, SSH-Preflight und Deployment-Freigabe fehlen.</p></div></div>
+      <div className="admin-banner"><ShieldCheck size={18} /><div><strong>Safety-Gate aktiv</strong><p>Keine freie Shell-Ausführung und kein Deployment, solange öffentliche IPv4, aktive Firewall, SSH-Preflight und Deployment-Freigabe fehlen.</p></div></div>
       <div className="admin-grid">
         <AdminStatusCard icon={CloudCog} label="IONOS Cloud" value={preflight.data?.ok ? "API erreichbar" : ionos?.executionServerConfigured ? "Konfiguriert" : "Noch nicht verbunden"} detail={preflight.data?.reason ?? ionos?.reason ?? "Provisionierung oder API-Verbindung ausstehend."} tone={preflight.data?.ok ? "good" : ionos?.executionServerConfigured ? "neutral" : "warn"} />
-        <AdminStatusCard icon={KeyRound} label="SSH-Preflight" value="Noch nicht ausgeführt" detail="Benötigt öffentliche Server-IP und Admin-Schlüssel." tone="warn" />
+        <AdminStatusCard icon={KeyRound} label="SSH-Preflight" value="Noch nicht ausgeführt" detail="IONOS meldet aktuell 0 öffentliche IPv4-Adressen; Firewall/Security-Group muss zuerst aktiviert werden." tone="warn" />
         <AdminStatusCard icon={TerminalSquare} label="Execution Plane" value={sandbox?.executionPlane ?? "not_configured"} detail="Eine VM ist noch keine isolierte Agenten-Sandbox." tone={sandbox?.executionPlane !== "not_configured" ? "good" : "neutral"} />
         <AdminStatusCard icon={CloudCog} label="Manus Built-in-KI" value={builtin?.configured ? "Serverseitig bereit" : "Nicht konfiguriert"} detail={builtin?.reason ?? "Serverstatus wird geprüft."} tone={builtin?.configured ? "good" : "warn"} />
         <AdminStatusCard icon={GitBranch} label="Kimi-Provider" value={kimi?.enabled ? "Aktiv" : "Deaktiviert"} detail={kimi?.reason ?? "Serverseitiger Opt-in erforderlich."} tone={kimi?.enabled ? "good" : "neutral"} />

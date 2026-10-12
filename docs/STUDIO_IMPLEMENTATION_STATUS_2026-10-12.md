@@ -23,7 +23,7 @@
 
 ## Bewusst noch blockiert
 
-- Resend-Liveversand: der aktuell hinterlegte Key wurde zuvor mit HTTP 401 abgelehnt und muss ersetzt werden.
+- Resend-Liveversand: ein neuer minimaler Sending-Key wurde im Dashboard erstellt und sicher hinterlegt. Der lokale Domain-Endpunkt antwortet mit HTTP 403 (`error code: 1010`); das beweist keinen funktionierenden Versand und wird deshalb nicht als live bereit markiert. Ein echter Versandtest bleibt aus Sicherheitsgründen offen.
 - IONOS-Runtime: Datacenter-ID und Execution-Server-ID sind bekannt; der lokal validierte Token erreichte die IONOS-API erfolgreich. Der aktuell injizierte Sandbox-Runtimewert ist jedoch maskiert/ungültig und wurde deshalb nicht als „bereit“ akzeptiert. Ein Runtime-Secret-Reload ohne Override bleibt offen.
 - IONOS-Netzwerk: Der Cube läuft mit 2 vCPU, 4 GB RAM und einer verbundenen NIC. Im VDC sind aktuell 0 von 5 IPv4-Adressen zugewiesen; IPv6-DHCP ist vorhanden. Die NIC-Firewall steht derzeit auf `Disabled`. Deshalb bleiben SSH, TLS und unabhängiges Deployment bewusst gesperrt.
 - Isolierte Sandbox: bleibt bis zur geprüften IONOS-Worker-, Firewall-, Ressourcen- und Kill-Switch-Abnahme deaktiviert.
