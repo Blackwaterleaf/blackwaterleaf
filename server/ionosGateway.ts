@@ -8,6 +8,20 @@ export type IonosReadiness = {
   reason: string;
 };
 
+export type IonosPreflight = {
+  ok: boolean;
+  reason: string;
+  readiness: IonosReadiness;
+  server: {
+    id: string;
+    name: string;
+    vmState: string;
+    cores: number | null;
+    ram: number | null;
+    availabilityZone: string | null;
+  } | null;
+};
+
 function authHeaders() {
   return { Accept: "application/json", Authorization: `Bearer ${ENV.ionosApiToken}` };
 }
@@ -38,4 +52,39 @@ export async function getSelectedExecutionServer() {
   const response = await fetch(`${ENV.ionosApiBaseUrl}/datacenters/${ENV.ionosDatacenterId}/servers/${ENV.ionosExecutionServerId}`, { headers: authHeaders() });
   if (!response.ok) throw new Error(`IONOS_EXECUTION_SERVER_READ_FAILED_${response.status}`);
   return { readiness, server: await response.json() };
+}
+
+export async function runIonosPreflight(): Promise<IonosPreflight> {
+  const readiness = getIonosReadiness();
+  if (!readiness.executionServerConfigured) {
+    return { ok: false, reason: readiness.reason, readiness, server: null };
+  }
+
+  try {
+    const { server } = await getSelectedExecutionServer();
+    if (!server || typeof server !== "object") {
+      return { ok: false, reason: "IONOS_EXECUTION_SERVER_NOT_FOUND", readiness, server: null };
+    }
+
+    const payload = server as { id?: string; properties?: Record<string, unknown> };
+    const properties = payload.properties ?? {};
+    return {
+      ok: true,
+      reason: "IONOS_API_REACHABLE",
+      readiness,
+      server: {
+        id: payload.id ?? ENV.ionosExecutionServerId,
+        name: typeof properties.name === "string" ? properties.name : "Unbenannter Server",
+        vmState: typeof properties.vmState === "string" ? properties.vmState : "UNKNOWN",
+        cores: typeof properties.cores === "number" ? properties.cores : null,
+        ram: typeof properties.ram === "number" ? properties.ram : null,
+        availabilityZone: typeof properties.availabilityZone === "string" ? properties.availabilityZone : null,
+      },
+    };
+  } catch (error) {
+    const reason = error instanceof Error && error.message.startsWith("IONOS_EXECUTION_SERVER_READ_FAILED_")
+      ? error.message
+      : "IONOS_PREFLIGHT_NETWORK_ERROR";
+    return { ok: false, reason, readiness, server: null };
+  }
 }

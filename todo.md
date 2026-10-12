@@ -13,7 +13,9 @@
 - [x] Preispläne, Credit-Richtwerte und Nutzungsledger eingebaut
 - [x] Video-Kostenkalkulator und persistente Video-Jobs mit Approval-Gate eingebaut
 - [x] Runtime-Readiness für IONOS, Resend und Sandbox sichtbar
-- [x] Typecheck, 22 Tests und Produktionsbuild bestanden
+- [x] IONOS-Datacenter-ID und Execution-Server-ID ermittelt
+- [x] Direkter IONOS-API-Test mit dem lokal validierten Token erfolgreich
+- [x] Typecheck, 25 Tests und Produktionsbuild mit explizit validiertem Test-Token bestanden
 
 ## Noch erforderlich für echten Produktivbetrieb
 
@@ -22,7 +24,8 @@
 - [ ] Nicht-root-Admin, UFW, Systemd und TLS einrichten
 - [ ] Studio als unabhängigen Node-Dienst auf IONOS deployen
 - [ ] API-Subdomain auf den Cloud Server zeigen lassen
-- [ ] IONOS-API-Token, Datacenter-ID und Execution-Server-ID sicher hinterlegen
+- [ ] Runtime-Secret-Reload ohne Maskierungs-Override verifizieren
+- [ ] Schreibgeschützten IONOS-Preflight aus der laufenden Studio-Runtime bestätigen
 - [ ] Gültigen Resend-Sending-Key hinterlegen und Liveversand testen
 - [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen
 - [ ] Echten Video-Provider mit Provider-Quote und aktivem Render-Worker integrieren

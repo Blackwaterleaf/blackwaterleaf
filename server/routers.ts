@@ -10,7 +10,7 @@ import { abortActiveRun } from "./runWorker";
 import { assertTaskTransition, createRunGuard } from "./safety";
 import { CAPABILITY_REGISTRY, evaluatePolicy, hashArtifactBytes, sanitizeResourceScope } from "./policy";
 import { getKimiProviderStatus } from "./kimiGateway";
-import { getIonosReadiness } from "./ionosGateway";
+import { getIonosReadiness, runIonosPreflight } from "./ionosGateway";
 import { getResendStatus } from "./resendGateway";
 import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
@@ -316,6 +316,12 @@ export const appRouter = router({
     runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
       await requireWorkspace(ctx.user.id);
       return { sandbox: SANDBOX_PHASE_STATUS, builtin: { configured: Boolean(ENV.forgeApiUrl && ENV.forgeApiKey), provider: "manus_builtin" as const, reason: ENV.forgeApiUrl && ENV.forgeApiKey ? "ready_for_server_side_use" as const : "missing_builtin_configuration" as const }, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), capabilities: CAPABILITY_REGISTRY };
+    }),
+
+    ionosPreflight: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      requireRole(membership.membership.role, operatorRoles);
+      return runIonosPreflight();
     }),
 
     pricing: protectedProcedure.query(async ({ ctx }) => {
