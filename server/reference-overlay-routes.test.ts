@@ -19,10 +19,9 @@ describe("Observatory route migration", () => {
     for (const token of ['path={"/wissen"}', 'path={"/feed"}', 'path={"/community/feed"}', 'path={"/botanik"}', 'path={"/aquaristik"}', 'path={"/terraristik"}', 'path={"/shop"}', "<Route component={NotFound} />"]) expect(app).toContain(token);
   });
 
-  it("uses six direct portal targets including Community without contextual AI routes", () => {
-    for (const token of ['href: "/explore"', 'href: "/explore#map"', 'href: "/flow/foto"', 'href: "/search"', 'href: "/community"', 'href: "/profile"', 'href="/marketplace"']) expect(shell).toContain(token);
-    expect(shell).not.toContain('href: "/assistant"');
-    expect(styles).toContain("repeat(6, minmax(0, 1fr))");
+  it("uses seven direct portal targets including the KI fast path", () => {
+    for (const token of ['href: "/explore"', 'href: "/explore#map"', 'href: "/flow/foto"', 'href: "/assistant#plant"', 'href: "/search"', 'href: "/community"', 'href: "/profile"', 'href="/marketplace"']) expect(shell).toContain(token);
+    expect(styles).toContain("repeat(7, minmax(0, 1fr))");
   });
 
   it("uses one reusable Observatory language and no retired overlay", () => {

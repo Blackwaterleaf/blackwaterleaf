@@ -76,15 +76,15 @@ describe("Observatory community feed interface", () => {
     expect(composerEffect).toBeLessThan(authGuard);
   });
 
-  it("exposes Community as a sixth direct destination on web and native", () => {
+  it("exposes Community as a direct destination alongside the KI fast path", () => {
     const shell = read("client/src/components/AppShell.tsx");
     const css = read("client/src/index.css");
     const native = read("mobile-natur/App.tsx");
     expect(shell).toContain('{ href: "/community", label: "Community", icon: UsersRound }');
-    expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr))");
+    expect(css).toContain("repeat(7, minmax(0, 1fr))");
     expect(native).toContain('id: "community"');
     expect(native).toContain('screen: "community"');
-    expect(native).toContain('label: "Community"');
+    expect(native).toContain('label: "Feed"');
   });
 
   it("keeps equivalent native realm filters and truthful empty states", () => {

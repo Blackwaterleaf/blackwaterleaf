@@ -6,9 +6,9 @@ const root = resolve(import.meta.dirname, "..");
 const read = (file: string) => readFileSync(resolve(root, file), "utf8");
 
 describe("AP-13 Observatory primary navigation", () => {
-  it("defines six current Web portal destinations including Community", () => {
+  it("defines seven current Web portal destinations including KI and Community", () => {
     const shell = read("client/src/components/AppShell.tsx");
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
     expect(shell).toContain("const bottomNavigation = portalNavigation");
     expect(shell).not.toContain("desktop-navigation");
     expect(shell).not.toContain("adminBuilderNavigation");
@@ -16,7 +16,7 @@ describe("AP-13 Observatory primary navigation", () => {
 
   it("defines the current Native destinations and leaves Builder out of global tabs", () => {
     const app = read("mobile-natur/App.tsx");
-    for (const label of ["Home", "Entdecken", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Feed", "Profil"]) expect(app).toContain(`label: "${label}"`);
     expect(app).not.toContain('screen: "builder"');
     expect(app).not.toContain("HABITAT BUILDER");
   });

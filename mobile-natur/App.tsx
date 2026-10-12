@@ -232,11 +232,11 @@ const c = {
   text: "#F3FFF5",
   muted: "#9BB39F",
   danger: "#FF9EA8",
-  ai: "#B96CFF",
+  ai: "#C7F35B",
   botanySurface: "#061b0d",
   aquariumSurface: "#04303e",
   terrariumSurface: "#3e3812",
-  aiSurface: "#170C2A",
+  aiSurface: "#061b0d",
   marketSurface: "#432f14",
 };
 
@@ -250,6 +250,7 @@ if (
 type Screen =
   | "home"
   | "explore"
+  | "map"
   | "marketplace"
   | "community"
   | "communityDetail"
@@ -282,6 +283,7 @@ type BottomTab =
   | "discover"
   | "map"
   | "capture"
+  | "ai"
   | "catalog"
   | "profile"
   | "home"
@@ -334,6 +336,14 @@ const TONES: Record<Screen, Tone> = {
     image: ASSETS.terrarium,
     label: "WORLD INDEX",
     active: "explore",
+  },
+  map: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: "#0b2415",
+    image: ASSETS.terrarium,
+    label: "KARTE & LISTE",
+    active: "map",
   },
   marketplace: {
     accent: c.market,
@@ -418,10 +428,10 @@ const TONES: Record<Screen, Tone> = {
   assistant: {
     accent: c.ai,
     surface: c.aiSurface,
-    panel: "#24113D",
+    panel: c.aiSurface,
     image: ASSETS.ai,
     label: "BLACKWATERLEAF KI",
-    active: "capture",
+    active: "ai",
   },
   knowledge: {
     accent: c.botany,
@@ -680,7 +690,7 @@ function NaturApp() {
         setPlatform(await platformAvailability());
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
-      if (screen === "explore") setPublicObservationRows(await publicObservations());
+      if (screen === "explore" || screen === "map") setPublicObservationRows(await publicObservations());
       if (screen === "community" && token) setPosts(await communityFeed(token));
       if (screen === "community" && !token) setPosts([]);
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
@@ -875,6 +885,7 @@ function NaturApp() {
       <Header
         tone={tone}
         account={account}
+        onHome={() => navigate("home")}
         onSearch={() => navigate("search")}
         onMarketplace={() => navigate("marketplace")}
         onNotifications={notificationInfo}
@@ -912,7 +923,7 @@ function NaturApp() {
             navigate={navigate}
           />
         )}
-        {screen === "explore" && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} />}
+        {(screen === "explore" || screen === "map") && <Explore token={token} navigate={navigate} observations={publicObservationRows} loading={state === "loading"} error={error} refresh={loadScreen} onOpenTaxon={id => { setSelectedTaxonId(id); navigate("taxon"); }} />}
         {screen === "botany" && (
           <WorldScreen
             tone={TONES.botany}
@@ -1323,6 +1334,7 @@ function NaturApp() {
 function Header({
   tone,
   account,
+  onHome,
   onSearch,
   onMarketplace,
   onNotifications,
@@ -1336,6 +1348,7 @@ function Header({
 }: {
   tone: Tone;
   account: Account | null;
+  onHome: () => void;
   onSearch: () => void;
   onMarketplace: () => void;
   onNotifications: () => void;
@@ -1350,7 +1363,7 @@ function Header({
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <View style={[styles.header, { borderBottomColor: `${tone.accent}55` }]}>
-      <View style={styles.brandRow}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Zur Startseite" onPress={onHome} style={styles.brandRow}>
         <View style={[styles.brandMark, { borderColor: `${tone.accent}66` }]}>
           <Image
             source={require("./assets/icon.png")}
@@ -1364,7 +1377,7 @@ function Header({
             {tone.label}
           </Text>
         </View>
-      </View>
+      </Pressable>
       <View style={styles.headerActions}>
         <HeaderAction
           icon="search-outline"
@@ -1373,13 +1386,18 @@ function Header({
           onPress={onSearch}
         />
         <HeaderAction
+          icon="storefront-outline"
+          color={c.market}
+          label="Marktplatz"
+          onPress={onMarketplace}
+        />
+        <HeaderAction
           icon="notifications-outline"
           color={tone.accent}
           label="Benachrichtigungen"
           badge={unreadNotifications}
           onPress={onNotifications}
         />
-        <HeaderAction icon="chatbubble-ellipses-outline" color={c.botany} label="Feedback, Probleme und Wünsche" onPress={onFeedback} />
         <HeaderAction
           icon={account ? "person" : "person-outline"}
           color={account ? tone.accent : c.muted}
@@ -1395,6 +1413,7 @@ function Header({
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onSwitchAccount(); }}><Ionicons name="swap-horizontal-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Konto wechseln · E-Mail auswählen</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onMarketplace(); }}><Ionicons name="storefront-outline" size={21} color={c.aqua} /><Text style={styles.nativeProfileMenuText}>Marketplace</Text></Pressable>
         <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onCare(); }}><Ionicons name="leaf-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Heute · Pflegeaufgaben</Text></Pressable>
+        <Pressable style={styles.nativeProfileMenuItem} onPress={() => { setMenuOpen(false); onFeedback(); }}><Ionicons name="chatbubble-ellipses-outline" size={21} color={tone.accent} /><Text style={styles.nativeProfileMenuText}>Feedback · Probleme · Wünsche</Text></Pressable>
       </View> : null}
     </View>
   );
@@ -1765,7 +1784,7 @@ function AssistantScreen({
   tone: Tone;
   navigate: (screen: Screen) => void;
 }) {
-  const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("chat");
+  const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("plant");
   const [selectionCollapsed, setSelectionCollapsed] = useState(false);
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
@@ -1774,6 +1793,7 @@ function AssistantScreen({
   const [photos, setPhotos] = useState<PlantPhoto[]>([]);
   const [plantNote, setPlantNote] = useState("");
   const [plantAnswer, setPlantAnswer] = useState<string | null>(null);
+  const [plantCandidates, setPlantCandidates] = useState<Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>>([]);
   const [plantUsageId, setPlantUsageId] = useState<number | null>(null);
   const [needsMorePhotos, setNeedsMorePhotos] = useState(false);
   const [requestedPhotos, setRequestedPhotos] = useState(0);
@@ -1967,6 +1987,7 @@ function AssistantScreen({
         note: plantNote.trim() || undefined,
       });
       setPlantAnswer(`${response.answer}\n\n${response.disclaimer}`);
+      setPlantCandidates(response.identification?.candidates ?? []);
       setPlantUsageId(response.assistantUsageId);
       setNeedsMorePhotos(response.needsMoreImages);
       setRequestedPhotos(response.requestedAdditionalImages);
@@ -2297,6 +2318,7 @@ function AssistantScreen({
                     onPress={() => {
                       setPhotos([]);
                       setPlantAnswer(null);
+                      setPlantCandidates([]);
                       setPlantUsageId(null);
                       setNeedsMorePhotos(false);
                     }}
@@ -2391,12 +2413,14 @@ function AssistantScreen({
                   <ActivityIndicator color={tone.accent} size="small" />
                   <View style={styles.analysisLoadingCopy}>
                     <Text style={[styles.chip, { color: tone.accent }]}>KI / ANALYSE LÄUFT</Text>
-                    <Text style={styles.copy}>Bildmerkmale werden geprüft. Bitte die App geöffnet lassen.</Text>
+                  <Text style={styles.copy}>Bildmerkmale werden geprüft. Bitte die App geöffnet lassen.</Text>
+                  <View style={styles.analysisSteps}><Text style={[styles.analysisStep, { color: tone.accent }]}>01 · BILD</Text><Text style={styles.analysisStep}>02 · MERKMALE</Text><Text style={styles.analysisStep}>03 · QUELLEN</Text></View>
                   </View>
                 </View>
               ) : null}
               {plantAnswer ? (
                 <>
+                  {plantCandidates.length ? <View style={[styles.nativeEvidenceRail, { borderColor: `${tone.accent}55`, backgroundColor: `${tone.accent}0d` }]}><View style={styles.nativeEvidenceHeading}><Ionicons name="shield-checkmark-outline" size={17} color={tone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>ANALYSE ABGESCHLOSSEN · VORLÄUFIG</Text><Text style={styles.cardTitle}>Kandidaten mit sichtbarer Evidenz</Text></View></View>{plantCandidates.map((candidate, index) => <View key={`${candidate.scientificName}-${index}`} style={[styles.nativeCandidateRow, { borderColor: `${tone.accent}33` }]}><Text style={[styles.chip, { color: tone.accent }]}>0{index + 1}</Text><View style={styles.flex}><Text style={styles.cardTitle}>{candidate.commonName}</Text><Text style={styles.miniCopy}>{candidate.scientificName} · {candidate.reason}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</Text></View>)}</View> : null}
                   <Result
                     tone={tone}
                     title="VORLÄUFIGE EINORDNUNG"
@@ -4579,12 +4603,15 @@ function BottomNavigation({
   onSelect: (screen: Screen) => void;
 }) {
   const tabs: Array<{ id: BottomTab; screen: Screen; label: string; icon: IconName; color: string }> = [
-    { id: "home", screen: "home", label: "Home", icon: "home-outline", color: c.botany },
     { id: "discover", screen: "explore", label: "Entdecken", icon: "compass-outline", color: c.botany },
-    { id: "community", screen: "community", label: "Community", icon: "people-outline", color: c.botany },
+    { id: "map", screen: "map", label: "Karte", icon: "map-outline", color: c.botany },
+    { id: "capture", screen: "photo", label: "Erfassen", icon: "camera-outline", color: c.botany },
+    { id: "ai", screen: "assistant", label: "KI", icon: "hardware-chip-outline", color: c.ai },
+    { id: "catalog", screen: "search", label: "Katalog", icon: "book-outline", color: c.botany },
+    { id: "community", screen: "community", label: "Feed", icon: "people-outline", color: c.botany },
     { id: "profile", screen: "profile", label: "Profil", icon: "person-outline", color: c.botany },
   ];
-  const activeId: BottomTab = active === "home" ? "home" : active === "community" ? "community" : active === "profile" || active === "marketplace" ? "profile" : "discover";
+  const activeId: BottomTab = active === "home" || active === "explore" ? "discover" : active === "marketplace" ? "profile" : active;
   return (
     <View style={[styles.tabs, { bottom: Math.max(inset + 10, 16) }]}>
       {tabs.map(tab => (
@@ -4597,7 +4624,7 @@ function BottomNavigation({
         >
           <Ionicons
             name={tab.icon}
-            size={21}
+            size={20}
             color={activeId === tab.id ? tab.color : c.muted}
           />
           <Text
@@ -4970,11 +4997,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 11,
-    backgroundColor: "rgba(23,12,42,.72)",
+    backgroundColor: "rgba(6,27,13,.78)",
     shadowColor: c.ai,
     ...NATIVE_SOFT_SHADOW,
   },
   analysisLoadingCopy: { flex: 1, gap: 4 },
+  analysisSteps: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },
+  analysisStep: { color: c.muted, fontSize: 8, fontWeight: "900", letterSpacing: 0.5 },
+  nativeEvidenceRail: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
+  nativeEvidenceHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  nativeCandidateRow: { minHeight: 49, padding: 8, borderRadius: 10, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 8 },
   headingTitle: {
     color: c.text,
     fontSize: 23,
@@ -5236,7 +5268,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0.5,
   },
-  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(23,12,42,.66)", shadowColor: c.ai, ...NATIVE_SOFT_SHADOW },
+  workflow: { padding: 15, gap: 12, borderRadius: 18, borderWidth: 1, backgroundColor: "rgba(6,27,13,.72)", shadowColor: c.ai, ...NATIVE_SOFT_SHADOW },
   plantQuotaCard: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
   plantQuotaHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
   plantQuotaTitle: { color: c.text, fontSize: 12, lineHeight: 17, fontWeight: "900", marginTop: 3 },
@@ -5586,11 +5618,11 @@ const styles = StyleSheet.create({
   },
   tabs: {
     position: "absolute",
-    left: 12,
-    right: 12,
+    left: 6,
+    right: 6,
     minHeight: 70,
     paddingVertical: 9,
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
     flexDirection: "row",
     borderRadius: 21,
     borderWidth: 1,
@@ -5607,7 +5639,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
   },
-  tabText: { color: c.muted, fontSize: 7, fontWeight: "800" },
+  tabText: { color: c.muted, fontSize: 6.5, fontWeight: "800" },
   communitySubscribeNative: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 14, borderWidth: 1, marginBottom: 9 },
   communityFeedSelector: { gap: 8, padding: 11, borderRadius: 14, borderWidth: 1 },
   communityFeedSelectorHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },

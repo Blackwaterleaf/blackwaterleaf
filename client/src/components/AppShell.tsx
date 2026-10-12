@@ -1,4 +1,4 @@
-import { Bell, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart, Heart, Settings, Sprout } from "lucide-react";
+import { Bell, Bot, Camera, Compass, Mail, Map, Menu, Search, ShoppingBag, UserRound, BookOpen, UsersRound, MessageSquareHeart, Heart, Settings, Sprout } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { APP_LOCALES, resolveAccountLocale, useI18n, type AppLocale } from "@/i18n";
 import { SEO_LOCALES, getSeoMeta } from "@/lib/seo";
@@ -14,6 +14,7 @@ const portalNavigation = [
   { href: "/explore", label: "Entdecken", icon: Compass },
   { href: "/explore#map", label: "Karte", icon: Map },
   { href: "/flow/foto", label: "Erfassen", icon: Camera },
+  { href: "/assistant#plant", label: "KI", icon: Bot },
   { href: "/search", label: "Katalog", icon: BookOpen },
   { href: "/community", label: "Community", icon: UsersRound },
   { href: "/profile", label: "Profil", icon: UserRound },
@@ -21,6 +22,7 @@ const portalNavigation = [
 
 function isPortalNavigationActive(location: string, hash: string, href: string) {
   if (href === "/explore#map") return location === "/explore" && hash === "#map";
+  if (href === "/assistant#plant") return location === "/assistant";
   if (href === "/explore") return location === "/" || (location === "/explore" && hash !== "#map") || location.startsWith("/botanik") || location.startsWith("/aquaristik") || location.startsWith("/terraristik") || location.startsWith("/member/");
   if (href === "/community") return location.startsWith("/community");
   if (href === "/flow/foto") return location.startsWith("/flow/") || location === "/assistant";

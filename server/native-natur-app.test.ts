@@ -71,9 +71,9 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(app).not.toContain("<WebView");
   });
 
-  it("keeps the four regular Observatory navigation destinations and a reachable marketplace", () => {
-    for (const label of ["Home", "Entdecken", "Community", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    for (const token of ["onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
+  it("keeps all seven Observatory navigation destinations, KI fast path and a visible marketplace", () => {
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Feed", "Profil"]) expect(app).toContain(`label: "${label}"`);
+    for (const token of ['screen: "map"', 'screen: "assistant"', 'const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("plant")', 'onHome={() => navigate("home")}', "onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
   });
 
   it("uses renamed compact Observatory primitives for native actions", () => {

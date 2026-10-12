@@ -133,3 +133,11 @@ Web und Native zeigen im privaten Benutzerprofil einen eigenen Abo-Bereich. Der 
 ## 15.45 Community · Sichtbarer Großbildupload (2026-09-27)
 
 Web und Native zeigen bei jedem Community-Medienupload eine persistent sichtbare **Phasenkarte**: Entwurf vorbereiten, Bild aufbereiten, sicher übertragen und gegebenenfalls veröffentlichen. Die Karte enthält einen Fortschrittsbalken, aktuelle Prozentanzeige, aktive Phase und während der Übertragung eine klare Ladeanimation. Bei Bildern ab 5 MB erklärt sie ausdrücklich, dass die Optimierung und Übertragung je nach Verbindung länger dauern kann und die Seite beziehungsweise App geöffnet bleiben soll. Die Prozentanzeige beschreibt den tatsächlichen Ablauf der Arbeitsphasen; sie verschwindet bei Erfolg oder Fehler nicht unbemerkt hinter einem unveränderten Button. Beide Clients verwenden dieselben deutschen Begriffe, dieselbe Reihenfolge und denselben geschützten Uploadvertrag.
+
+## 15.47 KI-Ergebnisflächen · Evidence Rail und Analysephasen (2026-10-12)
+
+Der KI-Pflanzenscreen verwendet in Web und Native den **Evidence-Rail-Standard**: Bildvorschau, sichtbarer Analysefortschritt, Ergebnisstatus, Kandidaten, Merkmale und unabhängige Prüfung erscheinen in dieser Reihenfolge. Der lange KI-Antworttext bleibt als Detailnachweis erhalten und ersetzt die strukturierten Karten nicht.
+
+Während der Verarbeitung zeigen beide Clients dieselben drei Phasen: **Bild vorbereiten**, **Merkmale prüfen**, **Quellen abgleichen**. Der aktive Zustand wird als Statuskarte mit kurzer, ruhiger Sweep-Animation dargestellt. Web und Native verwenden Observatory-Grün für den Systemstatus; violette Flächen dürfen den Bild- und Textinhalt nicht mehr dominieren. `prefers-reduced-motion` beziehungsweise reduzierte Bewegung deaktivieren den Sweep, ohne Statusinformationen zu verlieren.
+
+Die Ergebnisfläche führt ausdrücklich mit **Analyse abgeschlossen · vorläufig**. Kandidaten enthalten gebräuchlichen Namen, wissenschaftlichen Namen, beobachtete Begründung und Sicherheitsband. Keine Karte darf eine sichere Artbestimmung, erfundene Quelle, erfundenen Fundort oder erfundene Messwerte behaupten. Muster B, **Focus Card**, bleibt als dokumentierte mobile Alternative erhalten; bis zu einer späteren Abnahme wird ausschließlich Muster A produktiv gerendert.

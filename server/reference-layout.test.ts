@@ -30,9 +30,9 @@ describe("BlackWaterLeaf Observatory layout", () => {
     expect(liveSensors).toContain("navigator.geolocation.getCurrentPosition");
   });
 
-  it("keeps one Observatory navigation with six primary destinations", () => {
+  it("keeps one Observatory navigation with seven primary destinations including KI", () => {
     expect(shell).toContain("const portalNavigation");
-    for (const label of ["Entdecken", "Karte", "Erfassen", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
     expect(shell).not.toContain('className="desktop-navigation"');
     expect(shell).not.toContain("adminBuilderNavigation");
   });
