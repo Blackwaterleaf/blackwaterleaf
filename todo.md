@@ -20,9 +20,11 @@
 ## Noch erforderlich für echten Produktivbetrieb
 
 - [x] Eine öffentliche IPv4-Adresse im IONOS-VDC reserviert (Ressourcenzähler jetzt 1/5; IPv6-DHCP ist vorhanden)
-- [ ] Reservierte IPv4 dem Internet-Access/Server zuordnen und externe Erreichbarkeit prüfen
+- [x] Öffentliche IPv4 `31.70.65.6` dem Server zugeordnet; TCP-Erreichbarkeit von 22, 80 und 443 geprüft
 - [ ] SSH-Preflight mit dem neuen Server ausführen
-- [ ] Firewall/Security-Group aktivieren; danach Nicht-root-Admin, UFW, Systemd und TLS einrichten
+- [x] IONOS-Ingress-Firewall erfolgreich provisioniert (VDC-Version 6): genau drei eindeutige Regeln SSH 22, HTTP 80 und HTTPS 443; keine FTP-/VNC-Regeln
+- [ ] IONOS-Runtime-Secret korrigieren: direkter API-Aufruf liefert weiterhin HTTP 401; fail-closed Credential-Test schlägt jetzt korrekt statt zu überspringen
+- [ ] Network Security Group optional ergänzen; danach Nicht-root-Admin, UFW, Systemd und TLS einrichten
 - [ ] Studio als unabhängigen Node-Dienst auf IONOS deployen
 - [ ] API-Subdomain auf den Cloud Server zeigen lassen
 - [ ] Runtime-Secret-Reload ohne Maskierungs-Override verifizieren
