@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 
 const DEFAULT_BASE_URL = "https://api.ionos.com/cloudapi/v6";
 const getBaseUrl = () => process.env.IONOS_API_BASE_URL?.startsWith("https://") ? process.env.IONOS_API_BASE_URL : DEFAULT_BASE_URL;
+const getConfiguredToken = () => process.env.IONOS_API_TOKEN_CANDIDATE ?? process.env.IONOS_API_TOKEN;
 const hasUsableToken = (token: string | undefined) => Boolean(token && token.length > 1000 && !token.includes("<redacted>") && !token.includes("..."));
-const liveIonosConfigured = () => process.env.IONOS_ENABLED === "true" || Boolean(process.env.IONOS_API_TOKEN || process.env.IONOS_DATACENTER_ID || process.env.IONOS_EXECUTION_SERVER_ID);
+const liveIonosConfigured = () => process.env.IONOS_ENABLED === "true" || Boolean(getConfiguredToken() || process.env.IONOS_DATACENTER_ID || process.env.IONOS_EXECUTION_SERVER_ID);
 
 describe("IONOS API credential", () => {
   it("authenticates against the lightweight datacenters endpoint when configured", async () => {
-    const token = process.env.IONOS_API_TOKEN;
+    const token = getConfiguredToken();
     if (!liveIonosConfigured()) return;
     expect(hasUsableToken(token), "IONOS_API_TOKEN is missing, masked, truncated, or otherwise unusable").toBe(true);
     const baseUrl = getBaseUrl();
@@ -18,7 +19,7 @@ describe("IONOS API credential", () => {
   }, 20_000);
 
   it("authenticates against the selected execution server endpoint when configured", async () => {
-    const token = process.env.IONOS_API_TOKEN;
+    const token = getConfiguredToken();
     const datacenterId = process.env.IONOS_DATACENTER_ID;
     const serverId = process.env.IONOS_EXECUTION_SERVER_ID;
     if (!liveIonosConfigured()) return;

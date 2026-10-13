@@ -23,12 +23,13 @@
 - [x] Öffentliche IPv4 `31.70.65.6` dem Server zugeordnet; TCP-Erreichbarkeit von 22, 80 und 443 geprüft
 - [ ] SSH-Preflight mit dem neuen Server ausführen
 - [x] IONOS-Ingress-Firewall erfolgreich provisioniert (VDC-Version 6): genau drei eindeutige Regeln SSH 22, HTTP 80 und HTTPS 443; keine FTP-/VNC-Regeln
-- [ ] IONOS-Runtime-Secret korrigieren: direkter API-Aufruf liefert weiterhin HTTP 401; fail-closed Credential-Test schlägt jetzt korrekt statt zu überspringen
+- [x] Neuer 365-Tage-IONOS-Token direkt gegen Datacenter und Execution-Server mit HTTP 200 validiert
+- [x] Neuer Token als primäre Runtime-Quelle unter `IONOS_API_TOKEN_CANDIDATE` hinterlegt; API- und Gateway-Tests bestanden
 - [ ] Network Security Group optional ergänzen; danach Nicht-root-Admin, UFW, Systemd und TLS einrichten
 - [ ] Studio als unabhängigen Node-Dienst auf IONOS deployen
 - [ ] API-Subdomain auf den Cloud Server zeigen lassen
-- [ ] Runtime-Secret-Reload ohne Maskierungs-Override verifizieren
-- [ ] Schreibgeschützten IONOS-Preflight aus der laufenden Studio-Runtime bestätigen
+- [x] Runtime-Secret-Reload im Testprozess ohne lokalen Token-Override verifiziert
+- [x] Schreibgeschützter IONOS-Preflight gegen den ausgewählten Server bestätigt
 - [x] Neuen Resend-Sending-Key mit minimaler Sending-Berechtigung sicher hinterlegen
 - [ ] Resend-Liveversand mit bestätigter Domain und Testmail verifizieren
 - [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen

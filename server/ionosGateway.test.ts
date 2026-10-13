@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { getIonosReadiness, runIonosPreflight } from "./ionosGateway";
 
+const getConfiguredToken = () => process.env.IONOS_API_TOKEN_CANDIDATE ?? process.env.IONOS_API_TOKEN;
 const hasUsableToken = (token: string | undefined) => Boolean(token && token.length > 1000 && !token.includes("<redacted>") && !token.includes("..."));
-const hasConfiguredIonos = () => hasUsableToken(process.env.IONOS_API_TOKEN) && Boolean(process.env.IONOS_DATACENTER_ID && process.env.IONOS_EXECUTION_SERVER_ID && process.env.IONOS_ENABLED === "true");
+const hasConfiguredIonos = () => hasUsableToken(getConfiguredToken()) && Boolean(process.env.IONOS_DATACENTER_ID && process.env.IONOS_EXECUTION_SERVER_ID && process.env.IONOS_ENABLED === "true");
 
 describe("ionosGateway", () => {
   it("does not report an execution server as ready without usable credentials", () => {
