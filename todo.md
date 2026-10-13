@@ -35,7 +35,8 @@
 - [x] Neuer Token als primäre Runtime-Quelle unter `IONOS_API_TOKEN_CANDIDATE` hinterlegt; API- und Gateway-Tests bestanden
 - [ ] Network Security Group optional ergänzen; UFW, Systemd und HTTP sind eingerichtet
 - [x] Studio-Infrastruktur als Node-Dienst auf IONOS ausrollen; Produktivfreigabe bleibt bis zur Auth-Abnahme gesperrt
-- [ ] Domain/API-Subdomain von Webhosting auf `31.70.65.6` umschalten und TLS ausstellen
+- [x] `blackwaterleaf-studio.com` und `www` auf `31.70.65.6` umgeschaltet; öffentliche Cloudflare-DNS-Prüfung bestätigt beide A-Records
+- [x] Let's-Encrypt-TLS für Root und www ausgestellt; HTTPS, HTTP→HTTPS-Redirect und Studioantwort extern geprüft
 - [ ] Produktions-Auth implementieren und per Login-Smoke-Test verifizieren; aktuell meldet der Dienst fehlendes `OAUTH_SERVER_URL`
 - [x] Runtime-Secret-Reload im Testprozess ohne lokalen Token-Override verifiziert
 - [x] Schreibgeschützter IONOS-Preflight gegen den ausgewählten Server bestätigt
