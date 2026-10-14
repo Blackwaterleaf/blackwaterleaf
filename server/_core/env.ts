@@ -30,4 +30,7 @@ export const ENV = {
   studioPublicUrl: process.env.STUDIO_PUBLIC_URL ?? "",
   localAuthEnabled: process.env.LOCAL_AUTH_ENABLED === "true",
   localAuthBootstrapFirstUser: process.env.LOCAL_AUTH_BOOTSTRAP_FIRST_USER === "true",
+  runwayApiKey: process.env.RUNWAY_API_KEY ?? "",
+  runwayEnabled: process.env.RUNWAY_ENABLED === "true",
+  runwayModel: process.env.RUNWAY_MODEL ?? "gen4_turbo",
 };

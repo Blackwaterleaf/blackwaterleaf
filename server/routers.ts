@@ -12,6 +12,7 @@ import { CAPABILITY_REGISTRY, evaluatePolicy, hashArtifactBytes, sanitizeResourc
 import { getKimiProviderStatus } from "./kimiGateway";
 import { getIonosReadiness, runIonosPreflight } from "./ionosGateway";
 import { getResendStatus } from "./resendGateway";
+import { getRunwayStatus } from "./runwayGateway";
 import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
 import { storagePut } from "./storage";
@@ -330,7 +331,7 @@ export const appRouter = router({
 
     runtimeStatus: protectedProcedure.query(async ({ ctx }) => {
       await requireWorkspace(ctx.user.id);
-      return { sandbox: SANDBOX_PHASE_STATUS, builtin: { configured: Boolean(ENV.forgeApiUrl && ENV.forgeApiKey), provider: "manus_builtin" as const, reason: ENV.forgeApiUrl && ENV.forgeApiKey ? "ready_for_server_side_use" as const : "missing_builtin_configuration" as const }, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), capabilities: CAPABILITY_REGISTRY };
+      return { sandbox: SANDBOX_PHASE_STATUS, builtin: { configured: Boolean(ENV.forgeApiUrl && ENV.forgeApiKey), provider: "manus_builtin" as const, reason: ENV.forgeApiUrl && ENV.forgeApiKey ? "ready_for_server_side_use" as const : "missing_builtin_configuration" as const }, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), runway: getRunwayStatus(), capabilities: CAPABILITY_REGISTRY };
     }),
 
     ionosPreflight: protectedProcedure.query(async ({ ctx }) => {
@@ -358,8 +359,9 @@ export const appRouter = router({
         requireRole(membership.membership.role, operatorRoles);
         const estimate = estimateVideoCost(input);
         const jobId = await db.createVideoJob({ workspaceId: membership.workspace.id, createdBy: ctx.user.id, ...input, estimatedCredits: estimate.credits, estimatedCostCents: estimate.estimatedEurCents });
-        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "video.job.estimated", metadata: { jobId, credits: estimate.credits, costCents: estimate.estimatedEurCents, provider: "not_configured" } });
-        return { jobId, status: "awaiting_approval" as const, estimate, provider: "not_configured" as const };
+        const provider = getRunwayStatus().configured ? "runway" : "runway_not_configured";
+        await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "video.job.estimated", metadata: { jobId, credits: estimate.credits, costCents: estimate.estimatedEurCents, provider } });
+        return { jobId, status: "awaiting_approval" as const, estimate, provider };
       }),
 
     videoJobs: protectedProcedure.query(async ({ ctx }) => {
