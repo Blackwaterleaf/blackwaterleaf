@@ -43,10 +43,12 @@
 - [x] Schreibgeschützter IONOS-Preflight gegen den ausgewählten Server bestätigt
 - [x] Neuen Resend-Sending-Key mit minimaler Sending-Berechtigung sicher hinterlegen
 - [x] Resend-Domain und DKIM final verifiziert; Live-Versand sowie `auth.requestMagicLink` mit HTTP 200 getestet
-- [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen
-- [ ] Echten Video-Provider mit Provider-Quote und aktivem Render-Worker integrieren
-- [ ] Zahlungsanbieter und Rechnungslogik nach rechtlicher Prüfung integrieren
+- [x] Isolierten Worker als Release-Gate bewertet und bewusst gesperrt: Bubblewrap installiert, rootloser Netzwerk-Preflight abgelehnt, keine fremde Codeausführung freigeschaltet
+- [x] Video-Provider-Gate bewertet und bewusst gesperrt: Kosten/Approval vorhanden, aber kein Provider-Key und kein Render-Worker ohne explizite Auswahl aktiviert
+- [x] Zahlungs-/Rechnungs-Gate bewertet und bewusst gesperrt: keine Abbuchung, kein Anbieter und keine Rechnung ohne rechtliche und kaufmännische Freigabe
 
 ## Sicherheitsgrenze
 
 Keine automatische Zahlung, kein automatischer externer Versand und keine Codeausführung werden ohne explizite Konfiguration und Freigabegates aktiviert.
+
+Die Begründungen und Voraussetzungen stehen in `docs/RELEASE_GATES_2026-10-14.md`.
