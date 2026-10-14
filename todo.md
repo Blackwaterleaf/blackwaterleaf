@@ -33,15 +33,16 @@
 - [x] IONOS-Ingress-Firewall erfolgreich provisioniert (VDC-Version 6): genau drei eindeutige Regeln SSH 22, HTTP 80 und HTTPS 443; keine FTP-/VNC-Regeln
 - [x] Neuer 365-Tage-IONOS-Token direkt gegen Datacenter und Execution-Server mit HTTP 200 validiert
 - [x] Neuer Token als primäre Runtime-Quelle unter `IONOS_API_TOKEN_CANDIDATE` hinterlegt; API- und Gateway-Tests bestanden
-- [ ] Network Security Group optional ergänzen; UFW, Systemd und HTTP sind eingerichtet
-- [x] Studio-Infrastruktur als Node-Dienst auf IONOS ausrollen; Produktivfreigabe bleibt bis zur Auth-Abnahme gesperrt
+- [x] Keine zusätzliche Network Security Group erforderlich; UFW, IONOS-Ingress-Firewall und Systemd sind aktiv
+- [x] Studio-Infrastruktur als Node-Dienst auf IONOS ausrollen und nach Auth-Abnahme produktiv freigeben
 - [x] `blackwaterleaf-studio.com` und `www` auf `31.70.65.6` umgeschaltet; öffentliche Cloudflare-DNS-Prüfung bestätigt beide A-Records
 - [x] Let's-Encrypt-TLS für Root und www ausgestellt; HTTPS, HTTP→HTTPS-Redirect und Studioantwort extern geprüft
-- [ ] Produktions-Auth implementieren und per Login-Smoke-Test verifizieren; aktuell meldet der Dienst fehlendes `OAUTH_SERVER_URL`
+- [x] Unabhängige lokale Magic-Link-Authentifizierung mit gehashten Einmal-Tokens und Sessions aktiviert; kompletter E2E-Smoke-Test: HTTP 302 plus `studio_session`-Cookie
+- [x] Manus-OAuth im Local-Auth-Modus sauber deaktiviert; keine `OAUTH_SERVER_URL`-Fehlermeldung mehr im Dienststart
 - [x] Runtime-Secret-Reload im Testprozess ohne lokalen Token-Override verifiziert
 - [x] Schreibgeschützter IONOS-Preflight gegen den ausgewählten Server bestätigt
 - [x] Neuen Resend-Sending-Key mit minimaler Sending-Berechtigung sicher hinterlegen
-- [ ] Resend-Liveversand mit bestätigter Domain und Testmail verifizieren
+- [x] Resend-Domain und DKIM final verifiziert; Live-Versand sowie `auth.requestMagicLink` mit HTTP 200 getestet
 - [ ] Isolierten Worker mit Ressourcenlimits, Egress-Allowlist und Kill-Switch abnehmen
 - [ ] Echten Video-Provider mit Provider-Quote und aktivem Render-Worker integrieren
 - [ ] Zahlungsanbieter und Rechnungslogik nach rechtlicher Prüfung integrieren

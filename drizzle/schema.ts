@@ -20,6 +20,23 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const authChallenges = mysqlTable("studio_auth_challenges", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const authSessions = mysqlTable("studio_auth_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sessionHash: varchar("sessionHash", { length: 64 }).notNull().unique(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const mobileDevices = mysqlTable("studio_mobile_devices", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -330,6 +347,8 @@ export const videoJobs = mysqlTable("studio_video_jobs", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+export type AuthChallenge = typeof authChallenges.$inferSelect;
+export type AuthSession = typeof authSessions.$inferSelect;
 export type Workspace = typeof workspaces.$inferSelect;
 export type StudioProject = typeof studioProjects.$inferSelect;
 export type ProjectBrief = typeof projectBriefs.$inferSelect;

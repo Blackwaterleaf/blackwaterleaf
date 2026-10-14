@@ -28,4 +28,6 @@ export const ENV = {
   resendApiKey: process.env.RESEND_API_KEY ?? "",
   resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
   studioPublicUrl: process.env.STUDIO_PUBLIC_URL ?? "",
+  localAuthEnabled: process.env.LOCAL_AUTH_ENABLED === "true",
+  localAuthBootstrapFirstUser: process.env.LOCAL_AUTH_BOOTSTRAP_FIRST_USER === "true",
 };

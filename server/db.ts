@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, desc, eq, inArray, lt, lte, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -25,6 +25,8 @@ import {
   workspaces,
   usageLedger,
   videoJobs,
+  authChallenges,
+  authSessions,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { hashEvidence } from "./safety";
@@ -88,6 +90,51 @@ export async function getUserByOpenId(openId: string) {
   if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
   return result[0];
+}
+
+export async function createAuthChallenge(input: { email: string; tokenHash: string; expiresAt: Date }) {
+  const db = await requireDb();
+  await db.update(authChallenges).set({ usedAt: new Date() }).where(and(eq(authChallenges.email, input.email), isNull(authChallenges.usedAt)));
+  const result = await db.insert(authChallenges).values(input);
+  return Number(result[0].insertId);
+}
+
+export async function consumeAuthChallenge(input: { email: string; tokenHash: string }) {
+  const db = await requireDb();
+  const now = new Date();
+  const rows = await db.select().from(authChallenges).where(and(eq(authChallenges.email, input.email), eq(authChallenges.tokenHash, input.tokenHash), isNull(authChallenges.usedAt), gt(authChallenges.expiresAt, now))).limit(1);
+  const challenge = rows[0];
+  if (!challenge) return false;
+  const result = await db.update(authChallenges).set({ usedAt: now }).where(and(eq(authChallenges.id, challenge.id), isNull(authChallenges.usedAt)));
+  return Number(result[0].affectedRows ?? 0) === 1;
+}
+
+export async function hasLocalUsers() {
+  const db = await requireDb();
+  const rows = await db.select({ id: users.id }).from(users).where(sql`${users.openId} like 'local:%'`).limit(1);
+  return rows.length > 0;
+}
+
+export async function createOrGetLocalUser(email: string, role: "user" | "admin" = "user") {
+  const openId = `local:${email}`;
+  await upsertUser({ openId, email, name: email.split("@")[0], loginMethod: "magic_link", role, lastSignedIn: new Date() });
+  return await getUserByOpenId(openId);
+}
+
+export async function createAuthSession(input: { userId: number; sessionHash: string; expiresAt: Date }) {
+  const db = await requireDb();
+  await db.insert(authSessions).values(input);
+}
+
+export async function getUserBySessionHash(sessionHash: string) {
+  const db = await requireDb();
+  const rows = await db.select({ user: users }).from(authSessions).innerJoin(users, eq(authSessions.userId, users.id)).where(and(eq(authSessions.sessionHash, sessionHash), gt(authSessions.expiresAt, new Date()))).limit(1);
+  return rows[0]?.user;
+}
+
+export async function revokeAuthSession(sessionHash: string) {
+  const db = await requireDb();
+  await db.delete(authSessions).where(eq(authSessions.sessionHash, sessionHash));
 }
 
 export async function registerMobileDevice(input: { userId: number; expoPushToken: string; platform: "android" | "ios" | "web" }) {

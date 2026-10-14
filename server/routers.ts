@@ -16,6 +16,7 @@ import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
 import { storagePut } from "./storage";
 import * as db from "./db";
+import { issueMagicLink, LOCAL_SESSION_COOKIE, revokeLocalSession } from "./_core/localAuth";
 
 const operatorRoles = new Set(["owner", "admin", "operator"]);
 const reviewerRoles = new Set(["owner", "admin", "reviewer"]);
@@ -49,9 +50,23 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
+    requestMagicLink: publicProcedure
+      .input(z.object({ email: z.string().trim().email().max(320) }))
+      .mutation(async ({ input }) => {
+        try {
+          await issueMagicLink(input.email);
+          return { sent: true as const };
+        } catch (error) {
+          if (error instanceof Error && error.message === "LOCAL_AUTH_DISABLED") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Lokale Studio-Anmeldung ist noch nicht aktiviert." });
+          if (error instanceof Error && error.message === "LOCAL_AUTH_EMAIL_NOT_CONFIGURED") throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Resend ist für lokale Anmeldung noch nicht vollständig konfiguriert." });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Login-Link konnte nicht versendet werden." });
+        }
+      }),
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      await revokeLocalSession(ctx.req).catch(() => undefined);
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(LOCAL_SESSION_COOKIE, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),

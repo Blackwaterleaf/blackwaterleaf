@@ -1,5 +1,4 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +79,8 @@ function initials(name?: string | null) {
 
 export default function Home() {
   const { user, loading, logout } = useAuth();
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginSent, setLoginSent] = useState(false);
   const [active, setActive] = useState("workspace");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("Mein Studio");
@@ -96,6 +97,10 @@ export default function Home() {
 
   const overview = trpc.studio.overview.useQuery(undefined, { enabled: Boolean(user) });
   const evidencePack = trpc.studio.evidencePack.useQuery({ taskId: evidenceTaskId ?? 0 }, { enabled: evidenceTaskId !== null });
+  const requestMagicLink = trpc.auth.requestMagicLink.useMutation({
+    onSuccess: () => setLoginSent(true),
+    onError: error => toast.error(error.message),
+  });
   const createWorkspace = trpc.studio.createWorkspace.useMutation({
     onSuccess: () => { overview.refetch(); toast.success("Workspace angelegt"); },
     onError: error => toast.error(error.message),
@@ -174,8 +179,12 @@ export default function Home() {
           <h1>Arbeite klar.<br /><span>Führe kontrolliert aus.</span></h1>
           <h2 className="sr-only">KI-Agenten, App Builder und sichere Sandbox</h2>
           <p className="studio-auth-copy">Ein fokussierter Arbeitsraum für Ziele, Agentenarbeit, Freigaben und nachvollziehbare Ergebnisse.</p>
-          <Button className="studio-primary-button w-full" size="lg" onClick={() => startLogin()}>Studio öffnen <ArrowUpRight size={16} /></Button>
-          <div className="studio-auth-note"><LockKeyhole size={14} /> Authentifizierung und Rollenprüfung sind serverseitig.</div>
+          <form className="space-y-3" onSubmit={event => { event.preventDefault(); setLoginSent(false); requestMagicLink.mutate({ email: loginEmail }); }}>
+            <Input type="email" required value={loginEmail} onChange={event => setLoginEmail(event.target.value)} placeholder="deine E-Mail-Adresse" className="studio-input" />
+            <Button className="studio-primary-button w-full" size="lg" disabled={requestMagicLink.isPending}>{requestMagicLink.isPending ? "Login-Link wird gesendet…" : "Login-Link senden"} <ArrowUpRight size={16} /></Button>
+          </form>
+          {loginSent ? <p className="text-sm text-[#9ccabb]">Prüfe dein Postfach. Der Link ist 15 Minuten gültig.</p> : null}
+          <div className="studio-auth-note"><LockKeyhole size={14} /> Passwortloser Login per E-Mail; Rollenprüfung bleibt serverseitig.</div>
         </section>
       </main>
     );
