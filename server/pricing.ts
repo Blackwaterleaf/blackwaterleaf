@@ -4,10 +4,26 @@ export type VideoVoice = "none" | "synthetic" | "premium";
 export const STUDIO_PRICING = {
   currency: "EUR",
   monthly: [
-    { id: "free", name: "Free", monthlyCents: 0, includedCredits: 20, maxRuntimeSeconds: 60 },
-    { id: "creator", name: "Creator", monthlyCents: 1900, includedCredits: 500, maxRuntimeSeconds: 300 },
-    { id: "studio", name: "Studio", monthlyCents: 4900, includedCredits: 2000, maxRuntimeSeconds: 900 },
-    { id: "enterprise", name: "Enterprise", monthlyCents: 14900, includedCredits: 10000, maxRuntimeSeconds: 1800 },
+    {
+      id: "free", name: "Free", monthlyCents: 0, includedCredits: 20, maxRuntimeSeconds: 60,
+      maxProjects: 1, maxActiveRuns: 1, teamMembers: 1,
+      features: ["Workspace und Agenten-Queue", "App-Builder-Projektprofil", "Preview mit Freigabe"],
+    },
+    {
+      id: "creator", name: "Creator", monthlyCents: 990, includedCredits: 400, maxRuntimeSeconds: 300,
+      maxProjects: 3, maxActiveRuns: 3, teamMembers: 1,
+      features: ["Alles aus Free", "Web-App-Builder mit Code-Workspace", "Evidence-Pack und Audit-Timeline", "Resend-Magic-Link-Login"],
+    },
+    {
+      id: "studio", name: "Studio", monthlyCents: 2490, includedCredits: 1500, maxRuntimeSeconds: 900,
+      maxProjects: 10, maxActiveRuns: 8, teamMembers: 3,
+      features: ["Alles aus Creator", "Preview und Staging-Gates", "Mobile-Projektprofil", "Team-Freigaben und Push-Benachrichtigungen"],
+    },
+    {
+      id: "enterprise", name: "Enterprise", monthlyCents: 7900, includedCredits: 6000, maxRuntimeSeconds: 1800,
+      maxProjects: 50, maxActiveRuns: 20, teamMembers: 10,
+      features: ["Alles aus Studio", "IONOS-Deployment-Readiness", "Erweiterte Audit- und Sicherheitskontrollen", "Priorisierte Betriebsgrenzen"],
+    },
   ],
   creditEurCents: 2,
   video: {

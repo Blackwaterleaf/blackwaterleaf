@@ -44,8 +44,8 @@
 - [x] Neuen Resend-Sending-Key mit minimaler Sending-Berechtigung sicher hinterlegen
 - [x] Resend-Domain und DKIM final verifiziert; Live-Versand sowie `auth.requestMagicLink` mit HTTP 200 getestet
 - [x] Isolierten Worker als Release-Gate bewertet und bewusst gesperrt: Bubblewrap installiert, rootloser Netzwerk-Preflight abgelehnt, keine fremde Codeausführung freigeschaltet
-- [x] Runway-Provider-Adapter, Kostenroute und Admin-Status integriert; Key leichtgewichtig validiert und root-only auf IONOS aktiviert
-- [ ] Ersten kostenpflichtigen Runway-Render nur nach expliziter Videojob-Freigabe ausführen und Output-Speicherung abnehmen
+- [x] Runway-Provider-Adapter, Kostenroute und Admin-Status integriert; Key validiert, aber Runway für den aktuellen Betrieb wieder deaktiviert
+- [x] Videogenerierung bewusst zurückgestellt: kein kostenpflichtiger Render und keine Providerkosten ohne späteren separaten Startauftrag
 - [x] Zahlungs-/Rechnungs-Gate bewertet und bewusst gesperrt: keine Abbuchung, kein Anbieter und keine Rechnung ohne rechtliche und kaufmännische Freigabe
 
 ## Sicherheitsgrenze

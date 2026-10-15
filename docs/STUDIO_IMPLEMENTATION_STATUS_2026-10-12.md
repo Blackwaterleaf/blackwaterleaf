@@ -1,35 +1,43 @@
-# BlackWaterLeaf Studio – Implementierungsstatus 2026-10-12
+# BlackWaterLeaf Studio – Implementierungsstatus 2026-10-15
 
-## Eingebaut
+## Produktiv umgesetzt
 
-- Serverseitige Studio-Preispläne: Free, Creator, Studio und Enterprise.
-- Deterministisches Credit-Modell für Video-Richtwerte.
-- Persistenter, workspace-isolierter Nutzungsledger für Video-, LLM-, Worker- und Storage-Einheiten.
-- Persistente Video-Jobs mit Status `awaiting_approval` und Provider-Gate.
-- Video-Kostenkalkulator für Dauer, Qualität, Sprecher und Musik.
-- Geschützte tRPC-Routen `pricing` und `videoEstimate`.
-- Resend-Gateway mit sicherem Konfigurationsstatus und Versandvertrag.
-- Runtime-Readiness-Anzeige für Resend, IONOS und isolierte Sandbox.
-- Rollenbeschränkter, schreibgeschützter IONOS-Preflight für den Adminbereich; keine Mutationen.
-- Separater Status für die serverseitig verfügbare Manus-Built-in-KI und den optionalen Kimi-Provider.
-- Kosten & Video als eigener Studio-Navigationsbereich.
-- Stabiler Resend-Konfigurationstest ohne externe Live-Abhängigkeit.
+- Unabhängiger IONOS-Betrieb mit Ubuntu 24.04, MariaDB, Node-Dienst, Nginx, UFW, SSH-Healthcheck und Let's-Encrypt-TLS.
+- `blackwaterleaf-studio.com` und `www` zeigen auf den Cloud-Server; HTTPS und HTTP→HTTPS-Redirect sind extern geprüft.
+- Lokale Magic-Link-Anmeldung mit gehashten Einmal-Tokens, Sessions und Resend-Versand ist aktiv.
+- Persistente Agenten-Queue mit Leasing, Retry-/Dead-Letter-Zuständen, Checkpoints und Kill-Switch.
+- App Builder MVP mit Projektprofilen, Code-Workspace, Preview-/Staging-Gates und Approval-Workflow.
+- Evidence-Pack-, Audit- und Nutzungsledger-Grundlagen.
+- Sicherheits- und Readiness-Anzeigen für IONOS, Resend, Sandbox, Manus-Built-in-KI, Kimi und Runway.
+- Preispläne und Credit-Limits transparent in Free, Creator, Studio und Enterprise gestaffelt.
+- Runway-Adapter, Kostenroute und Credential-Smoke-Test integriert; Runway ist aktuell bewusst deaktiviert.
+
+## Aktuelle Tarifstruktur
+
+| Plan | Preis | Credits | Projekte | Nutzer | Aktive Runs |
+|---|---:|---:|---:|---:|---:|
+| Free | 0 € | 20 | 1 | 1 | 1 |
+| Creator | 9,90 €/Monat | 400 | 3 | 1 | 3 |
+| Studio | 24,90 €/Monat | 1.500 | 10 | 3 | 8 |
+| Enterprise | 79,00 €/Monat | 6.000 | 50 | 10 | 20 |
+
+Die Preise sind derzeit **Produkt-Richtwerte**. Zahlungsanbieter, automatische Abbuchungen und Rechnungen bleiben deaktiviert.
 
 ## Validierung
 
 - `pnpm check`: bestanden
-- `pnpm test`: 11 Testdateien / 25 Tests bestanden
+- `pnpm test`: bestanden, inklusive Pricing-, IONOS-, Auth-, Resend-, Worker- und Runway-Tests
 - `pnpm build`: bestanden
+- IONOS-API- und Gateway-Preflight: HTTP 200
+- Öffentliche Root- und www-HTTPS-Prüfung: HTTP 200
+- Runway-Credential-Smoke-Test: authentifiziert; keine Generierung gestartet
 
-## Bewusst noch blockiert
+## Bewusst deaktiviert
 
-- Resend-Liveversand: ein neuer minimaler Sending-Key wurde im Dashboard erstellt und sicher hinterlegt. Der lokale Domain-Endpunkt antwortet mit HTTP 403 (`error code: 1010`); das beweist keinen funktionierenden Versand und wird deshalb nicht als live bereit markiert. Ein echter Versandtest bleibt aus Sicherheitsgründen offen.
-- IONOS-Runtime: Datacenter-ID und Execution-Server-ID sind bekannt; der lokal validierte Token erreichte die IONOS-API erfolgreich. Der aktuell injizierte Sandbox-Runtimewert ist jedoch maskiert/ungültig und wurde deshalb nicht als „bereit“ akzeptiert. Ein Runtime-Secret-Reload ohne Override bleibt offen.
-- IONOS-Netzwerk: Der Cube läuft mit 2 vCPU, 4 GB RAM und einer verbundenen NIC. IPv6 ist im LAN mit `2a01:239:501:b400::/56` aktiviert. Eine öffentliche IPv4 wurde im VDC reserviert (Ressourcenzähler 1/5), ist aber noch nicht dem Internet-Access/Server zugeordnet. Die NIC-Firewall steht derzeit auf `Disabled`; deshalb bleiben SSH, TLS und unabhängiges Deployment bewusst gesperrt.
-- Isolierte Sandbox: bleibt bis zur geprüften IONOS-Worker-, Firewall-, Ressourcen- und Kill-Switch-Abnahme deaktiviert.
-- Video-Produktion: der Kalkulator ist aktiv; ein konkreter Video-Provider muss separat mit Quote, Limits und Kostenkontrolle verbunden werden.
-- Abrechnung: die Preislogik ist ein Produkt-Richtwert, keine Zahlungs- oder Rechnungsintegration.
+- **Sandbox-Codeausführung:** deny-by-default, weil die rootlose Netzwerkisolation des aktuellen IONOS-Kernels nicht ausreichend abgenommen ist.
+- **Videogenerierung:** Runway-Key ist hinterlegt und validiert, aber `RUNWAY_ENABLED=false`; der freigegebene Render scheiterte vor dem Start an fehlenden Runway-Credits. Es wurde kein Output gespeichert.
+- **Zahlungen:** keine Abbuchung und keine Rechnungsstellung ohne spätere rechtliche und kaufmännische Freigabe.
 
 ## Sicherheitsentscheidung
 
-Keine automatische Abbuchung, kein automatischer externer Versand und keine Codeausführung wurden durch diese Änderung aktiviert. Nicht konfigurierte Integrationen bleiben deny-by-default blockiert.
+Nicht konfigurierte oder ausdrücklich deaktivierte Integrationen dürfen keine kostenpflichtigen Jobs, Codeausführung oder automatischen Abbuchungen auslösen. Der erste Video-Render bleibt ein separater späterer Auftrag.

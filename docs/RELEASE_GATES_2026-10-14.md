@@ -22,9 +22,9 @@ Für die Freischaltung fehlen eine separat geprüfte Runner-Service-Grenze, Ress
 
 ### 2. Video-Provider / Render-Worker
 
-Der Video-Kostenkalkulator, Credit-Schätzung, Approval-Gate und Video-Job-Datensatz sind produktiv. Es ist absichtlich kein kostenpflichtiger externer Video-Provider hinterlegt und kein Render-Worker aktiviert. Dadurch entstehen keine unbeabsichtigten Providerkosten und kein Job wird fälschlich als gerendert gemeldet.
+Der Video-Kostenkalkulator, Credit-Schätzung, Approval-Gate, Video-Job-Datensatz und Runway-Adapter sind integriert. Der Runway-Key wurde ohne Generierung authentifiziert und root-only auf IONOS hinterlegt, aber `RUNWAY_ENABLED=false` gesetzt. Der erste freigegebene Render scheiterte vor dem Start an fehlenden Runway-Credits; es wurde kein Output gespeichert und es entstehen aktuell keine Video-Providerkosten.
 
-Für die Aktivierung braucht es einen konkret gewählten Provider, einen serverseitigen Key, eine Quote, einen lokalen oder externen Render-Adapter und einen echten Abnahme-Job.
+Für die spätere Aktivierung braucht es Runway-Credits, eine Provider-Quote, den expliziten Startauftrag sowie eine technische Abnahme des Render-Outputs.
 
 ### 3. Zahlungsanbieter / Rechnungslogik
 

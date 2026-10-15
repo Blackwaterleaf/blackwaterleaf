@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateVideoCost } from "./pricing";
+import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
 
 describe("video pricing", () => {
   it("returns a deterministic estimate", () => {
@@ -13,5 +13,13 @@ describe("video pricing", () => {
     expect(estimate.durationSeconds).toBe(1800);
     expect(estimate.clips).toBe(30);
     expect(estimate.credits).toBeGreaterThan(0);
+  });
+
+  it("keeps affordable tiers ordered by credits and limits", () => {
+    const plans = STUDIO_PRICING.monthly;
+    expect(plans.map(plan => plan.id)).toEqual(["free", "creator", "studio", "enterprise"]);
+    expect(plans.map(plan => plan.monthlyCents)).toEqual([0, 990, 2490, 7900]);
+    expect(plans.every(plan => plan.features.length >= 3)).toBe(true);
+    expect(plans.map(plan => plan.includedCredits)).toEqual([20, 400, 1500, 6000]);
   });
 });

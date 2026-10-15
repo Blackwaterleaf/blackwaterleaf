@@ -15,7 +15,11 @@ export function getRunwayStatus() {
     provider: "runway" as const,
     configured,
     modelByQuality: MODEL_BY_QUALITY,
-    reason: configured ? "ready_for_approval_gated_video_jobs" : "missing_runway_configuration",
+    reason: configured
+      ? "ready_for_approval_gated_video_jobs"
+      : !ENV.runwayEnabled
+        ? "provider_disabled"
+        : "missing_runway_configuration",
   } as const;
 }
 

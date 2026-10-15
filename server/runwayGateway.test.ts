@@ -4,6 +4,11 @@ import { getRunwayModel, getRunwayStatus } from "./runwayGateway";
 describe("Runway gateway", () => {
   it("fails closed without an API key", () => {
     const status = getRunwayStatus();
+    if (process.env.RUNWAY_ENABLED === "false") {
+      expect(status.configured).toBe(false);
+      expect(status.reason).toBe("provider_disabled");
+      return;
+    }
     if (!process.env.RUNWAY_API_KEY) {
       expect(status.configured).toBe(false);
       expect(status.reason).toBe("missing_runway_configuration");
