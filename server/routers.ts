@@ -13,11 +13,12 @@ import { getKimiProviderStatus } from "./kimiGateway";
 import { getIonosReadiness, runIonosPreflight } from "./ionosGateway";
 import { getResendStatus } from "./resendGateway";
 import { getRunwayStatus } from "./runwayGateway";
-import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
+import { estimateVideoCost, getPlanLimits, STUDIO_PRICING } from "./pricing";
 import { SANDBOX_PHASE_STATUS, validateSandboxSpec } from "./sandboxContract";
 import { storagePut } from "./storage";
 import * as db from "./db";
 import { issueMagicLink, LOCAL_SESSION_COOKIE, revokeLocalSession } from "./_core/localAuth";
+import { PROJECT_TEMPLATES } from "./projectTemplates";
 
 const operatorRoles = new Set(["owner", "admin", "operator"]);
 const reviewerRoles = new Set(["owner", "admin", "reviewer"]);
@@ -73,6 +74,7 @@ export const appRouter = router({
   }),
 
   studio: router({
+    templates: protectedProcedure.query(() => PROJECT_TEMPLATES.map(({ id, name, description, target, defaultPlatforms }) => ({ id, name, description, target, defaultPlatforms }))),
     overview: protectedProcedure.query(async ({ ctx }) => {
       const membership = await db.getWorkspaceForUser(ctx.user.id);
       if (!membership) {
@@ -113,10 +115,12 @@ export const appRouter = router({
     }),
 
     createProject: protectedProcedure
-      .input(z.object({ name: z.string().trim().min(2).max(160), target: z.enum(["web", "web_native"]), brief: z.string().trim().min(20).max(12000), targetUsers: z.string().trim().min(3).max(2000), platforms: z.string().trim().min(2).max(500), dataSensitivity: z.enum(["public", "internal", "confidential", "regulated"]), integrations: z.string().trim().max(2000), deliveryScope: z.string().trim().min(3).max(3000), budgetCents: z.number().int().min(0).max(100000000) }))
+      .input(z.object({ name: z.string().trim().min(2).max(160), target: z.enum(["web", "web_native"]), templateId: z.string().trim().max(80).optional(), brief: z.string().trim().min(20).max(12000), targetUsers: z.string().trim().min(3).max(2000), platforms: z.string().trim().min(2).max(500), dataSensitivity: z.enum(["public", "internal", "confidential", "regulated"]), integrations: z.string().trim().max(2000), deliveryScope: z.string().trim().min(3).max(3000), budgetCents: z.number().int().min(0).max(100000000) }))
       .mutation(async ({ ctx, input }) => {
         const membership = await requireWorkspace(ctx.user.id);
         requireRole(membership.membership.role, operatorRoles);
+        const limits = getPlanLimits(membership.workspace.plan);
+        if ((await db.countWorkspaceProjects(membership.workspace.id)) >= limits.maxProjects) throw new TRPCError({ code: "FORBIDDEN", message: `Dein ${membership.workspace.plan}-Tarif erlaubt maximal ${limits.maxProjects} aktive Projekte.` });
         const project = await db.createStudioProject({ workspaceId: membership.workspace.id, createdBy: ctx.user.id, ...input });
         await db.addAuditEvent({ workspaceId: membership.workspace.id, actorType: "user", actorId: ctx.user.id, eventType: "project.created", metadata: { projectId: project.id, target: input.target } });
         return project;
@@ -222,6 +226,8 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const membership = await requireWorkspace(ctx.user.id);
         requireRole(membership.membership.role, operatorRoles);
+        const limits = getPlanLimits(membership.workspace.plan);
+        if ((await db.countActiveWorkspaceRuns(membership.workspace.id)) >= limits.maxActiveRuns) throw new TRPCError({ code: "FORBIDDEN", message: `Dein ${membership.workspace.plan}-Tarif erlaubt maximal ${limits.maxActiveRuns} aktive Agent-Runs.` });
         const task = await db.getTaskForWorkspace(input.taskId, membership.workspace.id);
         if (!task) throw new TRPCError({ code: "NOT_FOUND", message: "Studio task not found." });
         if (!["ready", "failed"].includes(task.status)) throw new TRPCError({ code: "CONFLICT", message: "Task is not ready for a queued agent run." });

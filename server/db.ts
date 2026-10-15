@@ -30,6 +30,7 @@ import {
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 import { hashEvidence } from "./safety";
+import { getProjectTemplate } from "./projectTemplates";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -195,7 +196,7 @@ function projectSlug(name: string) {
   return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 160) || "studio-project";
 }
 
-export async function createStudioProject(input: { workspaceId: number; createdBy: number; name: string; target: "web" | "web_native"; brief: string; targetUsers: string; platforms: string; dataSensitivity: "public" | "internal" | "confidential" | "regulated"; integrations: string; deliveryScope: string; budgetCents: number }) {
+export async function createStudioProject(input: { workspaceId: number; createdBy: number; name: string; target: "web" | "web_native"; templateId?: string; brief: string; targetUsers: string; platforms: string; dataSensitivity: "public" | "internal" | "confidential" | "regulated"; integrations: string; deliveryScope: string; budgetCents: number }) {
   const db = await requireDb();
   const slug = `${projectSlug(input.name)}-${Date.now().toString(36)}`;
   const result = await db.insert(studioProjects).values({ workspaceId: input.workspaceId, createdBy: input.createdBy, name: input.name, target: input.target, brief: input.brief, slug, status: "active", defaultBranch: "main" });
@@ -206,12 +207,29 @@ export async function createStudioProject(input: { workspaceId: number; createdB
     { projectId, environment: "preview", status: "not_ready" },
     { projectId, environment: "staging", status: "blocked" },
   ]);
+  const template = getProjectTemplate(input.templateId, input.target);
+  for (const file of template.files) {
+    const contentHash = createHash("sha256").update(file.content).digest("hex");
+    await db.insert(projectFiles).values({ projectId, path: file.path, content: file.content, contentHash, version: 1, updatedBy: input.createdBy });
+  }
   return { id: projectId, slug };
 }
 
 export async function listWorkspaceProjects(workspaceId: number) {
   const db = await requireDb();
   return db.select().from(studioProjects).where(eq(studioProjects.workspaceId, workspaceId)).orderBy(desc(studioProjects.updatedAt));
+}
+
+export async function countWorkspaceProjects(workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select({ count: sql<number>`count(*)` }).from(studioProjects).where(and(eq(studioProjects.workspaceId, workspaceId), eq(studioProjects.status, "active")));
+  return Number(rows[0]?.count ?? 0);
+}
+
+export async function countActiveWorkspaceRuns(workspaceId: number) {
+  const db = await requireDb();
+  const rows = await db.select({ count: sql<number>`count(*)` }).from(agentRuns).where(and(eq(agentRuns.workspaceId, workspaceId), inArray(agentRuns.status, ["queued", "running"])));
+  return Number(rows[0]?.count ?? 0);
 }
 
 export async function getProjectBrief(projectId: number) {

@@ -47,6 +47,10 @@
 - [x] Runway-Provider-Adapter, Kostenroute und Admin-Status integriert; Key validiert, aber Runway für den aktuellen Betrieb wieder deaktiviert
 - [x] Videogenerierung bewusst zurückgestellt: kein kostenpflichtiger Render und keine Providerkosten ohne späteren separaten Startauftrag
 - [x] Zahlungs-/Rechnungs-Gate bewertet und bewusst gesperrt: keine Abbuchung, kein Anbieter und keine Rechnung ohne rechtliche und kaufmännische Freigabe
+- [x] Web- und Web+Native-Starter-Templates mit README, Entry-Datei und Security-Notizen integriert
+- [x] Workspace-Tarifstatus sowie serverseitige Limits für Projekte und aktive Agent-Runs integriert
+- [x] Migration `0010_lumpy_siren.sql` in der Studio-Datenbank angewendet
+- [ ] Migration `0010_lumpy_siren.sql` und der aktuelle Builder-Build noch auf IONOS deployen; letzter SSH-Versuch wurde vom Server geschlossen
 
 ## Sicherheitsgrenze
 

@@ -71,6 +71,13 @@
       "when": 1791886387005,
       "tag": "0009_eminent_thundra",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1792088595571,
+      "tag": "0010_lumpy_siren",
+      "breakpoints": true
     }
   ]
 }

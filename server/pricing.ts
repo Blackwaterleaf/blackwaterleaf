@@ -1,5 +1,6 @@
 export type VideoQuality = "draft" | "standard" | "high";
 export type VideoVoice = "none" | "synthetic" | "premium";
+export type StudioPlanId = "free" | "creator" | "studio" | "enterprise";
 
 export const STUDIO_PRICING = {
   currency: "EUR",
@@ -33,6 +34,11 @@ export const STUDIO_PRICING = {
     renderSetupCredits: 10,
   },
 } as const;
+
+export function getPlanLimits(plan: StudioPlanId) {
+  const configured = STUDIO_PRICING.monthly.find(item => item.id === plan) ?? STUDIO_PRICING.monthly[0];
+  return { maxProjects: configured.maxProjects, maxActiveRuns: configured.maxActiveRuns, maxRuntimeSeconds: configured.maxRuntimeSeconds, includedCredits: configured.includedCredits };
+}
 
 export function estimateVideoCost(input: { durationSeconds: number; quality: VideoQuality; voice: VideoVoice; music: boolean; clips?: number }) {
   const duration = Math.max(1, Math.min(1800, Math.round(input.durationSeconds)));

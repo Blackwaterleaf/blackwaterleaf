@@ -51,6 +51,7 @@ export const workspaces = mysqlTable("studio_workspaces", {
   id: int("id").autoincrement().primaryKey(),
   ownerId: int("ownerId").notNull(),
   name: varchar("name", { length: 160 }).notNull(),
+  plan: mysqlEnum("plan", ["free", "creator", "studio", "enterprise"]).default("free").notNull(),
   status: mysqlEnum("status", ["active", "archived"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

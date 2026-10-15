@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estimateVideoCost, STUDIO_PRICING } from "./pricing";
+import { estimateVideoCost, getPlanLimits, STUDIO_PRICING } from "./pricing";
 
 describe("video pricing", () => {
   it("returns a deterministic estimate", () => {
@@ -21,5 +21,10 @@ describe("video pricing", () => {
     expect(plans.map(plan => plan.monthlyCents)).toEqual([0, 990, 2490, 7900]);
     expect(plans.every(plan => plan.features.length >= 3)).toBe(true);
     expect(plans.map(plan => plan.includedCredits)).toEqual([20, 400, 1500, 6000]);
+  });
+
+  it("exposes the same limits used by server-side enforcement", () => {
+    expect(getPlanLimits("free")).toEqual({ maxProjects: 1, maxActiveRuns: 1, maxRuntimeSeconds: 60, includedCredits: 20 });
+    expect(getPlanLimits("studio").maxActiveRuns).toBe(8);
   });
 });

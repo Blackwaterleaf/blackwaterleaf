@@ -10,6 +10,8 @@
 - Evidence-Pack-, Audit- und Nutzungsledger-Grundlagen.
 - Sicherheits- und Readiness-Anzeigen für IONOS, Resend, Sandbox, Manus-Built-in-KI, Kimi und Runway.
 - Preispläne und Credit-Limits transparent in Free, Creator, Studio und Enterprise gestaffelt.
+- Projekt-Templates für Web sowie Web + Native mit initialen README-, Entry- und Security-Dateien.
+- Workspace-Tarifstatus mit serverseitiger Begrenzung von aktiven Projekten und gleichzeitigen Agent-Runs.
 - Runway-Adapter, Kostenroute und Credential-Smoke-Test integriert; Runway ist aktuell bewusst deaktiviert.
 
 ## Aktuelle Tarifstruktur
@@ -28,6 +30,7 @@ Die Preise sind derzeit **Produkt-Richtwerte**. Zahlungsanbieter, automatische A
 - `pnpm check`: bestanden
 - `pnpm test`: bestanden, inklusive Pricing-, IONOS-, Auth-, Resend-, Worker- und Runway-Tests
 - `pnpm build`: bestanden
+- 14 Testdateien / 32 Tests: bestanden
 - IONOS-API- und Gateway-Preflight: HTTP 200
 - Öffentliche Root- und www-HTTPS-Prüfung: HTTP 200
 - Runway-Credential-Smoke-Test: authentifiziert; keine Generierung gestartet

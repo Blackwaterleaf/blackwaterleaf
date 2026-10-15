@@ -11,6 +11,7 @@ export default function ProjectBuilder() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [target, setTarget] = useState<"web" | "web_native">("web");
+  const [templateId, setTemplateId] = useState("web-starter");
   const [brief, setBrief] = useState("");
   const [targetUsers, setTargetUsers] = useState("");
   const [platforms, setPlatforms] = useState("Web");
@@ -25,6 +26,7 @@ export default function ProjectBuilder() {
   const [patchBody, setPatchBody] = useState("");
 
   const projects = trpc.studio.projects.useQuery();
+  const templates = trpc.studio.templates.useQuery();
   const project = trpc.studio.projectWorkspace.useQuery({ projectId: selectedProjectId ?? 0 }, { enabled: selectedProjectId !== null });
   const selectedFile = trpc.studio.readProjectFile.useQuery({ projectId: selectedProjectId ?? 0, path: selectedFilePath ?? "" }, { enabled: selectedProjectId !== null && selectedFilePath !== null });
   const createProject = trpc.studio.createProject.useMutation({
@@ -67,9 +69,10 @@ export default function ProjectBuilder() {
           <CardContent className="space-y-4">
             <Input className="studio-input" value={name} onChange={event => setName(event.target.value)} placeholder="z. B. Kundenportal" />
             <div className="grid grid-cols-2 gap-2">
-              <button className={`rounded-xl border p-3 text-left transition ${target === "web" ? "border-[#7de4bd] bg-[#7de4bd]/10" : "border-white/10 bg-white/[0.02]"}`} onClick={() => setTarget("web")}><Globe2 size={17} className="mb-2 text-[#7de4bd]" /><strong className="block text-sm">Web</strong><span className="studio-muted text-xs">Responsive App</span></button>
-              <button className={`rounded-xl border p-3 text-left transition ${target === "web_native" ? "border-[#7de4bd] bg-[#7de4bd]/10" : "border-white/10 bg-white/[0.02]"}`} onClick={() => setTarget("web_native")}><Smartphone size={17} className="mb-2 text-[#7de4bd]" /><strong className="block text-sm">Web + Native</strong><span className="studio-muted text-xs">Expo-Profil</span></button>
+              <button className={`rounded-xl border p-3 text-left transition ${target === "web" ? "border-[#7de4bd] bg-[#7de4bd]/10" : "border-white/10 bg-white/[0.02]"}`} onClick={() => { setTarget("web"); setTemplateId("web-starter"); }}><Globe2 size={17} className="mb-2 text-[#7de4bd]" /><strong className="block text-sm">Web</strong><span className="studio-muted text-xs">Responsive App</span></button>
+              <button className={`rounded-xl border p-3 text-left transition ${target === "web_native" ? "border-[#7de4bd] bg-[#7de4bd]/10" : "border-white/10 bg-white/[0.02]"}`} onClick={() => { setTarget("web_native"); setTemplateId("web-native-starter"); }}><Smartphone size={17} className="mb-2 text-[#7de4bd]" /><strong className="block text-sm">Web + Native</strong><span className="studio-muted text-xs">Expo-Profil</span></button>
             </div>
+            <select className="studio-input w-full" value={templateId} onChange={event => setTemplateId(event.target.value)}>{(templates.data ?? []).filter(template => template.target === target).map(template => <option key={template.id} value={template.id}>{template.name} — {template.description}</option>)}</select>
             <Textarea className="studio-input min-h-24" value={brief} onChange={event => setBrief(event.target.value)} placeholder="Produktziel und wichtigste Abläufe …" />
             <Input className="studio-input" value={targetUsers} onChange={event => setTargetUsers(event.target.value)} placeholder="Zielgruppe / Nutzerrollen" />
             <Input className="studio-input" value={platforms} onChange={event => setPlatforms(event.target.value)} placeholder="Plattformen, z. B. Web, Android" />
@@ -77,7 +80,7 @@ export default function ProjectBuilder() {
             <Input className="studio-input" value={integrations} onChange={event => setIntegrations(event.target.value)} placeholder="Integrationen, z. B. Stripe, Google, Slack" />
             <Input className="studio-input" value={deliveryScope} onChange={event => setDeliveryScope(event.target.value)} placeholder="Lieferumfang / Must-have-Funktionen" />
             <Input className="studio-input" type="number" min="0" value={budget} onChange={event => setBudget(event.target.value)} placeholder="Budget in EUR" />
-            <Button className="studio-primary-button w-full" disabled={createProject.isPending || name.trim().length < 2 || brief.trim().length < 20 || targetUsers.trim().length < 3 || deliveryScope.trim().length < 3} onClick={() => createProject.mutate({ name, target, brief, targetUsers, platforms, dataSensitivity, integrations, deliveryScope, budgetCents: Math.round(Number(budget || 0) * 100) })}><Plus size={16} />{createProject.isPending ? "Wird angelegt…" : "Projektprofil anlegen"}</Button>
+            <Button className="studio-primary-button w-full" disabled={createProject.isPending || name.trim().length < 2 || brief.trim().length < 20 || targetUsers.trim().length < 3 || deliveryScope.trim().length < 3} onClick={() => createProject.mutate({ name, target, templateId, brief, targetUsers, platforms, dataSensitivity, integrations, deliveryScope, budgetCents: Math.round(Number(budget || 0) * 100) })}><Plus size={16} />{createProject.isPending ? "Wird angelegt…" : "Projektprofil anlegen"}</Button>
             <div className="studio-auth-note"><Sparkles size={14} /> Das Profil legt die Grenze für Web- und Native-Code fest.</div>
           </CardContent>
         </Card>

@@ -1,0 +1,1 @@
+ALTER TABLE `studio_workspaces` ADD `plan` enum('free','creator','studio','enterprise') DEFAULT 'free' NOT NULL;
