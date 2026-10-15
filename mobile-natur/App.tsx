@@ -143,6 +143,7 @@ import {
   publishedChallenges,
   myChallenges,
   joinChallenge,
+  refreshChallengeProgress,
   liveById,
   liveCapabilities,
   liveList,
@@ -1153,6 +1154,7 @@ function NaturApp() {
             token={token}
             onSignIn={signIn}
             onJoin={async id => { if (!token) return void signIn(); await joinChallenge(token, id); await loadScreen(); }}
+            onRefreshProgress={async id => { if (!token) return; await refreshChallengeProgress(token, id); await loadScreen(); }}
             refresh={loadScreen}
           />
         )}
@@ -3271,6 +3273,7 @@ function MissionsScreen({
   token,
   onSignIn,
   onJoin,
+  onRefreshProgress,
   refresh,
 }: {
   tone: Tone;
@@ -3281,6 +3284,7 @@ function MissionsScreen({
   token: string | null;
   onSignIn: () => Promise<void>;
   onJoin: (id: number) => Promise<void>;
+  onRefreshProgress: (id: number) => Promise<void>;
   refresh: () => Promise<void>;
 }) {
   const progressById = new Map(progress.map(item => [item.challengeId, item]));
@@ -3298,7 +3302,7 @@ function MissionsScreen({
         <Text style={styles.cardTitle}>{mission.title}</Text><Text style={styles.miniCopy}>{mission.description}</Text>
         <Text style={[styles.miniCopy, { color: tone.accent }]}>AUFGABE · {mission.ruleText}</Text>
         <Text style={styles.date}>ENDET {new Date(mission.endsAt).toLocaleDateString("de-DE")} · {mine ? `${mine.progress}% FORTSCHRITT` : "NOCH NICHT BEIGETRETEN"}</Text>
-        {token ? <PrimaryButton tone={tone} label={mine ? "MISSION AKTIV" : "MISSION BEITRETEN"} icon={mine ? "checkmark-circle-outline" : "arrow-forward"} disabled={Boolean(mine)} onPress={() => { void onJoin(mission.id); }} /> : <SecondaryButton tone={tone} label="ANMELDEN, UM BEIZUTRETEN" icon="log-in-outline" onPress={() => { void onSignIn(); }} />}
+        {token ? mine ? <PrimaryButton tone={tone} label="FORTSCHRITT AKTUALISIEREN" icon="refresh-outline" onPress={() => { void onRefreshProgress(mission.id); }} /> : <PrimaryButton tone={tone} label="MISSION BEITRETEN" icon="arrow-forward" onPress={() => { void onJoin(mission.id); }} /> : <SecondaryButton tone={tone} label="ANMELDEN, UM BEIZUTRETEN" icon="log-in-outline" onPress={() => { void onSignIn(); }} />}
       </View>;
     })}
   </Page>;

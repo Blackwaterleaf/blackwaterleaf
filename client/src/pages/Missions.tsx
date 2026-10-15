@@ -14,6 +14,7 @@ export default function Missions() {
   const published = trpc.challenges.listPublished.useQuery({}, { retry: false });
   const progress = trpc.challenges.myProgress.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
   const join = trpc.challenges.join.useMutation({ onSuccess: () => void progress.refetch() });
+  const refreshProgress = trpc.challenges.refreshProgress.useMutation({ onSuccess: () => void progress.refetch() });
   const missions = published.data ?? [];
   const progressById = new Map((progress.data ?? []).map(item => [item.challengeId, item]));
 
@@ -36,7 +37,7 @@ export default function Missions() {
         <h2>{mission.title}</h2><p>{mission.description}</p>
         <div className="mission-card__rule"><strong>AUFGABE</strong><span>{mission.ruleText}</span></div>
         <div className="mission-card__meta"><span>ENDET {new Date(mission.endsAt).toLocaleDateString("de-DE")}</span><span>{mine ? `${mine.progress}% · ${mine.status.toUpperCase()}` : "NOCH NICHT BEIGETRETEN"}</span></div>
-        {auth.isAuthenticated ? <button type="button" className="primary-action" disabled={Boolean(mine) || join.isPending} onClick={() => join.mutate({ challengeId: mission.id })}>{mine ? <><CheckCircle2 size={15} />MISSION AKTIV</> : join.isPending ? "WIRD GESPEICHERT …" : <>MISSION BEITRETEN<ArrowRight size={15} /></>}</button> : <Link className="secondary-action" href="/login">ANMELDEN, UM BEIZUTRETEN<ArrowRight size={15} /></Link>}
+        {auth.isAuthenticated ? mine ? <button type="button" className="primary-action" disabled={refreshProgress.isPending} onClick={() => refreshProgress.mutate({ challengeId: mission.id })}>{refreshProgress.isPending ? "FORTSCHRITT WIRD GEPRÜFT …" : <><CheckCircle2 size={15} />FORTSCHRITT AKTUALISIEREN</>}</button> : <button type="button" className="primary-action" disabled={join.isPending} onClick={() => join.mutate({ challengeId: mission.id })}>{join.isPending ? "WIRD GESPEICHERT …" : <>MISSION BEITRETEN<ArrowRight size={15} /></>}</button> : <Link className="secondary-action" href="/login">ANMELDEN, UM BEIZUTRETEN<ArrowRight size={15} /></Link>}
       </article>;
     })}</section>}
 

@@ -790,6 +790,7 @@ export const unsaveItem = (token: string, input: { targetType: SavedItem["target
 export const publishedChallenges = () => trpcGet<Challenge[]>("challenges.listPublished", {});
 export const myChallenges = (token: string) => trpcGet<ChallengeProgress[]>("challenges.myProgress", undefined, token);
 export const joinChallenge = (token: string, challengeId: number) => trpcPost<{ joined: true }>("challenges.join", { challengeId }, token);
+export const refreshChallengeProgress = (token: string, challengeId: number) => trpcPost<{ progress: number; status: ChallengeProgress["status"] }>("challenges.refreshProgress", { challengeId }, token);
 export type ExperienceSummary = { status: "ready" | "pending_migration"; totalXp: number; level: number; nextLevelXp: number; recentEvents: Array<{ id: number; points: number; eventType: string; createdAt: string }>; qualityAchievements: Array<{ key: string; title: string; description: string; threshold: number; progress: number; achieved: boolean }> };
 export type LeaderboardRow = { rank: number; userId: string; name: string; totalXp: number };
 export const gamificationSummary = (token: string) => trpcGet<ExperienceSummary>("gamification.summary", undefined, token);
