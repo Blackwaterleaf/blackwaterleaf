@@ -28,6 +28,7 @@ const MerchantMarketplace = lazy(() => import("./pages/MerchantMarketplace"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Messages = lazy(() => import("./pages/Messages"));
 const CareToday = lazy(() => import("./pages/CareToday"));
+const Missions = lazy(() => import("./pages/Missions"));
 const Search = lazy(() => import("./pages/Search"));
 const PlantTaxon = lazy(() => import("./pages/PlantTaxon"));
 const AquariumTaxon = lazy(() => import("./pages/AquariumTaxon"));
@@ -76,6 +77,7 @@ function Router() {
         <Route path={"/privacy"} component={Legal} />
         <Route path={"/impressum"} component={Legal} />
         <Route path={"/today"} component={CareToday} />
+        <Route path={"/missions"} component={Missions} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/profile/manage"} component={ManagementHub} />

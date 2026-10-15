@@ -181,3 +181,11 @@ Die Bestimmungskontingentkarte benennt den Fachmodus korrekt als **PFLANZENBESTI
 Aktive Pro-Konten sehen keine Preise, Credit-Kaufkarten oder Upgrade-Aufforderungen. Stattdessen erscheint ein klarer Status **PRO AKTIV** beziehungsweise **DEIN PRO-ZUGANG IST AKTIV** mit dem verbleibenden Kontingent. Preise und Kaufoptionen werden ausschließlich für Free-Konten gerendert. Diese Regel gilt für Pro-Seite, Profilkarte und Native-Pro-Screen.
 
 Der Modernisierungsstand wurde mit Web-TypeScript, Native-TypeScript, gezielten Monetarisierungs-/KI-Vertragstests, Produktionsbuild und `git diff --check` validiert.
+
+## 15.52 P1-Feldmissionen · echte Aufgaben statt Demo-Telemetrie
+- Web und Native bieten unter **Feldmissionen** denselben serverseitigen Challenge-Vertrag: veröffentlichte Missionen, Fachbereich, Regeltext, Enddatum, Punkte und persönlicher Beitritts-/Fortschrittsstatus.
+- Eine Mission erscheint nur, wenn sie serverseitig veröffentlicht ist und ihr Zeitraum noch offen ist. Ohne Datensatz zeigt die Oberfläche einen transparenten Leerzustand; es werden keine Beispielmissionen oder simulierten Fortschrittswerte erfunden.
+- Nicht angemeldete Personen dürfen veröffentlichte Missionen lesen, werden für Beitritt und Fortschritt aber zum sicheren Login geführt. Ein Beitritt wird serverseitig idempotent gespeichert.
+- Die visuelle Codierung folgt dem Observatory-System: Botanik Mint/Grün, Aquaristik Aqua-Cyan, Terraristik Gold. Die Karte besteht aus Aufgabenbeschreibung, verbindlichem Regeltext, Enddatum, Punktewert und Status.
+- Das vorbereitete **Signal-Labor** bleibt bis zu realen Messwerten aus eigener Anlage oder autorisiertem Gerät ein transparenter Statusbereich. Es zeigt niemals erfundene pH-, Temperatur-, Reichweiten- oder eDNA-Werte. Labor- und eDNA-Partnerschaften sind P2 und nicht Bestandteil des aktiven Produkts.
+- P1-Abnahme umfasst Web-Route `/missions`, Native-Screen `missions`, Beitritt, Fortschrittsanzeige, Login-Gate, Leer-/Fehlerzustand, Pull-to-Refresh und `git diff --check`.

@@ -271,6 +271,7 @@ type Screen =
   | "terrarium"
   | "assistant"
   | "knowledge"
+  | "missions"
   | "live"
   | "photo"
   | "post"
@@ -450,6 +451,14 @@ const TONES: Record<Screen, Tone> = {
     label: "WISSEN & EVIDENZ",
     active: "catalog",
   },
+  missions: {
+    accent: c.botany,
+    surface: c.botanySurface,
+    panel: c.surface,
+    image: ASSETS.botany,
+    label: "FELDMISSIONEN",
+    active: "explore",
+  },
   live: {
     accent: c.aqua,
     surface: c.aquariumSurface,
@@ -619,6 +628,8 @@ function NaturApp() {
   const [adminAccountsRows, setAdminAccountsRows] = useState<NativeAdminAccount[]>([]);
   const [adminPublicPostRows, setAdminPublicPostRows] = useState<NativeAdminPublicPost[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
+  const [missions, setMissions] = useState<Challenge[]>([]);
+  const [myMissionProgress, setMyMissionProgress] = useState<ChallengeProgress[]>([]);
   const [consents, setConsents] = useState<ProfileConsent[]>([]);
   const [experience, setExperience] = useState<ExperienceSummary | null>(null);
   const [state, setState] = useState<State>("loading");
@@ -748,6 +759,10 @@ function NaturApp() {
       }
       if (screen === "knowledge" || screen === "search")
         setArticles(await knowledge());
+      if (screen === "missions") {
+        setMissions(await publishedChallenges());
+        setMyMissionProgress(token ? await myChallenges(token) : []);
+      }
       setState("ready");
     } catch (cause) {
       setError(
@@ -1125,6 +1140,19 @@ function NaturApp() {
             articles={articles}
             state={state}
             error={error}
+            refresh={loadScreen}
+          />
+        )}
+        {screen === "missions" && (
+          <MissionsScreen
+            tone={TONES.missions}
+            missions={missions}
+            progress={myMissionProgress}
+            state={state}
+            error={error}
+            token={token}
+            onSignIn={signIn}
+            onJoin={async id => { if (!token) return void signIn(); await joinChallenge(token, id); await loadScreen(); }}
             refresh={loadScreen}
           />
         )}
@@ -1576,6 +1604,7 @@ function LiveHomeWorlds({
       { title: "Pflanzen öffnen", note: "Private Sammlung verwalten", icon: "leaf-outline", image: ASSETS.botany, area: "botany", onPress: () => navigate("botany") },
       { title: "Pflanze bestimmen", note: "Einzelbild mit KI prüfen", icon: "scan-outline", image: ASSETS.botany, area: "assistant", onPress: () => navigate("assistant") },
       { title: "Pflegewissen", note: "Quellen und Wissen öffnen", icon: "book-outline", image: ASSETS.terrarium, area: "botany", onPress: () => navigate("knowledge") },
+      { title: "Feldmissionen", note: "Echte Aufgaben und Fortschritt", icon: "compass-outline", image: ASSETS.botany, area: "botany", onPress: () => navigate("missions") },
     ],
     Aquaristik: [
       { title: "Aquarien öffnen", note: "Private Becken verwalten", icon: "fish-outline", image: ASSETS.aquarium, area: "aquarium", onPress: () => navigate("aquarium") },
@@ -3231,6 +3260,48 @@ function PostScreen({
       />
     </Page>
   );
+}
+
+function MissionsScreen({
+  tone,
+  missions,
+  progress,
+  state,
+  error,
+  token,
+  onSignIn,
+  onJoin,
+  refresh,
+}: {
+  tone: Tone;
+  missions: Challenge[];
+  progress: ChallengeProgress[];
+  state: State;
+  error: string | null;
+  token: string | null;
+  onSignIn: () => Promise<void>;
+  onJoin: (id: number) => Promise<void>;
+  refresh: () => Promise<void>;
+}) {
+  const progressById = new Map(progress.map(item => [item.challengeId, item]));
+  return <Page refresh={refresh} refreshing={state === "loading"}>
+    <ObservatoryContextHeader tone={tone} eyebrow="FELDMISSIONEN · ECHTE DATEN" title="BEOBACHTEN. LERNEN." subtitle="Veröffentlichte Aufgaben, echter Fortschritt, keine simulierten Messwerte." icon="compass-outline" />
+    <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+      <Text style={[styles.eyebrow, { color: tone.accent }]}>DATENSTATUS</Text>
+      <Text style={styles.cardTitle}>QUELLENGEBUNDEN</Text>
+      <Text style={styles.miniCopy}>Missionen und Fortschritt kommen aus dem Serverkatalog. Labor- und eDNA-Partnerschaften sind bewusst noch nicht aktiv.</Text>
+    </View>
+    {state === "loading" ? <Loading tone={tone} /> : state === "error" ? <ErrorNotice text={error ?? "Missionen konnten nicht geladen werden."} /> : !missions.length ? <StatusPanel tone={tone} icon="compass-outline" code="MISSIONS / LEER" title="NOCH KEINE AKTIVE MISSION" text="Es gibt derzeit keine veröffentlichte Aufgabe mit offenem Zeitraum." /> : missions.map(mission => {
+      const mine = progressById.get(mission.id);
+      return <View key={mission.id} style={[styles.profilePostsPanel, { borderColor: `${tone.accent}45`, backgroundColor: tone.panel }]}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}><Text style={[styles.chip, { color: tone.accent }]}>{mission.realm?.toUpperCase() ?? "ALLE BEREICHE"}</Text><Text style={[styles.chip, { color: tone.accent }]}>{mission.rewardPoints} PUNKTE</Text></View>
+        <Text style={styles.cardTitle}>{mission.title}</Text><Text style={styles.miniCopy}>{mission.description}</Text>
+        <Text style={[styles.miniCopy, { color: tone.accent }]}>AUFGABE · {mission.ruleText}</Text>
+        <Text style={styles.date}>ENDET {new Date(mission.endsAt).toLocaleDateString("de-DE")} · {mine ? `${mine.progress}% FORTSCHRITT` : "NOCH NICHT BEIGETRETEN"}</Text>
+        {token ? <PrimaryButton tone={tone} label={mine ? "MISSION AKTIV" : "MISSION BEITRETEN"} icon={mine ? "checkmark-circle-outline" : "arrow-forward"} disabled={Boolean(mine)} onPress={() => { void onJoin(mission.id); }} /> : <SecondaryButton tone={tone} label="ANMELDEN, UM BEIZUTRETEN" icon="log-in-outline" onPress={() => { void onSignIn(); }} />}
+      </View>;
+    })}
+  </Page>;
 }
 
 function KnowledgeScreen({
