@@ -1761,13 +1761,15 @@ function WorldScreen({
   );
 }
 
-function PlantQuotaCard({ tone, status }: { tone: Tone; status: NativeBillingStatus | null }) {
+function PlantQuotaCard({ tone, status, subject = "plant" }: { tone: Tone; status: NativeBillingStatus | null; subject?: "plant" | "fish" }) {
   const remaining = status?.freeIdentificationsRemaining ?? 0;
   const limit = Math.max(1, status?.dailyLimit ?? 1);
   const progress = Math.min(1, Math.max(0, remaining / limit));
   const exhausted = Boolean(status) && remaining === 0 && (status?.aiCredits ?? 0) === 0 && (!status?.active || (status?.monthlyIdentificationsRemaining ?? 0) === 0);
-  return <View accessibilityLabel="Tägliches Pflanzenbestimmungs-Kontingent" style={[styles.plantQuotaCard, { borderColor: exhausted ? "#e49a68aa" : `${tone.accent}66`, backgroundColor: tone.panel }]}>
-    <View style={styles.plantQuotaHeader}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN KI-KONTINGENT</Text><Text style={styles.plantQuotaTitle}><Ionicons name="leaf-outline" size={17} color={tone.accent} /> PFLANZENBESTIMMUNG HEUTE</Text></View><Text style={[styles.plantQuotaValue, { color: exhausted ? "#ffc49d" : tone.accent }]}>{status ? `${remaining}/${status.dailyLimit}` : "—"}</Text></View>
+  const subjectLabel = subject === "fish" ? "FISCHBESTIMMUNG" : "PFLANZENBESTIMMUNG";
+  const subjectIcon = subject === "fish" ? "fish-outline" : "leaf-outline";
+  return <View accessibilityLabel={`Tägliches ${subject === "fish" ? "Fisch" : "Pflanzen"}bestimmungs-Kontingent`} style={[styles.plantQuotaCard, { borderColor: exhausted ? "#e49a68aa" : `${tone.accent}66`, backgroundColor: tone.panel }]}>
+    <View style={styles.plantQuotaHeader}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>DEIN KI-KONTINGENT</Text><Text style={styles.plantQuotaTitle}><Ionicons name={subjectIcon} size={17} color={tone.accent} /> {subjectLabel} HEUTE</Text></View><Text style={[styles.plantQuotaValue, { color: exhausted ? "#ffc49d" : tone.accent }]}>{status ? `${remaining}/${status.dailyLimit}` : "—"}</Text></View>
     <View style={styles.plantQuotaTrack}><View style={[styles.plantQuotaFill, { width: `${progress * 100}%`, backgroundColor: exhausted ? "#e49a68" : tone.accent }]} /></View>
     <View style={styles.plantQuotaFooter}><Text style={styles.miniCopy}>{status ? `${remaining} kostenlose Bestimmung${remaining === 1 ? "" : "en"} übrig` : "Kontingent wird geladen …"}</Text><Text style={[styles.miniCopy, { color: tone.accent }]}>{status?.aiCredits ? `+ ${status.aiCredits} Credits` : status?.active && status.monthlyIdentificationsRemaining ? `${status.monthlyIdentificationsRemaining} Pro diesen Monat` : ""}</Text></View>
     {exhausted ? <Text style={styles.plantQuotaNotice}>Morgen wird das kostenlose Tageskontingent automatisch zurückgesetzt.</Text> : null}
@@ -1819,6 +1821,7 @@ function AssistantScreen({
   );
   const aiReady = platform?.aiAssistant === "available";
   const aquariums = habitats.filter(item => item.kind === "aquarium");
+  const visualTone = tool === "fish" || tool === "aquarium" ? TONES.aquarium : tool === "plant" ? TONES.botany : TONES.assistant;
   const activeToolLabel =
     tool === "plant"
       ? "PFLANZE BESTIMMEN"
@@ -2078,7 +2081,7 @@ function AssistantScreen({
         <View
           style={[
             styles.assistantCompactHeader,
-            { borderColor: `${tone.accent}66`, backgroundColor: tone.panel },
+            { borderColor: `${visualTone.accent}66`, backgroundColor: visualTone.panel },
           ]}
         >
           <View style={styles.assistantCompactHeading}>
@@ -2086,8 +2089,8 @@ function AssistantScreen({
               style={[
                 styles.assistantCompactIcon,
                 {
-                  borderColor: `${tone.accent}88`,
-                  backgroundColor: `${tone.accent}16`,
+                  borderColor: `${visualTone.accent}88`,
+                  backgroundColor: `${visualTone.accent}16`,
                 },
               ]}
             >
@@ -2100,11 +2103,11 @@ function AssistantScreen({
                       : "send-outline"
                 }
                 size={20}
-                color={tone.accent}
+                color={visualTone.accent}
               />
             </View>
             <View style={styles.flex}>
-              <Text style={[styles.chip, { color: tone.accent }]}>
+              <Text style={[styles.chip, { color: visualTone.accent }]}>
                 KI-WERKZEUG
               </Text>
               <Text style={styles.assistantCompactTitle}>
@@ -2118,21 +2121,21 @@ function AssistantScreen({
             onPress={showAllTools}
             style={({ pressed }) => [
               styles.assistantToolsButton,
-              { borderColor: `${tone.accent}66` },
+              { borderColor: `${visualTone.accent}66` },
               pressed && styles.pressed,
             ]}
           >
             <Text
-              style={[styles.assistantToolsButtonText, { color: tone.accent }]}
+              style={[styles.assistantToolsButtonText, { color: visualTone.accent }]}
             >
               ALLE WERKZEUGE
             </Text>
-            <Ionicons name="grid-outline" size={15} color={tone.accent} />
+            <Ionicons name="grid-outline" size={15} color={visualTone.accent} />
           </Pressable>
         </View>
       ) : (
         <ObservatoryContextHeader
-          tone={tone}
+          tone={visualTone}
           eyebrow="BLACKWATERLEAF KI"
           title="KI-ASSISTENT"
           subtitle="Echte KI-Hilfe. Keine Scheinantwort. Unsicherheit bleibt sichtbar."
@@ -2140,7 +2143,7 @@ function AssistantScreen({
         />
       )}
       <ObservatoryActionCluster
-        tone={tone}
+        tone={visualTone}
         compact={selectionCollapsed}
         activeTitle={activeToolLabel}
         visual
@@ -2184,14 +2187,14 @@ function AssistantScreen({
       />
       {!token ? (
         <PrivateFeature
-          tone={tone}
+          tone={visualTone}
           title="KI BLEIBT GESCHÜTZT."
           text="Melde dich an, damit Fragen, Pflanzenbilder und private Aquariumdaten deinem Konto zugeordnet bleiben."
           onSignIn={onSignIn}
         />
       ) : !aiReady ? (
         <StatusPanel
-          tone={tone}
+          tone={visualTone}
           icon="shield-checkmark-outline"
           code="KI / TRANSPARENT"
           title="KEINE SCHEINANTWORT"
@@ -2202,7 +2205,7 @@ function AssistantScreen({
         />
       ) : !aiConsent ? (
         <StatusPanel
-          tone={tone}
+          tone={visualTone}
           icon="lock-closed-outline"
           code="KI / FREIGABE"
           title="FREIGABE ERFORDERLICH"
@@ -2214,34 +2217,34 @@ function AssistantScreen({
         <View
           style={[
             styles.workflow,
-            { backgroundColor: tone.panel, borderColor: `${tone.accent}66` },
+            { backgroundColor: visualTone.panel, borderColor: `${visualTone.accent}66` },
           ]}
         >
           <View style={styles.toolTabs}>
             <ToolTab
               active={tool === "chat"}
-              tone={tone}
+              tone={visualTone}
               icon="send-outline"
               label="Frage"
               onPress={() => setTool("chat")}
             />
             <ToolTab
               active={tool === "plant"}
-              tone={tone}
+              tone={visualTone}
               icon="leaf-outline"
               label="Pflanze"
               onPress={() => setTool("plant")}
             />
             <ToolTab
               active={tool === "fish"}
-              tone={tone}
+              tone={visualTone}
               icon="fish-outline"
               label="Fisch"
               onPress={() => setTool("fish")}
             />
             <ToolTab
               active={tool === "aquarium"}
-              tone={tone}
+              tone={visualTone}
               icon="fish-outline"
               label="Aquarium"
               onPress={() => setTool("aquarium")}
@@ -2250,7 +2253,7 @@ function AssistantScreen({
           {tool === "chat" ? (
             <>
               <SectionLabel
-                tone={tone}
+                tone={visualTone}
                 overline="KI / BEREIT"
                 title="FRAGE DEINE WELT"
                 compact
@@ -2265,9 +2268,9 @@ function AssistantScreen({
                         {
                           backgroundColor:
                             item.role === "user"
-                              ? `${tone.accent}25`
+                              ? `${visualTone.accent}25`
                               : "rgba(0,0,0,.22)",
-                          borderColor: `${tone.accent}44`,
+                          borderColor: `${visualTone.accent}44`,
                         },
                       ]}
                     >
@@ -2280,7 +2283,7 @@ function AssistantScreen({
                 </View>
               ) : (
                 <StatusPanel
-                  tone={tone}
+                  tone={visualTone}
                   icon="sparkles-outline"
                   code="KI / BEREIT"
                   title="FRAGE DEINE WELT"
@@ -2291,7 +2294,7 @@ function AssistantScreen({
                 style={[
                   styles.input,
                   {
-                    borderColor: `${tone.accent}66`,
+                    borderColor: `${visualTone.accent}66`,
                     backgroundColor: "rgba(0,0,0,.22)",
                   },
                 ]}
@@ -2303,7 +2306,7 @@ function AssistantScreen({
                 maxLength={1200}
               />
               <PrimaryButton
-                tone={tone}
+                tone={visualTone}
                 label={busy ? "ANTWORT WIRD ERSTELLT …" : "FRAGE SICHER SENDEN"}
                 icon="send-outline"
                 onPress={() => void sendChat()}
@@ -2313,12 +2316,12 @@ function AssistantScreen({
           ) : tool === "plant" || tool === "fish" ? (
             <>
               <SectionLabel
-                tone={tone}
+                tone={visualTone}
                 overline="BILDPRÜFUNG / 1–3 EINZELBILDER"
                 title={tool === "fish" ? "FISCH BESTIMMEN" : "PFLANZE BESTIMMEN"}
                 compact
               />
-              <PlantQuotaCard tone={tone} status={billingStatus} />
+              <PlantQuotaCard tone={visualTone} status={billingStatus} subject={tool === "fish" ? "fish" : "plant"} />
               <Text style={styles.intro}>
                 Beginne mit einem Foto. Wenn entscheidende Merkmale fehlen,
                 fragt die KI gezielt nach einem oder zwei weiteren Einzelbildern
@@ -2328,7 +2331,7 @@ function AssistantScreen({
                 <View
                   style={[
                     styles.plantPrimary,
-                    { borderColor: `${tone.accent}66` },
+                    { borderColor: `${visualTone.accent}66` },
                   ]}
                 >
                   <Image
@@ -2336,7 +2339,7 @@ function AssistantScreen({
                     style={styles.plantPrimaryImage}
                   />
                   <View style={styles.plantMeta}>
-                    <Text style={[styles.chip, { color: tone.accent }]}>
+                    <Text style={[styles.chip, { color: visualTone.accent }]}>
                       FOTO 1 · GESAMTANSICHT
                     </Text>
                     <Text style={styles.copy}>
@@ -2361,25 +2364,25 @@ function AssistantScreen({
                   style={[
                     styles.photoPrompt,
                     {
-                      borderColor: `${tone.accent}66`,
+                      borderColor: `${visualTone.accent}66`,
                       backgroundColor: "rgba(0,0,0,.18)",
                     },
                   ]}
                 >
-                  <Ionicons name="leaf-outline" color={tone.accent} size={31} />
+                  <Ionicons name="leaf-outline" color={visualTone.accent} size={31} />
                   <Text style={styles.cardTitle}>FOTO 1 AUSWÄHLEN</Text>
                   <Text style={styles.copy}>
                     Zeige möglichst den ganzen Fisch, Körperform, Flossen und Zeichnung.
                   </Text>
                   <View style={styles.inlineButtons}>
                     <SecondaryButton
-                      tone={tone}
+                      tone={visualTone}
                       label="KAMERA"
                       icon="camera-outline"
                       onPress={() => void choosePlantPhoto(true)}
                     />
                     <SecondaryButton
-                      tone={tone}
+                      tone={visualTone}
                       label="FOTO WÄHLEN"
                       icon="images-outline"
                       onPress={() => void choosePlantPhoto(false)}
@@ -2402,7 +2405,7 @@ function AssistantScreen({
               {photos.length > 0 && needsMorePhotos && photos.length < 3 ? (
                 <View style={styles.inlineButtons}>
                   <SecondaryButton
-                    tone={tone}
+                    tone={visualTone}
                     label={
                       requestedPhotos === 2
                         ? "ZWEI FOTOS ERGÄNZEN"
@@ -2414,7 +2417,7 @@ function AssistantScreen({
                 </View>
               ) : null}
               <LabeledInput
-                tone={tone}
+                tone={visualTone}
                 label="OPTIONALE BEOBACHTUNG"
                 value={plantNote}
                 onChange={setPlantNote}
@@ -2422,7 +2425,7 @@ function AssistantScreen({
                 multiline
               />
               <PrimaryButton
-                tone={tone}
+                tone={visualTone}
                 label={
                   busy
                     ? "BILD WIRD GEPRÜFT …"
@@ -2438,21 +2441,21 @@ function AssistantScreen({
                 <View
                   accessibilityRole="progressbar"
                   accessibilityLabel={tool === "fish" ? "Fischbild wird von der KI analysiert" : "Pflanzenbild wird von der KI analysiert"}
-                  style={[styles.analysisLoading, { borderColor: `${tone.accent}66`, backgroundColor: `${tone.accent}12` }]}
+                  style={[styles.analysisLoading, { borderColor: `${visualTone.accent}66`, backgroundColor: `${visualTone.accent}12` }]}
                 >
-                  <ActivityIndicator color={tone.accent} size="small" />
+                  <ActivityIndicator color={visualTone.accent} size="small" />
                   <View style={styles.analysisLoadingCopy}>
-                    <Text style={[styles.chip, { color: tone.accent }]}>KI / ANALYSE LÄUFT</Text>
+                    <Text style={[styles.chip, { color: visualTone.accent }]}>KI / ANALYSE LÄUFT</Text>
                   <Text style={styles.copy}>Bildmerkmale werden geprüft. Bitte die App geöffnet lassen.</Text>
-                  <View style={styles.analysisSteps}><Text style={[styles.analysisStep, { color: tone.accent }]}>01 · BILD</Text><Text style={styles.analysisStep}>02 · MERKMALE</Text><Text style={styles.analysisStep}>03 · QUELLEN</Text></View>
+                  <View style={styles.analysisSteps}><Text style={[styles.analysisStep, { color: visualTone.accent }]}>01 · BILD</Text><Text style={styles.analysisStep}>02 · MERKMALE</Text><Text style={styles.analysisStep}>03 · QUELLEN</Text></View>
                   </View>
                 </View>
               ) : null}
               {plantAnswer ? (
                 <>
-                  {plantCandidates.length ? <View style={[styles.nativeEvidenceRail, { borderColor: `${tone.accent}55`, backgroundColor: `${tone.accent}0d` }]}><View style={styles.nativeEvidenceHeading}><Ionicons name="shield-checkmark-outline" size={17} color={tone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: tone.accent }]}>ANALYSE ABGESCHLOSSEN · VORLÄUFIG</Text><Text style={styles.cardTitle}>Kandidaten mit sichtbarer Evidenz</Text></View></View>{plantCandidates.map((candidate, index) => <View key={`${candidate.scientificName}-${index}`} style={[styles.nativeCandidateRow, { borderColor: `${tone.accent}33` }]}><Text style={[styles.chip, { color: tone.accent }]}>0{index + 1}</Text><View style={styles.flex}><Text style={styles.cardTitle}>{candidate.commonName}</Text><Text style={styles.miniCopy}>{candidate.scientificName} · {candidate.reason}</Text></View><Text style={[styles.chip, { color: tone.accent }]}>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</Text></View>)}</View> : null}
+                  {plantCandidates.length ? <View style={[styles.nativeEvidenceRail, { borderColor: `${visualTone.accent}55`, backgroundColor: `${visualTone.accent}0d` }]}><View style={styles.nativeEvidenceHeading}><Ionicons name="shield-checkmark-outline" size={17} color={visualTone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>ANALYSE ABGESCHLOSSEN · VORLÄUFIG</Text><Text style={styles.cardTitle}>Kandidaten mit sichtbarer Evidenz</Text></View></View>{plantCandidates.map((candidate, index) => <View key={`${candidate.scientificName}-${index}`} style={[styles.nativeCandidateRow, { borderColor: `${visualTone.accent}33` }]}><Text style={[styles.chip, { color: visualTone.accent }]}>0{index + 1}</Text><View style={styles.flex}><Text style={styles.cardTitle}>{candidate.commonName}</Text><Text style={styles.miniCopy}>{candidate.scientificName} · {candidate.reason}</Text></View><Text style={[styles.chip, { color: visualTone.accent }]}>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</Text></View>)}</View> : null}
                   <Result
-                    tone={tone}
+                    tone={visualTone}
                     title="VORLÄUFIGE EINORDNUNG"
                     answer={plantAnswer}
                   />
@@ -2460,12 +2463,12 @@ function AssistantScreen({
                     style={[
                       styles.correction,
                       {
-                        borderColor: `${tone.accent}66`,
+                        borderColor: `${visualTone.accent}66`,
                         backgroundColor: "rgba(0,0,0,.18)",
                       },
                     ]}
                   >
-                    <Text style={[styles.chip, { color: tone.accent }]}>
+                    <Text style={[styles.chip, { color: visualTone.accent }]}>
                       KI-KORREKTUR / PRÜFUNG
                     </Text>
                     <Text style={styles.cardTitle}>
@@ -2476,14 +2479,14 @@ function AssistantScreen({
                       sowie Moderatoren zur Prüfung übergeben.
                     </Text>
                     <LabeledInput
-                      tone={tone}
+                      tone={visualTone}
                       label="RICHTIGE BEZEICHNUNG"
                       value={correctionName}
                       onChange={setCorrectionName}
                       placeholder="Zum Beispiel: Monstera deliciosa"
                     />
                     <LabeledInput
-                      tone={tone}
+                      tone={visualTone}
                       label="KURZE BEGRÜNDUNG · OPTIONAL"
                       value={correctionNote}
                       onChange={setCorrectionNote}
@@ -2491,7 +2494,7 @@ function AssistantScreen({
                       multiline
                     />
                     <SecondaryButton
-                      tone={tone}
+                      tone={visualTone}
                       label={
                         busy
                           ? "WIRD GESPEICHERT …"
@@ -2508,7 +2511,7 @@ function AssistantScreen({
           ) : (
             <>
               <SectionLabel
-                tone={tone}
+                tone={visualTone}
                 overline="PRIVAT / EIGENE WERTE"
                 title="AQUARIUM VERSTEHEN"
                 compact
@@ -2520,7 +2523,7 @@ function AssistantScreen({
               </Text>
               {!aquariums.length ? (
                 <StatusPanel
-                  tone={tone}
+                  tone={visualTone}
                   icon="fish-outline"
                   code="AQUARIUM / FEHLT"
                   title="NOCH KEIN AQUARIUM ANGELEGT"
@@ -2540,11 +2543,11 @@ function AssistantScreen({
                           {
                             borderColor:
                               selectedAquarium === aquarium.id
-                                ? tone.accent
-                                : `${tone.accent}44`,
+                                ? visualTone.accent
+                                : `${visualTone.accent}44`,
                             backgroundColor:
                               selectedAquarium === aquarium.id
-                                ? `${tone.accent}24`
+                                ? `${visualTone.accent}24`
                                 : "rgba(0,0,0,.18)",
                           },
                           pressed && styles.pressed,
@@ -2553,14 +2556,14 @@ function AssistantScreen({
                         <Ionicons
                           name="fish-outline"
                           size={18}
-                          color={tone.accent}
+                          color={visualTone.accent}
                         />
                         <Text style={styles.cardTitle}>{aquarium.name}</Text>
                       </Pressable>
                     ))}
                   </View>
                   <LabeledInput
-                    tone={tone}
+                    tone={visualTone}
                     label="DEINE FRAGE · OPTIONAL"
                     value={aquariumQuestion}
                     onChange={setAquariumQuestion}
@@ -2568,7 +2571,7 @@ function AssistantScreen({
                     multiline
                   />
                   <PrimaryButton
-                    tone={tone}
+                    tone={visualTone}
                     label={
                       busy
                         ? "AQUARIUM WIRD ANALYSIERT …"
@@ -2580,7 +2583,7 @@ function AssistantScreen({
                   />
                   {aquariumAnswer ? (
                     <Result
-                      tone={tone}
+                      tone={visualTone}
                       title="EINORDNUNG DEINES AQUARIUMS"
                       answer={aquariumAnswer}
                     />
@@ -2590,7 +2593,7 @@ function AssistantScreen({
             </>
           )}
           {message ? (
-            <Text style={[styles.formMessage, { color: tone.accent }]}>
+            <Text style={[styles.formMessage, { color: visualTone.accent }]}>
               {message}
             </Text>
           ) : null}
@@ -3739,7 +3742,7 @@ function NativeProScreen({ tone, token, onBack }: { tone: Tone; token: string | 
   if (!token) return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Abo-Status und Credits sind nur für angemeldete Konten verfügbar." onSignIn={async () => {}} /></Page>;
   const customDonationValue = Number(customDonation.replace(",", "."));
   const customDonationValid = Number.isFinite(customDonationValue) && customDonationValue >= 1 && customDonationValue <= 500;
-  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. KI-Bestimmungen sind transparent begrenzt und können bei Bedarf ergänzt werden." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>{status?.active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</Text><Text style={styles.copy}>{status ? `${status.freeIdentificationsRemaining} kostenlose Bestimmungen heute · ${status.aiCredits} Credits verfügbar` : "Kontingent wird geladen …"}</Text><Text style={styles.miniCopy}>{status?.paymentReady ? "Sichere Zahlung verfügbar." : "Zahlung wird nach dem Anbieteranschluss aktiviert."}</Text></View></View>{!status?.active ? <View style={[styles.managementPrinciples, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="information-circle-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>FÜR FREE-MITGLIEDER</Text><Text style={styles.copy}>10 kostenlose KI-Bestimmungen pro Tag bleiben frei. Pro ergänzt 300 Bestimmungen pro Monat, mehr Anlagen sowie Export und Backup.</Text><Text style={styles.miniCopy}>Dein Pro-Beitrag unterstützt IONOS-KI, Server und Speicher.</Text></View></View> : null}<View style={[styles.stack, { marginBottom: 14 }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>KI-CREDITS NACH BEDARF</Text>{packs.map(pack => <View key={pack.key} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{pack.credits} BESTIMMUNGEN · €{pack.priceEur.toFixed(2).replace(".", ",")}</Text><Text style={styles.miniCopy}>Credits verfallen nicht.</Text></View><Pressable accessibilityRole="button" disabled={busy || status?.paymentReady === false} onPress={() => void buy("credits", pack.key)} style={[styles.secondaryButton, (busy || status?.paymentReady === false) && { opacity: 0.45 }]}><Text style={styles.secondaryButtonText}>KAUFEN</Text></Pressable></View>)}</View><View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View><View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label="PRO MONATLICH · 9,99 €" icon="sparkles-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_monthly")} /><SecondaryButton tone={tone} label="PRO JÄHRLICH · 54,99 €" icon="calendar-outline" disabled={busy || status?.paymentReady === false || status?.active} onPress={() => void buy("pro_yearly")} /></View><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="heart-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>NATURPROJEKT UNTERSTÜTZEN</Text><Text style={styles.miniCopy}>Freier Betrag von 1 € bis 500 € möglich.</Text><TextInput value={customDonation} onChangeText={value => setCustomDonation(value.replace(/[^0-9,.]/g, ""))} placeholder="Eigener Betrag, z. B. 12,50 €" placeholderTextColor={c.muted} keyboardType="decimal-pad" style={styles.searchInput} /></View><SecondaryButton tone={tone} label={customDonationValid ? `${customDonationValue.toFixed(2).replace(".", ",")} € SPENDEN` : "EIGENEN BETRAG EINGEBEN"} icon="heart-outline" disabled={busy || status?.paymentReady === false || !customDonationValid} onPress={() => void buy("donation", undefined, Math.round(customDonationValue * 100) / 100)} /></View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
+  return <Page><SecondaryButton tone={tone} label="ZURÜCK" icon="arrow-back-outline" onPress={onBack} /><ObservatoryContextHeader tone={tone} eyebrow="BLACKWATERLEAF · PRO" title="MEHR PFLEGE. MEHR ÜBERBLICK." subtitle="Die Kern-Community bleibt frei. KI-Bestimmungen sind transparent begrenzt und können bei Bedarf ergänzt werden." icon="sparkles-outline" /><View style={[styles.managementPrinciples, { borderColor: `${tone.accent}88`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>{status?.active ? "PRO AKTIV" : "FREE · TRANSPARENT BEGRENZT"}</Text><Text style={styles.copy}>{status ? `${status.freeIdentificationsRemaining} kostenlose Bestimmungen heute · ${status.aiCredits} Credits verfügbar` : "Kontingent wird geladen …"}</Text><Text style={styles.miniCopy}>{status?.paymentReady ? "Sichere Zahlung verfügbar." : "Zahlung wird nach dem Anbieteranschluss aktiviert."}</Text></View></View>{!status?.active ? <View style={[styles.managementPrinciples, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="information-circle-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={[styles.cardTitle, { color: tone.accent }]}>FÜR FREE-MITGLIEDER</Text><Text style={styles.copy}>10 kostenlose KI-Bestimmungen pro Tag bleiben frei. Pro ergänzt 300 Bestimmungen pro Monat, mehr Anlagen sowie Export und Backup.</Text><Text style={styles.miniCopy}>Dein Pro-Beitrag unterstützt IONOS-KI, Server und Speicher.</Text></View></View> : null}{!status?.active ? <View style={[styles.stack, { marginBottom: 14 }]}><Text style={[styles.eyebrow, { color: tone.accent }]}>KI-CREDITS NACH BEDARF</Text>{packs.map(pack => <View key={pack.key} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="sparkles-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{pack.credits} BESTIMMUNGEN · €{pack.priceEur.toFixed(2).replace(".", ",")}</Text><Text style={styles.miniCopy}>Credits verfallen nicht.</Text></View><Pressable accessibilityRole="button" disabled={busy || status?.paymentReady === false} onPress={() => void buy("credits", pack.key)} style={[styles.secondaryButton, (busy || status?.paymentReady === false) && { opacity: 0.45 }]}><Text style={styles.secondaryButtonText}>KAUFEN</Text></Pressable></View>)}</View> : null}<View style={styles.stack}>{features.map(([title, text]) => <View key={title} style={[styles.managementTile, { borderColor: `${tone.accent}44`, backgroundColor: tone.panel }]}><Ionicons name="checkmark-circle-outline" size={19} color={tone.accent} /><View style={styles.managementTileCopy}><Text style={styles.cardTitle}>{title}</Text><Text style={styles.miniCopy}>{text}</Text></View></View>)}</View>{!status?.active ? <View style={styles.dashboardInboxActions}><SecondaryButton tone={tone} label="PRO MONATLICH · 9,99 €" icon="sparkles-outline" disabled={busy || status?.paymentReady === false} onPress={() => void buy("pro_monthly")} /><SecondaryButton tone={tone} label="PRO JÄHRLICH · 54,99 €" icon="calendar-outline" disabled={busy || status?.paymentReady === false} onPress={() => void buy("pro_yearly")} /></View> : <StatusPanel tone={tone} icon="checkmark-circle-outline" code="PRO / AKTIV" title="DEIN PRO-ZUGANG IST AKTIV" text="Kaufpreise und Upgrade-Angebote sind für dein Konto ausgeblendet." />}<View style={[styles.managementPrinciples, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><Ionicons name="heart-outline" size={20} color={tone.accent} /><View style={{ flex: 1 }}><Text style={styles.cardTitle}>NATURPROJEKT UNTERSTÜTZEN</Text><Text style={styles.miniCopy}>Freier Betrag von 1 € bis 500 € möglich.</Text><TextInput value={customDonation} onChangeText={value => setCustomDonation(value.replace(/[^0-9,.]/g, ""))} placeholder="Eigener Betrag, z. B. 12,50 €" placeholderTextColor={c.muted} keyboardType="decimal-pad" style={styles.searchInput} /></View><SecondaryButton tone={tone} label={customDonationValid ? `${customDonationValue.toFixed(2).replace(".", ",")} € SPENDEN` : "EIGENEN BETRAG EINGEBEN"} icon="heart-outline" disabled={busy || status?.paymentReady === false || !customDonationValid} onPress={() => void buy("donation", undefined, Math.round(customDonationValue * 100) / 100)} /></View><StatusPanel tone={tone} icon="lock-closed-outline" code="FREE / OFFEN" title="COMMUNITY BLEIBT KOSTENLOS" text="Katalog, Basis-Karte, Community und wissenschaftliche Beiträge bleiben frei zugänglich." /></Page>;
 }
 
 function ManagementScreen({ tone, token, account, navigate, onSignIn }: { tone: Tone; token: string | null; account: Account | null; navigate: (screen: Screen) => void; onSignIn: () => Promise<void> }) {

@@ -22,6 +22,15 @@ describe("Free / Pro monetization contract", () => {
     expect(proPage).toContain("billing.createCheckout");
   });
 
+  it("hides purchase and upgrade offers for active Pro accounts", () => {
+    const proPage = readFileSync(resolve(process.cwd(), "client/src/pages/Pro.tsx"), "utf8");
+    const profilePage = readFileSync(resolve(process.cwd(), "client/src/pages/Profile.tsx"), "utf8");
+    expect(proPage).toContain("{!active ? <section className=\"pro-page__credit-panel");
+    expect(proPage).toContain("DEIN PRO-ZUGANG IST AKTIV.");
+    expect(profilePage).toContain("{!billingStatus.data?.active ? <Link className=\"primary-action\"");
+    expect(profilePage).toContain("PRO-FUNKTIONEN FREIGESCHALTET");
+  });
+
   it("disables Managed Payments for inline credit-product data", () => {
     const stripe = readFileSync(resolve(process.cwd(), "server/stripe.ts"), "utf8");
     expect(stripe).toContain('params.set("managed_payments[enabled]", "false")');

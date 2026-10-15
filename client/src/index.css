@@ -2717,3 +2717,16 @@ body { background: linear-gradient(180deg, #031108 0%, var(--obs-bg) 44rem); col
 @keyframes assistant-loading-sweep { 0% { transform:translateX(-100%); } 65%,100% { transform:translateX(100%); } }
 @media (max-width:700px) { .assistant-result-cards .assistant-result-summary { grid-template-columns:1fr; gap:8px; } .assistant-result-grid { grid-template-columns:1fr; } .assistant-result-card li small { font-size:.61rem; } }
 @media (prefers-reduced-motion:reduce) { .assistant-analysis-loading::after { animation:none; } }
+
+/* Fachkontext-Akzente: derselbe Modus bleibt in Ergebnis, Ladezustand und Quellenfläche sichtbar. */
+.assistant-workflow { --ai-accent: #c7f35b; --ai-surface: rgba(6,27,13,.78); }
+.assistant-workflow--plant { --ai-accent: #c7f35b; --ai-surface: rgba(6,27,13,.78); }
+.assistant-workflow--fish, .assistant-workflow--aquarium { --ai-accent: #28d8ff; --ai-surface: rgba(3,34,49,.78); }
+.assistant-workflow--chat { --ai-accent: #d6a8ff; --ai-surface: rgba(27,12,43,.78); }
+.assistant-workflow .assistant-analysis-loading { border-color: color-mix(in srgb, var(--ai-accent) 55%, transparent); background: radial-gradient(circle at 12% 50%, color-mix(in srgb, var(--ai-accent) 15%, transparent), transparent 45%), var(--ai-surface); }
+.assistant-workflow .assistant-analysis-loading strong, .assistant-workflow .assistant-result-lead__signal, .assistant-workflow .assistant-result h2, .assistant-workflow .assistant-result h3 { color: var(--ai-accent); }
+.assistant-workflow .assistant-image-picker, .assistant-workflow .assistant-result { border-color: color-mix(in srgb, var(--ai-accent) 48%, transparent); background: var(--ai-surface); }
+.assistant-workflow .assistant-submit { border-color: color-mix(in srgb, var(--ai-accent) 65%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--ai-accent) 15%, transparent); }
+.assistant-workflow--fish .assistant-image-picker label, .assistant-workflow--fish .assistant-empty-link { color: var(--ai-accent); }
+.assistant-workflow--fish .assistant-image-picker label strong, .assistant-workflow--aquarium .assistant-result h2 { color: #dffbff; }
+@media (prefers-reduced-motion: reduce) { .assistant-analysis-loading .spin { animation: none; } }

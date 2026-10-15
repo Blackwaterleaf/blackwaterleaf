@@ -73,7 +73,7 @@ describe("BlackWaterLeaf native application contract", () => {
 
   it("keeps all seven Observatory navigation destinations, KI fast path and a visible marketplace", () => {
     for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Feed", "Profil"]) expect(app).toContain(`label: "${label}"`);
-    for (const token of ['screen: "map"', 'screen: "assistant"', 'const [tool, setTool] = useState<"chat" | "plant" | "aquarium">("plant")', 'onHome={() => navigate("home")}', "onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
+    for (const token of ['screen: "map"', 'screen: "assistant"', 'const [tool, setTool] = useState<"chat" | "plant" | "fish" | "aquarium">("plant")', 'onHome={() => navigate("home")}', "onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
   });
 
   it("uses renamed compact Observatory primitives for native actions", () => {

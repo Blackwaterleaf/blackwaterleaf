@@ -32,7 +32,7 @@ describe("BlackWaterLeaf Observatory layout", () => {
 
   it("keeps one Observatory navigation with seven primary destinations including KI", () => {
     expect(shell).toContain("const portalNavigation");
-    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Community", "Profil"]) expect(shell).toContain(`label: "${label}"`);
+    for (const label of ["Entdecken", "Karte", "Erfassen", "KI", "Katalog", "Feed", "Profil"]) expect(shell).toContain(`label: "${label}"`);
     expect(shell).not.toContain('className="desktop-navigation"');
     expect(shell).not.toContain("adminBuilderNavigation");
   });

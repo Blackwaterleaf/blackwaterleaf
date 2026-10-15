@@ -17,6 +17,14 @@ describe("assistant operation interface", () => {
     for (const token of ["PlantQuotaCard", "freeIdentificationsRemaining", "dailyLimit", "assistant-plant-quota", "progressbar", "billing.me"]) expect(assistantPage).toContain(token);
   });
 
+  it("keeps fachliche KI accents explicit for plant, fish and private aquarium analysis", () => {
+    expect(assistantPage).toContain("assistant-workflow--${tool}");
+    const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
+    expect(css).toContain(".assistant-workflow--plant");
+    expect(css).toContain(".assistant-workflow--fish, .assistant-workflow--aquarium");
+    expect(css).toContain("--ai-accent: #28d8ff");
+  });
+
   it("keeps image identification server-validated and does not persist the image", () => {
     expect(assistantRouter).toContain("validateImageUpload(input.imageBase64, input.mimeType)");
     expect(assistantRouter).toContain("Die Bilddaten werden nur für diese Anfrage verarbeitet und nicht gespeichert");

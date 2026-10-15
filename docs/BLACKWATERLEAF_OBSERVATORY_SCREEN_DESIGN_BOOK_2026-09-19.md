@@ -169,3 +169,15 @@ Die Ergebnisfläche führt ausdrücklich mit **Analyse abgeschlossen · vorläuf
 - Web und Native verwenden für das direkte Community-Ziel einheitlich die sichtbare Bezeichnung **Feed**. Die Route `/community` und ihre fachliche Community-Funktion bleiben unverändert; angepasst wird ausschließlich die globale Navigationssprache.
 - Der Marketplace bleibt ein kontextuelles Ziel außerhalb der sieben Primärziele. Beim Öffnen darf in Native kein anderes Primärziel, insbesondere **Profil**, als aktiv markiert werden. Es wird entweder kein Primär-Tab markiert oder der kontextuelle Marketplace-Zustand separat dargestellt.
 - Navigationslabels und Aktivzustände werden in beiden Clients durch Vertragsprüfungen abgesichert, damit sprachliche oder visuelle Rückfälle nicht unbemerkt in einen Release gelangen.
+
+
+## 15.39 KI-Modernisierung · fachliche Akzente und Pro-Zustand
+Die KI-Ergebnisfläche ist in Web und Native fachlich codiert: Botanik verwendet den Observatory-Mint-/Grünakzent `#C7F35B`, Fischbestimmung und private Aquarienanalyse den Aqua-Cyan-Akzent `#28D8FF`, der allgemeine KI-Dialog einen zurückhaltenden Violettakzent. Derselbe Akzent gilt innerhalb eines Modus für Auswahl, Uploadfläche, Ladeanimation, Evidenz-/Ergebniskarte und Quellenstatus; ein globaler Einheitsakzent ist nicht zulässig.
+
+Die Ladeanimation bleibt inline und sichtbar: ein kompakter Orb, eine kurze Statuszeile und die drei Phasen **Bild vorbereiten**, **Merkmale prüfen**, **Quellen abgleichen**. Sie darf weder Foto, Ergebnis noch Navigation überdecken. `prefers-reduced-motion` deaktiviert ausschließlich die nicht notwendige Rotation, nicht den Status oder die Textinformation.
+
+Die Bestimmungskontingentkarte benennt den Fachmodus korrekt als **PFLANZENBESTIMMUNG** oder **FISCHBESTIMMUNG**. Private Aquarienanalysen werden als Aquaristik-Kontext geführt. Web und Native verwenden denselben serverseitigen Usage-/Quota-Vertrag und denselben IONOS-Provider; kein Client darf Kontingente selbst bestimmen.
+
+Aktive Pro-Konten sehen keine Preise, Credit-Kaufkarten oder Upgrade-Aufforderungen. Stattdessen erscheint ein klarer Status **PRO AKTIV** beziehungsweise **DEIN PRO-ZUGANG IST AKTIV** mit dem verbleibenden Kontingent. Preise und Kaufoptionen werden ausschließlich für Free-Konten gerendert. Diese Regel gilt für Pro-Seite, Profilkarte und Native-Pro-Screen.
+
+Der Modernisierungsstand wurde mit Web-TypeScript, Native-TypeScript, gezielten Monetarisierungs-/KI-Vertragstests, Produktionsbuild und `git diff --check` validiert.
