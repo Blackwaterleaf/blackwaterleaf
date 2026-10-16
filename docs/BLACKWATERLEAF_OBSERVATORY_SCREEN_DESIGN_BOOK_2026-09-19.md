@@ -203,3 +203,13 @@ Die KI-Bestimmung trennt ab sofort strikt zwischen **Eingabe** und **Ergebnis**.
 - **Fachfarben:** Botanik nutzt den Observatory-Limetteton, Aquaristik/Fisch den verbindlichen Cyan-Ton; Ladezustand, Hero, Rahmen und Aktionen verwenden denselben Akzent.
 - **Native-Parität:** derselbe Ablauf wird mobil als kompakte Hero-Karte mit aufklappbarer KI-Einordnung umgesetzt; keine Textwand im Standardzustand.
 - **Motion:** Ladezustand zeigt die drei Phasen „Bild vorbereiten“, „Merkmale prüfen“ und „Quellen abgleichen“; bei reduzierter Bewegung werden Animationen deaktiviert.
+
+
+## KI-Ergebnisroute · geschützter Session-Workspace · 2026-10-16
+Die Ergebnisansicht ist als eigene Route `/assistant/result?session=<opaque-id>` umgesetzt. Die URL enthält ausschließlich eine zufällige, nicht sprechende Session-ID; Antworttext, Bilder, Prompts und Kandidaten werden nie als URL-Parameter übertragen.
+
+Der Server bindet jede Session an das angemeldete Konto, speichert ausschließlich den SHA-256-Hash der Session-ID sowie das strukturierte Ergebnis und prüft den Ablauf nach 30 Minuten. Bildbytes, EXIF-Daten und Prompt bleiben außerhalb der Session-Tabelle. Die Ergebnisroute kommuniziert diesen Datenschutz direkt unter dem Header.
+
+Ohne Anmeldung, mit ungültigem Schlüssel, abgelaufener Session oder fremdem Konto erscheint ein klarer Login-/Ablaufzustand mit Rückweg zur KI; kein Ergebnis wird preisgegeben. Die Route verwendet denselben fachlichen Akzent wie der Ursprung: Botanik/Limette für Pflanzen und Aqua-Cyan für Fische. Ladezustand, Ergebnis-Workspace und Aktionen folgen dem bestehenden Evidence-Rail- und Motion-Standard.
+
+Browser-Zurück, „Neue Analyse“ und „Weiteres Bild“ führen immer zurück zum passenden Pflanzen-/Fisch-Modus. Die Korrekturmeldung bleibt im Ergebnis-Workspace verfügbar und verwendet weiterhin den serverseitigen Review-Vertrag.

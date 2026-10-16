@@ -522,6 +522,25 @@ export const assistantResultCache = mysqlTable(
   ],
 );
 
+/** Short-lived, user-bound result handles. Only the hash is persisted; image bytes and prompts are never stored. */
+export const assistantResultSessions = mysqlTable(
+  "assistant_result_sessions",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    sessionHash: varchar("sessionHash", { length: 64 }).notNull(),
+    subject: mysqlEnum("subject", ["plant", "fish"]).notNull(),
+    payload: json("payload").notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  table => [
+    uniqueIndex("assistant_result_sessions_hash_unique").on(table.sessionHash),
+    index("assistant_result_sessions_user_created_idx").on(table.userId, table.createdAt),
+    index("assistant_result_sessions_expiry_idx").on(table.expiresAt),
+  ],
+);
+
 /** Host-controlled policy for free, Pro and global plant-identification budgets. */
 export const aiUsagePolicies = mysqlTable("ai_usage_policies", {
   id: int("id").primaryKey(),

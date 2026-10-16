@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
 const Assistant = lazy(() => import("./pages/Assistant"));
+const AssistantResult = lazy(() => import("./pages/AssistantResult"));
 const Community = lazy(() => import("./pages/Community"));
 const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
 const LiveHub = lazy(() => import("./pages/LiveHub"));
@@ -78,6 +79,7 @@ function Router() {
         <Route path={"/impressum"} component={Legal} />
         <Route path={"/today"} component={CareToday} />
         <Route path={"/missions"} component={Missions} />
+        <Route path={"/assistant/result"} component={AssistantResult} />
         <Route path={"/assistant"} component={Assistant} />
         <Route path={"/profile"} component={ProfileHome} />
         <Route path={"/profile/manage"} component={ManagementHub} />

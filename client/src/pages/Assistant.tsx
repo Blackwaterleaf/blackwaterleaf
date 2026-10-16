@@ -10,12 +10,12 @@ import { trpc } from "@/lib/trpc";
 import { Bot, Camera, Fish, Loader2, LockKeyhole, ScanSearch, Send, ShieldCheck, Sprout, X } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { LazyStreamdown } from "@/components/LazyStreamdown";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 type AssistantTool = "chat" | "plant" | "fish" | "aquarium";
 const AI_MAINTENANCE = false;
 function requestId() { return globalThis.crypto?.randomUUID?.() ?? `bwl-ai-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
-type PlantIdentification = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
+export type PlantIdentification = { summary: string; confidence: "low" | "moderate" | "high"; needsMoreImages: boolean; requestedAdditionalImages: number; followUpQuestion: string; candidates: Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>; observedFeatures: string[]; safetyNotes: string[]; verificationSteps: string[] };
 
 function confidenceLabel(value: PlantIdentification["confidence"]) { return value === "high" ? "HOHE SICHERHEIT" : value === "moderate" ? "MITTLERE SICHERHEIT" : "NIEDRIGE SICHERHEIT"; }
 function PlantQuotaCard({ status, isLoading }: { status?: { freeIdentificationsRemaining: number; dailyLimit: number; monthlyIdentificationsRemaining: number; aiCredits: number; active: boolean } | null; isLoading: boolean }) {
@@ -41,16 +41,16 @@ function PlantResultCards({ result, plantNetValidation, subject = "plant" }: { r
   </div>;
 }
 
-function PlantResultWorkspace({ result, answer, preview, plantNetValidation, subject, onNewAnalysis, onAddImage }: { result: PlantIdentification; answer: string; preview?: string; plantNetValidation?: { exactMatch: boolean; sameGenus: boolean; topSpecies: string; topScore: number } | null; subject: "plant" | "fish"; onNewAnalysis: () => void; onAddImage: () => void }) {
+export function PlantResultWorkspace({ result, answer, preview, plantNetValidation, subject, assistantUsageId, originalAnswer, onNewAnalysis, onAddImage }: { result: PlantIdentification; answer: string; preview?: string; plantNetValidation?: { exactMatch: boolean; sameGenus: boolean; topSpecies: string; topScore: number } | null; subject: "plant" | "fish"; assistantUsageId?: number; originalAnswer?: string; onNewAnalysis: () => void; onAddImage: () => void }) {
   const lead = result.candidates[0];
   return <section className={`assistant-result-workspace assistant-result-workspace--${subject}`} aria-label="KI-Ergebnis">
     <header className="assistant-result-workspace__header"><div><p className="eyebrow">[KI / ERGEBNISRAUM]</p><h2>{subject === "fish" ? "FISCHBESTIMMUNG" : "PFLANZENBESTIMMUNG"}</h2><span className="assistant-result-workspace__status"><ShieldCheck size={14} />Vorläufig · mit sichtbarer Evidenz</span></div><button type="button" className="secondary-action" onClick={onNewAnalysis}><ScanSearch size={15} />NEUE ANALYSE</button></header>
     <div className="assistant-result-workspace__layout"><aside className="assistant-result-workspace__context">{preview ? <img src={preview} alt="Analysiertes Originalbild" /> : <div className="assistant-result-workspace__placeholder"><Camera size={24} /></div>}<div><span className="eyebrow">ANALYSEOBJEKT</span><strong>{lead?.commonName ?? "Noch keine belastbare Zuordnung"}</strong><small>{lead?.scientificName ?? "Weitere Merkmale erforderlich"}</small></div><button type="button" className="secondary-action" onClick={onAddImage}><Camera size={15} />WEITERES BILD</button></aside>
-      <div className="assistant-result-workspace__content"><section className="assistant-result-hero"><div><p className="eyebrow">TOP-KANDIDAT</p><h3>{lead?.scientificName ?? "Keine sichere Art erkannt"}</h3><p>{result.summary}</p></div><span className={`assistant-confidence assistant-confidence--${result.confidence}`}><ShieldCheck size={14} />{confidenceLabel(result.confidence)}</span></section><PlantResultCards result={result} plantNetValidation={plantNetValidation} subject={subject} /><details className="assistant-result-details"><summary><span><Bot size={15} />KI-EINORDNUNG</span><small>Rohantwort nur bei Bedarf öffnen</small></summary><article className="assistant-result"><LazyStreamdown>{answer}</LazyStreamdown></article></details></div></div>
+      <div className="assistant-result-workspace__content"><section className="assistant-result-hero"><div><p className="eyebrow">TOP-KANDIDAT</p><h3>{lead?.scientificName ?? "Keine sichere Art erkannt"}</h3><p>{result.summary}</p></div><span className={`assistant-confidence assistant-confidence--${result.confidence}`}><ShieldCheck size={14} />{confidenceLabel(result.confidence)}</span></section><PlantResultCards result={result} plantNetValidation={plantNetValidation} subject={subject} /><details className="assistant-result-details"><summary><span><Bot size={15} />KI-EINORDNUNG</span><small>Rohantwort nur bei Bedarf öffnen</small></summary><article className="assistant-result"><LazyStreamdown>{answer}</LazyStreamdown></article></details>{assistantUsageId && originalAnswer ? <PlantCorrectionForm assistantUsageId={assistantUsageId} originalAnswer={originalAnswer} /> : null}</div></div>
   </section>;
 }
 
-function PlantCorrectionForm({ originalAnswer, assistantUsageId }: { originalAnswer: string; assistantUsageId: number }) {
+export function PlantCorrectionForm({ originalAnswer, assistantUsageId }: { originalAnswer: string; assistantUsageId: number }) {
   const [correctedName, setCorrectedName] = useState("");
   const [correctionNote, setCorrectionNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -78,6 +78,7 @@ export default function Assistant() {
   const auth = useAuth();
   const { locale, t } = useI18n();
   const utils = trpc.useUtils();
+  const [, setLocation] = useLocation();
   const platform = trpc.platform.availability.useQuery(undefined, { retry: false });
   const billingStatus = trpc.billing.me.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false, staleTime: 30_000 });
   const consents = trpc.profile.consents.useQuery(undefined, { enabled: auth.isAuthenticated, retry: false });
@@ -117,7 +118,7 @@ export default function Assistant() {
     onError: mutationError => setError(mutationError.message),
   });
   const plantIdentify = trpc.assistant.plantIdentify.useMutation({
-    onSuccess: async response => { setPlantOriginalAnswer(response.answer); setPlantAssistantUsageId(response.assistantUsageId); setPlantAnswer(`${response.answer}\n\n_${response.disclaimer}_`); setPlantIdentification(response.identification); setPlantNetValidation(response.plantNetValidation); setPlantNeedsMoreImages(response.needsMoreImages); setPlantRequestedImages(response.requestedAdditionalImages); setPlantResultOpen(true); await Promise.all([utils.gamification.summary.invalidate(), utils.billing.me.invalidate()]); },
+    onSuccess: async response => { setPlantOriginalAnswer(response.answer); setPlantAssistantUsageId(response.assistantUsageId); setPlantAnswer(`${response.answer}\n\n_${response.disclaimer}_`); setPlantIdentification(response.identification); setPlantNetValidation(response.plantNetValidation); setPlantNeedsMoreImages(response.needsMoreImages); setPlantRequestedImages(response.requestedAdditionalImages); setPlantResultOpen(true); setLocation(`/assistant/result?session=${response.sessionId}`); await Promise.all([utils.gamification.summary.invalidate(), utils.billing.me.invalidate()]); },
     onError: mutationError => setError(mutationError.message),
   });
   const aquariumAnalyze = trpc.assistant.aquariumAnalyze.useMutation({

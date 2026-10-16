@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, inArray, like, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
-import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantResultCache, assistantUsage, notifications, plantTaxa, privateHabitats, terrariumTaxa, users } from "../../drizzle/schema";
+import { aiCreditWallets, aiGlobalUsageDays, aiIdentificationCorrections, aiUsagePolicies, aiUserUsageDays, aiUserUsageMonths, aquariumTaxa, assistantResultCache, assistantResultSessions, assistantUsage, notifications, plantTaxa, privateHabitats, terrariumTaxa, users } from "../../drizzle/schema";
 import { aquariumDetailsSchema } from "../../shared/blackwaterleaf-contract-v1";
 import { appendAuditEntry } from "../auditLedger";
 import { getAssistantReadiness } from "../assistantReadiness";
@@ -43,6 +43,7 @@ const plantCorrectionInput = z.object({
   correctedName: z.string().trim().min(2).max(255),
   correctionNote: z.string().trim().max(1_000).optional(),
 });
+const resultSessionInput = z.object({ sessionId: z.string().regex(/^[a-f0-9]{64}$/i) });
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status: "active" | "suspended" | "banned" };
@@ -50,6 +51,17 @@ type AssistantUser = { id: number; role: "user" | "moderator" | "admin"; status:
 type CreditSource = "free" | "pro" | "purchased";
 type RequestReservation = { db: Database; usageId: number; creditSource: CreditSource };
 type TokenUsage = { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+type ResultSessionPayload = {
+  answer: string;
+  originalAnswer: string;
+  assistantUsageId: number;
+  identification: PlantIdentificationResult;
+  plantNetValidation: CachedPlantNetValidation | null;
+  subject: "plant" | "fish";
+  needsMoreImages: boolean;
+  requestedAdditionalImages: number;
+  disclaimer: string;
+};
 type CatalogReference = {
   scientificName: string;
   acceptedScientificName: string | null;
@@ -77,6 +89,19 @@ function responseText(content: string | unknown[]) {
 
 const CATALOG_CONTEXT_CACHE_TTL_MS = 5 * 60_000;
 const catalogContextCache = new Map<string, { expiresAt: number; references: CatalogReference[] }>();
+const RESULT_SESSION_TTL_MS = 30 * 60_000;
+function hashResultSession(sessionId: string) { return createHash("sha256").update(sessionId).digest("hex"); }
+async function createResultSession(db: Database, userId: number, payload: ResultSessionPayload) {
+  const sessionId = randomBytes(32).toString("hex");
+  await db.insert(assistantResultSessions).values({
+    userId,
+    sessionHash: hashResultSession(sessionId),
+    subject: payload.subject,
+    payload,
+    expiresAt: new Date(Date.now() + RESULT_SESSION_TTL_MS),
+  });
+  return sessionId;
+}
 
 function compactText(value: string | null | undefined, maxLength: number) {
   const normalized = value?.replace(/\s+/g, " ").trim() ?? "";
@@ -591,7 +616,12 @@ export const assistantRouter = router({
         ? [formatPlantIdentification(identification), `**BlackWaterLeaf-Aquaristik-Katalog**\n${formatCatalogReferences(catalogReferences)}`].join("\n\n")
         : cachedPlantAnswer(identification, catalogReferences, plantNetValidation);
       const inserted = await db.insert(assistantUsage).values({ userId: ctx.user.id, clientRequestId: input.clientRequestId, realm: input.subject === "fish" ? "aquarium" : "botany", model: cached.model, promptChars: input.note?.length ?? 0, completionChars: answer.length, promptTokens: 0, completionTokens: 0, totalTokens: 0, creditsConsumed: 0, provider: "ai-result-cache", tariffVersion: "plant-result-cache-v1", estimatedInputCostUsd: "0.00000000", estimatedOutputCostUsd: "0.00000000", estimatedTotalCostUsd: "0.00000000", costCurrency: "USD", requestOutcome: "completed" });
-      return { answer, model: cached.model, assistantUsageId: Number(inserted[0].insertId), xpAwarded: 0, plantNetValidation, catalogReferences, identification, disclaimer: "Hinweis: Dieses Ergebnis stammt aus einem kurzzeitig gespeicherten, bildbasierten Ergebnis-Cache. Die Bilddatei selbst wurde nicht gespeichert. Vorläufige KI-Einschätzung – bitte fachlich abgleichen.", needsMoreImages: identification.needsMoreImages && images.length < 3, requestedAdditionalImages: identification.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, identification.requestedAdditionalImages)) : 0 };
+      const assistantUsageId = Number(inserted[0].insertId);
+      const needsMoreImages = identification.needsMoreImages && images.length < 3;
+      const requestedAdditionalImages = needsMoreImages ? Math.min(2, Math.max(1, identification.requestedAdditionalImages)) : 0;
+      const disclaimer = "Hinweis: Dieses Ergebnis stammt aus einem kurzzeitig gespeicherten, bildbasierten Ergebnis-Cache. Die Bilddatei selbst wurde nicht gespeichert. Vorläufige KI-Einschätzung – bitte fachlich abgleichen.";
+      const sessionId = await createResultSession(db, ctx.user.id, { answer, originalAnswer: answer, assistantUsageId, identification, plantNetValidation, subject: input.subject, needsMoreImages, requestedAdditionalImages, disclaimer });
+      return { answer, model: cached.model, assistantUsageId, sessionId, xpAwarded: 0, plantNetValidation, catalogReferences, identification, disclaimer, needsMoreImages, requestedAdditionalImages };
     }
     const reservation = await reservePlantRequest(ctx.user, input.clientRequestId, (input.note?.length ?? 0) + images.reduce((sum, image) => sum + image.byteSize, 0), PLANT_TRIAGE_MODEL, input.subject === "fish" ? "aquarium" : "botany");
     try {
@@ -620,11 +650,22 @@ export const assistantRouter = router({
     } catch (cacheError) {
       if (!/duplicate|ER_DUP_ENTRY/i.test(cacheError instanceof Error ? cacheError.message : String(cacheError))) console.warn("assistant_result_cache_write_failed", cacheError);
     }
-    return { answer, model, assistantUsageId: reservation.usageId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer: `Hinweis: Die ${input.subject === "fish" ? "Fischbestimmung" : "Pflanzenbestimmung"} ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Bitte mit seriösen Fachquellen oder einer Fachperson abgleichen.`, needsMoreImages: result.needsMoreImages && images.length < 3, requestedAdditionalImages: result.needsMoreImages && images.length < 3 ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0 };
+    const needsMoreImages = result.needsMoreImages && images.length < 3;
+    const requestedAdditionalImages = needsMoreImages ? Math.min(2, Math.max(1, result.requestedAdditionalImages)) : 0;
+    const disclaimer = `Hinweis: Die ${input.subject === "fish" ? "Fischbestimmung" : "Pflanzenbestimmung"} ist eine vorläufige KI-Einschätzung und keine sichere Artbestimmung. Bitte mit seriösen Fachquellen oder einer Fachperson abgleichen.`;
+    const sessionId = await createResultSession(reservation.db, ctx.user.id, { answer, originalAnswer: answer, assistantUsageId: reservation.usageId, identification: result, plantNetValidation, subject: input.subject, needsMoreImages, requestedAdditionalImages, disclaimer });
+    return { answer, model, assistantUsageId: reservation.usageId, sessionId, xpAwarded, plantNetValidation, catalogReferences, identification: result, disclaimer, needsMoreImages, requestedAdditionalImages };
     } catch (error) {
       await reservation.db.update(assistantUsage).set({ requestOutcome: "failed" }).where(eq(assistantUsage.id, reservation.usageId));
       throw error;
     }
+  }),
+
+  resultBySession: protectedProcedure.input(resultSessionInput).query(async ({ ctx, input }) => {
+    const db = await requireDatabase();
+    const [session] = await db.select().from(assistantResultSessions).where(and(eq(assistantResultSessions.userId, ctx.user.id), eq(assistantResultSessions.sessionHash, hashResultSession(input.sessionId)), gt(assistantResultSessions.expiresAt, new Date()))).limit(1);
+    if (!session) throw new TRPCError({ code: "NOT_FOUND", message: "assistant_result_session_not_found" });
+    return session.payload as ResultSessionPayload;
   }),
 
   submitPlantCorrection: protectedProcedure.input(plantCorrectionInput).mutation(async ({ ctx, input }) => {
