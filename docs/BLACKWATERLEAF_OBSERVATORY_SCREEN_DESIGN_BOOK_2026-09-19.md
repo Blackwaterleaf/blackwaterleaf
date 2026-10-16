@@ -189,3 +189,17 @@ Der Modernisierungsstand wurde mit Web-TypeScript, Native-TypeScript, gezielten 
 - Die visuelle Codierung folgt dem Observatory-System: Botanik Mint/Grün, Aquaristik Aqua-Cyan, Terraristik Gold. Die Karte besteht aus Aufgabenbeschreibung, verbindlichem Regeltext, Enddatum, Punktewert und Status.
 - Das vorbereitete **Signal-Labor** bleibt bis zu realen Messwerten aus eigener Anlage oder autorisiertem Gerät ein transparenter Statusbereich. Es zeigt niemals erfundene pH-, Temperatur-, Reichweiten- oder eDNA-Werte. Labor- und eDNA-Partnerschaften sind P2 und nicht Bestandteil des aktiven Produkts.
 - P1-Abnahme umfasst Web-Route `/missions`, Native-Screen `missions`, Beitritt, Fortschrittsanzeige, Login-Gate, Leer-/Fehlerzustand, Pull-to-Refresh und `git diff --check`.
+
+
+## KI-Ergebnis-Workspace · 2026-10-16
+
+Die KI-Bestimmung trennt ab sofort strikt zwischen **Eingabe** und **Ergebnis**. Nach erfolgreicher Pflanzen- oder Fischanalyse wird kein langer Ergebnisblock mehr unter dem Uploadformular angehängt.
+
+- **Ergebnisfläche:** eigener Workspace mit Status „vorläufig · mit sichtbarer Evidenz“.
+- **Hero-Ebene:** Top-Kandidat, wissenschaftlicher Name, Kurz-Zusammenfassung und Sicherheitsgrad stehen zuerst.
+- **Kontext-Ebene:** das analysierte Originalbild bleibt als kompakter Kontext sichtbar; „Neue Analyse“ und „Weiteres Bild“ sind direkt erreichbar.
+- **Evidenz-Ebene:** Kandidaten, erkennbare Merkmale, weitere Bilder und unabhängige Prüfung bleiben als Karten strukturiert.
+- **Rohantwort:** lange KI-Einordnung ist standardmäßig eingeklappt und nur bei Bedarf aufklappbar.
+- **Fachfarben:** Botanik nutzt den Observatory-Limetteton, Aquaristik/Fisch den verbindlichen Cyan-Ton; Ladezustand, Hero, Rahmen und Aktionen verwenden denselben Akzent.
+- **Native-Parität:** derselbe Ablauf wird mobil als kompakte Hero-Karte mit aufklappbarer KI-Einordnung umgesetzt; keine Textwand im Standardzustand.
+- **Motion:** Ladezustand zeigt die drei Phasen „Bild vorbereiten“, „Merkmale prüfen“ und „Quellen abgleichen“; bei reduzierter Bewegung werden Animationen deaktiviert.

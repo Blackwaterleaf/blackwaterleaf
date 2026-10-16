@@ -1837,6 +1837,7 @@ function AssistantScreen({
   const [plantAnswer, setPlantAnswer] = useState<string | null>(null);
   const [plantCandidates, setPlantCandidates] = useState<Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>>([]);
   const [plantUsageId, setPlantUsageId] = useState<number | null>(null);
+  const [showRawResult, setShowRawResult] = useState(false);
   const [needsMorePhotos, setNeedsMorePhotos] = useState(false);
   const [requestedPhotos, setRequestedPhotos] = useState(0);
   const [correctionName, setCorrectionName] = useState("");
@@ -2485,11 +2486,13 @@ function AssistantScreen({
               {plantAnswer ? (
                 <>
                   {plantCandidates.length ? <View style={[styles.nativeEvidenceRail, { borderColor: `${visualTone.accent}55`, backgroundColor: `${visualTone.accent}0d` }]}><View style={styles.nativeEvidenceHeading}><Ionicons name="shield-checkmark-outline" size={17} color={visualTone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>ANALYSE ABGESCHLOSSEN · VORLÄUFIG</Text><Text style={styles.cardTitle}>Kandidaten mit sichtbarer Evidenz</Text></View></View>{plantCandidates.map((candidate, index) => <View key={`${candidate.scientificName}-${index}`} style={[styles.nativeCandidateRow, { borderColor: `${visualTone.accent}33` }]}><Text style={[styles.chip, { color: visualTone.accent }]}>0{index + 1}</Text><View style={styles.flex}><Text style={styles.cardTitle}>{candidate.commonName}</Text><Text style={styles.miniCopy}>{candidate.scientificName} · {candidate.reason}</Text></View><Text style={[styles.chip, { color: visualTone.accent }]}>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</Text></View>)}</View> : null}
-                  <Result
-                    tone={visualTone}
-                    title="VORLÄUFIGE EINORDNUNG"
-                    answer={plantAnswer}
-                  />
+                  <View style={[styles.nativeResultWorkspace, { borderColor: `${visualTone.accent}66`, backgroundColor: `${visualTone.accent}0d` }]}>
+                    <View style={styles.nativeResultHero}>
+                      <View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>KI / ERGEBNISRAUM</Text><Text style={styles.cardTitle}>{plantCandidates[0]?.commonName ?? "Noch keine belastbare Zuordnung"}</Text><Text style={styles.miniCopy}>{plantCandidates[0]?.scientificName ?? "Weitere Merkmale erforderlich"}</Text></View><Ionicons name="shield-checkmark-outline" size={24} color={visualTone.accent} />
+                    </View>
+                    <Pressable onPress={() => setShowRawResult(value => !value)} style={[styles.nativeResultDetailsButton, { borderColor: `${visualTone.accent}44` }]}><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>KI-EINORDNUNG</Text><Text style={styles.copy}>{showRawResult ? "Details ausblenden" : "Rohantwort nur bei Bedarf öffnen"}</Text></View><Ionicons name={showRawResult ? "chevron-up" : "chevron-down"} size={18} color={visualTone.accent} /></Pressable>
+                    {showRawResult ? <Result tone={visualTone} title="VORLÄUFIGE EINORDNUNG" answer={plantAnswer} /> : null}
+                  </View>
                   <View
                     style={[
                       styles.correction,
@@ -5162,6 +5165,9 @@ const styles = StyleSheet.create({
   nativeEvidenceRail: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
   nativeEvidenceHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   nativeCandidateRow: { minHeight: 49, padding: 8, borderRadius: 10, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 8 },
+  nativeResultWorkspace: { padding: 12, borderRadius: 16, borderWidth: 1, gap: 10 },
+  nativeResultHero: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 13, backgroundColor: "rgba(0,0,0,.18)" },
+  nativeResultDetailsButton: { flexDirection: "row", alignItems: "center", gap: 10, padding: 11, borderRadius: 11, borderWidth: 1, backgroundColor: "rgba(0,0,0,.14)" },
   headingTitle: {
     color: c.text,
     fontSize: 23,
