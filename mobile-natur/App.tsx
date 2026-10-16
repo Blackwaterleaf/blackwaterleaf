@@ -1838,6 +1838,7 @@ function AssistantScreen({
   const [plantCandidates, setPlantCandidates] = useState<Array<{ commonName: string; scientificName: string; confidence: "low" | "moderate" | "high"; reason: string }>>([]);
   const [plantUsageId, setPlantUsageId] = useState<number | null>(null);
   const [showRawResult, setShowRawResult] = useState(false);
+  const [resultOpen, setResultOpen] = useState(false);
   const [needsMorePhotos, setNeedsMorePhotos] = useState(false);
   const [requestedPhotos, setRequestedPhotos] = useState(0);
   const [correctionName, setCorrectionName] = useState("");
@@ -1980,6 +1981,7 @@ function AssistantScreen({
       setPlantAnswer(null);
       setPlantUsageId(null);
       setNeedsMorePhotos(false);
+      setResultOpen(false);
       setRequestedPhotos(0);
       setMessage(null);
     } catch {
@@ -2042,6 +2044,8 @@ function AssistantScreen({
       setPlantUsageId(response.assistantUsageId);
       setNeedsMorePhotos(response.needsMoreImages);
       setRequestedPhotos(response.requestedAdditionalImages);
+      setShowRawResult(false);
+      setResultOpen(true);
       void billingMe(token).then(setBillingStatus).catch(() => undefined);
     } catch (cause) {
       const errorMessage = cause instanceof Error ? cause.message : "";
@@ -2105,6 +2109,47 @@ function AssistantScreen({
     }
   };
 
+  if (resultOpen && plantAnswer) {
+    return (
+      <Page key={`assistant-result-${tool}`}>
+        <View style={styles.nativeResultTopBar}>
+          <Pressable onPress={() => setResultOpen(false)} style={styles.nativeResultBack} accessibilityLabel="Zurück zur KI-Analyse">
+            <Ionicons name="arrow-back" size={19} color={visualTone.accent} />
+            <Text style={[styles.chip, { color: visualTone.accent }]}>ZURÜCK ZUR KI</Text>
+          </Pressable>
+          <Text style={[styles.chip, { color: visualTone.accent }]}>GESCHÜTZTER ERGEBNISRAUM</Text>
+        </View>
+        <SectionLabel
+          tone={visualTone}
+          overline={`BLACKWATERLEAF · ${tool === "fish" ? "AQUARISTIK" : "BOTANIK"}`}
+          title={tool === "fish" ? "FISCHBESTIMMUNG" : "PFLANZENBESTIMMUNG"}
+          compact
+        />
+        <View style={[styles.nativeResultNotice, { borderColor: `${visualTone.accent}55`, backgroundColor: `${visualTone.accent}0d` }]}>
+          <Ionicons name="shield-checkmark-outline" size={17} color={visualTone.accent} />
+          <Text style={styles.miniCopy}>Dein Ergebnis ist konto-gebunden. Die Bilddatei und der Prompt werden nicht als Ergebnistext gespeichert.</Text>
+        </View>
+        {plantCandidates.length ? (
+          <View style={[styles.nativeEvidenceRail, { borderColor: `${visualTone.accent}66`, backgroundColor: `${visualTone.accent}0d` }]}>
+            <View style={styles.nativeEvidenceHeading}><Ionicons name="sparkles-outline" size={17} color={visualTone.accent} /><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>TOP-KANDIDATEN</Text><Text style={styles.cardTitle}>Sichtbare Evidenz statt Textwand</Text></View></View>
+            {plantCandidates.map((candidate, index) => <View key={`${candidate.scientificName}-${index}`} style={[styles.nativeCandidateRow, { borderColor: `${visualTone.accent}33` }]}><Text style={[styles.chip, { color: visualTone.accent }]}>0{index + 1}</Text><View style={styles.flex}><Text style={styles.cardTitle}>{candidate.commonName}</Text><Text style={styles.miniCopy}>{candidate.scientificName} · {candidate.reason}</Text></View><Text style={[styles.chip, { color: visualTone.accent }]}>{candidate.confidence === "high" ? "HOCH" : candidate.confidence === "moderate" ? "MITTEL" : "NIEDRIG"}</Text></View>)}
+          </View>
+        ) : null}
+        <View style={[styles.nativeResultWorkspace, { borderColor: `${visualTone.accent}88`, backgroundColor: `${visualTone.accent}0d` }]}>
+          <View style={styles.nativeResultHero}><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>KI / ERGEBNIS</Text><Text style={styles.cardTitle}>{plantCandidates[0]?.commonName ?? "Noch keine belastbare Zuordnung"}</Text><Text style={styles.miniCopy}>{plantCandidates[0]?.scientificName ?? "Weitere Merkmale erforderlich"}</Text></View><Ionicons name="shield-checkmark-outline" size={25} color={visualTone.accent} /></View>
+          <Pressable onPress={() => setShowRawResult(value => !value)} style={[styles.nativeResultDetailsButton, { borderColor: `${visualTone.accent}55` }]}><View style={styles.flex}><Text style={[styles.chip, { color: visualTone.accent }]}>KI-EINORDNUNG</Text><Text style={styles.copy}>{showRawResult ? "Details ausblenden" : "Rohantwort nur bei Bedarf öffnen"}</Text></View><Ionicons name={showRawResult ? "chevron-up" : "chevron-down"} size={18} color={visualTone.accent} /></Pressable>
+          {showRawResult ? <Result tone={visualTone} title="VORLÄUFIGE EINORDNUNG" answer={plantAnswer} /> : null}
+        </View>
+        <View style={[styles.correction, { borderColor: `${visualTone.accent}66`, backgroundColor: "rgba(0,0,0,.18)" }]}>
+          <Text style={[styles.chip, { color: visualTone.accent }]}>KI-KORREKTUR / PRÜFUNG</Text><Text style={styles.cardTitle}>LIEGT DIE KI HIER FALSCH?</Text><Text style={styles.copy}>Deine Korrektur wird nachvollziehbar an Admins und Moderatoren übergeben.</Text>
+          <LabeledInput tone={visualTone} label="RICHTIGE BEZEICHNUNG" value={correctionName} onChange={setCorrectionName} placeholder="Zum Beispiel: Monstera deliciosa" />
+          <LabeledInput tone={visualTone} label="KURZE BEGRÜNDUNG · OPTIONAL" value={correctionNote} onChange={setCorrectionNote} placeholder="Woran hast du das Taxon erkannt?" multiline />
+          <SecondaryButton tone={visualTone} label={busy ? "WIRD GESPEICHERT …" : "KORREKTUR ZUR PRÜFUNG SPEICHERN"} icon="shield-checkmark-outline" disabled={busy || !correctionName.trim()} onPress={() => void sendCorrection()} />
+        </View>
+        <SecondaryButton tone={visualTone} label="NEUE ANALYSE STARTEN" icon="scan-outline" onPress={() => { setResultOpen(false); setPlantAnswer(null); setPlantCandidates([]); setPlantUsageId(null); setPhotos([]); setCorrectionName(""); setCorrectionNote(""); }} />
+      </Page>
+    );
+  }
   return (
     <Page
       key={`assistant-${tool}-${selectionCollapsed ? "compact" : "expanded"}`}
@@ -5162,6 +5207,9 @@ const styles = StyleSheet.create({
   analysisLoadingCopy: { flex: 1, gap: 4 },
   analysisSteps: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 },
   analysisStep: { color: c.muted, fontSize: 8, fontWeight: "900", letterSpacing: 0.5 },
+  nativeResultTopBar: { minHeight: 42, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 },
+  nativeResultBack: { minHeight: 36, paddingHorizontal: 9, borderRadius: 10, borderWidth: 1, borderColor: "rgba(199,243,91,.28)", flexDirection: "row", alignItems: "center", gap: 6 },
+  nativeResultNotice: { minHeight: 54, padding: 11, borderRadius: 12, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 8 },
   nativeEvidenceRail: { padding: 12, borderRadius: 14, borderWidth: 1, gap: 8 },
   nativeEvidenceHeading: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   nativeCandidateRow: { minHeight: 49, padding: 8, borderRadius: 10, borderWidth: 1, flexDirection: "row", alignItems: "center", gap: 8 },

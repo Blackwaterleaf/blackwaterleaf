@@ -76,6 +76,10 @@ describe("BlackWaterLeaf native application contract", () => {
     for (const token of ['screen: "map"', 'screen: "assistant"', 'const [tool, setTool] = useState<"chat" | "plant" | "fish" | "aquarium">("plant")', 'onHome={() => navigate("home")}', "onMarketplace()", 'name="storefront-outline"', "Marketplace", '"marketplace"']) expect(app).toContain(token);
   });
 
+  it("opens AI determinations in a focused native result workspace", () => {
+    for (const token of ["resultOpen", "GESCHÜTZTER ERGEBNISRAUM", "nativeResultNotice", "Rohantwort nur bei Bedarf öffnen", "NEUE ANALYSE STARTEN", "submitPlantCorrection"]) expect(app).toContain(token);
+  });
+
   it("uses renamed compact Observatory primitives for native actions", () => {
     for (const token of ["ObservatoryContextHeader", "ObservatoryActionCluster", "ObservatoryActionRow", "observatoryActionRowCompact", "selectionCollapsed", "ALLE WERKZEUGE", "LayoutAnimation.Presets.easeInEaseOut"]) expect(app).toContain(token);
     for (const retired of ["ReferenceHero", "ReferenceCard", "ActionGrid", "referenceCardCompact"]) expect(app).not.toContain(retired);
