@@ -59,11 +59,24 @@ async function setLocalSession(input: { res: { cookie: Function }; req: Paramete
 }
 
 export const localAuthRouter = router({
-  status: publicProcedure.query(() => ({
-    emailDeliveryConfigured: Boolean(getLocalAuthEmailConfig()),
-    passwordMinimumLength: 12,
-    accountMode: "local_email_password" as const,
-  })),
+  status: publicProcedure.query(async () => {
+    let localLoginAvailable = false;
+    try {
+      const db = await getDb();
+      if (db) {
+        const rows = await db.select({ count: sql<number>`count(*)` }).from(localCredentials);
+        localLoginAvailable = Number(rows[0]?.count ?? 0) > 0;
+      }
+    } catch {
+      // Keep the public status endpoint available while the database recovers.
+    }
+    return {
+      emailDeliveryConfigured: Boolean(getLocalAuthEmailConfig()),
+      localLoginAvailable,
+      passwordMinimumLength: 12,
+      accountMode: "local_email_password" as const,
+    };
+  }),
 
   register: publicProcedure
     .input(z.object({ email: emailInput, password: passwordInput, displayName: z.string().trim().min(2).max(160).optional() }))

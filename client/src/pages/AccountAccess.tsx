@@ -41,6 +41,7 @@ export default function AccountAccess() {
   const [error, setError] = useState<string | null>(null);
   const token = useMemo(() => new URLSearchParams(window.location.search).get("token") ?? "", [location]);
   const isEmailReady = Boolean(status.data?.emailDeliveryConfigured);
+  const localLoginAvailable = Boolean(status.data?.localLoginAvailable);
   const isWorking = login.isPending || register.isPending || requestReset.isPending || verifyEmail.isPending || resetPassword.isPending;
   const headline = copy[mode];
   const AccessIcon = mode === "register" ? UserPlus : mode === "login" ? KeyRound : ShieldCheck;
@@ -102,7 +103,7 @@ export default function AccountAccess() {
   const emailNeeded = mode === "login" || mode === "register" || mode === "forgot";
   const passwordNeeded = mode === "login" || mode === "register" || mode === "reset";
   const mailDisabled = (mode === "register" || mode === "forgot") && !isEmailReady;
-  const showManusFallback = !isEmailReady;
+  const showManusFallback = !isEmailReady || !localLoginAvailable;
 
   return (
     <main className="account-access-page observatory-route observatory-route--botany">
@@ -112,7 +113,7 @@ export default function AccountAccess() {
         <div className="account-access-mark"><Leaf size={24} /></div>
         <p className="account-access-intro">Dein Zugang bleibt sicher, widerrufbar und unabhängig von öffentlichen Portalansichten.</p>
 
-        {(showManusFallback || mode === "register") ? <div className="account-manus-fallback" role="status"><p>BlackWaterLeaf kann weltweit genutzt werden. Für eine schnelle globale Registrierung kannst du dich sicher mit deinem Manus-Konto anmelden; eine Länderbeschränkung gibt es nicht.</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
+        {(showManusFallback || mode === "register") ? <div className="account-manus-fallback" role="status"><p>{!localLoginAvailable && mode === "login" ? "Es ist noch kein bestätigtes BlackWaterLeaf-E-Mail-Konto vorhanden. Nutze bis zur Aktivierung der lokalen Konten die sichere Manus-Anmeldung." : "BlackWaterLeaf kann weltweit genutzt werden. Für eine schnelle globale Registrierung kannst du dich sicher mit deinem Manus-Konto anmelden; eine Länderbeschränkung gibt es nicht."}</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
         {notice ? <p className="account-success" role="status"><CheckCircle2 size={17} />{notice}</p> : null}
         {error ? <p className="account-error" role="alert">{error}</p> : null}
 
@@ -121,7 +122,7 @@ export default function AccountAccess() {
           {emailNeeded ? <label className="field"><span>E-MAIL-ADRESSE</span><div className="account-input"><Mail size={17} /><input value={email} type="email" autoComplete={mode === "login" ? "username" : "email"} required onChange={event => setEmail(event.target.value)} /></div></label> : null}
           {passwordNeeded ? <label className="field"><span>PASSWORT {mode !== "login" ? <em>MIN. 12 ZEICHEN</em> : null}</span><div className="account-input"><LockKeyhole size={17} /><input value={password} type="password" minLength={mode === "login" ? undefined : 12} maxLength={256} autoComplete={mode === "login" ? "current-password" : "new-password"} required onChange={event => setPassword(event.target.value)} /></div></label> : null}
           {mode === "verify" && !token ? <p className="account-error">Der Bestätigungslink enthält keinen gültigen Sicherheitscode.</p> : null}
-          <button className="primary-action account-submit" type="submit" disabled={isWorking || mailDisabled || ((mode === "verify" || mode === "reset") && !token)}>
+          <button className="primary-action account-submit" type="submit" disabled={isWorking || mailDisabled || (mode === "login" && !localLoginAvailable) || ((mode === "verify" || mode === "reset") && !token)}>
             {mode === "login" ? <KeyRound size={17} /> : mode === "register" ? <UserPlus size={17} /> : <ShieldCheck size={17} />}
             {isWorking ? "WIRD VERARBEITET …" : mode === "login" ? "ANMELDEN" : mode === "register" ? "KONTO ERSTELLEN" : mode === "forgot" ? "RESET-LINK SENDEN" : mode === "verify" ? "E-MAIL BESTÄTIGEN" : "PASSWORT SPEICHERN"}
           </button>

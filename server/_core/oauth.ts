@@ -11,6 +11,15 @@ const MOBILE_CALLBACK_SCHEME = "blackwaterleaf://oauth/callback";
 const MOBILE_OAUTH_CALLBACK = "https://blackwaterleaf.com/api/oauth/callback";
 const MOBILE_CODE_AUDIENCE = "blackwaterleaf-natur";
 const MOBILE_CODE_TTL_SECONDS = 90;
+const TRUSTED_WEB_ORIGINS = new Set([
+  "https://blackwaterleaf.com",
+  "https://www.blackwaterleaf.com",
+  "https://bwlparity-nearrhpw.manus.space",
+]);
+const LOCAL_WEB_ORIGINS = new Set([
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+]);
 
 function isValidMobileState(value: unknown): value is string {
   return typeof value === "string" && /^[A-Za-z0-9_-]{32,256}$/.test(value);
@@ -45,6 +54,28 @@ function getQueryParam(req: Request, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+/**
+ * The managed WebDev runtime may receive the request on an internal proxy host.
+ * The browser origin must therefore be supplied explicitly and checked against
+ * our allowlist; the incoming request host is not the public application origin.
+ */
+function getTrustedWebOrigin(req: Request): string | null {
+  const value = getQueryParam(req, "origin");
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.username || parsed.password || parsed.pathname !== "/" || parsed.search || parsed.hash) return null;
+    const origin = parsed.origin;
+    if (TRUSTED_WEB_ORIGINS.has(origin)) return origin;
+    if (!ENV.isProduction && LOCAL_WEB_ORIGINS.has(origin)) return origin;
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function registerOAuthRoutes(app: Express) {
   /** Web login entry point. The server owns the portal/app configuration so
    * preview and production builds cannot drift apart. */
@@ -53,7 +84,12 @@ export function registerOAuthRoutes(app: Express) {
       res.status(503).json({ error: "oauth_not_configured" });
       return;
     }
-    const redirectUri = `${req.protocol}://${req.get("host") ?? ""}/api/oauth/callback`;
+    const webOrigin = getTrustedWebOrigin(req);
+    if (!webOrigin) {
+      res.status(400).json({ error: "oauth_origin_required" });
+      return;
+    }
+    const redirectUri = `${webOrigin}/api/oauth/callback`;
     const nonce = crypto.randomUUID();
     const state = encodeOAuthState({ redirectUri, nonce });
     res.cookie(OAUTH_STATE_COOKIE, nonce, { path: "/", maxAge: 10 * 60 * 1000, httpOnly: true, secure: true, sameSite: "none" });
