@@ -11,9 +11,8 @@ const social = read("server/routers/social.ts");
 const schema = read("drizzle/schema.ts");
 
 describe("protected Community detail and Live Hub", () => {
-  it("requires an active signed-in account for community feeds, details and comments", () => {
-    for (const token of ["feed: protectedProcedure", "byId: protectedProcedure", "comments: protectedProcedure", "ÖFFENTLICH · OHNE ANMELDUNG", "COMMUNITY_DETAIL/AUTH_REQUIRED"]) expect(`${community}\n${read("client/src/pages/Community.tsx")}\n${read("client/src/pages/CommunityPostDetail.tsx")}`).toContain(token);
-    expect(community).not.toContain("feed: publicProcedure");
+  it("keeps public feed reading open while details and comments remain account-bound", () => {
+    for (const token of ["publicFeed: publicProcedure", "feed: protectedProcedure", "byId: protectedProcedure", "comments: protectedProcedure", "ÖFFENTLICH · OHNE ANMELDUNG", "COMMUNITY_DETAIL/AUTH_REQUIRED"]) expect(`${community}\n${read("client/src/pages/Community.tsx")}\n${read("client/src/pages/CommunityPostDetail.tsx")}`).toContain(token);
     expect(community).not.toContain("comments: publicProcedure");
     const profileRouter = read("server/routers/profile.ts");
     const publicProfile = read("client/src/pages/PublicProfile.tsx");
@@ -49,12 +48,14 @@ describe("protected Community detail and Live Hub", () => {
     expect(profile).toContain("ENTBLOCKEN");
   });
 
-  it("keeps native Community API calls authenticated", () => {
+  it("keeps native write actions authenticated while reading the public feed", () => {
     const api = read("mobile-natur/src/api.ts");
     const app = read("mobile-natur/App.tsx");
     expect(api).toContain("communityFeed = (token: string)");
+    expect(api).toContain("publicCommunityFeed");
     expect(api).toContain("communityComments = (token: string, postId: number)");
     expect(app).toContain("communityFeed(token)");
-    expect(app).toContain("COMMUNITY · GESCHÜTZT");
+    expect(app).toContain("publicCommunityFeed()");
+    expect(app).toContain("Zum Teilen anmelden");
   });
 });

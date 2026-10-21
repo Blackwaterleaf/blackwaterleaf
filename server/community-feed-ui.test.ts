@@ -23,6 +23,15 @@ describe("Observatory community feed interface", () => {
     for (const token of [".home-feed-preview", ".home-feed-preview__item", "home-feed-shimmer", ".home-intro-film__skeleton", "home-video-shimmer"]) expect(css).toContain(token);
   });
 
+  it("keeps the public landing feed available in Native without exposing private posts", () => {
+    const native = read("mobile-natur/App.tsx");
+    const api = read("mobile-natur/src/api.ts");
+    expect(native).toContain("publicCommunityFeed");
+    expect(native).toContain("<HomePublicFeed");
+    expect(native).toContain("screen === \"community\") setPosts(token ? await communityFeed(token) : await publicCommunityFeed()");
+    expect(api).toContain('"community.publicFeed"');
+  });
+
   it("keeps the introduction video on Home instead of duplicating it in Community", () => {
     const home = read("client/src/pages/Home.tsx");
     const community = read("client/src/pages/Community.tsx");
@@ -66,14 +75,11 @@ describe("Observatory community feed interface", () => {
     for (const token of ["const adminPublicPost = isAdmin && (adminAllFeeds || realm !== \"none\")", "realm: adminAllFeeds ? null", "Bitte zuerst einen Fachfeed oder ALLE FEEDS · ADMIN auswählen.", "ALLE FEEDS · ADMIN", "AN GEWÄHLTEN FEED SENDEN"]) expect(page).toContain(token);
   });
 
-  it("keeps every hook before the unauthenticated early return", () => {
-    const page = read("client/src/pages/Community.tsx");
-    const community = page.slice(page.indexOf("export default function Community()"));
-    const authGuard = community.indexOf('if (!auth.isAuthenticated)');
-    const composerEffect = community.indexOf('useEffect(() => {');
-    expect(authGuard).toBeGreaterThan(-1);
-    expect(composerEffect).toBeGreaterThan(-1);
-    expect(composerEffect).toBeLessThan(authGuard);
+  it("keeps public feed hooks active while write actions remain login-gated", () => {
+    const page = read("mobile-natur/App.tsx");
+    expect(page).toContain("publicCommunityFeed");
+    expect(page).toContain("Zum Teilen anmelden");
+    expect(page).toContain("SICHER ANMELDEN");
   });
 
   it("exposes Feed as a direct destination alongside the KI fast path", () => {

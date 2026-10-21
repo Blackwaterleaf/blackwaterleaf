@@ -481,6 +481,8 @@ export const submitPartnerInquiry = (token: string, message: string) =>
   trpcPost<{ id: number; status: "received"; message: string }>("partners.submitInquiry", { message }, token);
 export const communityFeed = (token: string) =>
   trpcGet<CommunityPost[]>("community.feed", { limit: 40 }, token);
+export const publicCommunityFeed = () =>
+  trpcGet<CommunityPost[]>("community.publicFeed", { limit: 12 });
 export const communityComments = (token: string, postId: number) =>
   trpcGet<CommunityComment[]>("community.comments", { postId }, token);
 export const addCommunityComment = (

@@ -213,3 +213,10 @@ Der Server bindet jede Session an das angemeldete Konto, speichert ausschließli
 Ohne Anmeldung, mit ungültigem Schlüssel, abgelaufener Session oder fremdem Konto erscheint ein klarer Login-/Ablaufzustand mit Rückweg zur KI; kein Ergebnis wird preisgegeben. Die Route verwendet denselben fachlichen Akzent wie der Ursprung: Botanik/Limette für Pflanzen und Aqua-Cyan für Fische. Ladezustand, Ergebnis-Workspace und Aktionen folgen dem bestehenden Evidence-Rail- und Motion-Standard.
 
 Browser-Zurück, „Neue Analyse“ und „Weiteres Bild“ führen immer zurück zum passenden Pflanzen-/Fisch-Modus. Die Korrekturmeldung bleibt im Ergebnis-Workspace verfügbar und verwendet weiterhin den serverseitigen Review-Vertrag.
+
+## 15.53 Öffentlicher Feed-Einstieg · Landing-Parität (2026-10-20)
+- Die Startseite zeigt veröffentlichte Community-Beiträge direkt im Einstiegsfluss, nicht erst nach Login oder ausschließlich auf der Feed-Route. Web nutzt die öffentliche `community.publicPreview`-Vorschau; Native lädt denselben fachlichen öffentlichen Vertrag über `community.publicFeed`.
+- Sichtbar sind ausschließlich veröffentlichte Beiträge aktiver Konten mit öffentlicher Sichtbarkeit. Private Entwürfe, blockierte Konten und nicht freigegebene Medien bleiben serverseitig ausgeschlossen; bei fehlenden Daten erscheint ein ehrlicher Leerzustand.
+- Lesen ist ohne Anmeldung möglich. Hochladen, Liken, Kommentieren, Folgen und Moderationsaktionen bleiben an die sichere Anmeldung gebunden. Der Einstieg führt mit einem klaren **FEED ENTDECKEN**-CTA in den vollständigen Feed.
+- Die Vorschau bleibt kompakt und Observatory-konform: Fachbereichslabel, Autor, kurzer Beitragstext, vorhandenes freigegebenes Medium und ein klarer Rückweg. Keine simulierten Beiträge, Likes oder Profile.
+- Web und Native verwenden dieselbe Reihenfolge: Hero/Context → öffentliche Feed-Vorschau → Fachportale beziehungsweise Feed-Aktionen. Die Feed-Vorschau darf den Hero nicht verdrängen, muss aber im ersten Landing-Scroll sichtbar sein.

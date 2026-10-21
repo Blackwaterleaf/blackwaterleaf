@@ -29,7 +29,7 @@ describe("BlackWaterLeaf native application contract", () => {
     expect(api).toContain("EXPO_PUBLIC_API_ORIGIN");
     expect(api).toContain("Constants.expoConfig?.extra?.apiOrigin");
     expect(api).not.toContain(["3000-ibp8fnclaynuq4sdd6dsd", "206ff939.us1.manus.computer"].join("-"));
-    for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "knowledge.listPublished", "auth.me", "habitats.mine", "habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
+    for (const procedure of ["platform.availability", "partners.marketplace", "community.feed", "community.publicFeed", "knowledge.listPublished", "auth.me", "habitats.mine", "habitats.create", "observations.create", "observations.uploadImage"]) expect(api).toContain(procedure);
     expect(api).toContain("Authorization: `Bearer ${token}`");
   });
 

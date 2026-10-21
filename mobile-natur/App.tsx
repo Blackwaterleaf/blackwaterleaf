@@ -92,6 +92,7 @@ import {
   clearToken,
   communityComments,
   communityFeed,
+  publicCommunityFeed,
   createCommunityDraft,
   currentAccount,
   deleteCommunityPost,
@@ -612,6 +613,7 @@ function NaturApp() {
   const [platform, setPlatform] = useState<PlatformAvailability | null>(null);
   const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [homePosts, setHomePosts] = useState<CommunityPost[]>([]);
   const [editingCommunityPost, setEditingCommunityPost] = useState<OwnCommunityPost | null>(null);
   const [notifications, setNotifications] = useState<NativeNotification[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -709,11 +711,11 @@ function NaturApp() {
     try {
       if (screen === "home" || screen === "assistant")
         setPlatform(await platformAvailability());
+      if (screen === "home") setHomePosts(await publicCommunityFeed());
       if (screen === "marketplace" || screen === "search")
         setProducts(await marketplace());
       if (screen === "explore" || screen === "map") setPublicObservationRows(await publicObservations());
-      if (screen === "community" && token) setPosts(await communityFeed(token));
-      if (screen === "community" && !token) setPosts([]);
+      if (screen === "community") setPosts(token ? await communityFeed(token) : await publicCommunityFeed());
       if (screen === "notifications" && token) setNotifications(await notificationFeed(token));
       if (screen === "messages" && token) {
         const rows = await directConversations(token);
@@ -941,6 +943,7 @@ function NaturApp() {
         {screen === "home" && (
           <Home
             platform={platform}
+            publicPosts={homePosts}
             habitats={habitats}
             state={state}
             error={error}
@@ -1486,6 +1489,7 @@ function HeaderAction({
 
 function Home({
   platform,
+  publicPosts,
   habitats,
   state,
   error,
@@ -1493,6 +1497,7 @@ function Home({
   navigate,
 }: {
   platform: PlatformAvailability | null;
+  publicPosts: CommunityPost[];
   habitats: Habitat[];
   state: State;
   error: string | null;
@@ -1502,6 +1507,7 @@ function Home({
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <HomeHero tone={TONES.home} navigate={navigate} />
+      <HomePublicFeed tone={TONES.home} posts={publicPosts} navigate={navigate} />
       <HomeStatusStrip tone={TONES.home} />
       {state === "error" ? (
         <ErrorNotice text={error ?? "Daten konnten nicht geladen werden."} />
@@ -1546,6 +1552,35 @@ function HomeStatusStrip({ tone }: { tone: Tone }) {
           <Text style={styles.homeStatusValue}>{item.value}</Text>
         </View>
       ))}
+    </View>
+  );
+}
+
+function HomePublicFeed({ tone, posts, navigate }: { tone: Tone; posts: CommunityPost[]; navigate: (screen: Screen) => void }) {
+  return (
+    <View style={[styles.profilePostsPanel, { borderColor: `${tone.accent}55`, backgroundColor: tone.panel }]}>
+      <View style={styles.careSectionHeader}>
+        <View style={styles.flex}>
+          <Text style={[styles.eyebrow, { color: tone.accent }]}>ÖFFENTLICHER FEED</Text>
+          <Text style={styles.cardTitle}>ECHTE NATURMOMENTE</Text>
+        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Feed öffnen" onPress={() => navigate("community")} style={styles.careIconButton}>
+          <Ionicons name="arrow-forward" size={17} color={tone.accent} />
+        </Pressable>
+      </View>
+      <Text style={styles.miniCopy}>Freigegebene Beiträge aktiver Konten. Private Entwürfe bleiben ausgeschlossen.</Text>
+      {posts.length ? posts.slice(0, 3).map(post => {
+        const displayName = [post.author.displayName, post.author.name, post.author.username].find(value => typeof value === "string" && value.trim())?.trim() ?? "Verifiziertes Konto";
+        const media = post.media[0];
+        return (
+          <Pressable key={post.id} accessibilityRole="button" accessibilityLabel={`Beitrag von ${displayName} öffnen`} onPress={() => navigate("community")} style={({ pressed }) => [styles.searchResultCard, { borderColor: `${tone.accent}33`, backgroundColor: "rgba(0,0,0,.16)" }, pressed && styles.pressed]}>
+            {media ? <Image source={{ uri: media.accessUrl }} style={styles.homePublicFeedImage} resizeMode="cover" /> : <View style={[styles.homePublicFeedImage, { alignItems: "center", justifyContent: "center", backgroundColor: `${tone.accent}14` }]}><Ionicons name="people-outline" size={18} color={tone.accent} /></View>}
+            <View style={styles.searchResultCopy}><Text style={styles.cardTitle} numberOfLines={1}>{displayName}</Text><Text style={styles.miniCopy} numberOfLines={2}>{post.content}</Text><Text style={[styles.chip, { color: tone.accent }]}>{post.realm?.toUpperCase() ?? "COMMUNITY"} · {post.likesCount} LIKES</Text></View>
+            <Ionicons name="chevron-forward" size={17} color={tone.accent} />
+          </Pressable>
+        );
+      }) : <Text style={styles.miniCopy}>Noch kein öffentlicher Beitrag verfügbar.</Text>}
+      <SecondaryButton tone={tone} label="FEED ENTDECKEN" icon="people-outline" onPress={() => navigate("community")} />
     </View>
   );
 }
@@ -3588,20 +3623,16 @@ function CommunityScreen({
   };
   const uniquePosts = useMemo(() => Array.from(new Map(posts.map(post => [String(post.id), post])).values()), [posts]);
   const visiblePosts = uniquePosts.filter(post => realmFilter === "all" || post.realm === realmFilter);
-  if (!token) return <Page>
-    <ObservatoryContextHeader tone={tone} eyebrow="COMMUNITY · GESCHÜTZT" title="MITGLIEDERBEREICH." subtitle="Beiträge, Diskussionen und Live-Austausch werden erst nach einer sicheren Anmeldung geladen." icon="people-outline" />
-    <PrivateFeature tone={tone} title="ANMELDUNG ERFORDERLICH" text="Der Community-Feed, einzelne Beiträge und Kommentare sind nur für angemeldete, aktive Konten sichtbar." onSignIn={onSignIn} />
-  </Page>;
   return (
     <Page refresh={refresh} refreshing={state === "loading"}>
       <ObservatoryContextHeader
         tone={tone}
         eyebrow="GEMEINSAM WACHSEN"
         title="COMMUNITY IN BEWEGUNG."
-        subtitle="Echte Naturmomente von echten, aktiven Konten."
+        subtitle={token ? "Echte Naturmomente von echten, aktiven Konten." : "Öffentliche, freigegebene Naturmomente von echten, aktiven Konten."}
         icon="people-outline"
       />
-      {adminProfile ? <View style={[styles.communitySubscribeNative, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>OFFIZIELLES PROFIL</Text><Text style={styles.cardTitle}>BLACKWATERLEAF ABONNIEREN</Text><Text style={styles.miniCopy}>{adminProfile.followers} Follower · neue Naturbeiträge zuerst sehen</Text></View><PrimaryButton tone={tone} label={adminProfile.isFollowing ? "ABONNIERT" : "ABONNIEREN"} icon={adminProfile.isFollowing ? "checkmark-circle-outline" : "person-add-outline"} onPress={() => void toggleAdminSubscription()} disabled={subscriptionBusy} /></View> : null}
+      {token && adminProfile ? <View style={[styles.communitySubscribeNative, { borderColor: `${tone.accent}66`, backgroundColor: tone.panel }]}><View style={styles.flex}><Text style={[styles.eyebrow, { color: tone.accent }]}>OFFIZIELLES PROFIL</Text><Text style={styles.cardTitle}>BLACKWATERLEAF ABONNIEREN</Text><Text style={styles.miniCopy}>{adminProfile.followers} Follower · neue Naturbeiträge zuerst sehen</Text></View><PrimaryButton tone={tone} label={adminProfile.isFollowing ? "ABONNIERT" : "ABONNIEREN"} icon={adminProfile.isFollowing ? "checkmark-circle-outline" : "person-add-outline"} onPress={() => void toggleAdminSubscription()} disabled={subscriptionBusy} /></View> : null}
       <ObservatoryActionCluster
         tone={tone}
         visual
@@ -3615,7 +3646,7 @@ function CommunityScreen({
           },
           {
             title: "Teilen",
-            note: token ? "Editor öffnen" : "Anmeldung erforderlich",
+            note: token ? "Editor öffnen" : "Zum Teilen anmelden",
             icon: "share-social-outline",
             image: ASSETS.terrarium,
             onPress: () => (token ? navigate("post") : void onSignIn()),
@@ -5869,6 +5900,7 @@ const styles = StyleSheet.create({
   careJournal: { paddingTop: 9, borderTopWidth: 1, borderTopColor: "rgba(199,243,91,.14)", gap: 3 },
   disabled: { opacity: 0.48 },
   searchResultCard: { flexDirection: "row", alignItems: "center", gap: 10, padding: 12, borderRadius: 14, borderWidth: 1 },
+  homePublicFeedImage: { width: 52, height: 52, borderRadius: 10, backgroundColor: "#0a2d18" },
   searchResultIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   searchResultCopy: { flex: 1, gap: 3 },
   publicProfileCard: { padding: 13, borderRadius: 15, borderWidth: 1, gap: 7 },
