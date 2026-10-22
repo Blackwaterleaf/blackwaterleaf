@@ -37,7 +37,10 @@ export async function runControlledAgent(input: { title: string; goal: string; s
     ? await invokeKimi({ model: ENV.kimiModel, signal: input.signal, messages: messages.map(message => ({ ...message, role: message.role as "system" | "user" })) })
     : await (async () => {
       const catalog = await listLLMModels();
-      const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id;
+      const preferred = catalog.data.find(model => model.id === "gpt-5-mini")?.id
+        ?? catalog.data.find(model => model.id === "Qwen/Qwen3.5-9B")?.id
+        ?? catalog.data[0]?.id;
+      if (!preferred) throw new Error("IONOS_AI_MODEL_CATALOG_EMPTY");
       return invokeLLM({ signal: input.signal, model: preferred, messages: [...messages], response_format: {
         type: "json_schema",
         json_schema: {

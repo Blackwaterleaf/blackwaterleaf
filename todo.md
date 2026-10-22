@@ -50,7 +50,10 @@
 - [x] Web- und Web+Native-Starter-Templates mit README, Entry-Datei und Security-Notizen integriert
 - [x] Workspace-Tarifstatus sowie serverseitige Limits für Projekte und aktive Agent-Runs integriert
 - [x] Migration `0010_lumpy_siren.sql` in der Studio-Datenbank angewendet
-- [ ] Migration `0010_lumpy_siren.sql` und der aktuelle Builder-Build noch auf IONOS deployen; letzter SSH-Versuch wurde vom Server geschlossen
+- [x] Migration `0010_lumpy_siren.sql` auf der IONOS-MariaDB verifiziert (11 Drizzle-Migrationen) und aktueller Builder-Build auf IONOS übertragen; Node-Produktionsdienst und Nginx-Reverse-Proxy aktiv, öffentlicher HTTPS-Smoke-Test erfolgreich
+- [ ] Resend-Runtime-Key und Absender auf der neuen VM hinterlegen; danach Magic-Link-Versand und vollständigen Auth-Smoke-Test ausführen
+- [x] IONOS-Agentenroute mit aktuellen Datacenter-/VM-IDs aktiviert; IONOS AI Model Hub als einziger KI-Provider hinterlegt und read-only mit HTTP 200 sowie Qwen3.5-9B/Qwen3-Coder-Next verifiziert
+- [x] Kostenarme KI-Standardroute auf Qwen3.5-9B gesetzt; Kimi und Runway deaktiviert, keine neuen externen Anbieter oder Abos aktiviert
 
 ## Sicherheitsgrenze
 
