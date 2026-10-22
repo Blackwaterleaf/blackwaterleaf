@@ -1,4 +1,5 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import type { Express, Request, Response } from "express";
 import { parse as parseCookieHeader } from "cookie";
 import * as db from "../db";
@@ -9,6 +10,7 @@ import { ONE_YEAR_MS } from "@shared/const";
 
 export const LOCAL_SESSION_COOKIE = "studio_session";
 const CHALLENGE_TTL_MS = 15 * 60 * 1000;
+const scrypt = promisify(scryptCallback);
 
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -16,6 +18,24 @@ export function normalizeEmail(email: string) {
 
 export function hashAuthToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+export async function hashPassword(password: string) {
+  const salt = randomBytes(16);
+  const derived = await scrypt(password, salt, 64) as Buffer;
+  return `scrypt$${salt.toString("base64url")}$${derived.toString("base64url")}`;
+}
+
+export async function verifyPassword(password: string, encoded: string | null | undefined) {
+  if (!encoded?.startsWith("scrypt$")) return false;
+  const [, saltText, hashText] = encoded.split("$");
+  if (!saltText || !hashText) return false;
+  try {
+    const salt = Buffer.from(saltText, "base64url");
+    const expected = Buffer.from(hashText, "base64url");
+    const actual = await scrypt(password, salt, expected.length) as Buffer;
+    return expected.length === actual.length && timingSafeEqual(expected, actual);
+  } catch { return false; }
 }
 
 function secureCookieOptions(req: Request) {
@@ -46,6 +66,22 @@ export async function createLocalSession(userId: number, req: Request, res: Resp
   res.cookie(LOCAL_SESSION_COOKIE, rawToken, { ...secureCookieOptions(req), maxAge: ONE_YEAR_MS });
 }
 
+export async function createPasswordUser(email: string, password: string) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalizedEmail)) throw new Error("INVALID_EMAIL");
+  if (password.length < 10) throw new Error("PASSWORD_TOO_SHORT");
+  if (await db.getLocalUserByEmail(normalizedEmail)) throw new Error("EMAIL_ALREADY_REGISTERED");
+  const firstLocalUser = !(await db.hasLocalUsers());
+  return db.createLocalPasswordUser({ email: normalizedEmail, passwordHash: await hashPassword(password), role: firstLocalUser && ENV.localAuthBootstrapFirstUser ? "admin" : "user" });
+}
+
+export async function authenticatePasswordUser(email: string, password: string) {
+  const user = await db.getLocalUserByEmail(normalizeEmail(email));
+  if (!user || !(await verifyPassword(password, user.passwordHash))) return null;
+  await db.setLocalPassword(user.id, await hashPassword(password));
+  return db.getUserByOpenId(user.openId);
+}
+
 export function getLocalSessionToken(req: Request) {
   return parseCookieHeader(req.headers.cookie ?? "")[LOCAL_SESSION_COOKIE];
 }
@@ -56,6 +92,28 @@ export async function revokeLocalSession(req: Request) {
 }
 
 export function registerLocalAuthRoutes(app: Express) {
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    if (!ENV.localAuthEnabled) { res.status(404).json({ message: "Local authentication is disabled" }); return; }
+    try {
+      const user = await createPasswordUser(String(req.body?.email ?? ""), String(req.body?.password ?? ""));
+      if (!user) { res.status(500).json({ message: "Could not create the Studio user" }); return; }
+      await createLocalSession(user.id, req, res);
+      res.status(201).json({ user });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "REGISTRATION_FAILED";
+      const status = message === "EMAIL_ALREADY_REGISTERED" ? 409 : message === "PASSWORD_TOO_SHORT" || message === "INVALID_EMAIL" ? 400 : 500;
+      res.status(status).json({ message });
+    }
+  });
+
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
+    if (!ENV.localAuthEnabled) { res.status(404).json({ message: "Local authentication is disabled" }); return; }
+    const user = await authenticatePasswordUser(String(req.body?.email ?? ""), String(req.body?.password ?? ""));
+    if (!user) { res.status(401).json({ message: "E-Mail oder Passwort ist falsch" }); return; }
+    await createLocalSession(user.id, req, res);
+    res.json({ user });
+  });
+
   app.get("/api/auth/verify", async (req: Request, res: Response) => {
     if (!ENV.localAuthEnabled) {
       res.status(404).send("Local authentication is disabled");

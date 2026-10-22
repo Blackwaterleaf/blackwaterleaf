@@ -122,6 +122,34 @@ export async function createOrGetLocalUser(email: string, role: "user" | "admin"
   return await getUserByOpenId(openId);
 }
 
+export async function getLocalUserByEmail(email: string) {
+  const db = await requireDb();
+  const rows = await db.select().from(users).where(and(eq(users.email, email), sql`${users.openId} like 'local:%'`)).limit(1);
+  return rows[0];
+}
+
+export async function createLocalPasswordUser(input: { email: string; passwordHash: string; role: "user" | "admin" }) {
+  const openId = `local:${input.email}`;
+  await upsertUser({ openId, email: input.email, name: input.email.split("@")[0], loginMethod: "password", role: input.role, lastSignedIn: new Date(), passwordHash: input.passwordHash });
+  return getUserByOpenId(openId);
+}
+
+export async function setLocalPassword(userId: number, passwordHash: string) {
+  const db = await requireDb();
+  await db.update(users).set({ passwordHash, loginMethod: "password", lastSignedIn: new Date() }).where(eq(users.id, userId));
+}
+
+export async function getAdminBusinessMetrics() {
+  const db = await requireDb();
+  const [userRows, workspaceRows] = await Promise.all([
+    db.select({ id: users.id }).from(users),
+    db.select({ plan: workspaces.plan, status: workspaces.status }).from(workspaces),
+  ]);
+  const planCounts = { free: 0, creator: 0, studio: 0, enterprise: 0 };
+  for (const row of workspaceRows) if (row.status === "active") planCounts[row.plan] += 1;
+  return { totalUsers: userRows.length, activeWorkspaces: workspaceRows.filter(row => row.status === "active").length, planCounts };
+}
+
 export async function createAuthSession(input: { userId: number; sessionHash: string; expiresAt: Date }) {
   const db = await requireDb();
   await db.insert(authSessions).values(input);

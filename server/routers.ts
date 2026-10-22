@@ -340,6 +340,14 @@ export const appRouter = router({
       return { sandbox: SANDBOX_PHASE_STATUS, builtin: { configured: Boolean(ENV.forgeApiUrl && ENV.forgeApiKey), provider: "manus_builtin" as const, reason: ENV.forgeApiUrl && ENV.forgeApiKey ? "ready_for_server_side_use" as const : "missing_builtin_configuration" as const }, kimi: getKimiProviderStatus(), ionos: getIonosReadiness(), resend: getResendStatus(), runway: getRunwayStatus(), capabilities: CAPABILITY_REGISTRY };
     }),
 
+    adminBusinessMetrics: protectedProcedure.query(async ({ ctx }) => {
+      const membership = await requireWorkspace(ctx.user.id);
+      requireRole(membership.membership.role, new Set(["owner", "admin"]));
+      const metrics = await db.getAdminBusinessMetrics();
+      const monthlyRevenueCents = metrics.planCounts.creator * 1490 + metrics.planCounts.studio * 3990 + metrics.planCounts.enterprise * 14900;
+      return { ...metrics, monthlyRevenueCents, currency: "EUR" as const };
+    }),
+
     ionosPreflight: protectedProcedure.query(async ({ ctx }) => {
       const membership = await requireWorkspace(ctx.user.id);
       requireRole(membership.membership.role, operatorRoles);
