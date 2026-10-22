@@ -80,6 +80,9 @@ function initials(name?: string | null) {
 export default function Home() {
   const { user, loading, logout } = useAuth();
   const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authPending, setAuthPending] = useState(false);
   const [loginSent, setLoginSent] = useState(false);
   const [active, setActive] = useState("workspace");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -169,6 +172,21 @@ export default function Home() {
 
   if (loading) return <div className="min-h-screen bg-[#07100f]" />;
   if (!user) {
+    const submitPasswordAuth = async (event: React.FormEvent) => {
+      event.preventDefault();
+      setAuthPending(true);
+      try {
+        const response = await fetch(`/api/auth/${authMode === "register" ? "register" : "login"}`, {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.message || "Anmeldung fehlgeschlagen");
+        window.location.reload();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Anmeldung fehlgeschlagen");
+      } finally { setAuthPending(false); }
+    };
     return (
       <main className="studio-auth-shell">
         <div className="studio-orb studio-orb-a" />
@@ -179,12 +197,19 @@ export default function Home() {
           <h1>Arbeite klar.<br /><span>Führe kontrolliert aus.</span></h1>
           <h2 className="sr-only">KI-Agenten, App Builder und sichere Sandbox</h2>
           <p className="studio-auth-copy">Ein fokussierter Arbeitsraum für Ziele, Agentenarbeit, Freigaben und nachvollziehbare Ergebnisse.</p>
-          <form className="space-y-3" onSubmit={event => { event.preventDefault(); setLoginSent(false); requestMagicLink.mutate({ email: loginEmail }); }}>
+          <div className="flex gap-2 rounded-lg bg-white/5 p-1 text-sm">
+            <button type="button" className={`flex-1 rounded-md px-3 py-2 ${authMode === "login" ? "bg-white/10 text-white" : "text-white/50"}`} onClick={() => setAuthMode("login")}>Anmelden</button>
+            <button type="button" className={`flex-1 rounded-md px-3 py-2 ${authMode === "register" ? "bg-white/10 text-white" : "text-white/50"}`} onClick={() => setAuthMode("register")}>Konto erstellen</button>
+          </div>
+          <form className="space-y-3" onSubmit={submitPasswordAuth}>
             <Input type="email" required value={loginEmail} onChange={event => setLoginEmail(event.target.value)} placeholder="deine E-Mail-Adresse" className="studio-input" />
-            <Button className="studio-primary-button w-full" size="lg" disabled={requestMagicLink.isPending}>{requestMagicLink.isPending ? "Login-Link wird gesendet…" : "Login-Link senden"} <ArrowUpRight size={16} /></Button>
+            <Input type="password" required minLength={10} value={loginPassword} onChange={event => setLoginPassword(event.target.value)} placeholder="Passwort (mindestens 10 Zeichen)" className="studio-input" />
+            <Button className="studio-primary-button w-full" size="lg" disabled={authPending}>{authPending ? "Wird verarbeitet…" : authMode === "register" ? "Konto erstellen" : "Anmelden"} <ArrowUpRight size={16} /></Button>
           </form>
-          {loginSent ? <p className="text-sm text-[#9ccabb]">Prüfe dein Postfach. Der Link ist 15 Minuten gültig.</p> : null}
-          <div className="studio-auth-note"><LockKeyhole size={14} /> Passwortloser Login per E-Mail; Rollenprüfung bleibt serverseitig.</div>
+          <div className="my-4 flex items-center gap-3 text-xs text-white/35"><span className="h-px flex-1 bg-white/10" />oder<span className="h-px flex-1 bg-white/10" /></div>
+          <Button type="button" variant="outline" className="w-full border-white/10 bg-transparent text-white/70" disabled title="Google OAuth wird nach Hinterlegung der Google-Clientdaten aktiviert">Mit Google anmelden</Button>
+          {loginSent ? <p className="text-sm text-[#9ccabb]">Der bisherige Magic-Link ist ebenfalls verfügbar, sobald der Resend-Absender bestätigt ist.</p> : null}
+          <div className="studio-auth-note"><LockKeyhole size={14} /> Manus-unabhängige lokale Anmeldung; Passwort-Hashing und Rollenprüfung bleiben serverseitig.</div>
         </section>
       </main>
     );
