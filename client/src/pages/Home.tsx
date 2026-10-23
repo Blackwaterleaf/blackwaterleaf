@@ -1,6 +1,7 @@
 import { LeafCore } from "@/components/LeafCore";
 import { LiveSensorStrip } from "@/components/LiveSensorStrip";
 import { StatePanel } from "@/components/StatePanel";
+import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { WorldCard } from "@/components/WorldCard";
 import { useI18n } from "@/i18n";
 import { publicPartnerCardPresentation } from "@/lib/partnerPresentation";
@@ -33,6 +34,7 @@ export default function Home() {
 
   return (
     <div className={`home-stack weather-effect--${weatherEffect}`}>
+      <WelcomeDialog />
       <div className="weather-atmosphere" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
       <LiveSensorStrip compact onWeatherEffectChange={applyWeatherEffect} />
 

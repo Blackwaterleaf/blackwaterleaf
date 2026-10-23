@@ -440,3 +440,43 @@ button.reference-action { width: 100%; cursor: pointer; font: inherit; }
   .home-promise-card > span { grid-row: span 2; }
   .home-promise-card h3 { margin: 0 0 4px; }
 }
+
+
+/* Personal founder welcome dialog */
+.welcome-dialog {
+  width: min(100% - 2rem, 540px);
+  max-height: min(88vh, 720px);
+  overflow-y: auto;
+  padding: 28px;
+  color: #edffe8;
+  border: 1px solid rgba(164, 249, 135, .42);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(17, 57, 31, .97), rgba(3, 20, 11, .98));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .56), 0 0 45px rgba(106, 235, 111, .13), inset 0 1px rgba(238, 255, 225, .12);
+}
+.welcome-dialog__mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  color: #c8ff86;
+  border: 1px solid rgba(195, 255, 131, .48);
+  border-radius: 16px 22px 16px 22px;
+  background: radial-gradient(circle at 35% 30%, rgba(196, 255, 137, .28), rgba(16, 75, 39, .7));
+  transform: rotate(-8deg);
+}
+.welcome-dialog__header { gap: 8px; text-align: left; }
+.welcome-dialog__header .eyebrow { color: #b9f77e; }
+.welcome-dialog__header [data-slot="dialog-title"] { margin: 0; color: #f3ffea; font: 400 clamp(2rem, 7vw, 3rem)/.95 "Bebas Neue", sans-serif; letter-spacing: .025em; }
+.welcome-dialog__body { display: grid; gap: 13px; margin-top: 17px; color: #d4e8d4; font: 400 .92rem/1.58 "Inter", system-ui, sans-serif; }
+.welcome-dialog__body span:first-child { color: #f1ffe9; font-weight: 700; }
+.welcome-dialog__footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 25px; }
+.welcome-dialog__later { min-height: 43px; padding: 0 8px; color: #cde5ce; border: 0; background: transparent; font: 700 .76rem/1 "Inter", sans-serif; }
+.welcome-dialog__later:hover { color: #efffe5; text-decoration: underline; }
+.welcome-dialog .primary-action { min-height: 43px; }
+@media (max-width: 520px) {
+  .welcome-dialog { padding: 22px 20px; border-radius: 20px; }
+  .welcome-dialog__footer { align-items: stretch; flex-direction: column-reverse; }
+  .welcome-dialog__footer > * { width: 100%; }
+}
