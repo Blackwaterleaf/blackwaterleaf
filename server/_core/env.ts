@@ -26,6 +26,8 @@ export const ENV = {
   ionosApiUrl: process.env.IONOS_AI_API_URL ?? "https://openai.inference.de-txl.ionos.com",
   ionosApiKey: ionosApiKeyFromParts || process.env.IONOS_AI_API_KEY || "",
   ionosModel: process.env.IONOS_AI_MODEL ?? "Qwen/Qwen3.5-9B",
+  storageRoot: process.env.BWL_STORAGE_ROOT ?? "",
+  mediaSigningSecret: process.env.BWL_MEDIA_SIGNING_SECRET ?? process.env.JWT_SECRET ?? "",
   selfHostedMediaOrigin: process.env.BWL_MEDIA_ORIGIN ?? "",
   selfHostedMediaControlSecret: process.env.BWL_MEDIA_CONTROL_SECRET ?? "",
 };
