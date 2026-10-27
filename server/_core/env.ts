@@ -28,6 +28,7 @@ export const ENV = {
   ionosModel: process.env.IONOS_AI_MODEL ?? "Qwen/Qwen3.5-9B",
   storageRoot: process.env.BWL_STORAGE_ROOT ?? "",
   mediaSigningSecret: process.env.BWL_MEDIA_SIGNING_SECRET ?? process.env.JWT_SECRET ?? "",
+  selfHostedAuthOnly: process.env.BWL_SELF_HOSTED_AUTH_ONLY === "true",
   selfHostedMediaOrigin: process.env.BWL_MEDIA_ORIGIN ?? "",
   selfHostedMediaControlSecret: process.env.BWL_MEDIA_CONTROL_SECRET ?? "",
 };

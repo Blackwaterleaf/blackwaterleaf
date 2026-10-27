@@ -220,3 +220,10 @@ Browser-Zurück, „Neue Analyse“ und „Weiteres Bild“ führen immer zurüc
 - Lesen ist ohne Anmeldung möglich. Hochladen, Liken, Kommentieren, Folgen und Moderationsaktionen bleiben an die sichere Anmeldung gebunden. Der Einstieg führt mit einem klaren **FEED ENTDECKEN**-CTA in den vollständigen Feed.
 - Die Vorschau bleibt kompakt und Observatory-konform: Fachbereichslabel, Autor, kurzer Beitragstext, vorhandenes freigegebenes Medium und ein klarer Rückweg. Keine simulierten Beiträge, Likes oder Profile.
 - Web und Native verwenden dieselbe Reihenfolge: Hero/Context → öffentliche Feed-Vorschau → Fachportale beziehungsweise Feed-Aktionen. Die Feed-Vorschau darf den Hero nicht verdrängen, muss aber im ersten Landing-Scroll sichtbar sein.
+
+## 15.54 IONOS-Self-Hosting und Datenpfad · 2026-10-27
+- Der produktive Medienpfad unterstützt auf IONOS lokale, atomare Uploads unterhalb des geschützten Storage-Roots. Private Medien werden ausschließlich über kurzlebig HMAC-signierte Abruf-URLs ausgeliefert; öffentliche Katalogbilder und freigegebene Streams behalten ihre sichtbaren Observatory-Pfade.
+- Der IONOS-Betrieb verwendet denselben Observatory-Look unverändert: keine neue Admin- oder Hostingoberfläche wird in die Nutzer-Navigation eingeführt. Technische Readiness bleibt ausschließlich im Systemstatus sichtbar.
+- Für die Migration bleiben Datenbank, Bilder und Videos inhaltlich identisch. Leere Zustände bleiben ehrlich; beim fehlenden Mediennachweis werden keine Ersatzbilder erfunden.
+- IONOS ist als primärer Daten- und KI-Betrieb vorgesehen. Manus bleibt bis zur vollständigen Abnahme nur Rückfallreferenz. DNS-Cutover erfolgt erst nach Login-, Upload-, E-Mail-, KI- und Zahlungswebhook-Smoke-Test.
+- Die lokale Anmeldung bleibt fachlich und visuell derselbe geschützte Zugang. Bestehende Konten, Rollen, Premiumstatus und persönliche Daten werden nicht neu angelegt oder vermischt.

@@ -22,6 +22,7 @@ import {
   uploadRateLimiter,
   weatherRateLimiter,
 } from "../security";
+import { ENV } from "./env";
 
 async function startServer() {
   const app = express();
@@ -61,9 +62,9 @@ async function startServer() {
         database = "not_ready";
       }
     }
-    const mediaStorage = process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY ? "ready" : "not_ready";
+    const mediaStorage = ENV.storageRoot || (process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY) ? "ready" : "not_ready";
     const ready = database === "ready" && mediaStorage === "ready";
-    return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage } });
+    return res.status(ready ? 200 : 503).json({ status: ready ? "ready" : "not_ready", releaseId: process.env.RELEASE_ID ?? "development", checks: { database, mediaStorage, auth: ENV.selfHostedAuthOnly ? "local" : "managed_or_local" } });
   });
   app.use(securityHeaders);
   // Stripe requires the untouched request bytes for signature verification.

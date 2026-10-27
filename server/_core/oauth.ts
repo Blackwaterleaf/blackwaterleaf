@@ -77,6 +77,11 @@ function getTrustedWebOrigin(req: Request): string | null {
 }
 
 export function registerOAuthRoutes(app: Express) {
+  if (ENV.selfHostedAuthOnly) {
+    app.all("/api/oauth/*", (_req, res) => res.status(410).json({ error: "managed_oauth_disabled" }));
+    return;
+  }
+
   /** Web login entry point. The server owns the portal/app configuration so
    * preview and production builds cannot drift apart. */
   app.get("/api/oauth/start", (req: Request, res: Response) => {

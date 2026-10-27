@@ -1,0 +1,50 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    env_file: /etc/blackwaterleaf/production.env
+    environment:
+      MYSQL_DATABASE: blackwaterleaf
+      MYSQL_USER: blackwaterleaf
+      MYSQL_PASSWORD: ${BWL_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${BWL_DB_ROOT_PASSWORD}
+    volumes:
+      - bwl_mysql:/var/lib/mysql
+    networks: [bwl]
+
+  app:
+    build:
+      context: /opt/blackwaterleaf/app
+      dockerfile: Dockerfile.ionos
+    restart: unless-stopped
+    env_file: /etc/blackwaterleaf/production.env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://blackwaterleaf:${BWL_DB_PASSWORD}@db:3306/blackwaterleaf
+      BWL_STORAGE_ROOT: /var/lib/blackwaterleaf/media
+      BWL_SELF_HOSTED_AUTH_ONLY: "true"
+    volumes:
+      - /opt/blackwaterleaf/media:/var/lib/blackwaterleaf/media
+    depends_on:
+      db:
+        condition: service_started
+    networks: [bwl]
+
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [app]
+    networks: [bwl]
+
+volumes:
+  bwl_mysql:
+
+networks:
+  bwl:
+    internal: true
