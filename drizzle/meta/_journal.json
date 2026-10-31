@@ -432,36 +432,22 @@
     {
       "idx": 61,
       "version": "5",
-      "when": 1791800694387,
+      "when": 1793438990499,
       "tag": "0061_spooky_centennial",
       "breakpoints": true
     },
     {
       "idx": 62,
       "version": "5",
-      "when": 1791807628042,
-      "tag": "0062_lethal_yellowjacket",
+      "when": 1793438990499,
+      "tag": "0062_silent_hydra",
       "breakpoints": true
     },
     {
       "idx": 63,
       "version": "5",
-      "when": 1791814451125,
+      "when": 1793438990499,
       "tag": "0063_faithful_bloodstorm",
-      "breakpoints": true
-    },
-    {
-      "idx": 64,
-      "version": "5",
-      "when": 1791828781404,
-      "tag": "0064_hot_doctor_strange",
-      "breakpoints": true
-    },
-    {
-      "idx": 65,
-      "version": "5",
-      "when": 1792142888156,
-      "tag": "0065_sturdy_bishop",
       "breakpoints": true
     }
   ]

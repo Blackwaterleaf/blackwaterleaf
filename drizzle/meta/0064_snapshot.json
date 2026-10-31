@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "4d9ebb3e-c1aa-4dc3-ad65-b2830e960171",
-  "prevId": "cd7a208f-d510-4ed2-9f0b-b68ef3813514",
+  "id": "8722cd58-de8d-41e2-851b-0df70df47558",
+  "prevId": "cde4b60a-4b0f-4049-8ddc-78787cdfdcc8",
   "tables": {
     "account_entitlements": {
       "name": "account_entitlements",
@@ -511,7 +511,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 10
+          "default": 2
         },
         "proMonthlyIdentifications": {
           "name": "proMonthlyIdentifications",
@@ -519,7 +519,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": 300
+          "default": 60
         },
         "globalDailyIdentifications": {
           "name": "globalDailyIdentifications",
@@ -1116,6 +1116,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -1123,13 +1130,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": "(now())"
-        },
-        "expiresAt": {
-          "name": "expiresAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
         }
       },
       "indexes": {
@@ -1152,6 +1152,110 @@
       "compositePrimaryKeys": {
         "assistant_result_cache_id": {
           "name": "assistant_result_cache_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "assistant_result_sessions": {
+      "name": "assistant_result_sessions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sessionHash": {
+          "name": "sessionHash",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subject": {
+          "name": "subject",
+          "type": "enum('plant','fish')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload": {
+          "name": "payload",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expiresAt": {
+          "name": "expiresAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {
+        "assistant_result_sessions_hash_unique": {
+          "name": "assistant_result_sessions_hash_unique",
+          "columns": [
+            "sessionHash"
+          ],
+          "isUnique": true
+        },
+        "assistant_result_sessions_expiry_idx": {
+          "name": "assistant_result_sessions_expiry_idx",
+          "columns": [
+            "expiresAt"
+          ],
+          "isUnique": false
+        },
+        "assistant_result_sessions_user_created_idx": {
+          "name": "assistant_result_sessions_user_created_idx",
+          "columns": [
+            "userId",
+            "createdAt"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "assistant_result_sessions_userId_users_id_fk": {
+          "name": "assistant_result_sessions_userId_users_id_fk",
+          "tableFrom": "assistant_result_sessions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "assistant_result_sessions_id": {
+          "name": "assistant_result_sessions_id",
           "columns": [
             "id"
           ]
@@ -1273,28 +1377,28 @@
         },
         "estimatedInputCostUsd": {
           "name": "estimatedInputCostUsd",
-          "type": "decimal(14,8)",
+          "type": "decimal(16,8)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "estimatedOutputCostUsd": {
           "name": "estimatedOutputCostUsd",
-          "type": "decimal(14,8)",
+          "type": "decimal(16,8)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "estimatedTotalCostUsd": {
           "name": "estimatedTotalCostUsd",
-          "type": "decimal(14,8)",
+          "type": "decimal(16,8)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "costCurrency": {
           "name": "costCurrency",
-          "type": "varchar(8)",
+          "type": "varchar(3)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -6699,13 +6803,14 @@
           "type": "int",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": false,
+          "default": 0
         },
         "entitlementExpiresAt": {
           "name": "entitlementExpiresAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "createdAt": {
@@ -6746,7 +6851,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "promo_code_redemptions_userId_users_id_fk": {
@@ -6759,7 +6864,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

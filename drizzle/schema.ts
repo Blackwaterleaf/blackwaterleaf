@@ -486,10 +486,10 @@ export const assistantUsage = mysqlTable(
     requestOutcome: mysqlEnum("requestOutcome", ["reserved", "completed", "failed", "timeout", "quota_exceeded"]).default("reserved").notNull(),
     provider: varchar("provider", { length: 64 }),
     tariffVersion: varchar("tariffVersion", { length: 64 }),
-    estimatedInputCostUsd: decimal("estimatedInputCostUsd", { precision: 14, scale: 8 }),
-    estimatedOutputCostUsd: decimal("estimatedOutputCostUsd", { precision: 14, scale: 8 }),
-    estimatedTotalCostUsd: decimal("estimatedTotalCostUsd", { precision: 14, scale: 8 }),
-    costCurrency: varchar("costCurrency", { length: 8 }),
+    estimatedInputCostUsd: decimal("estimatedInputCostUsd", { precision: 16, scale: 8 }),
+    estimatedOutputCostUsd: decimal("estimatedOutputCostUsd", { precision: 16, scale: 8 }),
+    estimatedTotalCostUsd: decimal("estimatedTotalCostUsd", { precision: 16, scale: 8 }),
+    costCurrency: varchar("costCurrency", { length: 3 }),
     plantnetEngineVersion: varchar("plantnetEngineVersion", { length: 96 }),
     plantnetRateLimitRemaining: int("plantnetRateLimitRemaining"),
     plantnetRateLimitResetAt: timestamp("plantnetRateLimitResetAt"),
@@ -501,10 +501,7 @@ export const assistantUsage = mysqlTable(
   ],
 );
 
-/**
- * Privacy-preserving cache for repeated plant-image analyses.
- * Stores structured output only; image bytes and prompts are never persisted.
- */
+/** Seven-day image-result cache; only a content fingerprint and structured result are retained. */
 export const assistantResultCache = mysqlTable(
   "assistant_result_cache",
   {
@@ -513,8 +510,8 @@ export const assistantResultCache = mysqlTable(
     model: varchar("model", { length: 96 }).notNull(),
     identification: json("identification").notNull(),
     plantnetValidation: json("plantnetValidation"),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
     expiresAt: timestamp("expiresAt").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
     uniqueIndex("assistant_result_cache_fingerprint_unique").on(table.fingerprint),
@@ -522,7 +519,7 @@ export const assistantResultCache = mysqlTable(
   ],
 );
 
-/** Short-lived, user-bound result handles. Only the hash is persisted; image bytes and prompts are never stored. */
+/** Short-lived, account-bound workspace sessions keep AI answers out of URLs and browser history. */
 export const assistantResultSessions = mysqlTable(
   "assistant_result_sessions",
   {
@@ -536,16 +533,16 @@ export const assistantResultSessions = mysqlTable(
   },
   table => [
     uniqueIndex("assistant_result_sessions_hash_unique").on(table.sessionHash),
-    index("assistant_result_sessions_user_created_idx").on(table.userId, table.createdAt),
     index("assistant_result_sessions_expiry_idx").on(table.expiresAt),
+    index("assistant_result_sessions_user_created_idx").on(table.userId, table.createdAt),
   ],
 );
 
 /** Host-controlled policy for free, Pro and global plant-identification budgets. */
 export const aiUsagePolicies = mysqlTable("ai_usage_policies", {
   id: int("id").primaryKey(),
-  freeDailyIdentifications: int("freeDailyIdentifications").default(10).notNull(),
-  proMonthlyIdentifications: int("proMonthlyIdentifications").default(300).notNull(),
+  freeDailyIdentifications: int("freeDailyIdentifications").default(2).notNull(),
+  proMonthlyIdentifications: int("proMonthlyIdentifications").default(60).notNull(),
   globalDailyIdentifications: int("globalDailyIdentifications").default(100).notNull(),
   updatedByUserId: int("updatedByUserId").references(() => users.id),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -619,7 +616,7 @@ export const accountEntitlements = mysqlTable(
   ],
 );
 
-/** Admin-created, server-redeemable access codes. Only a SHA-256 digest is stored. */
+/** Administrator-issued premium and points codes. Plain codes are never persisted. */
 export const promoCodes = mysqlTable(
   "promo_codes",
   {
@@ -641,16 +638,16 @@ export const promoCodes = mysqlTable(
   ],
 );
 
-/** Immutable redemption ledger; one member can redeem a specific code only once. */
+/** One immutable redemption per account and promo code. */
 export const promoCodeRedemptions = mysqlTable(
   "promo_code_redemptions",
   {
     id: int("id").autoincrement().primaryKey(),
-    promoCodeId: int("promoCodeId").notNull().references(() => promoCodes.id),
-    userId: int("userId").notNull().references(() => users.id),
+    promoCodeId: int("promoCodeId").notNull().references(() => promoCodes.id, { onDelete: "cascade" }),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
     premiumDays: int("premiumDays").notNull(),
-    bonusPoints: int("bonusPoints").notNull(),
-    entitlementExpiresAt: timestamp("entitlementExpiresAt"),
+    bonusPoints: int("bonusPoints").default(0).notNull(),
+    entitlementExpiresAt: timestamp("entitlementExpiresAt").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
