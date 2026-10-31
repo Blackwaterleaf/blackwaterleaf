@@ -24,7 +24,7 @@ export type SessionPayload = {
   openId: string;
   appId: string;
   name: string;
-  provider?: "manus" | "local";
+  provider?: "manus" | "local" | "google";
 };
 
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
@@ -197,6 +197,22 @@ class SDKServer {
     );
   }
 
+  /** Creates a BlackWaterLeaf Google OAuth session after server-side OIDC verification. */
+  async createGoogleSessionToken(
+    openId: string,
+    options: { expiresInMs?: number; name?: string } = {}
+  ): Promise<string> {
+    return this.signSession(
+      {
+        openId,
+        appId: ENV.appId,
+        name: options.name || "",
+        provider: "google",
+      },
+      options
+    );
+  }
+
   async signSession(
     payload: SessionPayload,
     options: { expiresInMs?: number } = {}
@@ -220,7 +236,7 @@ class SDKServer {
 
   async verifySession(
     cookieValue: string | undefined | null
-  ): Promise<{ openId: string; appId: string; name: string; provider: "manus" | "local"; issuedAt: number | null } | null> {
+  ): Promise<{ openId: string; appId: string; name: string; provider: "manus" | "local" | "google"; issuedAt: number | null } | null> {
     if (!cookieValue) {
       console.warn("[Auth] Missing session cookie");
       return null;
@@ -243,7 +259,7 @@ class SDKServer {
         openId: sessionPayload.openId,
         appId: sessionPayload.appId,
         name: sessionPayload.name,
-        provider: provider === "local" ? "local" : "manus",
+        provider: provider === "local" || provider === "google" ? provider : "manus",
         issuedAt: typeof iat === "number" ? iat * 1_000 : null,
       };
     } catch (error) {
@@ -312,7 +328,7 @@ class SDKServer {
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {
-      if (session.provider === "local") {
+      if (session.provider === "local" || session.provider === "google") {
         throw ForbiddenError("Local session user not found");
       }
       try {
@@ -348,7 +364,6 @@ class SDKServer {
     }
 
     if (session.provider === "local") {
-      if (user.loginMethod !== "local") throw ForbiddenError("Local session not permitted for this account");
       const credential = await db.getLocalCredentialByUserId(user.id);
       if (!credential?.emailVerifiedAt || (session.issuedAt !== null && session.issuedAt < credential.passwordChangedAt.getTime())) {
         throw ForbiddenError("Local session expired");

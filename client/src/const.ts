@@ -11,3 +11,11 @@ export const startLogin = () => {
   const params = new URLSearchParams({ origin: window.location.origin });
   window.location.assign(`/api/oauth/start?${params.toString()}`);
 };
+
+/** Starts Google sign-in through the BWL server. The server owns PKCE and the
+ * redirect URI, so provider credentials never enter the browser bundle. */
+export const startGoogleLogin = (forceAccountSelection = false) => {
+  const params = new URLSearchParams({ origin: window.location.origin });
+  if (forceAccountSelection) params.set("prompt", "select_account");
+  window.location.assign(`/api/oauth/google/start?${params.toString()}`);
+};

@@ -18,7 +18,7 @@ type RequestLike = {
 type SessionRegistration = {
   token: string;
   userId: number;
-  provider: "manus" | "local";
+  provider: "manus" | "local" | "google";
   issuedAt: number | null;
   request: RequestLike;
   expiresAt?: number | null;

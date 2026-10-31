@@ -1,8 +1,8 @@
 import { ObservatoryContextHeader } from "@/components/ObservatoryPrimitives";
-import { startLogin } from "@/const";
+import { startGoogleLogin, startLogin } from "@/const";
 import { REFERENCE_ASSETS } from "@/lib/worlds";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, CheckCircle2, KeyRound, Leaf, LockKeyhole, Mail, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Chrome, KeyRound, Leaf, LockKeyhole, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { trpc } from "@/lib/trpc";
 
@@ -42,6 +42,7 @@ export default function AccountAccess() {
   const token = useMemo(() => new URLSearchParams(window.location.search).get("token") ?? "", [location]);
   const isEmailReady = Boolean(status.data?.emailDeliveryConfigured);
   const localLoginAvailable = Boolean(status.data?.localLoginAvailable);
+  const googleLoginAvailable = Boolean(status.data?.googleLoginAvailable);
   const isWorking = login.isPending || register.isPending || requestReset.isPending || verifyEmail.isPending || resetPassword.isPending;
   const headline = copy[mode];
   const AccessIcon = mode === "register" ? UserPlus : mode === "login" ? KeyRound : ShieldCheck;
@@ -113,7 +114,8 @@ export default function AccountAccess() {
         <div className="account-access-mark"><Leaf size={24} /></div>
         <p className="account-access-intro">Dein Zugang bleibt sicher, widerrufbar und unabhängig von öffentlichen Portalansichten.</p>
 
-        {(showManusFallback || mode === "register") ? <div className="account-manus-fallback" role="status"><p>{!localLoginAvailable && mode === "login" ? "Es ist noch kein bestätigtes BlackWaterLeaf-E-Mail-Konto vorhanden. Nutze bis zur Aktivierung der lokalen Konten die sichere Manus-Anmeldung." : "BlackWaterLeaf kann weltweit genutzt werden. Für eine schnelle globale Registrierung kannst du dich sicher mit deinem Manus-Konto anmelden; eine Länderbeschränkung gibt es nicht."}</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
+        {googleLoginAvailable && mode === "login" ? <div className="account-manus-fallback account-google-signin" role="status"><p>Nutze dein Google-Konto nur zur sicheren Identitätsprüfung. Deine BlackWaterLeaf-Daten, Beiträge und Einstellungen bleiben in deinem bestehenden Konto.</p><button className="secondary-action account-manus-signin" type="button" onClick={() => startGoogleLogin()}><Chrome size={17} />MIT GOOGLE ANMELDEN</button><small>Google-Zugangstokens werden nicht bei BlackWaterLeaf gespeichert.</small></div> : null}
+        {showManusFallback && !googleLoginAvailable ? <div className="account-manus-fallback" role="status"><p>{!localLoginAvailable && mode === "login" ? "Es ist noch kein bestätigtes BlackWaterLeaf-E-Mail-Konto vorhanden. Nutze bis zur Aktivierung der lokalen Konten die sichere Manus-Anmeldung." : "BlackWaterLeaf kann weltweit genutzt werden. Für eine schnelle globale Registrierung kannst du dich sicher mit deinem Manus-Konto anmelden; eine Länderbeschränkung gibt es nicht."}</p><button className="secondary-action account-manus-signin" type="button" onClick={startLogin}><ShieldCheck size={17} />MIT MANUS ANMELDEN</button><small>Nach der Anmeldung kehrst du direkt zu BlackWaterLeaf zurück.</small></div> : null}
         {notice ? <p className="account-success" role="status"><CheckCircle2 size={17} />{notice}</p> : null}
         {error ? <p className="account-error" role="alert">{error}</p> : null}
 

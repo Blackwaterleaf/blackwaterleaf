@@ -213,6 +213,31 @@ export const localAuthTokens = mysqlTable(
   ],
 );
 
+/**
+ * External identity bindings. Only stable provider identifiers and verified
+ * email metadata are persisted; access and refresh tokens never enter BWL.
+ */
+export const externalAuthIdentities = mysqlTable(
+  "external_auth_identities",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+    provider: mysqlEnum("provider", ["google"]).notNull(),
+    issuer: varchar("issuer", { length: 255 }).notNull(),
+    subject: varchar("subject", { length: 255 }).notNull(),
+    normalizedEmail: varchar("normalizedEmail", { length: 320 }).notNull(),
+    emailVerified: boolean("emailVerified").default(false).notNull(),
+    lastSignedInAt: timestamp("lastSignedInAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("external_auth_identities_provider_issuer_subject_unique").on(table.provider, table.issuer, table.subject),
+    uniqueIndex("external_auth_identities_user_provider_unique").on(table.userId, table.provider),
+    index("external_auth_identities_email_idx").on(table.normalizedEmail),
+  ],
+);
+
 /** Server-revocable session registry for web and native clients. Tokens are never stored in plaintext. */
 export const userSessions = mysqlTable(
   "user_sessions",
@@ -220,7 +245,7 @@ export const userSessions = mysqlTable(
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
     sessionHash: varchar("sessionHash", { length: 64 }).notNull(),
-    provider: mysqlEnum("provider", ["manus", "local"]).notNull(),
+    provider: mysqlEnum("provider", ["manus", "local", "google"]).notNull(),
     deviceId: varchar("deviceId", { length: 128 }),
     clientAgent: varchar("userAgent", { length: 512 }),
     issuedAt: timestamp("issuedAt"),

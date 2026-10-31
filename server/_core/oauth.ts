@@ -78,7 +78,14 @@ function getTrustedWebOrigin(req: Request): string | null {
 
 export function registerOAuthRoutes(app: Express) {
   if (ENV.selfHostedAuthOnly) {
-    app.all("/api/oauth/*", (_req, res) => res.status(410).json({ error: "managed_oauth_disabled" }));
+    // Keep the legacy managed-provider endpoints disabled without swallowing
+    // self-hosted providers mounted under /api/oauth/google.
+    app.all([
+      "/api/oauth/start",
+      "/api/oauth/callback",
+      "/api/oauth/mobile/start",
+      "/api/oauth/mobile/exchange",
+    ], (_req, res) => res.status(410).json({ error: "managed_oauth_disabled" }));
     return;
   }
 

@@ -5,14 +5,18 @@ import { API_ORIGIN, writeToken } from "./api";
 
 WebBrowser.maybeCompleteAuthSession();
 
-export async function signInWithBlackWaterLeaf(options: { forceAccountSelection?: boolean } = {}) {
+type SignInOptions = { forceAccountSelection?: boolean };
+
+async function signInWithProvider(provider: "google" | "manus", options: SignInOptions = {}) {
   const mobileState = Crypto.randomUUID().replace(/-/g, "");
   const codeVerifier = `${Crypto.randomUUID().replace(/-/g, "")}${Crypto.randomUUID().replace(/-/g, "")}`;
   const codeChallenge = (await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, codeVerifier, { encoding: Crypto.CryptoEncoding.BASE64 }))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const redirectUri = Linking.createURL("oauth/callback", { scheme: "blackwaterleaf" });
   const accountSelection = options.forceAccountSelection ? "&prompt=select_account" : "";
-  const startUrl = `${API_ORIGIN}/api/oauth/mobile/start?mobileState=${encodeURIComponent(mobileState)}&codeChallenge=${encodeURIComponent(codeChallenge)}${accountSelection}`;
+  const startPath = provider === "google" ? "/api/oauth/google/mobile/start" : "/api/oauth/mobile/start";
+  const exchangePath = provider === "google" ? "/api/oauth/google/mobile/exchange" : "/api/oauth/mobile/exchange";
+  const startUrl = `${API_ORIGIN}${startPath}?mobileState=${encodeURIComponent(mobileState)}&codeChallenge=${encodeURIComponent(codeChallenge)}${accountSelection}`;
   const result = await WebBrowser.openAuthSessionAsync(startUrl, redirectUri);
 
   if (result.type !== "success") {
@@ -25,7 +29,7 @@ export async function signInWithBlackWaterLeaf(options: { forceAccountSelection?
   const code = typeof parsed.queryParams?.code === "string" ? parsed.queryParams.code : null;
   if (!code || returnedState !== mobileState) throw new Error("Die Anmeldung wurde aus Sicherheitsgründen abgelehnt.");
 
-  const exchange = await fetch(`${API_ORIGIN}/api/oauth/mobile/exchange`, {
+  const exchange = await fetch(`${API_ORIGIN}${exchangePath}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, state: mobileState, codeVerifier }),
@@ -34,4 +38,14 @@ export async function signInWithBlackWaterLeaf(options: { forceAccountSelection?
   if (!exchange.ok || !resultPayload.sessionToken) throw new Error("Die Anmeldung wurde aus Sicherheitsgründen abgelehnt.");
   await writeToken(resultPayload.sessionToken);
   return { status: "authenticated" as const };
+}
+
+/** Preferred native sign-in. Google only returns a BWL session after verified email ownership. */
+export function signInWithGoogle(options: SignInOptions = {}) {
+  return signInWithProvider("google", options);
+}
+
+/** Legacy managed-account fallback retained only for existing staging builds. */
+export function signInWithBlackWaterLeaf(options: SignInOptions = {}) {
+  return signInWithProvider("manus", options);
 }

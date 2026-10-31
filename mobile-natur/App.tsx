@@ -211,7 +211,7 @@ import {
 } from "./src/api";
 import { HabitatManager } from "./src/HabitatManager";
 import { MomentCapture } from "./src/MomentCapture";
-import { signInWithBlackWaterLeaf } from "./src/nativeAuth";
+import { signInWithGoogle } from "./src/nativeAuth";
 import {
   cachePrivateObservations,
   observationOutboxSummary,
@@ -801,7 +801,7 @@ function NaturApp() {
 
   const signIn = useCallback(async (options: { forceAccountSelection?: boolean } = {}) => {
     try {
-      const result = await signInWithBlackWaterLeaf(options);
+      const result = await signInWithGoogle(options);
       if (result.status === "authenticated") {
         const nextToken = await readToken();
         setToken(nextToken);

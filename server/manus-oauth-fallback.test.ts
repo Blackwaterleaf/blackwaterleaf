@@ -6,6 +6,8 @@ const root = resolve(import.meta.dirname, "..");
 const helper = readFileSync(resolve(root, "client/src/const.ts"), "utf8");
 const accountAccess = readFileSync(resolve(root, "client/src/pages/AccountAccess.tsx"), "utf8");
 const callback = readFileSync(resolve(root, "server/_core/oauth.ts"), "utf8");
+const googleCallback = readFileSync(resolve(root, "server/_core/googleOAuthRoutes.ts"), "utf8");
+const googleHelper = readFileSync(resolve(root, "server/googleOAuth.ts"), "utf8");
 const client = readFileSync(resolve(root, "client/src/main.tsx"), "utf8");
 const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
@@ -22,14 +24,23 @@ describe("temporary Manus authentication fallback", () => {
     expect(client).not.toContain("3000-ibp8fnclaynuq4sdd6dsd-206ff939.us1.manus.computer/api/trpc");
   });
 
-  it("keeps the callback nonce guard and exposes a clear temporary access action", () => {
+  it("keeps the callback nonce guard, Google PKCE and a controlled temporary access action", () => {
     expect(callback).toContain("nonce !== expectedNonce");
     expect(callback).toContain('res.status(403).json({ error: "invalid oauth state" })');
+    expect(helper).toContain("startGoogleLogin");
+    expect(helper).toContain("/api/oauth/google/start?");
+    expect(googleHelper).toContain("code_challenge");
+    expect(googleCallback).toContain("GOOGLE_STATE_COOKIE");
+    expect(googleCallback).toContain("createGoogleSessionToken");
+    expect(googleHelper).toContain("tokens are never persisted");
+    expect(googleHelper).toContain("email_verified");
     expect(accountAccess).toContain("MIT MANUS ANMELDEN");
+    expect(accountAccess).toContain("MIT GOOGLE ANMELDEN");
+    expect(accountAccess).toContain("googleLoginAvailable");
     expect(accountAccess).toContain("onClick={startLogin}");
     expect(accountAccess).toContain("const localLoginAvailable = Boolean(status.data?.localLoginAvailable)");
     expect(accountAccess).toContain("const showManusFallback = !isEmailReady || !localLoginAvailable");
-    expect(accountAccess).toContain("(showManusFallback || mode === \"register\") ? <div className=\"account-manus-fallback\"");
+    expect(accountAccess).toContain("showManusFallback && !googleLoginAvailable");
     expect(accountAccess).toContain("BlackWaterLeaf kann weltweit genutzt werden");
     expect(styles).toContain(".account-manus-fallback");
   });

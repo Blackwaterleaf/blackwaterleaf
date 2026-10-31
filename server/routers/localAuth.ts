@@ -18,6 +18,7 @@ import {
   type LocalTokenPurpose,
 } from "../localAuth";
 import { getLocalAuthEmailConfig } from "../localAuthConfig";
+import { getGoogleOAuthConfig } from "../googleOAuth";
 import { publicProcedure, router } from "../_core/trpc";
 import { revokeAllSessions } from "../sessionRegistry";
 
@@ -72,6 +73,7 @@ export const localAuthRouter = router({
     }
     return {
       emailDeliveryConfigured: Boolean(getLocalAuthEmailConfig()),
+      googleLoginAvailable: Boolean(getGoogleOAuthConfig()),
       localLoginAvailable,
       passwordMinimumLength: 12,
       accountMode: "local_email_password" as const,

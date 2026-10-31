@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { sql } from "drizzle-orm";
 import { registerOAuthRoutes } from "./oauth";
+import { registerGoogleOAuthRoutes } from "./googleOAuthRoutes";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -82,6 +83,7 @@ async function startServer() {
   app.get("/api/live-media/session/:sessionId/watch", redirectMemberToMediaPlayer);
   app.use("/api/oauth", authRateLimiter);
   registerOAuthRoutes(app);
+  registerGoogleOAuthRoutes(app);
   app.use([
     "/api/trpc/auth.register",
     "/api/trpc/auth.login",
