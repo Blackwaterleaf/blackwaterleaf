@@ -5,6 +5,9 @@ import path from "node:path";
 import { ENV } from "./_core/env";
 
 function getForgeConfig() {
+  if (ENV.selfHostedAuthOnly) {
+    throw new Error("Self-hosted storage is not configured; set BWL_STORAGE_ROOT");
+  }
   const forgeUrl = ENV.forgeApiUrl;
   const forgeKey = ENV.forgeApiKey;
   if (!forgeUrl || !forgeKey) throw new Error("Storage config missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY");
@@ -87,7 +90,9 @@ export async function storagePut(relKey: string, data: Buffer | Uint8Array | str
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
   const key = normalizeKey(relKey);
-  return { key, url: ENV.storageRoot ? signedLocalUrl(key) : `/manus-storage/${key}` };
+  if (ENV.storageRoot) return { key, url: signedLocalUrl(key) };
+  if (ENV.selfHostedAuthOnly) throw new Error("Self-hosted storage is not configured; set BWL_STORAGE_ROOT");
+  return { key, url: `/manus-storage/${key}` };
 }
 
 export async function storageGetSignedUrl(relKey: string): Promise<string> {

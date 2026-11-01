@@ -20,10 +20,13 @@ export const platformRouter = router({
     }
 
     const api = database === "available" ? "available" : "temporarily_unavailable";
-    const mediaStorage =
-      process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY
-        ? "available"
-        : "not_connected";
+    const mediaStorage = process.env.BWL_STORAGE_ROOT
+      ? "available"
+      : process.env.BWL_SELF_HOSTED_AUTH_ONLY === "true"
+        ? "not_connected"
+        : process.env.BUILT_IN_FORGE_API_URL && process.env.BUILT_IN_FORGE_API_KEY
+          ? "available"
+          : "not_connected";
     const assistant = await getAssistantReadiness();
 
     return {
