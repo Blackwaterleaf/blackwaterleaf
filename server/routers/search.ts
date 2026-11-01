@@ -137,8 +137,8 @@ export const searchRouter = router({
             like(plantTaxa.family, match),
             like(plantTaxa.genus, match),
             like(plantTaxa.summary, match),
-            sql`JSON_SEARCH(${plantTaxa.commonNames}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
-            sql`JSON_SEARCH(${plantTaxa.synonyms}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${plantTaxa.commonNames}, 'one', CONCAT('%', ${input.q}, '%'), NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${plantTaxa.synonyms}, 'one', CONCAT('%', ${input.q}, '%'), NULL, '$[*]') IS NOT NULL`,
           ),
         )).orderBy(desc(plantTaxa.id)).limit(input.limit);
         result.taxa = rows.map(row => ({ ...row, type: "plant" as const, id: String(row.id) }));
@@ -171,8 +171,8 @@ export const searchRouter = router({
             like(aquariumTaxa.family, match),
             like(aquariumTaxa.genus, match),
             like(aquariumTaxa.summary, match),
-            sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
-            sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', ${input.q}, NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${aquariumTaxa.commonNames}, 'one', CONCAT('%', ${input.q}, '%'), NULL, '$[*]') IS NOT NULL`,
+            sql`JSON_SEARCH(${aquariumTaxa.synonyms}, 'one', CONCAT('%', ${input.q}, '%'), NULL, '$[*]') IS NOT NULL`,
           ),
         )).orderBy(desc(aquariumTaxa.id)).limit(input.limit);
         result.aquarium = rows.map(row => ({ ...row, type: "aquarium" as const, id: String(row.id) }));
