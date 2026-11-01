@@ -10,7 +10,7 @@ const PUBLIC_DESIGN_ASSETS = new Set([
   "aquarium-photorealistic-reference_3c93f1e3.png", "aquarium-planted_42d3639b.jpg", "aquarium-reference_2e42963b.jpg", "assistant-reference_4510581b.jpg", "blackwaterleaf-original-mark-1024_28dcd697.png", "botany-rainforest_def7888b.jpg", "botany-reference_c192e480.jpg", "kiemen-kumpel-shop_5e6207a0.jpg", "terrarium-moss_9eba1fa1.jpg", "terrarium-photorealistic-reference_bcb9db80.png", "terrarium-reference_c4e109d3.jpg",
 ]);
 const PUBLIC_STREAM_ASSETS = new Set(["blackwaterleaf-intro_194052e3.mp4", "510445d0-bcd0-11f1-b45c-c186c16f6f72_040d84fe.mp4"]);
-function isPublicCatalogueTaxonImage(key: string) { return /^catalog\/taxa\/(?:plant|aquarium)\/\d+\/inat-\d+_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(key); }
+function isPublicCatalogueTaxonImage(key: string) { return /^catalog\/taxa\/(?:plant|aquarium)\/\d+\/(?:inat-\d+|bwl-owner)_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(key); }
 function localTarget(key: string) {
   if (!ENV.storageRoot || key.includes("\0") || key.includes("..") || key.includes("\\")) return null;
   const root = path.resolve(ENV.storageRoot); const target = path.resolve(root, key);

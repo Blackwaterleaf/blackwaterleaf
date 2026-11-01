@@ -1062,6 +1062,10 @@ body { background: radial-gradient(circle at 12% -8%, rgba(91,211,116,.26), tran
 .taxon-meta { display: grid; gap: 5px; padding-top: 12px; border-top: 1px solid rgba(157,240,170,.13); }
 .taxon-meta strong { color: #adfa7e; font: 800 .6rem/1 "JetBrains Mono", monospace; letter-spacing: .08em; }
 .taxon-meta span { color: #c5ddc7; font-size: .78rem; line-height: 1.45; }
+.taxon-media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.taxon-media-card { display: grid; gap: 8px; margin: 0; padding: 9px; border: 1px solid rgba(157,240,170,.16); border-radius: 14px; background: rgba(3,24,12,.48); }
+.taxon-media-card .taxon-image-trigger { aspect-ratio: 4 / 3; border-radius: 10px; }
+.taxon-media-card figcaption { color: #c5ddc7; font-size: .72rem; line-height: 1.4; }
 .public-profile-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .public-profile-hero { grid-template-columns: 86px minmax(0, 1fr) auto; }
 .public-profile-avatar { display: grid; place-items: center; width: 86px; height: 86px; overflow: hidden; color: #d6ffb0; border: 1px solid rgba(201,255,159,.44); border-radius: 50%; background: radial-gradient(circle at 35% 28%, rgba(187,255,132,.35), rgba(7,42,20,.88)); }

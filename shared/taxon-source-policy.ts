@@ -1,7 +1,7 @@
 export const DISALLOWED_CATALOG_SOURCE_PATTERN = /(?:wikimedia|wikipedia|commons\.wikimedia|upload\.wikimedia)/i;
 
 export type OfficialTaxonSource = {
-  id: "powo" | "fishbase" | "gbif" | "bhl" | "jstor-plants";
+  id: "powo" | "fishbase" | "gbif" | "bhl" | "jstor-plants" | "blackwaterleaf";
   aliases: readonly string[];
   label: string;
   homepageUrl: string;
@@ -48,6 +48,14 @@ export const OFFICIAL_TAXON_SOURCES: readonly OfficialTaxonSource[] = [
     label: "JSTOR Global Plants",
     homepageUrl: "https://plants.jstor.org/",
     approvedHosts: ["plants.jstor.org"],
+    supportsDirectMedia: true,
+  },
+  {
+    id: "blackwaterleaf",
+    aliases: ["blackwaterleaf", "blackwaterleaf owner", "blackwaterleaf curated"],
+    label: "BlackWaterLeaf · firmeneigene Medien",
+    homepageUrl: "https://blackwaterleaf.com/",
+    approvedHosts: ["blackwaterleaf.com", "www.blackwaterleaf.com"],
     supportsDirectMedia: true,
   },
 ] as const;
@@ -110,7 +118,7 @@ export function isVerifiedOpenCatalogueMediaSource(value: string | null | undefi
 }
 
 export function isStoredCatalogueTaxonImage(value: string | null | undefined): boolean {
-  return typeof value === "string" && /^\/manus-storage\/catalog\/taxa\/(?:plant|aquarium)\/\d+\/inat-\d+_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(value);
+  return typeof value === "string" && /^\/manus-storage\/catalog\/taxa\/(?:plant|aquarium)\/\d+\/(?:inat-\d+|bwl-owner)_[a-f0-9]{8}\.(?:jpg|png|webp)$/i.test(value);
 }
 
 /** Taxonbilder erscheinen auch neben kommerziellen Marketplace-Flächen; NC- und unklare Rechte sind daher ausgeschlossen. */
@@ -118,6 +126,7 @@ export function isCommerciallyReusableCatalogImageLicense(value: string | null |
   if (!value) return false;
   const normalized = value.trim().toLowerCase().replace(/\s+/g, " ");
   if (/(?:by[- ]?nc|non[- ]?commercial|all rights reserved|permission required)/.test(normalized)) return false;
+  if (["blackwaterleaf-owner-approved", "proprietary-owner-approved"].includes(normalized)) return true;
   return [
     "cc0 1.0",
     "cc0-1.0",

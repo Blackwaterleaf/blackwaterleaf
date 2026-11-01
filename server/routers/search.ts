@@ -56,10 +56,15 @@ function assertApprovedMediaSource(source: string, records: Array<z.infer<typeof
     const verifiedOpenCataloguePhoto = isStoredCatalogueTaxonImage(record.imageUrl)
       && isVerifiedOpenCatalogueMediaSource(record.imageSourceUrl)
       && record.imageAttribution?.includes("iNaturalist photo #");
+    const firstPartyOwnerPhoto = officialTaxonSource(source)?.id === "blackwaterleaf"
+      && isStoredCatalogueTaxonImage(record.imageUrl)
+      && isOfficialTaxonSourceUrl(record.imageSourceUrl)
+      && belongsToOfficialSource(source, record.imageSourceUrl)
+      && ["blackwaterleaf-owner-approved", "proprietary-owner-approved"].includes(record.imageLicense?.trim().toLowerCase() ?? "");
     const officialSourcePhoto = isOfficialTaxonSourceUrl(record.imageSourceUrl)
       && belongsToOfficialMediaSource(source, record.imageUrl)
       && belongsToOfficialSource(source, record.imageSourceUrl);
-    if (!verifiedOpenCataloguePhoto && !officialSourcePhoto) {
+    if (!verifiedOpenCataloguePhoto && !firstPartyOwnerPhoto && !officialSourcePhoto) {
       throw new TRPCError({ code: "PRECONDITION_FAILED", message: "unapproved_media_source" });
     }
     if (publish && !isCommerciallyReusableCatalogImageLicense(record.imageLicense)) {
