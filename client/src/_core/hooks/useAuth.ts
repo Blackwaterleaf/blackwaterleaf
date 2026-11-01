@@ -1,4 +1,5 @@
 import { startLogin } from "@/const";
+import { AUTH_SESSION_EXPIRED_EVENT } from "@/_core/authSession";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -15,8 +16,27 @@ export function useAuth(options?: UseAuthOptions) {
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
-    refetchOnWindowFocus: false,
+    // Revalidate the existing HttpOnly session when a user comes back to the app.
+    // A valid session stays signed in; an invalid one changes only local UI state.
+    refetchOnWindowFocus: true,
   });
+
+  const clearExpiredSession = useCallback(() => {
+    utils.auth.me.setData(undefined, null);
+    void utils.auth.me.invalidate();
+  }, [utils]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, clearExpiredSession);
+    return () => {
+      window.removeEventListener(
+        AUTH_SESSION_EXPIRED_EVENT,
+        clearExpiredSession
+      );
+    };
+  }, [clearExpiredSession]);
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -47,10 +67,18 @@ export function useAuth(options?: UseAuthOptions) {
   }, [logoutMutation, utils]);
 
   const state = useMemo(() => {
-    localStorage.setItem(
-      "blackwaterleaf-user-info",
-      JSON.stringify(meQuery.data)
-    );
+    try {
+      if (meQuery.data) {
+        localStorage.setItem(
+          "blackwaterleaf-user-info",
+          JSON.stringify(meQuery.data)
+        );
+      } else {
+        localStorage.removeItem("blackwaterleaf-user-info");
+      }
+    } catch {
+      // Storage is unavailable in some private browser modes.
+    }
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
