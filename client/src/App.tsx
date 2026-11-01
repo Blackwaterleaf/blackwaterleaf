@@ -5,7 +5,6 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AppShell } from "./components/AppShell";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Assistant from "./pages/Assistant";
 import Community from "./pages/Community";
 import Explore from "./pages/Explore";
 import Home from "./pages/Home";
@@ -17,6 +16,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AccountAccess from "./pages/AccountAccess";
 import Marketplace from "./pages/Marketplace";
 import MarketplaceProduct from "./pages/MarketplaceProduct";
+import SpeciesIdentification from "./pages/SpeciesIdentification";
+import SpeciesKnowledge from "./pages/SpeciesKnowledge";
 
 function Router() {
   return (
@@ -31,19 +32,30 @@ function Router() {
       <Route>
         <AppShell>
           <Switch>
-        <Route path={"/"} component={Home} />
-        <Route path={"/explore"} component={Explore} />
-        <Route path={"/community"} component={Community} />
-        <Route path={"/assistant"} component={Assistant} />
-        <Route path={"/profile/settings"} component={Profile} />
-        <Route path={"/profile"} component={Profile} />
-        <Route path={"/knowledge"} component={Knowledge} />
-        <Route path={"/marketplace/product/:id"} component={MarketplaceProduct} />
-        <Route path={"/marketplace"} component={Marketplace} />
-        <Route path={"/flow/:flow"} component={FlowDestination} />
-        <Route path={"/world/:realm"} component={Realm} />
-        <Route path={"/404"} component={NotFound} />
-        <Route component={NotFound} />
+            <Route path={"/"} component={Home} />
+            <Route path={"/explore"} component={Explore} />
+            <Route path={"/community"} component={Community} />
+            <Route
+              path={"/assistant/identify"}
+              component={SpeciesIdentification}
+            />
+            <Route path={"/assistant"} component={SpeciesIdentification} />
+            <Route path={"/profile/settings"} component={Profile} />
+            <Route path={"/profile"} component={Profile} />
+            <Route
+              path={"/knowledge/species/:scientificName"}
+              component={SpeciesKnowledge}
+            />
+            <Route path={"/knowledge"} component={Knowledge} />
+            <Route
+              path={"/marketplace/product/:id"}
+              component={MarketplaceProduct}
+            />
+            <Route path={"/marketplace"} component={Marketplace} />
+            <Route path={"/flow/:flow"} component={FlowDestination} />
+            <Route path={"/world/:realm"} component={Realm} />
+            <Route path={"/404"} component={NotFound} />
+            <Route component={NotFound} />
           </Switch>
         </AppShell>
       </Route>

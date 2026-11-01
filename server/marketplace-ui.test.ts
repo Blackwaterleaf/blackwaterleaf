@@ -4,16 +4,30 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const app = readFileSync(resolve(root, "client/src/App.tsx"), "utf8");
-const shell = readFileSync(resolve(root, "client/src/components/AppShell.tsx"), "utf8");
-const marketplace = readFileSync(resolve(root, "client/src/pages/Marketplace.tsx"), "utf8");
-const detail = readFileSync(resolve(root, "client/src/pages/MarketplaceProduct.tsx"), "utf8");
-const router = readFileSync(resolve(root, "server/routers/partners.ts"), "utf8");
+const shell = readFileSync(
+  resolve(root, "client/src/components/AppShell.tsx"),
+  "utf8"
+);
+const marketplace = readFileSync(
+  resolve(root, "client/src/pages/Marketplace.tsx"),
+  "utf8"
+);
+const detail = readFileSync(
+  resolve(root, "client/src/pages/MarketplaceProduct.tsx"),
+  "utf8"
+);
+const router = readFileSync(
+  resolve(root, "server/routers/partners.ts"),
+  "utf8"
+);
 const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 
 describe("marketplace UI truth contract", () => {
   it("provides a catalogue and a real product route", () => {
     expect(app).toContain('path={"/marketplace"} component={Marketplace}');
-    expect(app).toContain('path={"/marketplace/product/:id"} component={MarketplaceProduct}');
+    expect(app).toMatch(
+      /path=\{"\/marketplace\/product\/:id"\}\s+component=\{MarketplaceProduct\}/
+    );
     expect(marketplace).toContain("trpc.partners.marketplace.useQuery");
     expect(detail).toContain("trpc.partners.marketplaceProduct.useQuery");
   });
@@ -22,7 +36,9 @@ describe("marketplace UI truth contract", () => {
     expect(marketplace).toContain('rel="sponsored nofollow noopener"');
     expect(detail).toContain('rel="sponsored nofollow noopener"');
     expect(marketplace).toContain("BlackWaterLeaf verkauft nicht selbst");
-    expect(detail).toContain("Der Kaufvertrag, Bezahlvorgang, Versand, Widerruf und Support");
+    expect(detail).toContain(
+      "Der Kaufvertrag, Bezahlvorgang, Versand, Widerruf und Support"
+    );
   });
 
   it("uses the same currently-authorized publication gate for catalogue records", () => {
@@ -54,7 +70,14 @@ describe("marketplace UI truth contract", () => {
   it("keeps the reference sensor rail, entry composition, and detail states inside the aqua overlay", () => {
     expect(marketplace).toContain("LiveSensorStrip compact");
     expect(marketplace).toContain("marketplace-entry");
-    for (const token of ["LiveSensorStrip compact", "MARKET/ROUTE", "MARKET/DETAIL_LOAD", "MARKET/DETAIL_UNAVAILABLE", "ReferenceHero"]) expect(detail).toContain(token);
+    for (const token of [
+      "LiveSensorStrip compact",
+      "MARKET/ROUTE",
+      "MARKET/DETAIL_LOAD",
+      "MARKET/DETAIL_UNAVAILABLE",
+      "ReferenceHero",
+    ])
+      expect(detail).toContain(token);
     expect(styles).toContain(".marketplace-entry");
   });
 
@@ -71,7 +94,7 @@ describe("marketplace UI truth contract", () => {
   it("offers accessible heart toggles and a device-local favorites list", () => {
     expect(marketplace).toContain("toggleMarketplaceFavorite");
     expect(marketplace).toContain("marketplace-favorite-toggle");
-    expect(marketplace).toContain('aria-pressed={isFavorite}');
+    expect(marketplace).toContain("aria-pressed={isFavorite}");
     expect(marketplace).toContain("MarketplaceFavorites");
     expect(marketplace).toContain("Favoriten bleiben nur auf diesem Gerät");
     expect(styles).toContain(".marketplace-favorite-toggle");

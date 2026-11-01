@@ -4,6 +4,10 @@
 **Geltung:** Web-App und spätere PWA-/Mobile-Umsetzung
 **Zweck:** Dieses Regelwerk ersetzt frühere, allgemeinere Aussagen zur visuellen Übernahme. Es definiert den verbindlichen Weg von der gelieferten Design-ZIP zu den echten BlackWaterLeaf-Oberflächen.
 
+> **Eng begrenzte Ausnahme – KI-Artenbestimmung (1. November 2026):** Für die dokumentierten KI-Artenbestimmungsansichten gilt zusätzlich und im Konfliktfall vorrangig [`SPECIES_IDENTIFICATION_REFERENCE_2026-11-01.md`](./SPECIES_IDENTIFICATION_REFERENCE_2026-11-01.md). Dort festgelegte sieben Tabs, die bestehende Funktions- und Referenzreihenfolge sowie das dekorative redaktionelle Hero ersetzen nur hierfür entgegenstehende globale Hero-, Karten- oder Navigationsvorgaben dieses Regelwerks und älterer Referenzen. Alle übrigen Seitenregeln dieses Dokuments bleiben unverändert. Die Ausnahme dokumentiert die Web-PWA; native Oberflächen wurden nicht geändert.
+
+> **Ergänzung zur KI-Kanonisierung und Bewegung – 1. November 2026:** Die professionelle Artenbestimmung wird in der Web-PWA ausschließlich kanonisch unter `/assistant` geführt. `/assistant/identify` bleibt ein rückwärtskompatibler Alias auf exakt dieselbe neue Komponente, nicht auf eine historische Oberfläche. Die alte kombinierte KI-Oberfläche, ihre frühere `Assistant.tsx`-Seite und das ausschließlich zugehörige Spezies-Silhouetten-Asset werden nach Referenzbereinigung entfernt. Bestehende externe KI-API-Endpunkte, Authentifizierung, Einwilligung, Kontingent- und Datenwahrheitslogik bleiben unverändert. Übergänge verwenden nur Framer Motion oder CSS mit `transform` und `opacity`, dauern 180–480 ms und nutzen eine natürliche kubische Bézier-Kurve. Ergebnisinhalte dürfen höchstens drei Elemente mit maximal 55 ms Staffelung einblenden; Bildwechsel verwenden Crossfade mit zurückhaltender Skalierung, Akkordeons Höhe und Opazität, und interaktive Ziele kurzes Press-Feedback. Kein Autoplay-Loop außer einer dezenten, nicht essenziellen Ladeanzeige. Bei `prefers-reduced-motion` sind Wechsel unmittelbar und bewegungslos, ohne Inhalte zu verbergen. Die Regeln dürfen weder Layout-Jank noch Einfluss auf Wahrheit, Authentifizierung, Einwilligung oder KI-Daten erzeugen. Sie gelten nur für die Web-PWA: Der Native-Expo-Client hat keine entsprechende authentifizierte KI-Implementierung; eine 1:1-Parität ist erst nach einer echten künftigen Native-API-Integration möglich.
+
 > **Kernentscheidung:** Die ZIP ist die verbindliche visuelle Quelle. Sie bestimmt Bildaufbau, Reihenfolge, Hero, Icons, Akzentfarbe, Wahlbereiche und Navigation. Die vorhandene App ist hingegen die alleinige Quelle für echte Daten, Routen, Rechte, Einwilligungen und Funktionen. Eine Grafik erzeugt niemals eine Funktion, einen Sensorwert oder ein Konto.
 
 ## 1. Verbindliche Quellen und Priorität
@@ -61,7 +65,7 @@ Die Basis ist fast schwarzes Tannengrün. Bildflächen werden mit dunklen, organ
 | Karten | Bildbasiert, dunkel überblendet, Iconkreis, Titel, kurze Handlungszeile und Chevron |
 | Typografie | Wortmarke und Displaytitel mit der etablierten kontraststarken Displaytypografie; System- und Statusangaben kompakt und technisch lesbar |
 | Kontur | Dünn, leuchtend und ausschließlich bereichsfarben oder neutral hell; keine schweren Standardrahmen |
-| Bewegung | Nur `transform` und `opacity`; jede nicht essenzielle Bewegung respektiert `prefers-reduced-motion` |
+| Bewegung | Nur `transform` und `opacity`; 180–480 ms mit natürlicher kubischer Bézier-Kurve. Ergebnislisten mit höchstens drei Einträgen und maximal 55 ms Staffelung; Galerie als Crossfade mit zurückhaltender Skalierung, Akkordeons über Höhe/Opazität und interaktive Ziele mit Press-Feedback. Kein Autoplay-Loop außer einer dezenten, nicht essenziellen Ladeanzeige. `prefers-reduced-motion` schaltet unmittelbar und ohne Bewegung, ohne Inhalt zu verbergen. |
 | Fokus | Sichtbarer, ausreichend kontrastreicher Tastaturfokus bleibt auf allen Links, Buttons und Formfeldern erhalten |
 
 Die mobile Referenz ist die primäre Komposition. Die Web-App erweitert sie behutsam auf größere Breiten: Der Zielseiteninhalt bleibt als fokussierter, bildstarker Bereich lesbar. Die vier Funktionskarten bleiben im Standard **2 × 2** und werden nicht zu einer austauschbaren vierteiligen Desktopzeile. Die Bottom Navigation bleibt in der Referenzansicht sichtbar; eine zusätzliche Desktop-Textnavigation darf diese nicht als primäre Zielnavigation ersetzen.
@@ -103,7 +107,8 @@ Die heutigen, funktional belegten Routen sind die Wahrheit für bestehende Funkt
 | Botanik | `/world/botany` | vorhanden | Home |
 | Aquaristik | `/world/aquarium` | vorhanden | Home |
 | Terraristik | `/world/terrarium` | vorhanden | Home |
-| KI-Assistent | `/assistant` | vorhanden | Home |
+| KI-Artenbestimmung | `/assistant` | kanonisch; neue professionelle Artenbestimmung | Home |
+| KI-Artenbestimmung (Kompatibilitätsalias) | `/assistant/identify` | Alias auf dieselbe neue Komponente, keine Legacy-Oberfläche | Home |
 | Live-Bereich | `/flow/live` | gezielt neu anzulegen | Home |
 | Foto-Aufnahme | `/flow/foto` | gezielt neu anzulegen | Home |
 | Beitrag-Erstellung | `/flow/beitrag` | gezielt neu anzulegen | Community |
@@ -113,7 +118,7 @@ Die heutigen, funktional belegten Routen sind die Wahrheit für bestehende Funkt
 | Profil | `/profile` | vorhanden | Profil |
 | Wissen | `/knowledge` | vorhanden | Entdecken |
 
-Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. `/assistant` bleibt eine erreichbare echte Route, erscheint jedoch nicht als eigener Eintrag in der Bottom-Navigation. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
+Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der Produktauftrag vom 16. September 2026 ergänzt den bereits funktionsfähigen **Marktplatz** als fünften gleichwertigen Bottom-Tab zwischen Entdecken und Community. `/assistant` bleibt als kanonische professionelle KI-Artenbestimmung erreichbar und erscheint nicht als eigener Eintrag in der Bottom-Navigation. `/assistant/identify` ist ausschließlich ein rückwärtskompatibler Alias derselben Ansicht. Es muss immer genau ein aktiver Zielpunkt sichtbar sein.
 
 `/flow/botanik`, `/flow/aquaristik`, `/flow/terraristik` und `/flow/ki-assistent` werden **nicht** aus älteren Handoff-Tabellen übernommen, solange kein eigener Produktauftrag dies verlangt. Sie widersprechen der derzeitigen App-Routenwahrheit. Nur Live, Foto und Beitrag sind als neue Zielseiten explizit vorgesehen.
 
@@ -124,7 +129,7 @@ Die Referenznavigation enthält **Home, Entdecken, Community und Profil**. Der P
 | `/world/botany` | Alocasia, `PFLANZEN WORLD`, `BOTANIK`, „Deine Pflanzensammlung.“ | Genau vier Bildkarten: Meine Pflanzen, Pflanze hinzufügen, Pflanze bestimmen, Pflegewissen. Fehlende Ziele klar als künftig kennzeichnen. |
 | `/world/aquarium` | Unterwasser/Fische, Fischbadge, `AQUARISTIK`, Becken/Wasserwerte/Unterwasserwelt | Genau vier Bildkarten: Meine Aquarien, Aquarium hinzufügen, Wasserwerte, KI zur Aquaristik. |
 | `/world/terrarium` | Frosch/Moos, `TERRARISTIK`, „Regenwald im Kleinen.“ | Genau vier Bildkarten: Terrarium fotografieren, Terrarium entdecken, Wissen, KI fragen. |
-| `/assistant` | Botanische KI-Welt, Lila-Orbit, `BLACKWATERLEAF KI`, Transparenzgrundsatz | Vier Karten: Frage stellen, Pflanze bestimmen, Aquarium verstehen, Wissen & Quellen. Nur „Frage stellen“ ist heute sicher aktiv. |
+| `/assistant` | Redaktionelle botanisch-aquatische KI-Artenbestimmung, Lila-Akzent, Transparenzgrundsatz | Aufnahme, Informationen und Ergebnisansicht gemäß vorrangiger Artenbestimmungsreferenz; externe KI-Daten-, Auth- und Einwilligungslogik bleiben echt. Die alte kombinierte KI-Kartenoberfläche ist nicht zulässig. |
 | `/flow/live` | Unterwasser, `LIVE-BEREICH`, `DEINE WELT LIVE` | Verbindungsfläche `LIVE-VERBINDUNG / Noch nicht verbunden`, danach Kamera, Wasserwerte, Benachrichtigungen, Entdecken. |
 | `/flow/foto` | Blattwelt, `MOMENT FESTHALTEN`, `FOTO` | Primäre echte Kamera-/Dateiauswahl vor vier Karten: Pflanzenfoto, Aquariumfoto, KI bestimmen, Feed. |
 | `/flow/beitrag` | Blattwelt, Communitybadge, `BEITRAG`, „Teile deinen Moment.“ | Composer-Vorschau und Übergang zum echten Community-Editor, danach Beitrag, Foto, Video, Community. Video bleibt künftig, solange keine echte Funktion besteht. |

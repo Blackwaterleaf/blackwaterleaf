@@ -1,0 +1,27 @@
+{
+  "routes": [
+    { "path": "/", "title": "Startseite" },
+    { "path": "/admin", "title": "Administration" },
+    { "path": "/admin/:section", "title": "Administration" },
+    { "path": "/login", "title": "Anmelden" },
+    { "path": "/register", "title": "Registrieren" },
+    { "path": "/forgot-password", "title": "Passwort vergessen" },
+    { "path": "/verify-email", "title": "E-Mail bestätigen" },
+    { "path": "/reset-password", "title": "Passwort zurücksetzen" },
+    { "path": "/explore", "title": "Entdecken" },
+    { "path": "/community", "title": "Community" },
+    { "path": "/assistant", "title": "KI-Assistent" },
+    { "path": "/assistant/identify", "title": "KI-Artenbestimmung" },
+    { "path": "/profile/settings", "title": "Profileinstellungen" },
+    { "path": "/profile", "title": "Profil" },
+    {
+      "path": "/knowledge/species/:scientificName",
+      "title": "Artbezogene Datenbank"
+    },
+    { "path": "/knowledge", "title": "Datenbank" },
+    { "path": "/marketplace/product/:id", "title": "Produkt" },
+    { "path": "/marketplace", "title": "Marktplatz" },
+    { "path": "/flow/:flow", "title": "Erfassen" },
+    { "path": "/world/:realm", "title": "Naturwelt" }
+  ]
+}

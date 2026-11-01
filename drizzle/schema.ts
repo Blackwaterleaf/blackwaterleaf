@@ -317,11 +317,36 @@ export const assistantUsage = mysqlTable(
     model: varchar("model", { length: 96 }).notNull(),
     promptChars: int("promptChars").notNull(),
     completionChars: int("completionChars").notNull(),
+    operation: mysqlEnum("operation", ["chat", "plant_identify", "species_identify", "aquarium_analyze"]).default("chat").notNull(),
+    requestStatus: mysqlEnum("requestStatus", ["reserved", "completed", "failed"]).default("reserved").notNull(),
+    /** UTC day and slot are assigned only while a request holds daily quota. */
+    quotaDay: varchar("quotaDay", { length: 10 }),
+    quotaSlot: int("quotaSlot"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   table => [
     uniqueIndex("assistant_usage_user_request_unique").on(table.userId, table.clientRequestId),
+    uniqueIndex("assistant_usage_user_day_slot_unique").on(table.userId, table.quotaDay, table.quotaSlot),
     index("assistant_usage_user_created_idx").on(table.userId, table.createdAt),
+    index("assistant_usage_user_day_status_idx").on(table.userId, table.quotaDay, table.requestStatus),
+  ],
+);
+
+/** One private, mutable quality signal per completed species-identification request. */
+export const speciesIdentificationFeedback = mysqlTable(
+  "species_identification_feedback",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    usageId: int("usageId").notNull().references(() => assistantUsage.id),
+    userId: int("userId").notNull().references(() => users.id),
+    satisfied: boolean("satisfied"),
+    note: text("note"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  table => [
+    uniqueIndex("species_ident_feedback_usage_user_unique").on(table.usageId, table.userId),
+    index("species_ident_feedback_user_satisfied_idx").on(table.userId, table.satisfied, table.updatedAt),
   ],
 );
 
@@ -679,6 +704,7 @@ export type InsertObservationRecord = typeof observations.$inferInsert;
 export type MediaAssetRecord = typeof mediaAssets.$inferSelect;
 export type XpEventRecord = typeof xpEvents.$inferSelect;
 export type AssistantUsageRecord = typeof assistantUsage.$inferSelect;
+export type SpeciesIdentificationFeedbackRecord = typeof speciesIdentificationFeedback.$inferSelect;
 export type PrivateHabitatRecord = typeof privateHabitats.$inferSelect;
 export type SmartDeviceMeasurementRecord = typeof smartDeviceMeasurements.$inferSelect;
 export type KnowledgeArticleRecord = typeof knowledgeArticles.$inferSelect;
