@@ -6,6 +6,7 @@ import * as SecureStore from "expo-secure-store";
 // into the native binary.
 const configuredApiOrigin = process.env.EXPO_PUBLIC_API_ORIGIN?.trim() || String(Constants.expoConfig?.extra?.apiOrigin ?? "").trim();
 export const API_ORIGIN = (configuredApiOrigin || "https://blackwaterleaf.com").replace(/\/+$/, "");
+const API_FALLBACK_ORIGIN = "https://www.blackwaterleaf.com";
 export const NATIVE_TOKEN_KEY = "blackwaterleaf.session_token.v1";
 
 export type LiveTrack = "community" | "expert";
@@ -396,13 +397,20 @@ async function trpc<T>(
           headers: { ...headers, "Content-Type": "application/json" },
           body: JSON.stringify({ json: input }),
         };
-  const response =
-    method === "GET"
-      ? await fetch(
-          `${url}?input=${encodeURIComponent(JSON.stringify({ json: input }))}`,
-          request
-        )
-      : await fetch(url, request);
+  const requestUrl = method === "GET"
+    ? `${url}?input=${encodeURIComponent(JSON.stringify({ json: input }))}`
+    : url;
+  let response: Response;
+  try {
+    response = await fetch(requestUrl, request);
+  } catch (error) {
+    // A DNS failure can affect one hostname while the same IONOS service is
+    // reachable through the canonical www hostname. Retry read-only calls
+    // only; never repeat mutations automatically.
+    if (method !== "GET" || API_ORIGIN === API_FALLBACK_ORIGIN) throw error;
+    const fallbackUrl = `${API_FALLBACK_ORIGIN}/api/trpc/${procedure}?input=${encodeURIComponent(JSON.stringify({ json: input }))}`;
+    response = await fetch(fallbackUrl, request);
+  }
   const raw = await response.text();
   let payload: TrpcEnvelope<T>;
   try {
