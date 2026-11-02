@@ -14,6 +14,7 @@ const styles = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 describe("temporary Manus authentication fallback", () => {
   it("starts through the server and keeps the API same-origin for session cookies", () => {
     expect(helper).toContain('new URLSearchParams({ origin: window.location.origin })');
+    expect(helper).toContain('window.location.assign("/login")');
     expect(helper).toContain('window.location.assign(`/api/oauth/start?${params.toString()}`)');
     expect(callback).toContain("const nonce = crypto.randomUUID()");
     expect(callback).toContain("encodeOAuthState({ redirectUri, nonce })");
@@ -39,8 +40,9 @@ describe("temporary Manus authentication fallback", () => {
     expect(accountAccess).toContain("googleLoginAvailable");
     expect(accountAccess).toContain("onClick={startLogin}");
     expect(accountAccess).toContain("const localLoginAvailable = Boolean(status.data?.localLoginAvailable)");
-    expect(accountAccess).toContain("const showManusFallback = !isEmailReady || !localLoginAvailable");
+    expect(accountAccess).toContain("const showManusFallback = !selfHosted && (!isEmailReady || !localLoginAvailable)");
     expect(accountAccess).toContain("showManusFallback && !googleLoginAvailable");
+    expect(accountAccess).toContain("const selfHosted =");
     expect(accountAccess).toContain("BlackWaterLeaf kann weltweit genutzt werden");
     expect(styles).toContain(".account-manus-fallback");
   });

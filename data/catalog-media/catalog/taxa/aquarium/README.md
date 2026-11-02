@@ -4,7 +4,7 @@ Die Bilder in diesem Ordner wurden von BlackWaterLeaf bereitgestellt. Nach Nutze
 
 `900001/bwl-owner_013fb400.jpg` ist die blau gefärbte männliche Darstellung von *Badis badis*.
 
-`900001/bwl-owner_7bca6d29.jpg` ist die unauffällig gefärbte weibliche Darstellung von *Badis badis*.
+`/manus-storage/bwl-owner_7bca6d29_901d16c2.jpg` ist die unauffällig gefärbte weibliche Darstellung von *Badis badis*.
 
 `900002/bwl-owner_06e2a97c.jpg` ist eine Nutzeraufnahme von *Channa andrao*.
 

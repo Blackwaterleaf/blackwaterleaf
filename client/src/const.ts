@@ -6,8 +6,16 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
  * OAuth login CSRF/session fixation. Never call this during render.
  */
 export const startLogin = () => {
-  // Keep OAuth configuration server-side. This also prevents a stale or missing
-  // VITE_OAUTH_PORTAL_URL in a preview build from producing an unusable URL.
+  // IONOS runs self-hosted local/Google auth and deliberately disables the
+  // legacy Manus endpoint. Protected actions must therefore land on the local
+  // account screen instead of sending users to /api/oauth/start (410).
+  const selfHostedHosts = new Set(["blackwaterleaf.com", "www.blackwaterleaf.com"]);
+  if (selfHostedHosts.has(window.location.hostname)) {
+    window.location.assign("/login");
+    return;
+  }
+
+  // Keep managed OAuth configuration server-side for the WebDev preview.
   const params = new URLSearchParams({ origin: window.location.origin });
   window.location.assign(`/api/oauth/start?${params.toString()}`);
 };
